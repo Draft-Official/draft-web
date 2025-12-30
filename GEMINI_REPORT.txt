@@ -1,0 +1,104 @@
+# GEMINI REPORT: Host-Centric UI/UX Update
+
+## 1. Implemented Features
+-   **Always-Visible Recruit FAB**: A large, capsule-shaped "Recruit Guest" button fixed at the bottom-right, designed to be the primary call-to-action for hosts. It features a pulse animation and stays expanded to ensure high visibility.
+-   **Advanced Filter Bar**: A sticky header bar providing easy access to Location (2-depth pending logic), Date, and detailed Position filters.
+-   **Host-First Match Creation Flow**: Direct redirection to a "Share Sheet" after creating a match, encouraging immediate sharing via a large "Copy Link" button.
+-   **Enhanced Match Card UI**:
+    -   Larger typography (Title: 20px, Date: 19px) for better readability.
+    -   Detailed status badges (e.g., "G(Closed)", "C(Urgent)").
+    -   Visual emphasis on urgent matches with a glow and border effect.
+-   **Anti-Fraud Payment Verification System**:
+    -   **Guest Side**: Strict warning modal (`AlertDialog`) upon payment completion, warning about permanent ban for false reporting.
+    -   **Host Side**: Dedicated dashboard (`/host/dashboard`) to verify payments. Applicants with `verification_pending` status are prioritized with "Confirm" or "Report" actions.
+
+## 2. File Changes
+-   **Modified**:
+    -   `app/page.tsx`: Integrated `FilterBar` and `RecruitFAB`. Updated mock data to showcase new badge logic and urgent states.
+    -   `app/match/create/page.tsx`: Implemented the "Share Sheet" post-submit view.
+    -   `app/guest/[id]/page.tsx`: Updated button state to "Verification Pending".
+    -   `components/match/match-card.tsx`: Updated styles for typography and badges.
+    -   `components/match/application-drawer.tsx`: Added `AlertDialog` for payment confirmation.
+-   **Created**:
+    -   `components/ui/recruit-fab.tsx`: The new Extended FAB component using `framer-motion`.
+    -   `components/match/filter-bar.tsx`: The new filtering UI component.
+    -   `app/host/dashboard/page.tsx`: The new Host Verification Dashboard.
+
+## 3. User Guide
+-   **For Hosts**:
+    1.  Click the large orange **"+ 게스트 모집하기"** button at the bottom right.
+    2.  Fill in the match details.
+    3.  Upon completion, use the **"링크 복사하기"** button to immediately share the recruit link with your team or community.
+    4.  Check `/host/dashboard` to verify guest payments. Use the "Confirm Payment" button to finalize participation.
+-   **For Guests**:
+    1.  Use the top **Filter Bar** to narrow down matches by location or position.
+    2.  Browse the feed; urgent matches are highlighted with an orange glow.
+    3.  Click on a card to view details.
+    4.  When applying, ensure you have effectively transferred the money before clicking "Payment Complete" to avoid account suspension.
+
+## 4. Self-Check Checklist
+-   [O] Mobile layout fixed to max-width 430px (via `layout.tsx`).
+-   [O] FAB is always expanded (text + icon visible) and does not collapse on scroll.
+-   [O] FAB color is Primary (#FF6600) and distinct from the bottom nav.
+-   [O] Typography sizes increased (Title 20px, Date 19px) for Mobile Web readability.
+-   [O] Urgent matches have a distinct visual cue.
+-   [O] Guest Warning Modal is implemented.
+-   [O] Urgent matches have a distinct visual cue.
+-   [O] Guest Warning Modal is implemented.
+-   [O] Host Dashboard correctly filters and prioritizes `verification_pending` users.
+
+## 5. Detailed User Flow (Approval Process)
+
+This platform follows a "Trust-Based Approval" model.
+
+### Phase 1: Application (Guest)
+1.  **Discover**: Guest finds a match on the Home Feed (`/`). Cards show time, location, and vacancy badges.
+2.  **Apply**: Guest clicks into detail page (`/guest/[id]`). Checks position requirements.
+3.  **Action**: Clicks "Apply".
+4.  **State Change**: Status becomes `pending`. (Host sees new applicant).
+
+### Phase 2: Approval (Host)
+1.  **Notification**: Host checks Dashboard (`/host/dashboard`).
+2.  **Review**: Host reviews Guest's Manner Score and Position.
+3.  **Action**: Host clicks "Approve".
+4.  **State Change**: Status becomes `approved_pending_payment`.
+5.  **Timer**: A 1-hour payment timer starts (Mock logic).
+
+### Phase 3: Payment (Guest)
+1.  **Verification**: Guest sees "Payment Required" status.
+2.  **Transfer**: Guest sends money to Host's account (info in drawer).
+3.  **Action**: Guest clicks "Payment Complete".
+4.  **Warning**: System shows "False Report Warning" Modal. Guest confirms.
+5.  **State Change**: Status becomes `verification_pending`.
+
+### Phase 4: Confirmation (Host)
+1.  **Notification**: Host Dashboard shows applicant with "Check Payment" badge (Orange).
+2.  **Check**: Host verifies real bank app for transfer.
+3.  **Action**:
+    -   If Received: Click "Confirm". Status -> `confirmed` (Final).
+    -   If Not Received: Click "Report". Status -> `rejected` + Manner Score Penalty.
+
+## 6. UI/UX Improvements (Filtering & Communication)
+-   **Filter Bar Restyling**:
+    -   Implemented "Outline Style" for clarity. Default is gray/white, Selected is bold Orange.
+    -   Removed "Disabled"-looking gray backgrounds.
+-   **Communication Bridge**:
+    -   **Create Page**: Added Facilities Toggle (Parking, Shower, AC), Host Notice Textarea, and OpenChat Link Input.
+    -   **Detail Page**:
+        -   Visualized facilities as top-level badges.
+        -   Added "📢 Host Notice" section in a distinct gray box.
+        -   Added "Contact Host" button linking to OpenChat if provided.
+        -   **Fix**: Raised "Apply" button bottom offset to avoid overlap with Bottom Nav.
+
+## 7. Flow Verification (Self-Check)
+-   **Navigation**:
+    -   [O] Home -> Match Detail (Link works)
+    -   [O] Match Detail -> Apply (Drawer opens)
+    -   [O] Bottom Nav: "My" and "My Matches" are now mutually exclusive active states.
+-   **Application Logic**:
+    -   [O] Guest applies -> `pending` state (simulated).
+    -   [O] Host approves -> `payment_pending`.
+    -   [O] Guest pays -> Warning Modal -> `verification_pending`.
+-   **Visuals**:
+    -   [O] Filter Bar is 2-row sticky (Karrot style).
+    -   [O] Match Detail is Floating Card style with Notice Box.
