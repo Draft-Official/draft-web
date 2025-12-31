@@ -3,9 +3,9 @@
 import React, { useState, useMemo } from 'react';
 import { Calendar as CalendarIcon, ArrowDown } from 'lucide-react';
 import { RecruitFAB } from '@/components/ui/recruit-fab';
-import { FilterBar } from '@/components/match/filter-bar';
-import { getNext14Days } from '@/components/match/date-strip';
-import { MatchListItem, MatchListItemProps } from '@/components/match/match-list-item';
+import { FilterBar } from '@/features/match/ui/filter-bar';
+import { getNext14Days } from '@/features/match/ui/date-strip';
+import { MatchListItem, MatchListItemProps } from '@/features/match/ui/match-list-item';
 
 // --- Mock Data ---
 const TODAY = new Date();
@@ -190,7 +190,7 @@ export default function Home() {
                     Object.entries(filteredAndGroupedMatches).map(([dateISO, groupMatches]) => (
                         <div key={dateISO} className="relative">
                             {/* Sticky Date Header for List Section */}
-                            <div className="sticky top-[166px] z-10 bg-slate-50/95 backdrop-blur-sm py-2 px-4 border-b border-slate-100/50 shadow-sm transition-all duration-300">
+                            <div className="sticky top-[195px] z-10 bg-slate-50/95 backdrop-blur-sm py-2 px-4 border-b border-slate-100/50 shadow-sm transition-all duration-300">
                                 <span className="text-sm font-bold text-slate-600 flex items-center gap-2">
                                     <CalendarIcon className="w-3.5 h-3.5" />
                                     {getDayLabel(dateISO)}
