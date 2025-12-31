@@ -18,10 +18,17 @@ interface FilterBarProps {
 
 export function FilterBar({ selectedDateISO, onDateSelect, selectedPositions, onPositionsChange }: FilterBarProps) {
     const [showRegionModal, setShowRegionModal] = useState(false);
-    const [currentRegionLabel, setCurrentRegionLabel] = useState('서울 전체');
+    const [selectedRegions, setSelectedRegions] = useState<string[]>(['서울 전체']);
 
-    const handleRegionSelect = (region: string) => {
-        setCurrentRegionLabel(region);
+    const handleRegionApply = (regions: string[]) => {
+        setSelectedRegions(regions);
+    };
+
+    // Display label: show first region + count if multiple
+    const getRegionDisplayLabel = (): string => {
+        if (selectedRegions.length === 0) return '전체';
+        if (selectedRegions.length === 1) return selectedRegions[0];
+        return `${selectedRegions[0]} 외 ${selectedRegions.length - 1}`;
     };
 
     const togglePosition = (pos: string) => {
@@ -50,8 +57,8 @@ export function FilterBar({ selectedDateISO, onDateSelect, selectedPositions, on
                         onClick={() => setShowRegionModal(true)}
                         className="flex items-center gap-1 active:opacity-70 transition-opacity outline-none"
                     >
-                        <span className="text-xl font-extrabold text-slate-900 tracking-tight">
-                            {currentRegionLabel}
+                    <span className="text-xl font-extrabold text-slate-900 tracking-tight">
+                            {getRegionDisplayLabel()}
                         </span>
                         <ChevronDown className="w-5 h-5 text-slate-900 stroke-[3]" />
                     </button>
@@ -91,8 +98,8 @@ export function FilterBar({ selectedDateISO, onDateSelect, selectedPositions, on
             <RegionFilterModal
                 open={showRegionModal}
                 onOpenChange={setShowRegionModal}
-                onSelect={handleRegionSelect}
-                selectedRegion={currentRegionLabel}
+                onApply={handleRegionApply}
+                selectedRegions={selectedRegions}
             />
         </>
     );
