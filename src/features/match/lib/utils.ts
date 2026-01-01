@@ -46,6 +46,8 @@ export interface FilterOptions {
     dateISO: string | null;
     positions: string[];
     locations: string[]; // e.g. ["서울 강남구", "서울 서초구"]
+    priceMax?: number | null; // e.g. 10000
+    hideClosed?: boolean; // hide closed matches
 }
 
 export const filterMatches = (
@@ -96,6 +98,16 @@ export const filterMatches = (
                 return posData && posData.status === 'open';
             });
         });
+    }
+
+    // 4. Price Filter
+    if (options.priceMax !== null && options.priceMax !== undefined) {
+        filtered = filtered.filter(m => m.priceNum <= options.priceMax!);
+    }
+
+    // 5. Hide Closed Filter
+    if (options.hideClosed) {
+        filtered = filtered.filter(m => !m.isClosed);
     }
 
     return filtered;
