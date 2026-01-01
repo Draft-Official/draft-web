@@ -8,6 +8,34 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from '@/shared/lib/utils';
 import { REGIONS } from '@/shared/lib/constants/regions';
 
+// Hook to detect scroll with hysteresis to prevent flickering
+const useScrollDirection = () => {
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const SCROLL_DOWN_THRESHOLD = 60; // Hide header when scrolling down past this
+    const SCROLL_UP_THRESHOLD = 20;   // Show header when scrolling up below this
+
+    const updateScrollDirection = () => {
+      const scrollY = window.scrollY;
+
+      if (!isScrolled && scrollY > SCROLL_DOWN_THRESHOLD) {
+        // Scrolled down past threshold - hide header
+        setIsScrolled(true);
+      } else if (isScrolled && scrollY < SCROLL_UP_THRESHOLD) {
+        // Scrolled up below threshold - show header
+        setIsScrolled(false);
+      }
+      // Do nothing in the middle zone (20-60px) to prevent flickering
+    };
+
+    window.addEventListener("scroll", updateScrollDirection, { passive: true });
+    return () => window.removeEventListener("scroll", updateScrollDirection);
+  }, [isScrolled]);
+
+  return isScrolled;
+};
+
 interface FilterBarProps {
   selectedDateISO: string | null;
   onDateSelect: (date: string | null) => void;
@@ -64,6 +92,9 @@ export function FilterBar({
   isHideClosed = false,
   onHideClosedChange,
 }: FilterBarProps) {
+  // -- Scroll Detection --
+  const isScrolled = useScrollDirection();
+
   // -- Modal Open States --
   const [isLocationOpen, setIsLocationOpen] = useState(false);
   const [isPositionOpen, setIsPositionOpen] = useState(false);
@@ -100,6 +131,14 @@ export function FilterBar({
     onLocationsChange(tempSelectedLocations);
     setIsLocationOpen(false);
   };
+  const resetLocationFilter = () => {
+    setTempSelectedLocations([]);
+  };
+
+  // Count selected locations per region
+  const getRegionCount = (region: string) => {
+    return tempSelectedLocations.filter(loc => loc.startsWith(region)).length;
+  };
 
   // 2. Position
   const toggleTempPosition = (pos: string) => {
@@ -128,8 +167,11 @@ export function FilterBar({
   return (
     // --- Sticky Header Area ---
     <div className="bg-white sticky top-0 z-20 shadow-sm border-b border-slate-100">
-      {/* 1. Top Bar: Logo & Actions */}
-      <div className="flex items-center justify-between px-4 h-14 w-full bg-white z-20">
+      {/* 1. Top Bar: Logo & Actions - Hidden on scroll */}
+      <div className={cn(
+        "flex items-center justify-between px-4 h-14 w-full bg-white z-20 transition-all duration-300 overflow-hidden",
+        isScrolled ? "h-0 opacity-0" : "h-14 opacity-100"
+      )}>
         <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">
           게스트 모집
         </h1>
@@ -146,7 +188,7 @@ export function FilterBar({
             <button
               onClick={() => onDateSelect(null)}
               className={cn(
-                "flex flex-col items-center justify-center min-w-[50px] h-[52px] px-2 rounded-xl border transition-all active:scale-95",
+                "flex flex-col items-center justify-center min-w-[72px] h-[52px] px-2 rounded-xl border transition-all active:scale-95",
                 selectedDateISO === null
                   ? "bg-slate-900 border-slate-900 text-white shadow-md"
                   : "bg-white border-slate-100 text-slate-600"
@@ -160,7 +202,7 @@ export function FilterBar({
                 key={d.dateISO}
                 onClick={() => onDateSelect(d.dateISO)}
                 className={cn(
-                  "flex flex-col items-center justify-center min-w-[50px] h-[52px] rounded-xl border transition-all active:scale-95",
+                  "flex flex-col items-center justify-center min-w-[72px] h-[52px] rounded-xl border transition-all active:scale-95",
                   selectedDateISO === d.dateISO
                     ? "bg-slate-900 border-slate-900 text-white shadow-md"
                     : "bg-white border-slate-100 text-slate-400"
@@ -198,8 +240,8 @@ export function FilterBar({
             {(() => {
               if (selectedLocations.length === 0) return "지역";
               const first = selectedLocations[0];
-              const label = first.endsWith('전체') ? first : first.split(' ')[1];
-              return selectedLocations.length === 1 ? label : `${label} 외 ${selectedLocations.length - 1}`;
+              // Show full location name (e.g., "서울 강남구")
+              return selectedLocations.length === 1 ? first : `${first} 외 ${selectedLocations.length - 1}`;
             })()}
             <ChevronDown className="w-3.5 h-3.5" />
           </Button>
@@ -210,20 +252,33 @@ export function FilterBar({
             </DialogHeader>
             <div className="flex flex-1 overflow-hidden h-full">
               <div className="w-[30%] bg-slate-50 border-r border-slate-100 h-full overflow-y-auto">
-                {(["서울", "경기", "인천"] as const).map(region => (
-                  <button
-                    key={region}
-                    onClick={() => setActiveRegionTab(region)}
-                    className={cn(
-                      "w-full h-14 flex items-center justify-between px-3 text-sm font-medium",
-                      activeRegionTab === region
-                        ? "bg-white text-slate-900 font-bold"
-                        : "text-slate-500"
-                    )}
-                  >
-                    {region}
-                  </button>
-                ))}
+                {(["서울", "경기", "인천"] as const).map(region => {
+                  const count = getRegionCount(region);
+                  return (
+                    <button
+                      key={region}
+                      onClick={() => setActiveRegionTab(region)}
+                      className={cn(
+                        "w-full h-14 flex items-center justify-between px-3 text-sm font-medium",
+                        activeRegionTab === region
+                          ? "bg-white text-slate-900 font-bold"
+                          : "text-slate-500"
+                      )}
+                    >
+                      <span>{region}</span>
+                      {count > 0 && (
+                        <span className={cn(
+                          "text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center",
+                          activeRegionTab === region
+                            ? "bg-[#FF6600] text-white"
+                            : "bg-slate-200 text-slate-600"
+                        )}>
+                          {count}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
               <div className="w-[70%] bg-white h-full overflow-y-auto pb-4">
                 {/* 'All' Option for the active region */}
@@ -277,9 +332,43 @@ export function FilterBar({
                 })}
               </div>
             </div>
+
+            {/* Selected Chips Area */}
+            {tempSelectedLocations.length > 0 && (
+              <div className="shrink-0 bg-slate-50 border-t border-slate-100 px-4 py-3 max-h-[100px] overflow-y-auto">
+                <div className="flex flex-wrap gap-2">
+                  {tempSelectedLocations.map((loc) => (
+                    <div
+                      key={loc}
+                      className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-sm"
+                    >
+                      <span className="text-slate-700">{loc}</span>
+                      <button
+                        onClick={() => toggleTempLocation(loc)}
+                        className="hover:bg-slate-100 rounded-full p-0.5 transition-colors"
+                      >
+                        <X className="w-3.5 h-3.5 text-slate-400" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Buttons */}
             <div className="shrink-0 h-[80px] bg-white border-t border-slate-100 flex items-center px-4 gap-3 safe-area-bottom pb-4 z-20">
-              <Button onClick={applyLocationFilter} className="flex-1 h-12 bg-[#FF6600] text-white rounded-xl text-base font-bold hover:bg-[#FF6600]/90">
-                적용하기
+              <Button
+                onClick={resetLocationFilter}
+                variant="outline"
+                className="h-12 px-6 rounded-xl text-sm font-bold border-slate-200 text-slate-600 hover:bg-slate-50"
+              >
+                초기화
+              </Button>
+              <Button
+                onClick={applyLocationFilter}
+                className="flex-1 h-12 bg-[#FF6600] text-white rounded-xl text-sm font-bold hover:bg-[#FF6600]/90"
+              >
+                적용
               </Button>
             </div>
           </DialogContent>

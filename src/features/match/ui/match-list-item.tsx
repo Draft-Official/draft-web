@@ -120,7 +120,7 @@ export function MatchListItem({ match, showDate = false, getShortDayLabel }: Mat
         )}>
           {match.positions.all ? (
             <PositionChip
-              label="무관"
+              label="포지션 무관"
               max={match.positions.all.max}
               status={match.positions.all.status}
             />

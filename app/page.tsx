@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, ArrowDown, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,9 +10,38 @@ import { useMatches } from '../src/entities/match/model/match-context';
 import { filterMatches, groupMatchesByDate, getDayLabel } from '@/features/match/lib/utils';
 import { cn } from '@/shared/lib/utils';
 
+// Hook to detect scroll with hysteresis to prevent flickering
+const useScrollDirection = () => {
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const SCROLL_DOWN_THRESHOLD = 60; // Hide header when scrolling down past this
+    const SCROLL_UP_THRESHOLD = 20;   // Show header when scrolling up below this
+
+    const updateScrollDirection = () => {
+      const scrollY = window.scrollY;
+
+      if (!isScrolled && scrollY > SCROLL_DOWN_THRESHOLD) {
+        // Scrolled down past threshold - hide header
+        setIsScrolled(true);
+      } else if (isScrolled && scrollY < SCROLL_UP_THRESHOLD) {
+        // Scrolled up below threshold - show header
+        setIsScrolled(false);
+      }
+      // Do nothing in the middle zone (20-60px) to prevent flickering
+    };
+
+    window.addEventListener("scroll", updateScrollDirection, { passive: true });
+    return () => window.removeEventListener("scroll", updateScrollDirection);
+  }, [isScrolled]);
+
+  return isScrolled;
+};
+
 export default function GuestMatchListPage() {
   const router = useRouter();
   const { matches } = useMatches();
+  const isScrolled = useScrollDirection();
 
   // --- State ---
   const [selectedDateISO, setSelectedDateISO] = useState<string | null>(null);
@@ -78,7 +107,10 @@ export default function GuestMatchListPage() {
               <div key={dateISO} className="relative">
                 {/* Date Divider (Sticky) */}
                 {!selectedDateISO && (
-                  <div className="sticky top-[165px] z-10 bg-slate-50/95 backdrop-blur-sm py-2 px-4 border-b border-slate-100 text-xs font-bold text-slate-500 flex items-center gap-2">
+                  <div className={cn(
+                    "sticky z-10 bg-slate-50/95 backdrop-blur-sm py-2 px-4 border-b border-slate-100 text-xs font-bold text-slate-500 flex items-center gap-2 transition-all duration-300",
+                    isScrolled ? "top-[110px]" : "top-[165px]"
+                  )}>
                     {getDayLabel(dateISO)}
                   </div>
                 )}
@@ -100,14 +132,14 @@ export default function GuestMatchListPage() {
               onClick={() => router.push('/match/create')}
               className={cn(
                 "rounded-full bg-[#FF6600] shadow-xl shadow-orange-200 hover:bg-[#FF6600]/90 flex items-center justify-center transition-all active:scale-95",
-                "w-14 h-14 md:w-auto md:h-16 md:px-8 md:rounded-2xl"
+                "w-12 h-12 md:w-auto md:h-12 md:px-6 md:rounded-[20px]"
               )}
             >
               {/* Mobile: Plus Icon Only */}
-              <Plus className="w-7 h-7 text-white md:hidden" />
+              <Plus className="w-6 h-6 text-white md:hidden" />
 
-              {/* PC: Large Bold Text */}
-              <span className="hidden md:inline text-white font-extrabold text-xl tracking-tight">게스트 모집 +</span>
+              {/* PC: Text */}
+              <span className="hidden md:inline text-white font-bold text-sm tracking-tight">게스트 모집 +</span>
             </Button>
           </div>
         </div>
