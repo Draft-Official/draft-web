@@ -184,10 +184,10 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
         </div>
 
         {/* Divider */}
-        <div className="h-px bg-slate-100 my-3" />
+        <div className="h-px bg-slate-100 my-4" />
 
         {/* Price */}
-        <div className="mb-8">
+        <div>
           <div className="text-sm text-slate-500 mb-1">참가비</div>
           <div className="flex items-baseline">
             <span className="text-xl font-extrabold text-slate-900">{match.price}</span>
@@ -196,7 +196,7 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
         </div>
 
         {/* Divider */}
-        <div className="h-px bg-slate-100 mb-8" />
+        <div className="h-px bg-slate-100 my-4" />
 
         {/* Game Info Grid */}
         <div className="grid grid-cols-2 gap-4 mb-8">
