@@ -1,18 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogClose,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { cn } from "@/shared/lib/utils";
+import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { X, Check } from 'lucide-react';
+import { cn } from '@/shared/lib/utils';
 import { REGIONS, RegionKey } from '@/shared/lib/constants/regions';
 
 interface RegionFilterModalProps {
@@ -24,22 +15,18 @@ interface RegionFilterModalProps {
 
 export function RegionFilterModal({ open, onOpenChange, onApply, selectedRegions }: RegionFilterModalProps) {
     const [activeRegionTab, setActiveRegionTab] = useState<RegionKey>("서울");
-    // Temporary selection state (confirmed on Apply button click)
     const [tempSelected, setTempSelected] = useState<string[]>(selectedRegions);
 
-    // Sync tempSelected when modal opens
     useEffect(() => {
         if (open) {
             setTempSelected(selectedRegions);
         }
     }, [open, selectedRegions]);
 
-    // Calculate count for each region tab
     const getRegionCount = (regionKey: RegionKey): number => {
         return tempSelected.filter(r => r.startsWith(regionKey)).length;
     };
 
-    // Toggle individual sub-region
     const toggleSubRegion = (subRegion: string) => {
         setTempSelected(prev => 
             prev.includes(subRegion) 
@@ -48,146 +35,164 @@ export function RegionFilterModal({ open, onOpenChange, onApply, selectedRegions
         );
     };
 
-    // Remove region from selected chips
+    const clearTempLocations = () => {
+        setTempSelected([]);
+    };
+
     const removeRegion = (region: string) => {
         setTempSelected(prev => prev.filter(r => r !== region));
     };
 
-    // Apply selections and close modal
     const handleApply = () => {
         onApply(tempSelected);
         onOpenChange(false);
     };
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            {/* Centered Modal Content to match Figma: w-[90%] max-w-[380px] h-[600px] */}
-            <DialogContent className="p-0 gap-0 w-[90%] max-w-[380px] h-[600px] rounded-2xl overflow-hidden border-0 outline-none">
-                <DialogHeader className="h-14 flex items-center justify-center border-b border-slate-100 shrink-0 relative px-4 bg-white z-10">
-                    <DialogTitle className="text-lg font-bold text-gray-900">지역 선택</DialogTitle>
-                    <DialogClose className="absolute right-4 p-2 rounded-full hover:bg-slate-100 transition-colors bg-transparent border-0">
-                        <X className="w-5 h-5 text-slate-500" />
-                    </DialogClose>
-                </DialogHeader>
+        <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
+            <DialogPrimitive.Portal>
+                {/* 1. Overlay (Dark Background) - Ensure High Z-Index & Opacity */}
+                <DialogPrimitive.Overlay className="fixed inset-0 z-[999] bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 backdrop-blur-[2px]" />
                 
-                {/* Split View Container */}
-                <div className="flex flex-1 overflow-hidden relative">
-                    {/* Left Column (Regions with Counts) */}
-                    <div className="w-[35%] bg-slate-50 border-r border-slate-100 h-full overflow-y-auto no-scrollbar">
-                        {(Object.keys(REGIONS) as RegionKey[]).map(region => {
-                            const count = getRegionCount(region);
-                            return (
-                                <button
-                                    key={region}
-                                    onClick={() => setActiveRegionTab(region)}
-                                    className={cn(
-                                        "w-full h-14 flex items-center justify-between px-4 text-sm font-medium transition-all text-left relative outline-none select-none",
-                                        activeRegionTab === region 
-                                            ? "bg-white text-[#FF6600] font-bold" 
-                                            : "text-slate-500 hover:bg-slate-100 bg-slate-50"
-                                    )}
-                                >
-                                    {activeRegionTab === region && (
-                                        <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-[#FF6600]" />
-                                    )}
-                                    <span>{region}</span>
-                                    {count > 0 && (
-                                        <span className={cn(
-                                            "text-xs ml-1",
-                                            activeRegionTab === region ? "text-[#FF6600]" : "text-slate-400"
-                                        )}>
-                                            {count}
-                                        </span>
-                                    )}
-                                </button>
-                            );
-                        })}
+                {/* 2. Content (Centered Modal) */}
+                <DialogPrimitive.Content className="fixed left-[50%] top-[50%] z-[1000] w-[90%] max-w-[420px] translate-x-[-50%] translate-y-[-50%] rounded-2xl bg-white shadow-2xl duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 overflow-hidden outline-none flex flex-col h-[80vh] max-h-[600px]">
+                    
+                    {/* Header */}
+                    <div className="h-14 flex items-center justify-center border-b border-slate-100 shrink-0 relative bg-white z-10 w-full">
+                        <DialogPrimitive.Title className="text-lg font-bold text-gray-900">
+                            지역 선택
+                        </DialogPrimitive.Title>
+                        <DialogPrimitive.Close className="absolute right-4 p-2 rounded-full hover:bg-slate-100 transition-colors outline-none cursor-pointer">
+                            <X className="w-5 h-5 text-slate-500" />
+                        </DialogPrimitive.Close>
                     </div>
 
-                    {/* Right Column (Sub-Regions List with Checkboxes) */}
-                    <div className="w-[65%] bg-white h-full overflow-y-auto pb-[180px]">
-                        {/* Select All Option */}
-                        <button
-                            onClick={() => toggleSubRegion(`${activeRegionTab} 전체`)}
-                            className="w-full h-14 flex items-center justify-between px-5 border-b border-slate-50 active:bg-orange-50 transition-colors text-left outline-none"
-                        >
-                            <span className={cn(
-                                "text-base",
-                                tempSelected.includes(`${activeRegionTab} 전체`) ? "font-bold text-[#FF6600]" : "text-slate-700"
-                            )}>
-                                {activeRegionTab} 전체
-                            </span>
-                            <Checkbox 
-                                checked={tempSelected.includes(`${activeRegionTab} 전체`)}
-                                onCheckedChange={() => toggleSubRegion(`${activeRegionTab} 전체`)}
-                                className={cn(
-                                    "data-[state=checked]:bg-[#FF6600] data-[state=checked]:border-[#FF6600]"
-                                )}
-                            />
-                        </button>
-
-                        {/* Sub Region Items */}
-                        {REGIONS[activeRegionTab].map(loc => {
-                            const fullLocationName = `${activeRegionTab} ${loc}`;
-                            const isSelected = tempSelected.includes(fullLocationName);
-                            return (
-                                <button
-                                    key={loc}
-                                    onClick={() => toggleSubRegion(fullLocationName)}
-                                    className="w-full h-14 flex items-center justify-between px-5 border-b border-slate-50 active:bg-orange-50 transition-colors text-left outline-none"
-                                >
-                                    <span className={cn(
-                                        "text-base",
-                                        isSelected ? "font-bold text-[#FF6600]" : "text-slate-700"
-                                    )}>
-                                        {loc}
-                                    </span>
-                                    <Checkbox 
-                                        checked={isSelected}
-                                        onCheckedChange={() => toggleSubRegion(fullLocationName)}
+                    {/* Body (Split View) */}
+                    <div className="flex flex-1 overflow-hidden relative bg-white w-full">
+                        {/* Left Sidebar (Regions) */}
+                        <div className="w-[30%] bg-slate-50 border-r border-slate-100 h-full overflow-y-auto no-scrollbar">
+                            {(Object.keys(REGIONS) as RegionKey[]).map(region => {
+                                const count = getRegionCount(region);
+                                const isActive = activeRegionTab === region;
+                                return (
+                                    <button
+                                        key={region}
+                                        onClick={() => setActiveRegionTab(region)}
                                         className={cn(
-                                            "data-[state=checked]:bg-[#FF6600] data-[state=checked]:border-[#FF6600]"
+                                            "w-full h-14 flex items-center justify-between px-3 text-sm transition-all text-left outline-none select-none relative",
+                                            isActive 
+                                                ? "bg-white text-slate-900 font-bold" 
+                                                : "text-slate-500 hover:bg-slate-100 bg-slate-50 font-medium"
                                         )}
-                                    />
-                                </button>
-                            );
-                        })}
+                                    >
+                                        {isActive && <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-[#FF6600]" />}
+                                        <span className="truncate">{region}</span>
+                                        {count > 0 && (
+                                            <span className="text-[#FF6600] font-bold text-xs ml-1">{count}</span>
+                                        )}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {/* Right Content (Districts) */}
+                        <div className="w-[70%] h-full overflow-y-auto pb-4 bg-white">
+                            {/* Select All */}
+                            <button
+                                onClick={() => toggleSubRegion(`${activeRegionTab} 전체`)}
+                                className="w-full h-14 flex items-center justify-between px-5 border-b border-slate-50 active:bg-orange-50 transition-colors text-left outline-none cursor-pointer group"
+                            >
+                                <span className={cn(
+                                    "text-base", 
+                                    tempSelected.includes(`${activeRegionTab} 전체`) ? "font-bold text-[#FF6600]" : "text-slate-700"
+                                )}>
+                                    {activeRegionTab} 전체
+                                </span>
+                                <div className={cn(
+                                    "w-5 h-5 rounded-[4px] border flex items-center justify-center transition-colors",
+                                    tempSelected.includes(`${activeRegionTab} 전체`) 
+                                        ? "bg-[#FF6600] border-[#FF6600]" 
+                                        : "bg-white border-slate-300 group-hover:border-slate-400"
+                                )}>
+                                    {tempSelected.includes(`${activeRegionTab} 전체`) && <Check className="w-3.5 h-3.5 text-white stroke-[3]" />}
+                                </div>
+                            </button>
+
+                            {/* Sub Regions */}
+                            {REGIONS[activeRegionTab].map(loc => {
+                                const fullLoc = `${activeRegionTab} ${loc}`;
+                                const isSelected = tempSelected.includes(fullLoc);
+                                return (
+                                    <button
+                                        key={loc}
+                                        onClick={() => toggleSubRegion(fullLoc)}
+                                        className="w-full h-14 flex items-center justify-between px-5 border-b border-slate-50 active:bg-orange-50 transition-colors text-left outline-none cursor-pointer group"
+                                    >
+                                        <span className={cn("text-base", isSelected ? "font-bold text-[#FF6600]" : "text-slate-700")}>
+                                            {loc}
+                                        </span>
+                                        <div className={cn(
+                                            "w-5 h-5 rounded-[4px] border flex items-center justify-center transition-colors",
+                                            isSelected 
+                                                ? "bg-[#FF6600] border-[#FF6600]" 
+                                                : "bg-white border-slate-300 group-hover:border-slate-400"
+                                        )}>
+                                            {isSelected && <Check className="w-3.5 h-3.5 text-white stroke-[3]" />}
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
 
-                    {/* Bottom Selection Chips Area + Apply Button */}
-                    <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 space-y-3">
+                    {/* Footer Area */}
+                    <div className="shrink-0 bg-white border-t border-slate-100 flex flex-col z-20 shadow-[0_-4px_10px_rgba(0,0,0,0.03)]">
                         {/* Selected Chips */}
                         {tempSelected.length > 0 && (
-                            <div className="flex flex-wrap gap-2 max-h-[100px] overflow-y-auto">
-                                {tempSelected.map(region => (
-                                    <Badge 
-                                        key={region}
-                                        variant="secondary"
-                                        className="px-3 py-1 bg-orange-50 text-[#FF6600] hover:bg-orange-100 border border-orange-200 gap-1"
-                                    >
-                                        {region}
-                                        <X 
-                                            className="w-3 h-3 cursor-pointer hover:text-[#FF8833]" 
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                removeRegion(region);
-                                            }}
-                                        />
-                                    </Badge>
-                                ))}
+                            <div className="w-full overflow-x-auto no-scrollbar px-4 py-3 border-b border-slate-50">
+                                <div className="flex gap-2">
+                                    {tempSelected.map(loc => (
+                                        <div key={loc} className="flex items-center gap-1 bg-slate-100 text-[#FF6600] border border-orange-100 pl-3 pr-2 py-1.5 rounded-lg text-xs font-bold animate-in fade-in zoom-in duration-200 whitespace-nowrap">
+                                            {loc.split(' ')[1] || loc}
+                                            <button 
+                                                onClick={(e) => { e.stopPropagation(); removeRegion(loc); }} 
+                                                className="p-0.5 hover:bg-black/5 rounded-full text-slate-400 hover:text-slate-600 outline-none"
+                                            >
+                                                <X className="w-3.5 h-3.5" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         )}
-                        
-                        {/* Apply Button */}
-                        <Button 
-                            onClick={handleApply} 
-                            className="w-full bg-[#FF6600] hover:bg-[#FF7722] text-white font-semibold"
-                        >
-                            적용하기
-                        </Button>
+
+                        {/* Buttons */}
+                        <div className="h-[80px] flex items-center px-4 gap-3 pb-safe">
+                            <button 
+                                onClick={clearTempLocations}
+                                className="flex items-center gap-1.5 px-3 py-2 text-slate-500 font-medium text-sm hover:text-slate-800 transition-colors outline-none"
+                            >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                <span>초기화</span>
+                            </button>
+                            <button 
+                                onClick={handleApply}
+                                className="flex-1 h-12 bg-[#FF6600] hover:bg-[#FF6600]/90 text-white rounded-xl text-base font-bold shadow-md shadow-orange-100 transition-transform active:scale-[0.98] outline-none flex items-center justify-center gap-1.5"
+                            >
+                                <span>적용하기</span>
+                                {tempSelected.length > 0 && (
+                                    <span className="bg-white/20 text-white px-1.5 rounded text-xs py-0.5 min-w-[20px] text-center">
+                                        {tempSelected.length}
+                                    </span>
+                                )}
+                            </button>
+                        </div>
                     </div>
-                </div>
-            </DialogContent>
-        </Dialog>
+
+                </DialogPrimitive.Content>
+            </DialogPrimitive.Portal>
+        </DialogPrimitive.Root>
     );
 }

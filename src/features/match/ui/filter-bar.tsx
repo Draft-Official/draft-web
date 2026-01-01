@@ -1,105 +1,172 @@
 'use client';
 
 import React, { useState } from 'react';
+import { ChevronDown, Search, Bell } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { RegionFilterModal } from './region-filter-modal';
-import { DateStrip } from './date-strip';
-import { ChevronDown } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { getNext14Days, getShortDayLabel } from '../lib/utils';
+
+// Existing DateStrip logic merged here for simplicity in this turn, or can be separate.
+// Let's create a minimal integrated FilterBar that includes the DateStrip functionality to ensure sticky behavior works perfectly together.
 
 interface FilterBarProps {
     selectedDateISO: string | null;
     onDateSelect: (iso: string | null) => void;
-
-    // Updated: Supports multiple positions
+    
     selectedPositions: string[];
     onPositionsChange: (positions: string[]) => void;
+    
+    selectedLocations: string[];
+    onLocationsChange: (locations: string[]) => void;
 }
 
-export function FilterBar({ selectedDateISO, onDateSelect, selectedPositions, onPositionsChange }: FilterBarProps) {
+export function FilterBar({ 
+    selectedDateISO, 
+    onDateSelect, 
+    selectedPositions, 
+    onPositionsChange,
+    selectedLocations,
+    onLocationsChange 
+}: FilterBarProps) {
     const [showRegionModal, setShowRegionModal] = useState(false);
-    const [selectedRegions, setSelectedRegions] = useState<string[]>(['서울 전체']);
+    const next14Days = getNext14Days();
 
-    const handleRegionApply = (regions: string[]) => {
-        setSelectedRegions(regions);
-    };
-
-    // Display label: show first region + count if multiple
     const getRegionDisplayLabel = (): string => {
-        if (selectedRegions.length === 0) return '전체';
-        if (selectedRegions.length === 1) return selectedRegions[0];
-        return `${selectedRegions[0]} 외 ${selectedRegions.length - 1}`;
+        if (selectedLocations.length === 0) return '전체';
+        if (selectedLocations.length === 1) return selectedLocations[0];
+        return `${selectedLocations[0]} 외 ${selectedLocations.length - 1}`;
     };
 
     const togglePosition = (pos: string) => {
-        // 1. '포지션 무관' Logic
         if (pos === '포지션 무관') {
-            // If selecting 'Any', clear others and set 'Any' (or empty if it was already selected, acting as toggle off)
-            // But usually 'Any' means "reset filters". Let's say it clears selection.
-            onPositionsChange([]);
+            if (selectedPositions.includes('포지션 무관')) {
+                onPositionsChange([]);
+            } else {
+                onPositionsChange(['포지션 무관']);
+            }
             return;
         }
 
-        // 2. Specific Position Logic
+        let newPositions = selectedPositions.filter(p => p !== '포지션 무관');
         if (selectedPositions.includes(pos)) {
-            onPositionsChange(selectedPositions.filter(p => p !== pos));
+            newPositions = newPositions.filter(p => p !== pos);
         } else {
-            onPositionsChange([...selectedPositions, pos]);
+            newPositions = [...newPositions, pos];
         }
+        onPositionsChange(newPositions);
     };
 
     return (
         <>
-            <div className="sticky top-14 z-40 bg-white border-b border-slate-100 shadow-sm transition-all pb-2">
-                {/* Region Selector */}
-                <div className="flex items-center justify-between px-4 pt-3 pb-2">
-                    <button
-                        onClick={() => setShowRegionModal(true)}
-                        className="flex items-center gap-1 active:opacity-70 transition-opacity outline-none"
-                    >
-                    <span className="text-xl font-extrabold text-slate-900 tracking-tight">
+            {/* Main Sticky Header Container */}
+            <div className="sticky top-0 z-40 bg-white border-b border-[#F2F4F6] shadow-sm">
+                
+                {/* 1. Top Bar: Logo, Region, Actions */}
+                <div className="h-[52px] flex items-center justify-between px-4 bg-white relative">
+                    {/* Left: Region Selector */}
+                    <div className="flex items-center gap-4">
+                         {/* DRAFT Logo (Text or Image placeholder) */}
+                         <span className="text-[#FF6600] font-black text-lg italic hidden">DRAFT</span>
+
+                        <button 
+                            onClick={() => setShowRegionModal(true)}
+                            className="flex items-center gap-1 text-[17px] font-bold text-[#191F28] active:opacity-70"
+                        >
                             {getRegionDisplayLabel()}
-                        </span>
-                        <ChevronDown className="w-5 h-5 text-slate-900 stroke-[3]" />
-                    </button>
+                            <ChevronDown className="w-5 h-5 text-[#333D4B]" />
+                        </button>
+                    </div>
+
+                    {/* Right: Actions */}
+                    <div className="flex items-center gap-3">
+                        <button className="p-1 rounded-full hover:bg-slate-50 relative">
+                            <Search className="w-6 h-6 text-[#333D4B]" />
+                        </button>
+                        <button className="p-1 rounded-full hover:bg-slate-50 relative">
+                            <Bell className="w-6 h-6 text-[#333D4B]" />
+                            <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-[#FF6600] rounded-full ring-2 ring-white" />
+                        </button>
+                    </div>
                 </div>
 
-                {/* Date Strip */}
-                <DateStrip selectedDateISO={selectedDateISO} onSelectDate={onDateSelect} />
+                {/* 2. Date Strip (Horizontal Scroll) */}
+                <div className="w-full overflow-x-auto no-scrollbar border-t border-[#F2F4F6] bg-white pt-2 pb-2">
+                    <div className="flex px-4 gap-2 min-w-max">
+                        <button
+                            onClick={() => onDateSelect(null)}
+                            className={cn(
+                                "flex flex-col items-center justify-center min-w-[48px] h-[64px] rounded-[12px] border transition-all",
+                                selectedDateISO === null
+                                    ? "bg-[#191F28] border-[#191F28] text-white"
+                                    : "bg-white border-[#E5E8EB] text-[#8B95A1]"
+                            )}
+                        >
+                            <span className="text-[13px] font-bold mb-0.5">📅</span>
+                            <span className="text-[12px] font-bold">전체</span>
+                        </button>
 
-                {/* Filter Chips (Positions) */}
-                <div className="px-4 flex gap-2 overflow-x-auto no-scrollbar pb-1">
-                     {['포지션 무관', '가드', '포워드', '센터'].map((pos) => {
-                         // Active state logic
-                         const isAny = pos === '포지션 무관';
-                         const isActive = isAny
-                            ? selectedPositions.length === 0
-                            : selectedPositions.includes(pos);
+                        {next14Days.map(date => {
+                            const iso = date.toISOString().split('T')[0];
+                            const isSelected = selectedDateISO === iso;
+                            const dayLabel = getShortDayLabel(iso); // "2 (금)"
+                            const [dayNum, dayOfWeek] = dayLabel.split(' '); // "2", "(금)"
 
-                         return (
-                            <Button
+                            return (
+                                <button
+                                    key={iso}
+                                    onClick={() => onDateSelect(iso)}
+                                    className={cn(
+                                        "flex flex-col items-center justify-center min-w-[48px] h-[64px] rounded-[12px] border transition-all",
+                                        isSelected
+                                            ? "bg-[#FF6600] border-[#FF6600] text-white shadow-md"
+                                            : "bg-white border-[#E5E8EB] hover:border-slate-300"
+                                    )}
+                                >
+                                    <span className={cn(
+                                        "text-[11px] font-medium mb-0.5",
+                                        isSelected ? "text-white/80" : "text-[#8B95A1]"
+                                    )}>
+                                        {dayOfWeek.replace(/[()]/g, '')}
+                                    </span>
+                                    <span className={cn(
+                                        "text-[16px] font-bold",
+                                        isSelected ? "text-white" : "text-[#333D4B]"
+                                    )}>
+                                        {dayNum}
+                                    </span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* 3. Position Filter */}
+                <div className="px-4 pb-3 flex gap-2 overflow-x-auto no-scrollbar bg-white">
+                    {['포지션 무관', '가드', '포워드', '센터'].map(pos => {
+                        const isActive = selectedPositions.includes(pos);
+                        return (
+                            <button
                                 key={pos}
-                                variant="outline"
                                 onClick={() => togglePosition(pos)}
                                 className={cn(
-                                    "rounded-full h-8 text-xs font-bold px-4 border shadow-sm transition-all", // Reduced height to h-8
+                                    "px-3 py-1.5 rounded-full text-[13px] font-medium border transition-colors whitespace-nowrap",
                                     isActive
-                                        ? "bg-[#FF6600] border-[#FF6600] text-white hover:bg-[#FF6600] hover:text-white"
-                                        : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                                        ? "bg-[#191F28] border-[#191F28] text-white"
+                                        : "bg-white border-[#E5E8EB] text-[#4E5968]"
                                 )}
                             >
                                 {pos}
-                            </Button>
-                         );
-                     })}
+                            </button>
+                        );
+                    })}
                 </div>
             </div>
 
             <RegionFilterModal
                 open={showRegionModal}
                 onOpenChange={setShowRegionModal}
-                onApply={handleRegionApply}
-                selectedRegions={selectedRegions}
+                onApply={onLocationsChange}
+                selectedRegions={selectedLocations}
             />
         </>
     );
