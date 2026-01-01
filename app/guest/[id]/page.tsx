@@ -1,11 +1,25 @@
-import { notFound } from 'next/navigation';
+'use client';
+
+import { useParams } from 'next/navigation';
+import { useMatches } from '../../../src/entities/match/model/match-context';
 import { MatchDetailView } from '../../../src/features/match/ui/match-detail-view';
 
-// Next.js 15+ Page Component: params is a Promise
-export default async function GuestMatchDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  // Await params for Next.js 15+ compatibility
-  const { id } = await params;
+export default function GuestMatchDetailPage() {
+  const params = useParams();
+  const { matches } = useMatches();
+  const id = params.id as string;
+  const match = matches.find((m) => m.id === id);
 
-  // Pass ID to Client Component which will look it up in MatchContext
-  return <MatchDetailView matchId={id} />;
+  if (!match) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-white">
+        <div className="text-center">
+          <p className="text-lg font-bold text-slate-900 mb-2">매치를 찾을 수 없습니다</p>
+          <p className="text-sm text-slate-500">요청하신 경기가 존재하지 않습니다</p>
+        </div>
+      </div>
+    );
+  }
+
+  return <MatchDetailView match={match} />;
 }

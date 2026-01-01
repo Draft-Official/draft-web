@@ -26,6 +26,18 @@ export interface Match {
   parking?: 'free' | 'paid' | 'impossible';
   shower?: boolean;
   courtType?: 'indoor' | 'outdoor';
+
+  // Guest Detail View Fields
+  level?: string; // e.g., "중수 (B) 이상"
+  gameFormat?: string; // e.g., "5vs5"
+  ageRange?: string; // e.g., "20대 ~ 30대"
+  totalPlayers?: number; // e.g., 12
+  currentPlayers?: number; // e.g., 9
+  hostName?: string; // e.g., "호스트 김농구"
+  hostImage?: string; // Profile image URL
+  teamLogo?: string; // Team logo URL
+  hostMessage?: string; // 호스트 특이사항 메시지
+  cancelPolicy?: string; // 취소 및 환불 규정
 }
 
 // Mock Data from Figma Make
@@ -36,16 +48,24 @@ export const MOCK_MATCHES: Match[] = [
     dateISO: '2025-01-02',
     startTime: '19:00',
     endTime: '21:00',
-    title: '강남구민회관',
-    teamName: '🏀 팀 슬램덩크',
-    location: '강남구 대치동',
-    address: '서울 강남구 대치동 50',
+    title: '강남구민회관 체육관',
+    teamName: '팀 슬램덩크',
+    location: '강남구민회관',
+    address: '서울 강남구 삼성로 123',
     price: '10,000원',
     priceNum: 10000,
-    gender: 'mixed',
+    gender: 'men',
     parking: 'free',
     shower: true,
     courtType: 'indoor',
+    level: '중수 (B) 이상',
+    gameFormat: '5vs5',
+    ageRange: '20대 ~ 30대',
+    totalPlayers: 12,
+    currentPlayers: 9,
+    hostName: '호스트 김농구',
+    hostMessage: '"승부욕보다는 즐겁게 뛰실 분 환영합니다! 거친 플레이는 지양합니다. 서로 매너 지켜요!"',
+    cancelPolicy: '참가비는 노쇼 방지용으로 사용됩니다. 신청 이후에 환불은 불가합니다.\n\n단, 취소는 가능합니다.',
     positions: {
       g: { status: 'closed', max: 1 },
       f: { status: 'open', max: 2 },
