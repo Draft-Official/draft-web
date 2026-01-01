@@ -16,7 +16,7 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body className="antialiased bg-slate-50 text-slate-900">
-        <main className="max-w-[430px] mx-auto min-h-screen bg-white relative shadow-xl">
+        <main className="w-full max-w-[760px] mx-auto min-h-screen bg-white relative shadow-sm">
           <Providers>
             {children}
           </Providers>
