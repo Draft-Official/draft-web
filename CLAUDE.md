@@ -112,6 +112,50 @@ Use Pretendard font (imported in globals.css):
 - Feature UI components: PascalCase filenames (`MatchListItem.tsx`)
 - Registry components: kebab-case folders (`match-create-form/`)
 
+## Figma Design Implementation
+
+### Pixel-Perfect Implementation Rules
+
+When implementing from Figma designs:
+
+1. **Prioritize Figma over GitHub code** - Always reference the actual Figma design, not just existing code
+2. **Match exact component order** - Follow Figma's top-to-bottom layout structure precisely
+3. **Symmetric spacing** - Dividers must have equal spacing above and below (use `my-X` not `mb-X`)
+4. **Precise sizing** - Adjust text sizes in 1px increments (e.g., `text-[21px]` instead of `text-xl`)
+5. **Tight spacing control** - Card padding, gaps, and margins should match Figma exactly
+6. **Visual hierarchy** - Font weights, colors, and sizes must match design specs
+
+### How to Request Figma Implementation
+
+**Clear instructions:**
+```
+"피그마 디자인과 동일하게 구현해줘"
+"레이아웃 순서를 피그마 순서대로"
+"구분선 위아래 간격을 동일하게"
+"텍스트 크기 1px 조정"
+"포지션 카드 크기 줄여줘"
+```
+
+**What NOT to do:**
+- ❌ "GitHub 코드 참고해서 만들어줘" (may differ from design)
+- ❌ Generic spacing like "좀 줄여줘" (be specific: "mb-4에서 mb-3으로")
+
+### Common Figma-to-Code Patterns
+
+```tsx
+// Dividers with symmetric spacing
+<div className="h-px bg-slate-100 my-4" />  // ✅ Equal top/bottom
+<div className="h-px bg-slate-100 mb-4" />  // ❌ Asymmetric
+
+// Precise text sizing
+<h1 className="text-[21px]">  // ✅ Exact 21px
+<h1 className="text-xl">      // ❌ Generic (20px)
+
+// Color opacity matching
+<div className="bg-orange-50/30">  // ✅ Exact opacity
+<div className="bg-orange-50">     // ❌ Full opacity
+```
+
 ## Feature Development Workflow
 
 ### Adding a New Feature
