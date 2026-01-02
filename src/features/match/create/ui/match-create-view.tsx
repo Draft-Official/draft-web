@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { FileText, MapPin, Clock, Minus, Plus, RotateCcw } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { FileText, MapPin, Clock, Minus, Plus, RotateCcw, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,6 +12,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/shared/lib/utils';
 import { toast } from 'sonner';
+
+// Location data type from Kakao Local API
+interface LocationData {
+  place_name: string;
+  address_name: string;
+  x: string; // longitude
+  y: string; // latitude
+  place_url?: string;
+}
 
 export function MatchCreateView() {
   // Auto-scroll on input focus
@@ -49,6 +58,11 @@ export function MatchCreateView() {
   const [startTime, setStartTime] = useState('07:00');
   const [duration, setDuration] = useState('2시간');
   const [location, setLocation] = useState('');
+  const [locationData, setLocationData] = useState<LocationData | null>(null);
+  const [searchResults, setSearchResults] = useState<LocationData[]>([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const locationInputRef = useRef<HTMLDivElement>(null);
   const [price, setPrice] = useState('');
   const [hostType, setHostType] = useState('개인 (본인)');
 
@@ -99,6 +113,94 @@ export function MatchCreateView() {
     e.target.style.height = e.target.scrollHeight + 'px';
   };
 
+  // Debounce timer
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+
+  // Search places using Next.js API route (which calls Kakao API)
+  const searchPlaces = async (keyword: string) => {
+    if (keyword.trim().length < 2) {
+      setSearchResults([]);
+      setShowDropdown(false);
+      return;
+    }
+
+    setIsSearching(true);
+
+    try {
+      const response = await fetch(
+        `/api/search-places?query=${encodeURIComponent(keyword)}`
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch places');
+      }
+
+      const data = await response.json();
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      const places: LocationData[] = data.documents.map((place: any) => ({
+        place_name: place.place_name,
+        address_name: place.address_name,
+        x: place.x,
+        y: place.y,
+        place_url: place.place_url,
+      }));
+
+      setSearchResults(places);
+      setShowDropdown(places.length > 0);
+    } catch (error) {
+      console.error('Place search error:', error);
+      toast.error('장소 검색에 실패했습니다');
+      setSearchResults([]);
+      setShowDropdown(false);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Handle location input change with debounce
+  const handleLocationInput = (value: string) => {
+    setLocation(value);
+
+    // Clear previous timer
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+
+    // Set new timer (200ms debounce)
+    debounceTimer.current = setTimeout(() => {
+      searchPlaces(value);
+    }, 200);
+  };
+
+  // Handle location selection from dropdown
+  const handleLocationSelect = (place: LocationData) => {
+    setLocationData(place);
+    setLocation(`${place.address_name} (${place.place_name})`);
+    setShowDropdown(false);
+    setSearchResults([]);
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (locationInputRef.current && !locationInputRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+    };
+  }, []);
+
   const handleSubmit = () => {
     if (!selectedDate) {
       toast.error('날짜를 선택해주세요');
@@ -123,6 +225,7 @@ export function MatchCreateView() {
       startTime,
       duration,
       location,
+      locationData, // Contains structured address and buildingName
       price,
       hostType,
       positions: isFlexBigman
@@ -242,15 +345,80 @@ export function MatchCreateView() {
           {/* Location */}
           <div className="mb-6">
             <Label className="text-sm font-bold text-slate-900 mb-2 block">장소</Label>
-            <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <div className="relative" ref={locationInputRef}>
+              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 z-10" />
               <Input
                 placeholder="체육관 검색..."
                 value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                onFocus={handleInputFocus}
-                className="pl-10 h-12"
+                onChange={(e) => handleLocationInput(e.target.value)}
+                onFocus={(e) => {
+                  handleInputFocus(e);
+                  if (searchResults.length > 0) {
+                    setShowDropdown(true);
+                  }
+                }}
+                className={cn("pl-10 h-12", locationData?.place_url && "pr-12")}
               />
+              {locationData?.place_url && (
+                <a
+                  href={locationData.place_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-[#FF6600] hover:bg-orange-50 rounded-md transition-colors z-10"
+                  title="카카오맵에서 확인"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                </a>
+              )}
+
+              {/* Search Results Dropdown */}
+              {showDropdown && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-[280px] overflow-y-auto">
+                  {isSearching ? (
+                    <div className="px-4 py-6 text-center text-sm text-slate-500">
+                      검색 중...
+                    </div>
+                  ) : searchResults.length > 0 ? (
+                    searchResults.map((place, index) => (
+                      <div
+                        key={index}
+                        className="flex items-start gap-2 px-4 py-3 hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0"
+                      >
+                        <button
+                          onClick={() => handleLocationSelect(place)}
+                          className="flex-1 flex items-start gap-2 text-left min-w-0"
+                        >
+                          <MapPin className="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-bold text-slate-900 mb-0.5">
+                              {place.place_name}
+                            </div>
+                            <div className="text-xs text-slate-600">
+                              {place.address_name}
+                            </div>
+                          </div>
+                        </button>
+                        {place.place_url && (
+                          <a
+                            href={place.place_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="flex-shrink-0 p-2 text-slate-400 hover:text-[#FF6600] hover:bg-orange-50 rounded-md transition-colors"
+                            title="카카오맵에서 확인"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="px-4 py-6 text-center text-sm text-slate-500">
+                      검색 결과가 없습니다
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
