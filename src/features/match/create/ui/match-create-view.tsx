@@ -1,169 +1,574 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { ChevronLeft, Calendar as CalendarIcon, MapPin, DollarSign, Users } from 'lucide-react';
+import { useState } from 'react';
+import { FileText, MapPin, Clock, Minus, Plus, RotateCcw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/shared/lib/utils';
-import { RegionFilterModal } from '@/features/match/ui/region-filter-modal';
-import { useMatches } from '../../../../entities/match/model/match-context'; // Relative path for safety
-import { getDistrictName } from '@/features/match/model/mock-data';
-import { getDayLabel } from '../../lib/utils';
+import { toast } from 'sonner';
 
 export function MatchCreateView() {
-  const router = useRouter();
-  const { addMatch } = useMatches();
-  
-  // --- Form State ---
-  const [title, setTitle] = useState('');
-  const [date, setDate] = useState(''); // YYYY-MM-DD
-  const [startTime, setStartTime] = useState('');
-  const [endTime, setEndTime] = useState('');
-  const [location, setLocation] = useState<string>('');
-  const [price, setPrice] = useState('');
-  
-  // --- UI State ---
-  const [isRegionModalOpen, setIsRegionModalOpen] = useState(false);
-
-  // --- Handlers ---
-  const handleRegionApply = (regions: string[]) => {
-      // For match creation, we usually select ONE location
-      if (regions.length > 0) {
-          setLocation(regions[0]);
-      }
+  // Auto-scroll on input focus
+  const handleInputFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setTimeout(() => {
+      e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 300);
   };
 
-  const isFormValid = title && date && startTime && endTime && location && price;
+  // 14-day calendar
+  const getNext14Days = () => {
+    const days = ['일', '월', '화', '수', '목', '금', '토'];
+    const dates = [];
+    const today = new Date();
 
-  const handleCreate = () => {
-    if (!isFormValid) return;
+    for(let i=0; i<14; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() + i);
+      const month = d.getMonth() + 1;
+      const date = d.getDate();
+      const day = days[d.getDay()];
 
-    const newMatch: any = { 
-        id: Date.now().toString(),
-        title,
-        dateISO: date,
-        startTime,
-        endTime,
-        location: getDistrictName(location), // "강남구"
-        address: location, // "서울 강남구..."
-        price,
-        isClosed: false,
-        positions: {
-            all: { status: 'open', max: 99 }
-        }
+      dates.push({
+        dateISO: d.toISOString().split('T')[0],
+        label: `${month}/${date}`,
+        dayNum: date,
+        dayStr: day,
+        isToday: i === 0,
+      });
+    }
+    return dates;
+  };
+
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [startTime, setStartTime] = useState('07:00');
+  const [duration, setDuration] = useState('2시간');
+  const [location, setLocation] = useState('');
+  const [price, setPrice] = useState('');
+  const [hostType, setHostType] = useState('개인 (본인)');
+
+  // Positions
+  const [isFlexBigman, setIsFlexBigman] = useState(false);
+  const [positions, setPositions] = useState({
+    guard: 0,
+    forward: 0,
+    center: 0,
+    bigman: 0
+  });
+
+  const updatePosition = (key: keyof typeof positions, delta: number) => {
+    setPositions(prev => ({
+      ...prev,
+      [key]: Math.max(0, prev[key] + delta)
+    }));
+  };
+
+  // Management Info
+  const [bankName, setBankName] = useState('');
+  const [accountNumber, setAccountNumber] = useState('');
+  const [contactInfo, setContactInfo] = useState('');
+
+  // Match Specs
+  const [matchType, setMatchType] = useState<'5vs5' | '3vs3'>('5vs5');
+  const [gender, setGender] = useState<'남성' | '혼성' | '여성'>('혼성');
+  const [level, setLevel] = useState<'초보(C)' | '중수(B)' | '고수(A)'>('중수(B)');
+  const [facilities, setFacilities] = useState<string[]>([]);
+
+  const facilityOptions = ['주차가능', '샤워실', '실내', '냉난방', '정수기'];
+
+  const toggleFacility = (facility: string) => {
+    setFacilities(prev =>
+      prev.includes(facility)
+        ? prev.filter(f => f !== facility)
+        : [...prev, facility]
+    );
+  };
+
+  // Notes
+  const [notes, setNotes] = useState('');
+
+  // Auto-resize textarea
+  const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setNotes(e.target.value);
+    e.target.style.height = 'auto';
+    e.target.style.height = e.target.scrollHeight + 'px';
+  };
+
+  const handleSubmit = () => {
+    if (!selectedDate) {
+      toast.error('날짜를 선택해주세요');
+      return;
+    }
+    if (!location) {
+      toast.error('장소를 입력해주세요');
+      return;
+    }
+
+    const totalPositions = isFlexBigman
+      ? positions.guard + positions.bigman
+      : positions.guard + positions.forward + positions.center;
+
+    if (totalPositions === 0) {
+      toast.error('최소 1명 이상 모집해야 합니다');
+      return;
+    }
+
+    const payload = {
+      date: selectedDate,
+      startTime,
+      duration,
+      location,
+      price,
+      hostType,
+      positions: isFlexBigman
+        ? { guard: positions.guard, bigman: positions.bigman }
+        : { guard: positions.guard, forward: positions.forward, center: positions.center },
+      bankName,
+      accountNumber,
+      contactInfo,
+      matchType,
+      gender,
+      level,
+      facilities,
+      notes
     };
 
-    addMatch(newMatch);
-    // After creating, go to Host Dashboard
-    router.push('/host/dashboard'); 
+    console.log('Creating Match:', payload);
+    toast.success('경기 모집이 등록되었습니다!');
   };
 
+  const dates = getNext14Days();
+
   return (
-    <div className="bg-white min-h-screen pb-[100px] relative">
+    <div className="min-h-screen bg-slate-50 pb-32">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-white h-[52px] flex items-center px-4 border-b border-[#F2F4F6] gap-3">
-        <button onClick={() => router.back()} className="p-1 -ml-1">
-          <ChevronLeft className="w-6 h-6 text-[#191F28]" />
-        </button>
-        <h1 className="text-[17px] font-bold text-[#191F28]">매치 개설하기</h1>
+      <div className="sticky top-0 z-20 bg-white border-b border-slate-100">
+        <div className="max-w-[760px] mx-auto flex items-center justify-between px-5 h-14">
+          <h1 className="text-lg font-bold text-slate-900">경기 개설</h1>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-[#FF6600] font-semibold hover:text-[#FF6600]/90 hover:bg-orange-50"
+          >
+            <RotateCcw className="w-4 h-4 mr-1" />
+            불러오기
+          </Button>
+        </div>
       </div>
 
-      <div className="p-5 flex flex-col gap-8">
-        {/* 1. Title */}
-        <div className="flex flex-col gap-2">
-            <label className="text-[15px] font-bold text-[#191F28]">제목</label>
-            <input 
-                type="text"
-                placeholder="어떤 경기인가요? (예: 3vs3 반코트)"
-                className="w-full h-12 px-4 rounded-xl border border-[#E5E8EB] bg-[#F9FAFB] text-[15px] outline-none focus:border-[#FF6600] transition-colors"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-            />
-        </div>
+      {/* Content */}
+      <div className="max-w-[760px] mx-auto px-5 py-6 space-y-8">
+        {/* Basic Info Section */}
+        <section className="bg-white rounded-2xl p-6 shadow-sm">
+          <div className="flex items-center gap-2 mb-6">
+            <FileText className="w-5 h-5 text-slate-400" />
+            <h2 className="text-lg font-bold text-slate-900">기본 정보</h2>
+          </div>
 
-        {/* 2. Date & Time */}
-        <div className="flex flex-col gap-2">
-            <label className="text-[15px] font-bold text-[#191F28]">일시</label>
-            <div className="grid grid-cols-2 gap-3">
-                <input 
-                    type="date"
-                    className="h-12 px-4 rounded-xl border border-[#E5E8EB] bg-[#F9FAFB] text-[15px] outline-none focus:border-[#FF6600]"
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
+          {/* Date Picker */}
+          <div className="mb-6">
+            <Label className="text-sm font-bold text-slate-900 mb-3 block">
+              일시 <span className="text-[#FF6600] ml-1">(2주 이내 경기만 개설 가능)</span>
+            </Label>
+            <ScrollArea className="w-full">
+              <div className="flex gap-2 pb-2">
+                {dates.map((date) => (
+                  <button
+                    key={date.dateISO}
+                    onClick={() => setSelectedDate(date.dateISO)}
+                    className={cn(
+                      "flex flex-col items-center justify-center min-w-[52px] h-[56px] rounded-lg border-2 transition-all",
+                      selectedDate === date.dateISO
+                        ? "border-[#FF6600] bg-orange-50"
+                        : "border-slate-200 bg-white hover:border-slate-300"
+                    )}
+                  >
+                    <div className={cn(
+                      "text-[10px] mb-0.5",
+                      selectedDate === date.dateISO ? "text-[#FF6600]" : "text-slate-500"
+                    )}>
+                      {date.dayStr}
+                    </div>
+                    <div className={cn(
+                      "text-xl font-bold",
+                      selectedDate === date.dateISO ? "text-[#FF6600]" : "text-slate-900"
+                    )}>
+                      {date.dayNum}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </ScrollArea>
+          </div>
+
+          {/* Time & Duration */}
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <div>
+              <Label className="text-sm font-bold text-slate-900 mb-2 block">시작 시간</Label>
+              <div className="relative">
+                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <Input
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  className="pl-10 h-12"
                 />
-                <div className="flex items-center gap-2">
-                    <input 
-                        type="time" 
-                        className="flex-1 h-12 px-2 rounded-xl border border-[#E5E8EB] bg-[#F9FAFB] text-[15px] outline-none focus:border-[#FF6600]"
-                        value={startTime}
-                        onChange={(e) => setStartTime(e.target.value)}
-                    />
-                    <span className="text-[#8B95A1] font-medium">~</span>
-                    <input 
-                        type="time"
-                        className="flex-1 h-12 px-2 rounded-xl border border-[#E5E8EB] bg-[#F9FAFB] text-[15px] outline-none focus:border-[#FF6600]"
-                        value={endTime}
-                        onChange={(e) => setEndTime(e.target.value)}
-                    />
-                </div>
+              </div>
             </div>
-        </div>
+            <div>
+              <Label className="text-sm font-bold text-slate-900 mb-2 block">진행 시간</Label>
+              <Select value={duration} onValueChange={setDuration}>
+                <SelectTrigger className="h-12">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1시간">1시간</SelectItem>
+                  <SelectItem value="1시간 30분">1시간 30분</SelectItem>
+                  <SelectItem value="2시간">2시간</SelectItem>
+                  <SelectItem value="2시간 30분">2시간 30분</SelectItem>
+                  <SelectItem value="3시간">3시간</SelectItem>
+                  <SelectItem value="3시간 30분">3시간 30분</SelectItem>
+                  <SelectItem value="4시간">4시간</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
 
-        {/* 3. Location */}
-        <div className="flex flex-col gap-2">
-            <label className="text-[15px] font-bold text-[#191F28]">장소</label>
-            <button 
-                onClick={() => setIsRegionModalOpen(true)}
-                className={cn(
-                    "w-full h-12 px-4 rounded-xl border flex items-center justify-between transition-colors",
-                    location 
-                        ? "border-[#FF6600] bg-white text-[#191F28]" 
-                        : "border-[#E5E8EB] bg-[#F9FAFB] text-[#ADB5BD]"
-                )}
-            >
-                <span className="text-[15px]">{location || "지역을 선택해주세요"}</span>
-                <MapPin className={cn("w-5 h-5", location ? "text-[#FF6600]" : "text-[#ADB5BD]")} />
-            </button>
-        </div>
-
-        {/* 4. Price */}
-        <div className="flex flex-col gap-2">
-            <label className="text-[15px] font-bold text-[#191F28]">참가비</label>
+          {/* Location */}
+          <div className="mb-6">
+            <Label className="text-sm font-bold text-slate-900 mb-2 block">장소</Label>
             <div className="relative">
-                <input 
-                    type="number"
-                    placeholder="10000"
-                    className="w-full h-12 pl-4 pr-10 rounded-xl border border-[#E5E8EB] bg-[#F9FAFB] text-[15px] outline-none focus:border-[#FF6600] transition-colors"
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
-                />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#8B95A1] font-medium">원</span>
+              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <Input
+                placeholder="체육관 검색..."
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                onFocus={handleInputFocus}
+                className="pl-10 h-12"
+              />
             </div>
+          </div>
+
+          {/* Price */}
+          <div className="mb-6">
+            <Label className="text-sm font-bold text-slate-900 mb-2 block">참가비 (1인)</Label>
+            <div className="relative">
+              <Input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                placeholder="0"
+                value={price}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/[^0-9]/g, '');
+                  setPrice(value);
+                }}
+                onFocus={handleInputFocus}
+                className="h-12 pr-12 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500">원</span>
+            </div>
+          </div>
+
+          {/* Host Type */}
+          <div>
+            <Label className="text-sm font-bold text-slate-900 mb-2 block">주최자 정보</Label>
+            <Select value={hostType} onValueChange={setHostType}>
+              <SelectTrigger className="h-12">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="개인 (본인)">개인 (본인)</SelectItem>
+                <SelectItem value="팀">팀</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </section>
+
+        {/* Recruitment Section */}
+        <section className="bg-white rounded-2xl p-6 shadow-sm">
+          <h2 className="text-lg font-bold text-slate-900 mb-6">모집 내용</h2>
+
+          {/* Position Mode Toggle */}
+          <div className="flex items-center justify-between mb-6">
+            <Label className="text-sm font-bold text-slate-900">포지션별 인원</Label>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                checked={isFlexBigman}
+                onCheckedChange={(checked) => setIsFlexBigman(checked as boolean)}
+              />
+              <Label className="text-sm text-slate-600">빅맨 통합 (F/C)</Label>
+            </div>
+          </div>
+
+          {/* Position Counters */}
+          <div className="space-y-2">
+            {/* Guard */}
+            <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50">
+              <span className="text-sm font-bold text-slate-900">가드 (G)</span>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => updatePosition('guard', -1)}
+                  className="w-8 h-8 rounded-full border-2 border-slate-300 flex items-center justify-center hover:border-slate-400 transition-colors"
+                >
+                  <Minus className="w-4 h-4 text-slate-600" />
+                </button>
+                <span className="text-xl font-bold text-slate-900 min-w-[32px] text-center">
+                  {positions.guard}
+                </span>
+                <button
+                  onClick={() => updatePosition('guard', 1)}
+                  className="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center hover:bg-slate-800 transition-colors"
+                >
+                  <Plus className="w-4 h-4 text-white" />
+                </button>
+              </div>
+            </div>
+
+            {/* Forward (or Bigman) */}
+            {!isFlexBigman ? (
+              <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50">
+                <span className="text-sm font-bold text-slate-900">포워드 (F)</span>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => updatePosition('forward', -1)}
+                    className="w-8 h-8 rounded-full border-2 border-slate-300 flex items-center justify-center hover:border-slate-400 transition-colors"
+                  >
+                    <Minus className="w-4 h-4 text-slate-600" />
+                  </button>
+                  <span className="text-xl font-bold text-slate-900 min-w-[32px] text-center">
+                    {positions.forward}
+                  </span>
+                  <button
+                    onClick={() => updatePosition('forward', 1)}
+                    className="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center hover:bg-slate-800 transition-colors"
+                  >
+                    <Plus className="w-4 h-4 text-white" />
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50">
+                <span className="text-sm font-bold text-slate-900">빅맨 (F/C)</span>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => updatePosition('bigman', -1)}
+                    className="w-8 h-8 rounded-full border-2 border-slate-300 flex items-center justify-center hover:border-slate-400 transition-colors"
+                  >
+                    <Minus className="w-4 h-4 text-slate-600" />
+                  </button>
+                  <span className="text-xl font-bold text-slate-900 min-w-[32px] text-center">
+                    {positions.bigman}
+                  </span>
+                  <button
+                    onClick={() => updatePosition('bigman', 1)}
+                    className="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center hover:bg-slate-800 transition-colors"
+                  >
+                    <Plus className="w-4 h-4 text-white" />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Center */}
+            {!isFlexBigman && (
+              <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50">
+                <span className="text-sm font-bold text-slate-900">센터 (C)</span>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => updatePosition('center', -1)}
+                    className="w-8 h-8 rounded-full border-2 border-slate-300 flex items-center justify-center hover:border-slate-400 transition-colors"
+                  >
+                    <Minus className="w-4 h-4 text-slate-600" />
+                  </button>
+                  <span className="text-xl font-bold text-slate-900 min-w-[32px] text-center">
+                    {positions.center}
+                  </span>
+                  <button
+                    onClick={() => updatePosition('center', 1)}
+                    className="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center hover:bg-slate-800 transition-colors"
+                  >
+                    <Plus className="w-4 h-4 text-white" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Management Info Section */}
+        <section className="bg-white rounded-2xl p-6 shadow-sm">
+          <h2 className="text-lg font-bold text-slate-900 mb-2">운영 정보 <span className="text-sm text-slate-500 font-normal">(비공개)</span></h2>
+
+          <div className="space-y-4 mb-6">
+            {/* Bank Account */}
+            <div>
+              <Label className="text-sm font-bold text-slate-900 mb-2 block">계좌 정보</Label>
+              <div className="grid grid-cols-[120px_1fr] gap-3">
+                <Input
+                  placeholder="은행명"
+                  value={bankName}
+                  onChange={(e) => setBankName(e.target.value)}
+                  onFocus={handleInputFocus}
+                  className="h-12"
+                />
+                <Input
+                  placeholder="계좌번호 (- 없이)"
+                  value={accountNumber}
+                  onChange={(e) => setAccountNumber(e.target.value)}
+                  onFocus={handleInputFocus}
+                  className="h-12"
+                />
+              </div>
+            </div>
+
+            {/* Contact Info */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <Label className="text-sm font-bold text-slate-900">문의하기 (연락처)</Label>
+                <button className="text-xs text-[#FF6600] font-semibold">프로필 정보 사용팁</button>
+              </div>
+              <Input
+                placeholder="오픈채팅 또는 연락처 (프로필 기본값)"
+                value={contactInfo}
+                onChange={(e) => setContactInfo(e.target.value)}
+                onFocus={handleInputFocus}
+                className="h-12"
+              />
+            </div>
+          </div>
+
+          <p className="text-xs text-slate-500">* 승인된 게스트에게만 공개됩니다.</p>
+        </section>
+
+        {/* Match Specs Section */}
+        <section className="bg-white rounded-2xl p-6 shadow-sm">
+          {/* Match Type */}
+          <div className="mb-6">
+            <Label className="text-sm font-bold text-slate-900 mb-3 block">매치 타입</Label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => setMatchType('5vs5')}
+                className={cn(
+                  "h-12 rounded-xl font-bold transition-all",
+                  matchType === '5vs5'
+                    ? "bg-white text-slate-900 border-2 border-slate-900"
+                    : "bg-slate-50 text-slate-400 border-2 border-transparent"
+                )}
+              >
+                5vs5
+              </button>
+              <button
+                onClick={() => setMatchType('3vs3')}
+                className={cn(
+                  "h-12 rounded-xl font-bold transition-all",
+                  matchType === '3vs3'
+                    ? "bg-white text-slate-900 border-2 border-slate-900"
+                    : "bg-slate-50 text-slate-400 border-2 border-transparent"
+                )}
+              >
+                3vs3
+              </button>
+            </div>
+          </div>
+
+          {/* Gender */}
+          <div className="mb-6">
+            <Label className="text-sm font-bold text-slate-900 mb-3 block">성별</Label>
+            <div className="grid grid-cols-3 gap-3">
+              {(['남성', '혼성', '여성'] as const).map((g) => (
+                <button
+                  key={g}
+                  onClick={() => setGender(g)}
+                  className={cn(
+                    "h-12 rounded-xl font-bold transition-all",
+                    gender === g
+                      ? "bg-slate-900 text-white"
+                      : "bg-white text-slate-600 border-2 border-slate-200"
+                  )}
+                >
+                  {g}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Level */}
+          <div className="mb-6">
+            <Label className="text-sm font-bold text-slate-900 mb-3 block">레벨</Label>
+            <div className="grid grid-cols-3 gap-3">
+              {(['초보(C)', '중수(B)', '고수(A)'] as const).map((l) => (
+                <button
+                  key={l}
+                  onClick={() => setLevel(l)}
+                  className={cn(
+                    "h-12 rounded-xl font-bold transition-all",
+                    level === l
+                      ? "bg-[#FF6600] text-white"
+                      : "bg-white text-slate-600 border-2 border-slate-200"
+                  )}
+                >
+                  {l}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Facilities */}
+          <div>
+            <Label className="text-sm font-bold text-slate-900 mb-3 block">편의 시설</Label>
+            <div className="flex flex-wrap gap-2">
+              {facilityOptions.map((facility) => (
+                <Badge
+                  key={facility}
+                  onClick={() => toggleFacility(facility)}
+                  className={cn(
+                    "px-4 py-2 text-sm cursor-pointer transition-all",
+                    facilities.includes(facility)
+                      ? "bg-slate-900 text-white hover:bg-slate-800"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  )}
+                >
+                  {facility}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Notes Section */}
+        <section className="bg-white rounded-2xl p-6 shadow-sm">
+          <h2 className="text-lg font-bold text-slate-900 mb-6">참고 사항</h2>
+
+          <div>
+            <Label className="text-sm font-bold text-slate-900 mb-2 block">공지 내용</Label>
+            <Textarea
+              placeholder="경기 진행 방식, 주차 안내, 기타 공지사항을 자유롭게 적어주세요."
+              value={notes}
+              onChange={handleNotesChange}
+              onFocus={handleInputFocus}
+              className="min-h-[120px] resize-none overflow-hidden"
+            />
+          </div>
+        </section>
+      </div>
+
+      {/* Sticky Footer */}
+      <div className="fixed bottom-0 left-0 right-0 z-20 bg-white border-t border-slate-100 shadow-lg">
+        <div className="max-w-[760px] mx-auto px-5 py-4">
+          <Button
+            onClick={handleSubmit}
+            className="w-full h-14 bg-[#FF6600] hover:bg-[#FF6600]/90 text-white font-bold text-lg rounded-xl"
+          >
+            경기 생성하기
+          </Button>
         </div>
       </div>
-
-      {/* Bottom Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 max-w-[430px] mx-auto bg-white border-t border-[#F2F4F6] p-4 pb-safe z-30">
-        <button 
-            disabled={!isFormValid}
-            onClick={handleCreate} // Updated handler
-            className={cn(
-                "w-full h-12 rounded-xl text-[16px] font-bold flex items-center justify-center transition-all active:scale-[0.98]",
-                isFormValid 
-                    ? "bg-[#FF6600] text-white hover:bg-[#FF6600]/90 shadow-md shadow-orange-100"
-                    : "bg-[#E5E8EB] text-[#B0B8C1] cursor-not-allowed"
-            )}
-        >
-            개설하기
-        </button>
-      </div>
-
-      {/* Region Modal Reuse */}
-      <RegionFilterModal 
-        open={isRegionModalOpen}
-        onOpenChange={setIsRegionModalOpen}
-        onApply={handleRegionApply}
-        selectedRegions={location ? [location] : []}
-      />
     </div>
   );
 }
