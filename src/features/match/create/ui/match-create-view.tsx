@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { FileText, MapPin, Clock, Minus, Plus, RotateCcw, ExternalLink } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { FileText, MapPin, Clock, Minus, Plus, RotateCcw, MapPinned, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,22 +14,25 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/shared/lib/utils';
 import { toast } from 'sonner';
 
-// Location data type from Kakao Local API
+// Location data type
 interface LocationData {
-  place_name: string;
-  address_name: string;
-  x: string; // longitude
-  y: string; // latitude
-  place_url?: string;
+  address: string;
+  buildingName?: string;
+  bname?: string; // 동 이름 (지역 필터링용)
+  placeUrl?: string; // Kakao Map URL
 }
 
 export function MatchCreateView() {
+  const router = useRouter();
+
   // Auto-scroll on input focus
   const handleInputFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setTimeout(() => {
       e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 300);
   };
+  
+  // ... (Optimization: Keeping previous code structure, focusing on the changes)
 
   // 14-day calendar
   const getNext14Days = () => {
@@ -59,10 +63,9 @@ export function MatchCreateView() {
   const [duration, setDuration] = useState('2시간');
   const [location, setLocation] = useState('');
   const [locationData, setLocationData] = useState<LocationData | null>(null);
-  const [searchResults, setSearchResults] = useState<LocationData[]>([]);
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [isSearching, setIsSearching] = useState(false);
-  const locationInputRef = useRef<HTMLDivElement>(null);
+  const [locationSearchResults, setLocationSearchResults] = useState<LocationData[]>([]);
+  const [showLocationDropdown, setShowLocationDropdown] = useState(false);
+  const locationInputRef = useRef<HTMLInputElement>(null);
   const [price, setPrice] = useState('');
   const [hostType, setHostType] = useState('개인 (본인)');
 
@@ -113,95 +116,71 @@ export function MatchCreateView() {
     e.target.style.height = e.target.scrollHeight + 'px';
   };
 
-  // Debounce timer
-  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+  // Format location string: "address (buildingName)" if buildingName exists
+  const formatLocation = (data: LocationData): string => {
+    if (data.buildingName) {
+      return `${data.address} (${data.buildingName})`;
+    }
+    return data.address;
+  };
 
-  // Search places using Next.js API route (which calls Kakao API)
-  const searchPlaces = async (keyword: string) => {
-    if (keyword.trim().length < 2) {
-      setSearchResults([]);
-      setShowDropdown(false);
+  // Handle location search with debounce
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleLocationSearch = (query: string) => {
+    setLocation(query);
+
+    if (query.trim().length < 2) {
+      setLocationSearchResults([]);
+      setShowLocationDropdown(false);
       return;
     }
 
-    setIsSearching(true);
-
-    try {
-      const response = await fetch(
-        `/api/search-places?query=${encodeURIComponent(keyword)}`
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch places');
-      }
-
-      const data = await response.json();
-
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
-      const places: LocationData[] = data.documents.map((place: any) => ({
-        place_name: place.place_name,
-        address_name: place.address_name,
-        x: place.x,
-        y: place.y,
-        place_url: place.place_url,
-      }));
-
-      setSearchResults(places);
-      setShowDropdown(places.length > 0);
-    } catch (error) {
-      console.error('Place search error:', error);
-      toast.error('장소 검색에 실패했습니다');
-      setSearchResults([]);
-      setShowDropdown(false);
-    } finally {
-      setIsSearching(false);
-    }
-  };
-
-  // Handle location input change with debounce
-  const handleLocationInput = (value: string) => {
-    setLocation(value);
-
-    // Clear previous timer
-    if (debounceTimer.current) {
-      clearTimeout(debounceTimer.current);
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
     }
 
-    // Set new timer (200ms debounce)
-    debounceTimer.current = setTimeout(() => {
-      searchPlaces(value);
-    }, 200);
+    searchTimeoutRef.current = setTimeout(async () => {
+      try {
+        const { searchPlaces } = await import('@/shared/api/kakao-map');
+        const results = await searchPlaces(query);
+        
+        const mappedResults: LocationData[] = results.map(place => ({
+            address: place.road_address_name || place.address_name,
+            buildingName: place.place_name,
+            bname: place.address_name.split(' ')[2],
+            placeUrl: place.place_url
+        }));
+
+        setLocationSearchResults(mappedResults);
+        setShowLocationDropdown(mappedResults.length > 0);
+      } catch (e) {
+        console.error("Search error", e);
+      }
+    }, 300);
   };
 
-  // Handle location selection from dropdown
-  const handleLocationSelect = (place: LocationData) => {
-    setLocationData(place);
-    setLocation(`${place.address_name} (${place.place_name})`);
-    setShowDropdown(false);
-    setSearchResults([]);
+  // Handle location selection
+  const handleLocationSelect = (data: LocationData) => {
+    setLocationData(data);
+    setLocation(formatLocation(data));
+    setShowLocationDropdown(false);
   };
-
+  
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (locationInputRef.current && !locationInputRef.current.contains(event.target as Node)) {
-        setShowDropdown(false);
+        setShowLocationDropdown(false);
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      if (debounceTimer.current) {
-        clearTimeout(debounceTimer.current);
-      }
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const handleSubmit = () => {
+    // ... (Keep existing validation logic)
     if (!selectedDate) {
       toast.error('날짜를 선택해주세요');
       return;
@@ -247,9 +226,16 @@ export function MatchCreateView() {
 
   const dates = getNext14Days();
 
+  // Helper to open map
+  const openKakaoMap = () => {
+    if (locationData?.placeUrl) {
+      window.open(locationData.placeUrl, '_blank');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 pb-32">
-      {/* Header */}
+      {/* ... Header ... */}
       <div className="sticky top-0 z-20 bg-white border-b border-slate-100">
         <div className="max-w-[760px] mx-auto flex items-center justify-between px-5 h-14">
           <h1 className="text-lg font-bold text-slate-900">경기 개설</h1>
@@ -268,6 +254,7 @@ export function MatchCreateView() {
       <div className="max-w-[760px] mx-auto px-5 py-6 space-y-8">
         {/* Basic Info Section */}
         <section className="bg-white rounded-2xl p-6 shadow-sm">
+          {/* ... Date Picker & Time inputs (Keep existing) ... */}
           <div className="flex items-center gap-2 mb-6">
             <FileText className="w-5 h-5 text-slate-400" />
             <h2 className="text-lg font-bold text-slate-900">기본 정보</h2>
@@ -342,81 +329,77 @@ export function MatchCreateView() {
             </div>
           </div>
 
-          {/* Location */}
+          {/* Location with Map Link */}
           <div className="mb-6">
             <Label className="text-sm font-bold text-slate-900 mb-2 block">장소</Label>
             <div className="relative" ref={locationInputRef}>
               <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 z-10" />
               <Input
-                placeholder="체육관 검색..."
+                placeholder="체육관 검색 (예: 서초종합체육관)"
                 value={location}
-                onChange={(e) => handleLocationInput(e.target.value)}
+                onChange={(e) => handleLocationSearch(e.target.value)}
                 onFocus={(e) => {
                   handleInputFocus(e);
-                  if (searchResults.length > 0) {
-                    setShowDropdown(true);
+                  if (locationSearchResults.length > 0) {
+                    setShowLocationDropdown(true);
                   }
                 }}
-                className={cn("pl-10 h-12", locationData?.place_url && "pr-12")}
+                className="pl-10 h-12 pr-12" 
               />
-              {locationData?.place_url && (
-                <a
-                  href={locationData.place_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-[#FF6600] hover:bg-orange-50 rounded-md transition-colors z-10"
-                  title="카카오맵에서 확인"
+              
+              {/* Map Link Icon (Visible if placeUrl exists) */}
+              {locationData?.placeUrl && (
+                <button 
+                  onClick={openKakaoMap}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg transition-colors group flex items-center justify-center"
+                  title="카카오맵에서 보기"
                 >
-                  <ExternalLink className="w-4 h-4" />
-                </a>
+                    <MapPinned className="w-4 h-4 text-[#FF6600]" />
+                </button>
               )}
 
               {/* Search Results Dropdown */}
-              {showDropdown && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-[280px] overflow-y-auto">
-                  {isSearching ? (
-                    <div className="px-4 py-6 text-center text-sm text-slate-500">
-                      검색 중...
-                    </div>
-                  ) : searchResults.length > 0 ? (
-                    searchResults.map((place, index) => (
-                      <div
-                        key={index}
-                        className="flex items-start gap-2 px-4 py-3 hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0"
+              {showLocationDropdown && locationSearchResults.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-[240px] overflow-y-auto">
+                  {locationSearchResults.map((result, index) => (
+                    <div
+                      key={index}
+                      className="w-full flex items-center justify-between border-b border-slate-100 last:border-b-0 hover:bg-slate-50 transition-colors group"
+                    >
+                      {/* Main Select Action */}
+                      <button
+                         onClick={() => handleLocationSelect(result)}
+                         className="flex-1 px-4 py-3 text-left flex items-start gap-2 min-w-0"
                       >
-                        <button
-                          onClick={() => handleLocationSelect(place)}
-                          className="flex-1 flex items-start gap-2 text-left min-w-0"
-                        >
-                          <MapPin className="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0" />
-                          <div className="flex-1 min-w-0">
-                            <div className="text-sm font-bold text-slate-900 mb-0.5">
-                              {place.place_name}
+                        <MapPin className="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0 group-hover:text-[#FF6600]" />
+                        <div className="flex-1 min-w-0">
+                          {result.buildingName && (
+                            <div className="text-sm font-bold text-slate-900 mb-0.5 truncate">
+                              {result.buildingName}
                             </div>
-                            <div className="text-xs text-slate-600">
-                              {place.address_name}
-                            </div>
+                          )}
+                          <div className={cn(
+                            "text-xs text-slate-600 truncate",
+                            !result.buildingName && "text-sm font-medium text-slate-900"
+                          )}>
+                            {result.address}
                           </div>
-                        </button>
-                        {place.place_url && (
-                          <a
-                            href={place.place_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            className="flex-shrink-0 p-2 text-slate-400 hover:text-[#FF6600] hover:bg-orange-50 rounded-md transition-colors"
-                            title="카카오맵에서 확인"
-                          >
-                            <ExternalLink className="w-4 h-4" />
-                          </a>
-                        )}
-                      </div>
-                    ))
-                  ) : (
-                    <div className="px-4 py-6 text-center text-sm text-slate-500">
-                      검색 결과가 없습니다
+                        </div>
+                      </button>
+
+                      {/* Map Link Action */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(result.placeUrl, '_blank');
+                        }}
+                        className="px-3 py-3 text-slate-300 hover:text-[#FF6600] transition-colors"
+                        title="카카오맵 보기"
+                      >
+                         <ExternalLink className="w-4 h-4" />
+                      </button>
                     </div>
-                  )}
+                  ))}
                 </div>
               )}
             </div>
