@@ -132,14 +132,11 @@ export default function GuestMatchListPage() {
               onClick={() => router.push('/match/create')}
               className={cn(
                 "rounded-full bg-[#FF6600] shadow-xl shadow-orange-200 hover:bg-[#FF6600]/90 flex items-center justify-center transition-all active:scale-95",
-                "w-12 h-12 md:w-auto md:h-12 md:px-6 md:rounded-[20px]"
+                "w-12 h-12 md:hidden"
               )}
             >
               {/* Mobile: Plus Icon Only */}
-              <Plus className="w-6 h-6 text-white md:hidden" />
-
-              {/* PC: Text */}
-              <span className="hidden md:inline text-white font-bold text-sm tracking-tight">게스트 모집 +</span>
+              <Plus className="w-6 h-6 text-white" />
             </Button>
           </div>
         </div>

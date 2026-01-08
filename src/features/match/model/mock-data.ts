@@ -19,6 +19,7 @@ export interface Match {
     g?: PositionStatus;   // 가드
     f?: PositionStatus;   // 포워드
     c?: PositionStatus;   // 센터
+    bigman?: PositionStatus; // 빅맨 (F/C)
   };
   isClosed?: boolean;
   // Detail Fields typical for Match Create Form

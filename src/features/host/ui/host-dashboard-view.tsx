@@ -4,13 +4,13 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Calendar, ChevronRight } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
-import { BottomNav } from '@/widgets/bottom-nav';
+
 
 export function HostDashboardView() {
   const router = useRouter();
 
   return (
-    <div className="bg-white min-h-screen pb-[100px]">
+    <div className="bg-white min-h-screen">
        {/* Header */}
       <div className="h-[52px] bg-white flex items-center px-5 border-b border-[#F2F4F6]">
         <h1 className="text-[20px] font-bold text-[#191F28]">호스트 센터</h1>
@@ -63,7 +63,7 @@ export function HostDashboardView() {
         </div>
       </div>
 
-      <BottomNav />
+
     </div>
   );
 }

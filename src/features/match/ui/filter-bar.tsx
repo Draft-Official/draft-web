@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, Bell, ChevronDown, Check, X } from 'lucide-react';
+import { Search, Bell, ChevronDown, Check, X, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -489,6 +489,24 @@ export function FilterBar({
             마감 가리기
           </button>
         )}
+
+        {/* (E) Reset Button (Far Right) */}
+        <div className="flex-1" /> {/* Spacer to push reset button to the right if we wanted it sticky, but here just appended */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            onDateSelect(null);
+            onPositionsChange([]);
+            onLocationsChange([]);
+            if (onPriceMaxChange) onPriceMaxChange(null);
+            if (onHideClosedChange) onHideClosedChange(false);
+          }}
+          className="h-8 px-2 text-xs text-slate-400 hover:text-slate-600 hover:bg-transparent shrink-0 ml-auto flex items-center gap-1"
+        >
+          초기화하기
+          <RotateCcw className="w-3.5 h-3.5" />
+        </Button>
       </div>
     </div>
   );

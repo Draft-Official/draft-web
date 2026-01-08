@@ -94,8 +94,20 @@ export const filterMatches = (
             return options.positions.some(posLabel => {
                 const posKey = posMap[posLabel];
                 if (!posKey) return false;
-                const posData = m.positions[posKey] || m.positions.all;
-                return posData && posData.status === 'open';
+                
+                // Direct match
+                const posData = m.positions[posKey];
+                if (posData && posData.status === 'open') return true;
+
+                // "All" position (wildcard)
+                if (m.positions.all && m.positions.all.status === 'open') return true;
+
+                // Bigman Logic: If searching for Forward or Center, also check Bigman
+                if ((posKey === 'f' || posKey === 'c') && m.positions.bigman && m.positions.bigman.status === 'open') {
+                    return true;
+                }
+
+                return false;
             });
         });
     }
