@@ -30,31 +30,20 @@ interface KakaoSearchResponse {
 export const searchPlaces = async (keyword: string): Promise<KakaoPlace[]> => {
   if (!keyword.trim()) return [];
 
-  const apiKey = process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY;
-
-  if (!apiKey) {
-    console.error('Kakao API Key is missing');
-    return [];
-  }
-
   try {
+    // Call server-side API route instead of Kakao API directly
     const response = await fetch(
-      `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(keyword)}&size=15`,
-      {
-        headers: {
-          Authorization: `KakaoAK ${apiKey}`,
-        },
-      }
+      `/api/search-places?keyword=${encodeURIComponent(keyword)}`
     );
 
     if (!response.ok) {
-      throw new Error('Kakao API request failed');
+      throw new Error('Failed to search places');
     }
 
     const data: KakaoSearchResponse = await response.json();
     return data.documents;
   } catch (error) {
-    console.error('Failed to search places:', error);
+    console.error('[Client] Failed to search places:', error);
     return [];
   }
 };
