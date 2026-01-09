@@ -13,6 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/shared/lib/utils';
 import { toast } from 'sonner';
+import { matchCreateSchema } from '../model/schema';
 
 // Location data type
 interface LocationData {
@@ -180,22 +181,33 @@ export function MatchCreateView() {
   }, []);
 
   const handleSubmit = () => {
-    // ... (Keep existing validation logic)
-    if (!selectedDate) {
-      toast.error('날짜를 선택해주세요');
-      return;
-    }
-    if (!location) {
-      toast.error('장소를 입력해주세요');
-      return;
-    }
+    // Zod 스키마 검증
+    const formData = {
+      selectedDate: selectedDate || '',
+      startTime,
+      duration,
+      location,
+      locationData,
+      price: price || '0',
+      hostType,
+      positions,
+      isFlexBigman,
+      bankName,
+      accountNumber,
+      contactInfo,
+      matchType,
+      gender,
+      level,
+      facilities,
+      announcements: notes,
+    };
 
-    const totalPositions = isFlexBigman
-      ? positions.guard + positions.bigman
-      : positions.guard + positions.forward + positions.center;
+    const result = matchCreateSchema.safeParse(formData);
 
-    if (totalPositions === 0) {
-      toast.error('최소 1명 이상 모집해야 합니다');
+    if (!result.success) {
+      // 첫 번째 에러 메시지 표시
+      const firstError = result.error.issues[0];
+      toast.error(firstError.message);
       return;
     }
 
@@ -204,7 +216,7 @@ export function MatchCreateView() {
       startTime,
       duration,
       location,
-      locationData, // Contains structured address and buildingName
+      locationData,
       price,
       hostType,
       positions: isFlexBigman
