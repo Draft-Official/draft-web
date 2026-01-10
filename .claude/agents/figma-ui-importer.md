@@ -159,19 +159,163 @@ python3 scripts/import-figma-component.py \\
     */
    ```
 
-### Step 5: 수동 조정 (필요 시)
+### Step 5: 수동 조정 (필수)
 
-스크립트 실행 후 다음 항목을 수동으로 검토:
+**📌 현재 프로젝트 상태 (2026-01-10 기준):**
+- ✅ 공통 타입 시스템 완료 (`src/shared/types/match.ts`)
+- ✅ Zod 검증 적용 완료 (`src/features/match/create/model/schema.ts`)
+- ✅ 보안 헤더 설정 완료 (`next.config.ts`)
+- ✅ Kakao API 서버사이드 마이그레이션 완료
+- ⏳ Supabase 연동 대기 중 (Phase 2)
 
-1. **TypeScript 에러 수정**
+**스크립트 실행 후 다음 항목을 필수로 검토:**
+
+#### 1. 공통 타입 시스템 사용 (Phase 2 확장성 원칙)
+
+**❌ 금지: 컴포넌트 내부에 타입 정의**
+```tsx
+// Bad: 하드코딩된 타입 (Phase 2 확장 불가)
+interface Match {
+  gymName: string;        // ❌ 위도/경도 없음
+  parking: boolean;       // ❌ 하드코딩 (확장 불가)
+  shower: boolean;        // ❌ 하드코딩
+  price: number;          // ❌ 단일 값 (옵션 추가 불가)
+}
+```
+
+**✅ 권장: src/shared/types/match.ts import**
+```tsx
+// Good: Phase 2 호환 타입 시스템
+import type {
+  BaseMatch,
+  MatchType,
+  Location,
+  PriceInfo,
+  HostDashboardMatch,
+  GuestListMatch
+} from '@/shared/types/match';
+
+interface MatchCardProps {
+  match: BaseMatch;  // ✅ Phase 2 호환 타입
+}
+```
+
+**필수 확인 사항:**
+- [ ] `src/shared/types/match.ts`에서 타입 import
+- [ ] `facilities`를 `Record<string, any>` 형식으로 사용 (JSONB)
+- [ ] 가격은 `PriceInfo` 타입 사용 (base + modifiers)
+- [ ] 위치는 `Location` 타입 사용 (latitude/longitude 포함)
+- [ ] MatchType은 enum 사용 (string literal 금지)
+
+#### 2. Mock 데이터 변환 (Phase 2 호환성)
+
+**Figma Make → Draft 변환 시 필수 적용:**
+
+**시설 정보: 개별 필드 → facilities 객체**
+```tsx
+// Before (Figma Make)
+const match = {
+  parking: true,
+  shower: false,
+  equipment: 'provided',
+};
+
+// After (Draft - Phase 2 호환)
+const match: BaseMatch = {
+  // ...
+  facilities: {
+    parking: 'free',      // ✅ JSONB 스타일
+    shower: true,
+    equipment: 'provided',
+  },
+};
+```
+
+**가격: 단순 숫자 → PriceInfo 객체**
+```tsx
+// Before
+const match = { price: 10000 };
+
+// After
+const match: BaseMatch = {
+  // ...
+  price: {
+    base: 10000,
+    modifiers: [],        // Phase 2: 카풀 할인 등 추가 가능
+    final: 10000,
+  },
+};
+```
+
+**위치: 문자열 → Location 객체**
+```tsx
+// Before
+const match = { gymName: "강남체육관" };
+
+// After
+const match: BaseMatch = {
+  // ...
+  location: {
+    name: "강남체육관",
+    address: "서울시 강남구...",
+    latitude: 37.1234,    // ✅ 필수: 카풀/검색용
+    longitude: 127.5678,  // ✅ 필수
+  },
+};
+```
+
+**매치 타입: 문자열 → Enum**
+```tsx
+// Before
+const match = { type: "TEAM" };
+
+// After
+import { MatchType } from '@/shared/types/match';
+const match: BaseMatch = {
+  // ...
+  matchType: MatchType.GUEST_RECRUIT,  // ✅ Enum 사용
+};
+```
+
+#### 3. TypeScript 에러 수정
    - 타입 정의 추가
    - Props 인터페이스 정의
+   - 공통 타입 import 확인
 
-2. **Supabase 연동 (나중에)**
+#### 4. 폼 검증 추가 (Form 컴포넌트만 해당)
+
+Figma Make는 검증 로직이 없을 수 있으므로, Draft는 Zod + React Hook Form 필수 적용:
+
+```tsx
+// src/features/{domain}/model/schema.ts 생성
+import { z } from 'zod';
+
+export const yourFormSchema = z.object({
+  title: z.string().min(1, '제목을 입력하세요'),
+  price: z.string().refine((val) => {
+    const num = parseInt(val.replace(/,/g, ''), 10);
+    return !isNaN(num) && num >= 0;
+  }, {
+    message: '올바른 금액을 입력해주세요',
+  }),
+  // ... 추가 필드
+});
+
+// 컴포넌트에서 사용
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { yourFormSchema } from '@/features/{domain}/model/schema';
+
+const form = useForm({
+  resolver: zodResolver(yourFormSchema),
+});
+```
+
+#### 5. Supabase 연동 (Phase 2 - 나중에)
    - Mock 데이터를 Supabase API로 교체
    - `src/features/{domain}/api/` 생성
 
-3. **스타일 조정**
+#### 6. 스타일 조정
    - Tailwind CSS 클래스 최적화
    - 필요 시 `styles.css` 추가
 
@@ -216,11 +360,36 @@ export default function CreateMatchPage() {
 
 ## Guidelines
 
+### 필수 원칙
 - **절대 Figma Make 코드를 직접 복사하지 마세요** - 반드시 스크립트 사용
 - **스크립트가 생성한 파일만 수정하세요** - 다른 파일 생성 금지
 - **Import 경로를 확인하세요** - `@/components/ui/` 경로 유지
 - **TypeScript 에러 해결하세요** - 타입 안정성 보장
-- **Mock 데이터 유지하세요** - Supabase 연결은 나중에
+
+### Phase 2 확장성 원칙 (필수 준수)
+
+#### 타입 시스템
+- ✅ **DO**: `src/shared/types/match.ts`에서 공통 타입 import
+- ❌ **DON'T**: 컴포넌트 내부에 Match 타입 재정의
+- ✅ **DO**: `BaseMatch`, `Location`, `PriceInfo` 타입 사용
+- ❌ **DON'T**: `gymName: string`, `price: number` 같은 단순 타입
+
+#### Mock 데이터
+- ✅ **DO**: `facilities: { parking: 'free', shower: true }` (JSONB 스타일)
+- ❌ **DON'T**: `parking: boolean, shower: boolean` (하드코딩)
+- ✅ **DO**: `price: { base: 10000, modifiers: [], final: 10000 }`
+- ❌ **DON'T**: `price: 10000` (단일 값)
+- ✅ **DO**: `location: { name, address, latitude, longitude }`
+- ❌ **DON'T**: `gymName: string` (위치 정보 누락)
+
+#### Enum 사용
+- ✅ **DO**: `import { MatchType } from '@/shared/types/match'`
+- ❌ **DON'T**: `type: 'TEAM' | 'SOLO'` (string literal)
+
+### 검증 원칙
+- Form 컴포넌트는 Zod 스키마 필수 생성
+- `src/features/{domain}/model/schema.ts` 파일 생성
+- React Hook Form + zodResolver 조합 사용
 
 ## Example Workflow
 
@@ -245,13 +414,28 @@ npx tsc --noEmit
 
 변환 후 다음 항목을 확인:
 
+### 기본 검증
 - [ ] AUTO-GENERATED 헤더 존재
 - [ ] metadata.yaml 생성됨
 - [ ] README.md 생성됨
-- [ ] TypeScript 에러 없음
+- [ ] TypeScript 에러 없음 (`npx tsc --noEmit`)
 - [ ] Import 경로 정상 작동
 - [ ] Next.js App Router 문법 사용
 - [ ] kebab-case 명명 규칙 준수
+
+### Phase 2 확장성 검증 (필수)
+- [ ] `src/shared/types/match.ts`에서 타입 import 확인
+- [ ] `facilities`가 `Record<string, any>` 형식인지 확인 (하드코딩 금지)
+- [ ] `price`가 `PriceInfo` 타입인지 확인 (단순 number 금지)
+- [ ] `location`이 `Location` 타입인지 확인 (latitude/longitude 포함)
+- [ ] `MatchType` enum 사용 확인 (string literal 금지)
+- [ ] Form 컴포넌트는 Zod 스키마 존재 확인
+- [ ] Mock 데이터가 Phase 2 형식인지 확인
+
+### UI 무결성 검증
+- [ ] npm run dev 실행하여 화면 확인
+- [ ] Figma Make와 픽셀 단위 비교
+- [ ] 모든 인터랙션 정상 작동 (필터, 모달, 애니메이션)
 
 ## Output Format
 
