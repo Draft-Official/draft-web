@@ -2,7 +2,7 @@
  * Host Dashboard Mock 데이터
  */
 
-import { Match, Applicant, Team } from './types';
+import { Match, Applicant, Team, ApplicantStatus, MatchStatus } from './types';
 
 export const MOCK_TEAM: Team = {
   id: '1',
@@ -58,7 +58,7 @@ export const MOCK_APPLICANTS: Applicant[] = [
     position: 'F',
     level: '초보',
     height: '189cm',
-    status: 'pending',
+    status: ApplicantStatus.PENDING,
     mannerTemp: 38.2,
     noshowCount: 0,
     attendanceRate: 98,
@@ -70,7 +70,7 @@ export const MOCK_APPLICANTS: Applicant[] = [
     position: 'F',
     level: '고수',
     height: '187cm',
-    status: 'checking',
+    status: ApplicantStatus.CHECKING,
     mannerTemp: 41.5,
     noshowCount: 0,
     attendanceRate: 100,
@@ -82,7 +82,7 @@ export const MOCK_APPLICANTS: Applicant[] = [
     position: 'G',
     level: '중수',
     height: '184cm',
-    status: 'confirmed',
+    status: ApplicantStatus.CONFIRMED,
     mannerTemp: 36.5,
     noshowCount: 2,
     attendanceRate: 85,
@@ -94,7 +94,7 @@ export const MOCK_APPLICANTS: Applicant[] = [
     position: 'G',
     level: '중수',
     height: '168cm',
-    status: 'rejected',
+    status: ApplicantStatus.REJECTED,
     mannerTemp: 39.0,
     noshowCount: 0,
     attendanceRate: 99,

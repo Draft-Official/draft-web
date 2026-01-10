@@ -3,6 +3,13 @@ export type PositionStatus = {
   max: number;  // 모집 정원 (e.g. 2 means 0/2)
 };
 
+/**
+ * Match 인터페이스 (Guest List/Detail용)
+ *
+ * Phase 2 확장성 준수:
+ * - facilities: JSONB 스타일 (parking, shower 등 하드코딩 제거)
+ * - 공통 타입은 @/shared/types/match 참조
+ */
 export interface Match {
   id: string;
   dateISO: string; // YYYY-MM-DD
@@ -22,10 +29,13 @@ export interface Match {
     bigman?: PositionStatus; // 빅맨 (F/C)
   };
   isClosed?: boolean;
+
+  // Phase 2 확장성: facilities를 JSONB 스타일로 관리
+  // parking, shower 등을 개별 필드로 하드코딩하지 않음
+  facilities?: Record<string, any>; // { parking: 'free', shower: true, equipment: 'provided' }
+
   // Detail Fields typical for Match Create Form
   gender?: 'men' | 'women' | 'mixed';
-  parking?: 'free' | 'paid' | 'impossible';
-  shower?: boolean;
   courtType?: 'indoor' | 'outdoor';
 
   // Guest Detail View Fields
@@ -56,8 +66,7 @@ export const MOCK_MATCHES: Match[] = [
     price: '10,000원',
     priceNum: 10000,
     gender: 'men',
-    parking: 'free',
-    shower: true,
+    facilities: { parking: 'free', shower: true },
     courtType: 'indoor',
     level: '중수 (B) 이상',
     gameFormat: '5vs5',
@@ -86,8 +95,7 @@ export const MOCK_MATCHES: Match[] = [
     price: '15,000원',
     priceNum: 15000,
     gender: 'men',
-    parking: 'paid',
-    shower: false,
+    facilities: { parking: 'paid', shower: false },
     courtType: 'outdoor',
     positions: {
       all: { status: 'closed', max: 10 } // 마감됨
@@ -107,7 +115,7 @@ export const MOCK_MATCHES: Match[] = [
     price: '12,000원',
     priceNum: 12000,
     gender: 'mixed',
-    parking: 'impossible',
+    facilities: { parking: 'impossible' },
     courtType: 'indoor',
     positions: {
       f: { status: 'open', max: 2 },
@@ -127,7 +135,7 @@ export const MOCK_MATCHES: Match[] = [
     price: '10,000원',
     priceNum: 10000,
     gender: 'men',
-    parking: 'free',
+    facilities: { parking: 'free' },
     courtType: 'indoor',
     positions: {
       g: { status: 'open', max: 1 },
@@ -147,7 +155,7 @@ export const MOCK_MATCHES: Match[] = [
     price: '11,000원',
     priceNum: 11000,
     gender: 'women',
-    parking: 'paid',
+    facilities: { parking: 'paid' },
     courtType: 'outdoor',
     positions: {
       all: { status: 'open', max: 10 },
@@ -166,7 +174,7 @@ export const MOCK_MATCHES: Match[] = [
     price: '5,000원',
     priceNum: 5000,
     gender: 'mixed',
-    parking: 'free',
+    facilities: { parking: 'free' },
     courtType: 'indoor',
     positions: {
        all: { status: 'closed', max: 10 },

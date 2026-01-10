@@ -29,6 +29,7 @@ import { toast } from 'sonner';
 
 // Types & Mock Data
 import type { Match, Applicant } from '../model/types';
+import { ApplicantStatus } from '../model/types';
 import { MOCK_MATCHES, MOCK_APPLICANTS, MOCK_TEAM } from '../model/mock-data';
 
 export function HostDashboardView() {
@@ -337,7 +338,12 @@ const ApplicantManagementModal = ({
 
   // Traffic Light Logic
   const cycleStatus = (id: string, currentStatus: Applicant['status']) => {
-    const flow: Applicant['status'][] = ['pending', 'checking', 'confirmed', 'rejected'];
+    const flow: Applicant['status'][] = [
+      ApplicantStatus.PENDING,
+      ApplicantStatus.CHECKING,
+      ApplicantStatus.CONFIRMED,
+      ApplicantStatus.REJECTED
+    ];
     const nextIndex = (flow.indexOf(currentStatus) + 1) % flow.length;
     const nextStatus = flow[nextIndex];
 
