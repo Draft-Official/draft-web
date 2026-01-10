@@ -282,10 +282,33 @@ When connecting to Supabase (Phase 2):
 
 This project includes custom agents in `.claude/agents/`:
 
-- **figma-ui-importer**: Converts Figma Make components to Draft structure
-- **pipeline-designer**: Plans implementation workflows
+### figma-ui-importer Agent
 
-These agents are automatically invoked by Claude Code when appropriate tasks are detected.
+**Use when:**
+- User mentions "Figma Make" or "피그마 메이크"
+- User provides a GitHub link to Figma-generated code
+- User asks to "import", "가져와", or "적용" UI from Figma
+
+**How to invoke:**
+```
+Use the Task tool with subagent_type="general-purpose" and include the agent name in the prompt:
+"Use the figma-ui-importer agent to convert the Figma Make component to Draft structure"
+```
+
+**Example user requests:**
+- "Figma Make의 HostDashboard를 Draft로 가져와줘"
+- "https://github.com/beom84/Creatematchform 이 코드를 우리 프로젝트에 적용해줘"
+- "피그마에서 만든 UI를 Draft 구조로 변환해줘"
+
+### pipeline-designer Agent
+
+**Use when:**
+- User asks to plan a complex feature implementation
+- User needs architectural guidance for a new feature
+
+**Example user requests:**
+- "새 기능 구현 계획을 세워줘"
+- "아키텍처 설계를 도와줘"
 
 ## Reference Documents
 
