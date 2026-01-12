@@ -106,6 +106,17 @@ Shared (공유)
 App (라우팅)
 ```
 
+**컴포넌트 분리 원칙:**
+- **단일 파일 제한**: 300줄 초과 시 분리 검토
+- **구성**:
+  - `*_view.tsx`: 페이지 전체 레이아웃 및 상태 관리 (Controller 역할)
+  - `components/*`: 도메인별 하위 컴포넌트 (Presentational 역할)
+
+**구현 패턴 (Best Practices):**
+- **Config-Driven UI**: 반복되는 UI(옵션 목록, 메뉴 등)는 반드시 상수 배열(`constants.ts`)로 분리 후 `.map()` 렌더링합니다.
+- **Atomic Design**: 재사용 가능한 작은 단위(버튼, 칩, 카드 등)는 `shared/ui` 또는 기능별 `components/ui`에 먼저 구현합니다.
+
+
 ### 2. Registry 패턴 (Monet 방식)
 
 Figma Make에서 가져온 UI를 독립적으로 관리:

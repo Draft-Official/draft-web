@@ -49,7 +49,7 @@ const PositionChip = ({ label, max, status }: { label: string; max: number; stat
   );
 };
 
-export function MatchListItem({ match, showDate = false, getShortDayLabel }: MatchListItemProps) {
+export const MatchListItem = React.memo(function MatchListItem({ match, showDate = false, getShortDayLabel }: MatchListItemProps) {
   const router = useRouter();
 
   const handleClick = () => {
@@ -169,4 +169,4 @@ export function MatchListItem({ match, showDate = false, getShortDayLabel }: Mat
       </div>
     </div>
   );
-}
+});

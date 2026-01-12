@@ -230,7 +230,7 @@ const TeamIdentityCard = ({ team }: { team: typeof MOCK_TEAM }) => (
   </Card>
 );
 
-const UnifiedMatchCard = ({ match }: { match: Match }) => {
+const UnifiedMatchCard = React.memo(({ match }: { match: Match }) => {
   return (
     <ApplicantManagementModal match={match}>
       <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm active:scale-[0.98] transition-transform cursor-pointer relative">
@@ -313,7 +313,7 @@ const UnifiedMatchCard = ({ match }: { match: Match }) => {
       </div>
     </ApplicantManagementModal>
   );
-};
+});
 
 const EmptyMatchState = () => (
   <div className="flex flex-col items-center justify-center py-10 bg-white rounded-2xl border border-slate-200 border-dashed text-center p-6">
