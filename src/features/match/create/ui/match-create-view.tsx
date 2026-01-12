@@ -1,737 +1,1352 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef } from 'react';
+import { useForm, Controller } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
-import { FileText, MapPin, Clock, Minus, Plus, RotateCcw, MapPinned, ExternalLink } from 'lucide-react';
+import {
+  MapPin,
+  Minus,
+  Plus,
+  Check,
+  Building2,
+  MessageCircle,
+  RefreshCw,
+  Clock,
+  FileText,
+  Users,
+  Settings,
+  Info,
+  X
+} from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Switch } from '@/components/ui/switch';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/shared/lib/utils';
-import { toast } from 'sonner';
-import { matchCreateSchema } from '../model/schema';
+import { toast } from "sonner";
+import { searchPlaces, KakaoPlace } from '@/shared/api/kakao-map';
 
-// Location data type
-interface LocationData {
-  address: string;
-  buildingName?: string;
-  bname?: string; // 동 이름 (지역 필터링용)
-  placeUrl?: string; // Kakao Map URL
-}
-
-export function MatchCreateView() {
-  const router = useRouter();
-
-  // Auto-scroll on input focus
-  const handleInputFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setTimeout(() => {
-      e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 300);
-  };
-  
-  // ... (Optimization: Keeping previous code structure, focusing on the changes)
-
-  // 14-day calendar
-  const getNext14Days = () => {
+// --- Helpers ---
+const getNext14Days = () => {
     const days = ['일', '월', '화', '수', '목', '금', '토'];
     const dates = [];
     const today = new Date();
 
     for(let i=0; i<14; i++) {
-      const d = new Date(today);
-      d.setDate(today.getDate() + i);
-      const month = d.getMonth() + 1;
-      const date = d.getDate();
-      const day = days[d.getDay()];
+        const d = new Date(today);
+        d.setDate(today.getDate() + i);
+        const month = d.getMonth() + 1;
+        const date = d.getDate();
+        const day = days[d.getDay()];
 
-      dates.push({
-        dateISO: d.toISOString().split('T')[0],
-        label: `${month}/${date}`,
-        dayNum: date,
-        dayStr: day,
-        isToday: i === 0,
-      });
+        dates.push({
+            dateISO: d.toISOString().split('T')[0],
+            label: `${month}.${date} (${day})`,
+            dayNum: date,
+            dayStr: day,
+            isToday: i === 0,
+        });
     }
     return dates;
-  };
+};
 
+const DURATION_OPTIONS = [
+    { label: '1시간', value: '1' },
+    { label: '1시간 30분', value: '1.5' },
+    { label: '2시간', value: '2' },
+    { label: '2시간 30분', value: '2.5' },
+    { label: '3시간', value: '3' },
+    { label: '3시간 30분', value: '3.5' },
+    { label: '4시간', value: '4' },
+];
+
+export function MatchCreateView() {
+  const router = useRouter();
+  const { register, handleSubmit, setValue, control } = useForm();
+
+  // -- State --
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [startTime, setStartTime] = useState('07:00');
-  const [duration, setDuration] = useState('2시간');
-  const [location, setLocation] = useState('');
-  const [locationData, setLocationData] = useState<LocationData | null>(null);
-  const [locationSearchResults, setLocationSearchResults] = useState<LocationData[]>([]);
-  const [showLocationDropdown, setShowLocationDropdown] = useState(false);
-  const locationInputRef = useRef<HTMLInputElement>(null);
-  const [price, setPrice] = useState('');
-  const [hostType, setHostType] = useState('개인 (본인)');
 
-  // Positions
+  // Recruitment
+  const [isPositionMode, setIsPositionMode] = useState(true); // true: Position-based, false: Any
   const [isFlexBigman, setIsFlexBigman] = useState(false);
-  const [positions, setPositions] = useState({
-    guard: 0,
-    forward: 0,
-    center: 0,
-    bigman: 0
-  });
+  const [positions, setPositions] = useState({ guard: 0, forward: 0, center: 0, bigman: 0 });
+  const [totalCount, setTotalCount] = useState(1);
 
-  const updatePosition = (key: keyof typeof positions, delta: number) => {
+  // Facilities
+  const [parkingCost, setParkingCost] = useState<string>("");
+  const [hasWater, setHasWater] = useState(false);
+  const [hasAcHeat, setHasAcHeat] = useState(false);
+  const [showerOption, setShowerOption] = useState("unavailable");
+  const [courtSize, setCourtSize] = useState("regular");
+
+  // Match Specs
+  const [matchType, setMatchType] = useState("5vs5");
+  const [gender, setGender] = useState("mixed");
+  const [level, setLevel] = useState("middle");
+  const [selectedAges, setSelectedAges] = useState<string[]>([]);
+
+  // Game Format (Optional)
+  const [gameFormatType, setGameFormatType] = useState("internal_2");
+  const [ruleMinutes, setRuleMinutes] = useState("");
+  const [ruleQuarters, setRuleQuarters] = useState("");
+  const [ruleGames, setRuleGames] = useState("");
+  const [guaranteedQuarters, setGuaranteedQuarters] = useState("");
+  const [refereeType, setRefereeType] = useState("self");
+
+  // Game Format Visibility (for nudge UI)
+  const [showRules, setShowRules] = useState(false);
+  const [showGuaranteed, setShowGuaranteed] = useState(false);
+  const [showReferee, setShowReferee] = useState(false);
+
+  // Admin Info
+  const [selectedTeam, setSelectedTeam] = useState("");
+  const [isDirectInput, setIsDirectInput] = useState(false);
+  const [directTeamName, setDirectTeamName] = useState("");
+
+  // Load Menu
+  const [showLoadMenu, setShowLoadMenu] = useState(false);
+
+  // Facilities Dialogs
+  const [showParkingDialog, setShowParkingDialog] = useState(false);
+  const [showShowerDialog, setShowShowerDialog] = useState(false);
+  const [showCourtSizeDialog, setShowCourtSizeDialog] = useState(false);
+
+  // Location Search (Kakao Map Integration)
+  const [locationSearchQuery, setLocationSearchQuery] = useState("");
+  const [locationSearchResults, setLocationSearchResults] = useState<KakaoPlace[]>([]);
+  const [showLocationDropdown, setShowLocationDropdown] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<KakaoPlace | null>(null);
+  const locationInputRef = useRef<HTMLInputElement>(null);
+  const locationDebounceTimer = useRef<NodeJS.Timeout | null>(null);
+
+  const calendarDates = useMemo(() => getNext14Days(), []);
+
+  // -- Handlers --
+
+  const updatePosition = (pos: keyof typeof positions, delta: number) => {
     setPositions(prev => ({
       ...prev,
-      [key]: Math.max(0, prev[key] + delta)
+      [pos]: Math.max(0, prev[pos] + delta)
     }));
   };
 
-  // Management Info
-  const [bankName, setBankName] = useState('');
-  const [accountNumber, setAccountNumber] = useState('');
-  const [contactInfo, setContactInfo] = useState('');
-
-  // Match Specs
-  const [matchType, setMatchType] = useState<'5vs5' | '3vs3'>('5vs5');
-  const [gender, setGender] = useState<'남성' | '혼성' | '여성'>('혼성');
-  const [level, setLevel] = useState<'초보(C)' | '중수(B)' | '고수(A)'>('중수(B)');
-  const [facilities, setFacilities] = useState<string[]>([]);
-
-  const facilityOptions = ['주차가능', '샤워실', '실내', '냉난방', '정수기'];
-
-  const toggleFacility = (facility: string) => {
-    setFacilities(prev =>
-      prev.includes(facility)
-        ? prev.filter(f => f !== facility)
-        : [...prev, facility]
-    );
+  const updateTotalCount = (delta: number) => {
+    setTotalCount(prev => Math.max(1, prev + delta));
   };
 
-  // Notes
-  const [notes, setNotes] = useState('');
-
-  // Auto-resize textarea
-  const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setNotes(e.target.value);
-    e.target.style.height = 'auto';
-    e.target.style.height = e.target.scrollHeight + 'px';
-  };
-
-  // Format location string: "address (buildingName)" if buildingName exists
-  const formatLocation = (data: LocationData): string => {
-    if (data.buildingName) {
-      return `${data.address} (${data.buildingName})`;
+  const handleAgeSelection = (age: string) => {
+    if (age === 'any') {
+        setSelectedAges(['any']);
+        return;
     }
-    return data.address;
+
+    if (selectedAges.includes('any')) {
+        setSelectedAges([age]);
+        return;
+    }
+
+    let newAges = selectedAges.includes(age)
+      ? selectedAges.filter(a => a !== age)
+      : [...selectedAges, age];
+
+    newAges = newAges.filter(a => a !== 'any');
+
+    // Fill range logic
+    const ageOrder = ['20', '30', '40', '50', '60', '70'];
+    const ageValues: Record<string, number> = { '20': 20, '30': 30, '40': 40, '50': 50, '60': 60, '70': 70 };
+
+    if (newAges.length >= 2) {
+        const numericAges = newAges
+            .map(a => ageValues[a])
+            .filter((n): n is number => n !== undefined)
+            .sort((a, b) => a - b);
+
+        const min = numericAges[0];
+        const max = numericAges[numericAges.length - 1];
+
+        const filledAges: string[] = [];
+        ageOrder.forEach(ageStr => {
+            const val = ageValues[ageStr];
+            if (val >= min && val <= max) {
+                filledAges.push(ageStr);
+            }
+        });
+
+        newAges = filledAges;
+    }
+
+    setSelectedAges(newAges);
   };
 
-  // Handle location search with debounce
-  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // Location Search with Debounce
+  const handleLocationSearch = async (query: string) => {
+    setLocationSearchQuery(query);
 
-  const handleLocationSearch = (query: string) => {
-    setLocation(query);
+    if (locationDebounceTimer.current) {
+      clearTimeout(locationDebounceTimer.current);
+    }
 
-    if (query.trim().length < 2) {
+    if (!query.trim()) {
       setLocationSearchResults([]);
       setShowLocationDropdown(false);
       return;
     }
 
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-
-    searchTimeoutRef.current = setTimeout(async () => {
+    locationDebounceTimer.current = setTimeout(async () => {
       try {
-        const { searchPlaces } = await import('@/shared/api/kakao-map');
         const results = await searchPlaces(query);
-        
-        const mappedResults: LocationData[] = results.map(place => ({
-            address: place.road_address_name || place.address_name,
-            buildingName: place.place_name,
-            bname: place.address_name.split(' ')[2],
-            placeUrl: place.place_url
-        }));
-
-        setLocationSearchResults(mappedResults);
-        setShowLocationDropdown(mappedResults.length > 0);
-      } catch (e) {
-        console.error("Search error", e);
+        setLocationSearchResults(results);
+        setShowLocationDropdown(results.length > 0);
+      } catch (error) {
+        console.error('Location search failed:', error);
+        toast.error('장소 검색에 실패했습니다');
       }
     }, 300);
   };
 
-  // Handle location selection
-  const handleLocationSelect = (data: LocationData) => {
-    setLocationData(data);
-    setLocation(formatLocation(data));
+  const handleLocationSelect = (place: KakaoPlace) => {
+    setSelectedLocation(place);
+    setLocationSearchQuery(place.place_name);
+    setValue('location', place.place_name);
     setShowLocationDropdown(false);
   };
-  
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (locationInputRef.current && !locationInputRef.current.contains(event.target as Node)) {
-        setShowLocationDropdown(false);
-      }
-    };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  // Auto Fill Mock Data
+  const fillMockData = () => {
+    const targetDate = calendarDates[1].dateISO;
+    setSelectedDate(targetDate);
 
-  const handleSubmit = () => {
-    // Zod 스키마 검증
-    const formData = {
-      selectedDate: selectedDate || '',
-      startTime,
-      duration,
-      location,
-      locationData,
-      price: price || '0',
-      hostType,
-      positions,
-      isFlexBigman,
-      bankName,
-      accountNumber,
-      contactInfo,
-      matchType,
-      gender,
-      level,
-      facilities,
-      announcements: notes,
-    };
+    // Simulate Kakao Place selection
+    setLocationSearchQuery('강남구민회관');
+    setValue('location', '강남구민회관');
+    setValue('startTime', '19:00');
+    setValue('duration', '2');
+    setValue('fee', '15000');
+    setValue('bankName', '카카오뱅크');
+    setValue('accountNumber', '3333-01-2345678');
+    setValue('kakaoLink', 'https://open.kakao.com/o/sXxXxXx');
+    setValue('description', '즐겁게 농구하실 분 환영합니다! 주차 3시간 무료입니다.');
 
-    const result = matchCreateSchema.safeParse(formData);
+    // Facilities
+    setParkingCost("0");
+    setHasWater(true);
+    setHasAcHeat(true);
+    setShowerOption("free");
+    setCourtSize("regular");
 
-    if (!result.success) {
-      // 첫 번째 에러 메시지 표시
-      const firstError = result.error.issues[0];
-      toast.error(firstError.message);
-      return;
+    // Recruitment
+    setIsPositionMode(true);
+    setPositions({ guard: 2, forward: 2, center: 1, bigman: 0 });
+    setIsFlexBigman(false);
+
+    // Specs
+    setMatchType('5vs5');
+    setGender('male');
+    setLevel('middle');
+    setSelectedAges(['20', '30']);
+
+    // Game Format
+    setGameFormatType("internal_3");
+    setRuleMinutes("10");
+    setRuleQuarters("4");
+    setRuleGames("3");
+    setGuaranteedQuarters("6");
+    setRefereeType("member");
+
+    toast.success("이전 경기 정보를 불러왔습니다.");
+  };
+
+  const onSubmit = (data: any) => {
+    if (!selectedDate) {
+        toast.error("날짜를 선택해주세요.");
+        return;
+    }
+
+    if (!selectedLocation && !locationSearchQuery) {
+        toast.error("장소를 선택해주세요.");
+        return;
     }
 
     const payload = {
-      date: selectedDate,
-      startTime,
-      duration,
-      location,
-      locationData,
-      price,
-      hostType,
-      positions: isFlexBigman
-        ? { guard: positions.guard, bigman: positions.bigman }
-        : { guard: positions.guard, forward: positions.forward, center: positions.center },
-      bankName,
-      accountNumber,
-      contactInfo,
-      matchType,
-      gender,
-      level,
-      facilities,
-      notes
+        ...data,
+        date: selectedDate,
+        location: selectedLocation ? {
+            name: selectedLocation.place_name,
+            address: selectedLocation.address_name,
+            latitude: parseFloat(selectedLocation.y),
+            longitude: parseFloat(selectedLocation.x),
+        } : {
+            name: locationSearchQuery,
+            address: "",
+            latitude: 0,
+            longitude: 0,
+        },
+        facilities: {
+            parking: parkingCost,
+            water: hasWater,
+            acHeat: hasAcHeat,
+            shower: showerOption,
+            courtSize
+        },
+        recruitment: isPositionMode ? {
+            type: 'position',
+            ...positions,
+            isFlexBigman
+        } : {
+            type: 'any',
+            count: totalCount
+        },
+        specs: {
+            matchType,
+            gender,
+            level,
+            ages: selectedAges
+        },
+        gameFormat: {
+            type: gameFormatType,
+            rules: { minutes: ruleMinutes, quarters: ruleQuarters, games: ruleGames },
+            guaranteedQuarters,
+            referee: refereeType
+        },
+        team: {
+            selected: selectedTeam,
+            directInput: isDirectInput ? directTeamName : null
+        }
     };
 
-    console.log('Creating Match:', payload);
-    toast.success('경기 모집이 등록되었습니다!');
-  };
+    console.log("Submitting Match:", payload);
+    toast.success("경기 모집이 등록되었습니다!");
 
-  const dates = getNext14Days();
-
-  // Helper to open map
-  const openKakaoMap = () => {
-    if (locationData?.placeUrl) {
-      window.open(locationData.placeUrl, '_blank');
-    }
+    // Navigate to host dashboard or match list
+    router.push('/');
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-32">
-      {/* ... Header ... */}
-      <div className="sticky top-0 z-20 bg-white border-b border-slate-100">
-        <div className="max-w-[760px] mx-auto flex items-center justify-between px-5 h-14">
-          <h1 className="text-lg font-bold text-slate-900">경기 개설</h1>
+    <div className="min-h-screen bg-slate-50 pb-[120px] max-w-[760px] mx-auto relative font-sans">
+
+      {/* Header */}
+      <header className="bg-white px-5 h-14 flex items-center justify-between border-b border-slate-100">
+          <h1 className="font-bold text-lg text-slate-900">경기 개설</h1>
+          <div className="flex gap-2 relative">
+            <button
+                type="button"
+                onClick={() => setShowLoadMenu(!showLoadMenu)}
+                className="text-xs font-bold text-[#FF6600] flex items-center gap-1 bg-orange-50 px-2.5 py-1.5 rounded-full hover:bg-orange-100 transition-colors"
+            >
+                <RefreshCw className="w-3.5 h-3.5" />
+                이전 경기
+            </button>
+
+            {/* Dropdown Menu for Load Options */}
+            {showLoadMenu && (
+              <div className="absolute top-full right-0 mt-2 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden z-50 min-w-[140px]">
+                <button
+                  type="button"
+                  onClick={() => {
+                    fillMockData();
+                    setShowLoadMenu(false);
+                  }}
+                  className="w-full px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2"
+                >
+                  <RefreshCw className="w-4 h-4 text-[#FF6600]" />
+                  이전 경기
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedTeam("team_slamdunk");
+                    fillMockData();
+                    setShowLoadMenu(false);
+                  }}
+                  className="w-full px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2 border-t border-slate-100"
+                >
+                  <Users className="w-4 h-4 text-slate-600" />
+                  팀 이전 운영
+                </button>
+              </div>
+            )}
+          </div>
+      </header>
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 p-4">
+
+        {/* SECTION 1: Basic Info & Facilities */}
+        <section className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-6">
+            <h2 className="font-bold text-slate-900 flex items-center gap-2">
+                <Building2 className="w-5 h-5 text-slate-400" />
+                기본 정보
+            </h2>
+
+            {/* Date */}
+            <div className="space-y-3">
+                <Label className="text-sm font-bold text-slate-600">일시 <span className="text-[#FF6600] text-xs font-normal ml-1">(2주 내 예약 가능)</span></Label>
+                <ScrollArea className="w-full whitespace-nowrap -mx-1">
+                    <div className="flex gap-2 pb-2 px-1">
+                        {calendarDates.map((d) => (
+                            <button
+                                type="button"
+                                key={d.dateISO}
+                                onClick={() => setSelectedDate(d.dateISO)}
+                                className={cn(
+                                    "flex flex-col items-center justify-center min-w-[64px] h-[64px] rounded-xl border transition-all active:scale-95",
+                                    selectedDate === d.dateISO
+                                        ? "bg-slate-900 border-slate-900 text-white shadow-md"
+                                        : "bg-white border-slate-100 text-slate-400 hover:bg-slate-50"
+                                )}
+                            >
+                                <span className={cn("text-[11px] mb-1 font-medium", selectedDate === d.dateISO ? "text-slate-300" : "text-slate-500")}>{d.dayStr}</span>
+                                <span className="text-lg font-bold leading-none">{d.dayNum}</span>
+                            </button>
+                        ))}
+                    </div>
+                    <ScrollBar orientation="horizontal" className="hidden" />
+                </ScrollArea>
+            </div>
+
+            {/* Time & Duration */}
+            <div className="grid grid-cols-2 gap-4">
+                 <div className="space-y-2">
+                    <Label className="text-sm font-bold text-slate-600">시작 시간</Label>
+                    <div className="relative">
+                        <Clock className="absolute left-3 top-3.5 h-5 w-5 text-slate-400 pointer-events-none" />
+                        <Input
+                            type="time"
+                            step="600"
+                            {...register('startTime')}
+                            className="pl-10 h-12 bg-white border-slate-200 text-lg font-bold"
+                            defaultValue="19:00"
+                        />
+                    </div>
+                </div>
+
+                <div className="space-y-2">
+                    <Label className="text-sm font-bold text-slate-600">진행 시간</Label>
+                    <Controller
+                        name="duration"
+                        control={control}
+                        defaultValue="2"
+                        render={({ field }) => (
+                            <Select value={field.value} onValueChange={field.onChange}>
+                                <SelectTrigger className="h-12 bg-white border-slate-200 font-bold">
+                                    <SelectValue placeholder="선택" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {DURATION_OPTIONS.map((opt) => (
+                                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
+                </div>
+            </div>
+
+            {/* Location with Kakao Search */}
+            <div className="space-y-2 relative">
+                <Label className="text-sm font-bold text-slate-600">장소</Label>
+                <div className="relative">
+                    <MapPin className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
+                    <Input
+                        ref={locationInputRef}
+                        value={locationSearchQuery}
+                        onChange={(e) => handleLocationSearch(e.target.value)}
+                        placeholder="체육관 검색..."
+                        className="pl-10 h-12 bg-white border-slate-200"
+                        autoComplete="off"
+                    />
+                    {selectedLocation && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedLocation(null);
+                          setLocationSearchQuery("");
+                          setValue('location', '');
+                        }}
+                        className="absolute right-3 top-3.5 text-slate-400 hover:text-slate-600"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                </div>
+
+                {/* Search Results Dropdown */}
+                {showLocationDropdown && locationSearchResults.length > 0 && (
+                  <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-[300px] overflow-y-auto">
+                    {locationSearchResults.map((place) => (
+                      <button
+                        key={place.id}
+                        type="button"
+                        onClick={() => handleLocationSelect(place)}
+                        className="w-full px-4 py-3 text-left hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-0"
+                      >
+                        <div className="font-medium text-slate-900 text-sm">{place.place_name}</div>
+                        <div className="text-xs text-slate-500 mt-0.5">{place.address_name}</div>
+                        {place.category_name && (
+                          <div className="text-xs text-slate-400 mt-1">{place.category_name}</div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {selectedLocation && (
+                  <div className="flex items-start gap-2 p-3 bg-orange-50 rounded-lg border border-orange-100">
+                    <MapPin className="w-4 h-4 text-[#FF6600] mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-slate-900 text-sm">{selectedLocation.place_name}</div>
+                      <div className="text-xs text-slate-600 mt-1">{selectedLocation.address_name}</div>
+                    </div>
+                    <Check className="w-4 h-4 text-[#FF6600] flex-shrink-0" />
+                  </div>
+                )}
+            </div>
+
+            {/* Fee */}
+            <div className="space-y-2">
+                <Label className="text-sm font-bold text-slate-600">참가비 (1인)</Label>
+                <div className="relative">
+                    <Input
+                        type="number"
+                        {...register('fee', { required: true })}
+                        className="h-12 bg-white border-slate-200 pr-10 text-right font-bold text-lg [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        placeholder="0"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 font-medium">원</span>
+                </div>
+            </div>
+
+            {/* Facilities - Chip Style */}
+            <div className="space-y-4 pt-4 border-t border-slate-100">
+                <Label className="text-sm font-bold text-slate-600">시설 정보</Label>
+
+                <div className="flex flex-wrap gap-2">
+                    {/* Simple Toggle: Water Purifier */}
+                    <button
+                        type="button"
+                        onClick={() => setHasWater(!hasWater)}
+                        className={cn(
+                            "px-4 py-2 rounded-full text-sm font-medium border transition-all flex items-center gap-1.5",
+                            hasWater
+                                ? "bg-[#FF6600] text-white border-[#FF6600]"
+                                : "bg-white text-slate-600 border-slate-300 hover:border-slate-400"
+                        )}
+                    >
+                        {hasWater && <Check className="w-3.5 h-3.5" />}
+                        정수기
+                    </button>
+
+                    {/* Simple Toggle: AC/Heating */}
+                    <button
+                        type="button"
+                        onClick={() => setHasAcHeat(!hasAcHeat)}
+                        className={cn(
+                            "px-4 py-2 rounded-full text-sm font-medium border transition-all flex items-center gap-1.5",
+                            hasAcHeat
+                                ? "bg-[#FF6600] text-white border-[#FF6600]"
+                                : "bg-white text-slate-600 border-slate-300 hover:border-slate-400"
+                        )}
+                    >
+                        {hasAcHeat && <Check className="w-3.5 h-3.5" />}
+                        냉난방
+                    </button>
+
+                    {/* Complex: Parking */}
+                    <button
+                        type="button"
+                        onClick={() => setShowParkingDialog(true)}
+                        className={cn(
+                            "px-4 py-2 rounded-full text-sm font-medium border transition-all flex items-center gap-1.5",
+                            parkingCost !== ""
+                                ? "bg-[#FF6600] text-white border-[#FF6600]"
+                                : "bg-white text-slate-600 border-slate-300 hover:border-slate-400"
+                        )}
+                    >
+                        {parkingCost !== "" && <Check className="w-3.5 h-3.5" />}
+                        주차
+                        {parkingCost === "0" && ": 무료"}
+                        {parkingCost !== "" && parkingCost !== "0" && `: ${Number(parkingCost).toLocaleString()}원/시간`}
+                    </button>
+
+                    {/* Complex: Shower */}
+                    <button
+                        type="button"
+                        onClick={() => setShowShowerDialog(true)}
+                        className={cn(
+                            "px-4 py-2 rounded-full text-sm font-medium border transition-all flex items-center gap-1.5",
+                            showerOption !== "unavailable"
+                                ? "bg-[#FF6600] text-white border-[#FF6600]"
+                                : "bg-white text-slate-600 border-slate-300 hover:border-slate-400"
+                        )}
+                    >
+                        {showerOption !== "unavailable" && <Check className="w-3.5 h-3.5" />}
+                        샤워실
+                        {showerOption === "free" && ": 무료"}
+                        {showerOption === "paid" && ": 유료"}
+                    </button>
+
+                    {/* Complex: Court Size */}
+                    <button
+                        type="button"
+                        onClick={() => setShowCourtSizeDialog(true)}
+                        className={cn(
+                            "px-4 py-2 rounded-full text-sm font-medium border transition-all flex items-center gap-1.5",
+                            courtSize !== "regular"
+                                ? "bg-[#FF6600] text-white border-[#FF6600]"
+                                : "bg-white text-slate-600 border-slate-300 hover:border-slate-400"
+                        )}
+                    >
+                        {courtSize !== "regular" && <Check className="w-3.5 h-3.5" />}
+                        코트 크기
+                        {courtSize === "short" && ": 세로 짧음"}
+                        {courtSize === "narrow" && ": 가로 좁음"}
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        {/* SECTION 2: Recruitment */}
+        <section className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-6">
+            <div className="flex items-center justify-between">
+                <h2 className="font-bold text-slate-900 flex items-center gap-2">
+                    <Users className="w-5 h-5 text-slate-400" />
+                    모집 인원
+                </h2>
+                <div className="flex items-center gap-2">
+                    <span className={cn("text-xs font-bold", !isPositionMode ? "text-[#FF6600]" : "text-slate-400")}>포지션 무관</span>
+                    <Switch checked={isPositionMode} onCheckedChange={setIsPositionMode} className="data-[state=checked]:bg-[#FF6600]" />
+                    <span className={cn("text-xs font-bold", isPositionMode ? "text-[#FF6600]" : "text-slate-400")}>포지션별</span>
+                </div>
+            </div>
+
+            {isPositionMode ? (
+                // Position Based
+                <div className="space-y-4">
+                     <div className="flex items-center justify-end space-x-2 mb-2">
+                        <Checkbox
+                            id="flex-bigman"
+                            checked={isFlexBigman}
+                            onCheckedChange={(c) => setIsFlexBigman(!!c)}
+                        />
+                        <label
+                            htmlFor="flex-bigman"
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-slate-600"
+                        >
+                            빅맨 통합 (F/C)
+                        </label>
+                    </div>
+
+                    <div className="space-y-3">
+                        {/* Guard */}
+                        <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+                            <span className="font-bold text-slate-700">가드 (G)</span>
+                            <div className="flex items-center gap-3">
+                                <button type="button" onClick={() => updatePosition('guard', -1)} className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-100"><Minus className="w-4 h-4 text-slate-600"/></button>
+                                <span className="w-4 text-center font-bold text-lg">{positions.guard}</span>
+                                <button type="button" onClick={() => updatePosition('guard', 1)} className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center hover:bg-slate-800"><Plus className="w-4 h-4"/></button>
+                            </div>
+                        </div>
+
+                        {isFlexBigman ? (
+                            // Bigman Only
+                            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                <span className="font-bold text-slate-700">빅맨 (F/C)</span>
+                                <div className="flex items-center gap-3">
+                                    <button type="button" onClick={() => updatePosition('bigman', -1)} className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-100"><Minus className="w-4 h-4 text-slate-600"/></button>
+                                    <span className="w-4 text-center font-bold text-lg">{positions.bigman}</span>
+                                    <button type="button" onClick={() => updatePosition('bigman', 1)} className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center hover:bg-slate-800"><Plus className="w-4 h-4"/></button>
+                                </div>
+                            </div>
+                        ) : (
+                            // Forward & Center
+                            <>
+                                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                    <span className="font-bold text-slate-700">포워드 (F)</span>
+                                    <div className="flex items-center gap-3">
+                                        <button type="button" onClick={() => updatePosition('forward', -1)} className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-100"><Minus className="w-4 h-4 text-slate-600"/></button>
+                                        <span className="w-4 text-center font-bold text-lg">{positions.forward}</span>
+                                        <button type="button" onClick={() => updatePosition('forward', 1)} className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center hover:bg-slate-800"><Plus className="w-4 h-4"/></button>
+                                    </div>
+                                </div>
+                                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                    <span className="font-bold text-slate-700">센터 (C)</span>
+                                    <div className="flex items-center gap-3">
+                                        <button type="button" onClick={() => updatePosition('center', -1)} className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-100"><Minus className="w-4 h-4 text-slate-600"/></button>
+                                        <span className="w-4 text-center font-bold text-lg">{positions.center}</span>
+                                        <button type="button" onClick={() => updatePosition('center', 1)} className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center hover:bg-slate-800"><Plus className="w-4 h-4"/></button>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+            ) : (
+                // Any Position
+                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
+                    <span className="font-bold text-slate-700">전체 인원</span>
+                    <div className="flex items-center gap-3">
+                        <button type="button" onClick={() => updateTotalCount(-1)} className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-100"><Minus className="w-5 h-5 text-slate-600"/></button>
+                        <span className="min-w-[40px] text-center font-bold text-xl">{totalCount}명</span>
+                        <button type="button" onClick={() => updateTotalCount(1)} className="w-10 h-10 rounded-full bg-slate-900 text-white flex items-center justify-center hover:bg-slate-800"><Plus className="w-5 h-5"/></button>
+                    </div>
+                </div>
+            )}
+        </section>
+
+        {/* SECTION 3: Match Specs */}
+        <section className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-6">
+            <h2 className="font-bold text-slate-900 flex items-center gap-2">
+                <Settings className="w-5 h-5 text-slate-400" />
+                매치 조건
+            </h2>
+
+            <div className="space-y-4">
+                {/* Match Type */}
+                <div className="space-y-2">
+                    <Label className="text-sm font-bold text-slate-600">매치 타입</Label>
+                    <div className="flex gap-2">
+                        {['5vs5', '3vs3'].map((type) => (
+                            <Badge
+                                key={type}
+                                onClick={() => setMatchType(type)}
+                                variant="outline"
+                                className={cn(
+                                    "cursor-pointer px-4 py-2 text-sm font-bold border transition-all",
+                                    matchType === type
+                                        ? "bg-slate-900 text-white border-slate-900"
+                                        : "bg-white text-slate-500 border-slate-200"
+                                )}
+                            >
+                                {type}
+                            </Badge>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Gender */}
+                <div className="space-y-2">
+                    <Label className="text-sm font-bold text-slate-600">성별</Label>
+                    <div className="flex gap-2">
+                        {[{v:'male', l:'남성'}, {v:'female', l:'여성'}, {v:'mixed', l:'혼성'}].map((g) => (
+                            <Badge
+                                key={g.v}
+                                onClick={() => setGender(g.v)}
+                                variant="outline"
+                                className={cn(
+                                    "cursor-pointer px-4 py-2 text-sm font-bold border transition-all",
+                                    gender === g.v
+                                        ? "bg-slate-900 text-white border-slate-900"
+                                        : "bg-white text-slate-500 border-slate-200"
+                                )}
+                            >
+                                {g.l}
+                            </Badge>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Level Progress Bar */}
+                <div className="space-y-3">
+                    <Label className="text-sm font-bold text-slate-600">권장 레벨</Label>
+                    <div className="space-y-3">
+                        <div className="flex gap-1">
+                            {/* Beginner 1-2 (Green) */}
+                            {[1, 2].map((i) => (
+                                <button
+                                    key={`low-${i}`}
+                                    type="button"
+                                    onClick={() => setLevel('low')}
+                                    className={cn(
+                                        "flex-1 h-10 rounded-lg transition-all",
+                                        level === 'low' ? "" : "bg-slate-200"
+                                    )}
+                                    style={{
+                                        backgroundColor: level === 'low' ? '#22C55E' : undefined
+                                    }}
+                                    aria-label="초보 레벨 선택"
+                                >
+                                    <span className="sr-only">초보</span>
+                                </button>
+                            ))}
+                            {/* Intermediate 3-4 (Yellow) */}
+                            {[1, 2].map((i) => (
+                                <button
+                                    key={`middle-${i}`}
+                                    type="button"
+                                    onClick={() => setLevel('middle')}
+                                    className={cn(
+                                        "flex-1 h-10 rounded-lg transition-all",
+                                        level === 'middle' ? "" : "bg-slate-200"
+                                    )}
+                                    style={{
+                                        backgroundColor: level === 'middle' ? '#EAB308' : undefined
+                                    }}
+                                    aria-label="중수 레벨 선택"
+                                >
+                                    <span className="sr-only">중수</span>
+                                </button>
+                            ))}
+                            {/* Advanced 5-6 (Orange) */}
+                            {[1, 2].map((i) => (
+                                <button
+                                    key={`high-${i}`}
+                                    type="button"
+                                    onClick={() => setLevel('high')}
+                                    className={cn(
+                                        "flex-1 h-10 rounded-lg transition-all",
+                                        level === 'high' ? "" : "bg-slate-200"
+                                    )}
+                                    style={{
+                                        backgroundColor: level === 'high' ? '#FF6600' : undefined
+                                    }}
+                                    aria-label="고수 레벨 선택"
+                                >
+                                    <span className="sr-only">고수</span>
+                                </button>
+                            ))}
+                            {/* Pro (Red) */}
+                            <button
+                                type="button"
+                                onClick={() => setLevel('pro')}
+                                className={cn(
+                                    "flex-1 h-10 rounded-lg transition-all",
+                                    level === 'pro' ? "" : "bg-slate-200"
+                                )}
+                                style={{
+                                    backgroundColor: level === 'pro' ? '#EF4444' : undefined
+                                }}
+                                aria-label="프로 레벨 선택"
+                            >
+                                <span className="sr-only">프로</span>
+                            </button>
+                        </div>
+
+                        {/* Color Underlines */}
+                        <div className="flex gap-1">
+                            <div className="flex gap-1" style={{ flex: 2 }}>
+                                <div className="flex-1 h-[3px] rounded-full" style={{ backgroundColor: '#22C55E' }}></div>
+                                <div className="flex-1 h-[3px] rounded-full" style={{ backgroundColor: '#22C55E' }}></div>
+                            </div>
+                            <div className="flex gap-1" style={{ flex: 2 }}>
+                                <div className="flex-1 h-[3px] rounded-full" style={{ backgroundColor: '#EAB308' }}></div>
+                                <div className="flex-1 h-[3px] rounded-full" style={{ backgroundColor: '#EAB308' }}></div>
+                            </div>
+                            <div className="flex gap-1" style={{ flex: 2 }}>
+                                <div className="flex-1 h-[3px] rounded-full" style={{ backgroundColor: '#FF6600' }}></div>
+                                <div className="flex-1 h-[3px] rounded-full" style={{ backgroundColor: '#FF6600' }}></div>
+                            </div>
+                            <div style={{ flex: 1 }}>
+                                <div className="h-[3px] rounded-full" style={{ backgroundColor: '#EF4444' }}></div>
+                            </div>
+                        </div>
+
+                        {/* Labels */}
+                        <div className="flex gap-1">
+                            <div className="text-center font-medium text-xs" style={{ flex: 2, color: '#22C55E' }}>초보</div>
+                            <div className="text-center font-medium text-xs" style={{ flex: 2, color: '#EAB308' }}>중급</div>
+                            <div className="text-center font-medium text-xs" style={{ flex: 2, color: '#FF6600' }}>상급</div>
+                            <div className="text-center font-medium text-xs" style={{ flex: 1, color: '#EF4444' }}>프로</div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Age */}
+                <div className="space-y-2">
+                    <Label className="text-sm font-bold text-slate-600">권장 나이</Label>
+                    <div className="flex items-center gap-2">
+                        <Badge
+                            onClick={() => handleAgeSelection('any')}
+                            variant="outline"
+                            className={cn(
+                                "cursor-pointer px-4 py-2 text-sm font-bold border transition-all",
+                                selectedAges.includes('any')
+                                    ? "bg-slate-900 text-white border-slate-900"
+                                    : "bg-white text-slate-500 border-slate-200"
+                            )}
+                        >
+                            무관
+                        </Badge>
+
+                        <div className="h-6 w-px bg-slate-300"></div>
+
+                        <ScrollArea className="w-full whitespace-nowrap">
+                          <div className="flex items-center gap-2 pb-2">
+                            {[
+                                {v:'20', l:'20대'},
+                                {v:'30', l:'30대'},
+                                {v:'40', l:'40대'},
+                                {v:'50', l:'50대'},
+                                {v:'60', l:'60대'},
+                                {v:'70', l:'70대'}
+                            ].map((a) => {
+                                const isSelected = selectedAges.includes(a.v);
+
+                                return (
+                                    <Badge
+                                        key={a.v}
+                                        onClick={() => handleAgeSelection(a.v)}
+                                        variant="outline"
+                                        className={cn(
+                                            "cursor-pointer px-4 py-2 text-sm font-bold border transition-all flex-shrink-0",
+                                            isSelected
+                                                ? "bg-slate-900 text-white border-slate-900"
+                                                : "bg-white text-slate-500 border-slate-200"
+                                        )}
+                                    >
+                                        {a.l}
+                                    </Badge>
+                                );
+                            })}
+                          </div>
+                          <ScrollBar orientation="horizontal" className="hidden" />
+                        </ScrollArea>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        {/* SECTION 4: Game Format (Optional) */}
+        <section className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-4 relative overflow-hidden">
+            <div className="absolute top-0 right-0 bg-blue-50 px-3 py-1.5 rounded-bl-xl border-l border-b border-blue-100">
+                <span className="text-[10px] font-bold text-blue-600">작성하면 문의가 줄어들어요!</span>
+            </div>
+
+            <h2 className="font-bold text-slate-900 flex items-center gap-2">
+                <Info className="w-5 h-5 text-slate-400" />
+                경기 진행 방식 (선택)
+            </h2>
+
+            <div className="space-y-4">
+                {/* Game Type */}
+                <div className="space-y-2">
+                    <Label className="text-sm font-bold text-slate-600">경기 형태</Label>
+                    <div className="flex flex-wrap gap-2">
+                        {[
+                            {v:'internal_2', l:'자체전(2파전)'},
+                            {v:'internal_3', l:'자체전(3파전)'},
+                            {v:'exchange', l:'팀 교류전'},
+                            {v:'practice', l:'연습/레슨'}
+                        ].map(t => (
+                            <Badge
+                                key={t.v}
+                                onClick={() => setGameFormatType(t.v)}
+                                variant="outline"
+                                className={cn(
+                                    "cursor-pointer px-3 py-2 text-sm font-medium border transition-all",
+                                    gameFormatType === t.v
+                                        ? "bg-slate-800 text-white border-slate-800"
+                                        : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"
+                                )}
+                            >
+                                {t.l}
+                            </Badge>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Rules - Nudge UI */}
+                {!showRules ? (
+                    <button
+                        type="button"
+                        onClick={() => setShowRules(true)}
+                        className="flex items-center gap-2 text-sm text-slate-600 hover:text-[#FF6600] font-medium transition-colors"
+                    >
+                        <Plus className="w-4 h-4" />
+                        <span>상세 룰 추가</span>
+                    </button>
+                ) : (
+                    <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                            <Label className={cn(
+                                "text-sm font-bold",
+                                (ruleMinutes || ruleQuarters || ruleGames) ? "text-[#FF6600]" : "text-slate-600"
+                            )}>
+                                상세 룰 {(ruleMinutes || ruleQuarters || ruleGames) && "✓"}
+                            </Label>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setShowRules(false);
+                                    setRuleMinutes("");
+                                    setRuleQuarters("");
+                                    setRuleGames("");
+                                }}
+                                className="text-xs text-slate-400 hover:text-slate-600"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Input
+                                value={ruleMinutes}
+                                onChange={(e) => setRuleMinutes(e.target.value)}
+                                className="w-16 h-10 text-center bg-white border-slate-200"
+                                placeholder="0"
+                            />
+                            <span className="text-sm text-slate-500">분</span>
+                            <span className="text-slate-300">/</span>
+                            <Input
+                                 value={ruleQuarters}
+                                 onChange={(e) => setRuleQuarters(e.target.value)}
+                                className="w-16 h-10 text-center bg-white border-slate-200"
+                                placeholder="0"
+                            />
+                            <span className="text-sm text-slate-500">쿼터</span>
+                            <span className="text-slate-300">/</span>
+                            <Input
+                                 value={ruleGames}
+                                 onChange={(e) => setRuleGames(e.target.value)}
+                                className="w-16 h-10 text-center bg-white border-slate-200"
+                                placeholder="0"
+                            />
+                            <span className="text-sm text-slate-500">경기</span>
+                        </div>
+                    </div>
+                )}
+
+                {/* Guaranteed Quarters - Nudge UI */}
+                {!showGuaranteed ? (
+                    <button
+                        type="button"
+                        onClick={() => setShowGuaranteed(true)}
+                        className="flex items-center gap-2 text-sm text-slate-600 hover:text-[#FF6600] font-medium transition-colors"
+                    >
+                        <Plus className="w-4 h-4" />
+                        <span>보장 쿼터 추가</span>
+                    </button>
+                ) : (
+                    <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                            <Label className={cn(
+                                "text-sm font-bold",
+                                guaranteedQuarters ? "text-[#FF6600]" : "text-slate-600"
+                            )}>
+                                보장 쿼터 {guaranteedQuarters && "✓"}
+                            </Label>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setShowGuaranteed(false);
+                                    setGuaranteedQuarters("");
+                                }}
+                                className="text-xs text-slate-400 hover:text-slate-600"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+                        <Input
+                            value={guaranteedQuarters}
+                            onChange={(e) => setGuaranteedQuarters(e.target.value)}
+                            placeholder="예: 최소 6쿼터"
+                            className="h-11 bg-white border-slate-200"
+                        />
+                    </div>
+                )}
+
+                {/* Referee - Nudge UI */}
+                {!showReferee ? (
+                    <button
+                        type="button"
+                        onClick={() => setShowReferee(true)}
+                        className="flex items-center gap-2 text-sm text-slate-600 hover:text-[#FF6600] font-medium transition-colors"
+                    >
+                        <Plus className="w-4 h-4" />
+                        <span>심판 추가</span>
+                    </button>
+                ) : (
+                    <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                            <Label className={cn(
+                                "text-sm font-bold",
+                                refereeType !== 'self' ? "text-[#FF6600]" : "text-slate-600"
+                            )}>
+                                심판 {refereeType !== 'self' && "✓"}
+                            </Label>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setShowReferee(false);
+                                    setRefereeType("self");
+                                }}
+                                className="text-xs text-slate-400 hover:text-slate-600"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+                        <div className="flex gap-2">
+                            {[
+                                {v:'self', l:'자체콜'},
+                                {v:'member', l:'게스트/팀원'},
+                                {v:'pro', l:'전문 심판'}
+                            ].map(r => (
+                                <Badge
+                                    key={r.v}
+                                    onClick={() => setRefereeType(r.v)}
+                                    variant="outline"
+                                    className={cn(
+                                        "cursor-pointer px-3 py-2 text-sm font-medium border transition-all",
+                                        refereeType === r.v
+                                            ? "bg-slate-800 text-white border-slate-800"
+                                            : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"
+                                    )}
+                                >
+                                    {r.l}
+                                </Badge>
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </div>
+        </section>
+
+        {/* SECTION 5: Admin Info */}
+        <section className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-6 mb-8">
+            <div className="flex items-center justify-between">
+                <h2 className="font-bold text-slate-900 flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-slate-400" />
+                    운영 정보
+                </h2>
+                <button
+                    type="button"
+                    onClick={() => {
+                        toast.info("팀 정보를 불러왔습니다.");
+                        setSelectedTeam("team_slamdunk");
+                    }}
+                    className="text-xs font-bold text-slate-600 hover:text-[#FF6600] transition-colors"
+                >
+                    불러오기
+                </button>
+            </div>
+
+            {/* Team Selection */}
+            <div className="space-y-2">
+                <Label className="text-sm font-bold text-slate-600">팀 선택</Label>
+                {!isDirectInput ? (
+                    <Select
+                        value={selectedTeam}
+                        onValueChange={(value) => {
+                            if (value === "direct_input") {
+                                setIsDirectInput(true);
+                                setSelectedTeam("");
+                            } else {
+                                setSelectedTeam(value);
+                            }
+                        }}
+                    >
+                        <SelectTrigger className="h-12 bg-white border-slate-200">
+                            <SelectValue placeholder="팀을 선택해주세요" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="team_slamdunk">🏀 팀 슬램덩크</SelectItem>
+                            <SelectItem value="team_jordan">⛹️ Team Jordan</SelectItem>
+                            <SelectItem value="direct_input">✏️ 직접 입력</SelectItem>
+                        </SelectContent>
+                    </Select>
+                ) : (
+                    <div className="flex gap-2">
+                        <Input
+                            value={directTeamName}
+                            onChange={(e) => setDirectTeamName(e.target.value)}
+                            placeholder="팀 이름을 입력해주세요"
+                            className="h-12 bg-white border-slate-200"
+                        />
+                        <Button
+                            type="button"
+                            onClick={() => {
+                                setIsDirectInput(false);
+                                setDirectTeamName("");
+                            }}
+                            variant="outline"
+                            className="h-12 px-3"
+                        >
+                            <X className="w-4 h-4" />
+                        </Button>
+                    </div>
+                )}
+                <p className="text-xs text-slate-500 mt-1">
+                    💡 팀을 생성하면 다음부터 불러오기로 3초 만에 개설할 수 있어요!
+                </p>
+            </div>
+
+            <div className="space-y-4">
+                 <div className="space-y-2">
+                    <Label className="text-sm font-bold text-slate-600">계좌 정보</Label>
+                    <div className="flex gap-2">
+                        <Input
+                            {...register('bankName')}
+                            placeholder="은행명"
+                            className="w-[100px] h-11 bg-white border-slate-200"
+                        />
+                        <Input
+                            {...register('accountNumber')}
+                            placeholder="계좌번호 (- 없이)"
+                            className="flex-1 h-11 bg-white border-slate-200"
+                        />
+                    </div>
+                </div>
+
+                <div className="space-y-2">
+                    <Label className="text-sm font-bold text-slate-600 flex justify-between">
+                        문의하기 (연락처)
+                        <span className="text-xs font-normal text-[#FF6600]">프로필 정보 사용됨</span>
+                    </Label>
+                    <div className="relative">
+                        <MessageCircle className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
+                        <Input
+                            {...register('kakaoLink')}
+                            placeholder="오픈채팅 또는 연락처 (프로필 기본값)"
+                            className="pl-9 h-11 bg-white border-slate-200 text-sm"
+                        />
+                    </div>
+                    <p className="text-xs text-slate-400 mt-1">
+                        * 승인된 게스트에게만 공개됩니다.
+                    </p>
+                </div>
+
+                <div className="space-y-2">
+                    <Label className="text-sm font-bold text-slate-600">공지 내용</Label>
+                    <Textarea
+                        {...register('description')}
+                        placeholder="기타 규칙이나 알림이 있다면 자유롭게 적어주세요."
+                        className="min-h-[120px] bg-white border-slate-200 resize-none text-base"
+                    />
+                </div>
+            </div>
+        </section>
+
+      </form>
+
+      {/* Footer */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-slate-100 max-w-[760px] mx-auto">
           <Button
-            variant="ghost"
-            size="sm"
-            className="text-[#FF6600] font-semibold hover:text-[#FF6600]/90 hover:bg-orange-50"
+            onClick={handleSubmit(onSubmit)}
+            className="w-full h-14 text-lg font-bold bg-[#FF6600] hover:bg-[#FF6600]/90 text-white rounded-xl shadow-lg shadow-orange-100"
           >
-            <RotateCcw className="w-4 h-4 mr-1" />
-            불러오기
+              경기 생성하기
           </Button>
-        </div>
       </div>
 
-      {/* Content */}
-      <div className="max-w-[760px] mx-auto px-5 py-6 space-y-8">
-        {/* Basic Info Section */}
-        <section className="bg-white rounded-2xl p-6 shadow-sm">
-          {/* ... Date Picker & Time inputs (Keep existing) ... */}
-          <div className="flex items-center gap-2 mb-6">
-            <FileText className="w-5 h-5 text-slate-400" />
-            <h2 className="text-lg font-bold text-slate-900">기본 정보</h2>
+      {/* Dialog: Parking */}
+      <Dialog open={showParkingDialog} onOpenChange={setShowParkingDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>주차 정보</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-slate-700">시간당 주차 요금</Label>
+              <div className="relative">
+                <Input
+                  type="number"
+                  value={parkingCost}
+                  onChange={(e) => setParkingCost(e.target.value)}
+                  placeholder="금액 입력 (0원 = 무료)"
+                  className="h-12 bg-white border-slate-200 pr-12 text-right"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">원</span>
+              </div>
+              <p className="text-xs text-slate-500">💡 0원을 입력하면 무료로 표시됩니다.</p>
+            </div>
+            <Button
+              onClick={() => setShowParkingDialog(false)}
+              className="w-full h-12 bg-[#FF6600] hover:bg-[#FF6600]/90 text-white font-bold rounded-xl"
+            >
+              확인
+            </Button>
           </div>
+        </DialogContent>
+      </Dialog>
 
-          {/* Date Picker */}
-          <div className="mb-6">
-            <Label className="text-sm font-bold text-slate-900 mb-3 block">
-              일시 <span className="text-[#FF6600] ml-1">(2주 이내 경기만 개설 가능)</span>
-            </Label>
-            <ScrollArea className="w-full">
-              <div className="flex gap-2 pb-2">
-                {dates.map((date) => (
+      {/* Dialog: Shower */}
+      <Dialog open={showShowerDialog} onOpenChange={setShowShowerDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>샤워실 정보</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-slate-700">샤워실 이용</Label>
+              <div className="flex gap-2">
+                {[
+                  { v: 'free', l: '무료' },
+                  { v: 'paid', l: '유료' },
+                  { v: 'unavailable', l: '불가' }
+                ].map(opt => (
                   <button
-                    key={date.dateISO}
-                    onClick={() => setSelectedDate(date.dateISO)}
+                    type="button"
+                    key={opt.v}
+                    onClick={() => setShowerOption(opt.v)}
                     className={cn(
-                      "flex flex-col items-center justify-center min-w-[52px] h-[56px] rounded-lg border-2 transition-all",
-                      selectedDate === date.dateISO
-                        ? "border-[#FF6600] bg-orange-50"
-                        : "border-slate-200 bg-white hover:border-slate-300"
+                      "flex-1 py-3 rounded-xl text-sm font-medium border transition-all",
+                      showerOption === opt.v
+                        ? "bg-[#FF6600] text-white border-[#FF6600]"
+                        : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
                     )}
                   >
-                    <div className={cn(
-                      "text-[10px] mb-0.5",
-                      selectedDate === date.dateISO ? "text-[#FF6600]" : "text-slate-500"
-                    )}>
-                      {date.dayStr}
-                    </div>
-                    <div className={cn(
-                      "text-xl font-bold",
-                      selectedDate === date.dateISO ? "text-[#FF6600]" : "text-slate-900"
-                    )}>
-                      {date.dayNum}
-                    </div>
+                    {opt.l}
                   </button>
                 ))}
               </div>
-            </ScrollArea>
-          </div>
-
-          {/* Time & Duration */}
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            <div>
-              <Label className="text-sm font-bold text-slate-900 mb-2 block">시작 시간</Label>
-              <div className="relative">
-                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                <Input
-                  type="time"
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  className="pl-10 h-12"
-                />
-              </div>
             </div>
-            <div>
-              <Label className="text-sm font-bold text-slate-900 mb-2 block">진행 시간</Label>
-              <Select value={duration} onValueChange={setDuration}>
-                <SelectTrigger className="h-12">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1시간">1시간</SelectItem>
-                  <SelectItem value="1시간 30분">1시간 30분</SelectItem>
-                  <SelectItem value="2시간">2시간</SelectItem>
-                  <SelectItem value="2시간 30분">2시간 30분</SelectItem>
-                  <SelectItem value="3시간">3시간</SelectItem>
-                  <SelectItem value="3시간 30분">3시간 30분</SelectItem>
-                  <SelectItem value="4시간">4시간</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <Button
+              onClick={() => setShowShowerDialog(false)}
+              className="w-full h-12 bg-[#FF6600] hover:bg-[#FF6600]/90 text-white font-bold rounded-xl"
+            >
+              확인
+            </Button>
           </div>
+        </DialogContent>
+      </Dialog>
 
-          {/* Location with Map Link */}
-          <div className="mb-6">
-            <Label className="text-sm font-bold text-slate-900 mb-2 block">장소</Label>
-            <div className="relative" ref={locationInputRef}>
-              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 z-10" />
-              <Input
-                placeholder="체육관 검색 (예: 서초종합체육관)"
-                value={location}
-                onChange={(e) => handleLocationSearch(e.target.value)}
-                onFocus={(e) => {
-                  handleInputFocus(e);
-                  if (locationSearchResults.length > 0) {
-                    setShowLocationDropdown(true);
-                  }
-                }}
-                className="pl-10 h-12 pr-12" 
-              />
-              
-              {/* Map Link Icon (Visible if placeUrl exists) */}
-              {locationData?.placeUrl && (
-                <button 
-                  onClick={openKakaoMap}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg transition-colors group flex items-center justify-center"
-                  title="카카오맵에서 보기"
-                >
-                    <MapPinned className="w-4 h-4 text-[#FF6600]" />
-                </button>
-              )}
-
-              {/* Search Results Dropdown */}
-              {showLocationDropdown && locationSearchResults.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-[240px] overflow-y-auto">
-                  {locationSearchResults.map((result, index) => (
-                    <div
-                      key={index}
-                      className="w-full flex items-center justify-between border-b border-slate-100 last:border-b-0 hover:bg-slate-50 transition-colors group"
-                    >
-                      {/* Main Select Action */}
-                      <button
-                         onClick={() => handleLocationSelect(result)}
-                         className="flex-1 px-4 py-3 text-left flex items-start gap-2 min-w-0"
-                      >
-                        <MapPin className="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0 group-hover:text-[#FF6600]" />
-                        <div className="flex-1 min-w-0">
-                          {result.buildingName && (
-                            <div className="text-sm font-bold text-slate-900 mb-0.5 truncate">
-                              {result.buildingName}
-                            </div>
-                          )}
-                          <div className={cn(
-                            "text-xs text-slate-600 truncate",
-                            !result.buildingName && "text-sm font-medium text-slate-900"
-                          )}>
-                            {result.address}
-                          </div>
-                        </div>
-                      </button>
-
-                      {/* Map Link Action */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          window.open(result.placeUrl, '_blank');
-                        }}
-                        className="px-3 py-3 text-slate-300 hover:text-[#FF6600] transition-colors"
-                        title="카카오맵 보기"
-                      >
-                         <ExternalLink className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Price */}
-          <div className="mb-6">
-            <Label className="text-sm font-bold text-slate-900 mb-2 block">참가비 (1인)</Label>
-            <div className="relative">
-              <Input
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                placeholder="0"
-                value={price}
-                onChange={(e) => {
-                  const value = e.target.value.replace(/[^0-9]/g, '');
-                  setPrice(value);
-                }}
-                onFocus={handleInputFocus}
-                className="h-12 pr-12 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500">원</span>
-            </div>
-          </div>
-
-          {/* Host Type */}
-          <div>
-            <Label className="text-sm font-bold text-slate-900 mb-2 block">주최자 정보</Label>
-            <Select value={hostType} onValueChange={setHostType}>
-              <SelectTrigger className="h-12">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="개인 (본인)">개인 (본인)</SelectItem>
-                <SelectItem value="팀">팀</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </section>
-
-        {/* Recruitment Section */}
-        <section className="bg-white rounded-2xl p-6 shadow-sm">
-          <h2 className="text-lg font-bold text-slate-900 mb-6">모집 내용</h2>
-
-          {/* Position Mode Toggle */}
-          <div className="flex items-center justify-between mb-6">
-            <Label className="text-sm font-bold text-slate-900">포지션별 인원</Label>
-            <div className="flex items-center gap-2">
-              <Checkbox
-                checked={isFlexBigman}
-                onCheckedChange={(checked) => setIsFlexBigman(checked as boolean)}
-              />
-              <Label className="text-sm text-slate-600">빅맨 통합 (F/C)</Label>
-            </div>
-          </div>
-
-          {/* Position Counters */}
-          <div className="space-y-2">
-            {/* Guard */}
-            <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50">
-              <span className="text-sm font-bold text-slate-900">가드 (G)</span>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => updatePosition('guard', -1)}
-                  className="w-8 h-8 rounded-full border-2 border-slate-300 flex items-center justify-center hover:border-slate-400 transition-colors"
-                >
-                  <Minus className="w-4 h-4 text-slate-600" />
-                </button>
-                <span className="text-xl font-bold text-slate-900 min-w-[32px] text-center">
-                  {positions.guard}
-                </span>
-                <button
-                  onClick={() => updatePosition('guard', 1)}
-                  className="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center hover:bg-slate-800 transition-colors"
-                >
-                  <Plus className="w-4 h-4 text-white" />
-                </button>
-              </div>
-            </div>
-
-            {/* Forward (or Bigman) */}
-            {!isFlexBigman ? (
-              <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50">
-                <span className="text-sm font-bold text-slate-900">포워드 (F)</span>
-                <div className="flex items-center gap-3">
+      {/* Dialog: Court Size */}
+      <Dialog open={showCourtSizeDialog} onOpenChange={setShowCourtSizeDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>코트 크기</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-slate-700">코트 사이즈</Label>
+              <div className="space-y-2">
+                {[
+                  { v: 'regular', l: '정규 사이즈', desc: '표준 코트입니다' },
+                  { v: 'short', l: '세로가 좀 짧아요', desc: '정규보다 짧습니다' },
+                  { v: 'narrow', l: '가로가 좀 좁아요', desc: '정규보다 좁습니다' }
+                ].map(opt => (
                   <button
-                    onClick={() => updatePosition('forward', -1)}
-                    className="w-8 h-8 rounded-full border-2 border-slate-300 flex items-center justify-center hover:border-slate-400 transition-colors"
+                    type="button"
+                    key={opt.v}
+                    onClick={() => setCourtSize(opt.v)}
+                    className={cn(
+                      "w-full p-4 rounded-xl text-left border transition-all",
+                      courtSize === opt.v
+                        ? "bg-orange-50 border-[#FF6600] ring-1 ring-[#FF6600]"
+                        : "bg-white border-slate-200 hover:bg-slate-50"
+                    )}
                   >
-                    <Minus className="w-4 h-4 text-slate-600" />
+                    <div className="font-medium text-slate-900">{opt.l}</div>
+                    <div className="text-xs text-slate-500 mt-0.5">{opt.desc}</div>
                   </button>
-                  <span className="text-xl font-bold text-slate-900 min-w-[32px] text-center">
-                    {positions.forward}
-                  </span>
-                  <button
-                    onClick={() => updatePosition('forward', 1)}
-                    className="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center hover:bg-slate-800 transition-colors"
-                  >
-                    <Plus className="w-4 h-4 text-white" />
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50">
-                <span className="text-sm font-bold text-slate-900">빅맨 (F/C)</span>
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => updatePosition('bigman', -1)}
-                    className="w-8 h-8 rounded-full border-2 border-slate-300 flex items-center justify-center hover:border-slate-400 transition-colors"
-                  >
-                    <Minus className="w-4 h-4 text-slate-600" />
-                  </button>
-                  <span className="text-xl font-bold text-slate-900 min-w-[32px] text-center">
-                    {positions.bigman}
-                  </span>
-                  <button
-                    onClick={() => updatePosition('bigman', 1)}
-                    className="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center hover:bg-slate-800 transition-colors"
-                  >
-                    <Plus className="w-4 h-4 text-white" />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Center */}
-            {!isFlexBigman && (
-              <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50">
-                <span className="text-sm font-bold text-slate-900">센터 (C)</span>
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => updatePosition('center', -1)}
-                    className="w-8 h-8 rounded-full border-2 border-slate-300 flex items-center justify-center hover:border-slate-400 transition-colors"
-                  >
-                    <Minus className="w-4 h-4 text-slate-600" />
-                  </button>
-                  <span className="text-xl font-bold text-slate-900 min-w-[32px] text-center">
-                    {positions.center}
-                  </span>
-                  <button
-                    onClick={() => updatePosition('center', 1)}
-                    className="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center hover:bg-slate-800 transition-colors"
-                  >
-                    <Plus className="w-4 h-4 text-white" />
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* Management Info Section */}
-        <section className="bg-white rounded-2xl p-6 shadow-sm">
-          <h2 className="text-lg font-bold text-slate-900 mb-2">운영 정보 <span className="text-sm text-slate-500 font-normal">(비공개)</span></h2>
-
-          <div className="space-y-4 mb-6">
-            {/* Bank Account */}
-            <div>
-              <Label className="text-sm font-bold text-slate-900 mb-2 block">계좌 정보</Label>
-              <div className="grid grid-cols-[120px_1fr] gap-3">
-                <Input
-                  placeholder="은행명"
-                  value={bankName}
-                  onChange={(e) => setBankName(e.target.value)}
-                  onFocus={handleInputFocus}
-                  className="h-12"
-                />
-                <Input
-                  placeholder="계좌번호 (- 없이)"
-                  value={accountNumber}
-                  onChange={(e) => setAccountNumber(e.target.value)}
-                  onFocus={handleInputFocus}
-                  className="h-12"
-                />
+                ))}
               </div>
             </div>
-
-            {/* Contact Info */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <Label className="text-sm font-bold text-slate-900">문의하기 (연락처)</Label>
-                <button className="text-xs text-[#FF6600] font-semibold">프로필 정보 사용팁</button>
-              </div>
-              <Input
-                placeholder="오픈채팅 또는 연락처 (프로필 기본값)"
-                value={contactInfo}
-                onChange={(e) => setContactInfo(e.target.value)}
-                onFocus={handleInputFocus}
-                className="h-12"
-              />
-            </div>
+            <Button
+              onClick={() => setShowCourtSizeDialog(false)}
+              className="w-full h-12 bg-[#FF6600] hover:bg-[#FF6600]/90 text-white font-bold rounded-xl"
+            >
+              확인
+            </Button>
           </div>
+        </DialogContent>
+      </Dialog>
 
-          <p className="text-xs text-slate-500">* 승인된 게스트에게만 공개됩니다.</p>
-        </section>
-
-        {/* Match Specs Section */}
-        <section className="bg-white rounded-2xl p-6 shadow-sm">
-          {/* Match Type */}
-          <div className="mb-6">
-            <Label className="text-sm font-bold text-slate-900 mb-3 block">매치 타입</Label>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => setMatchType('5vs5')}
-                className={cn(
-                  "h-12 rounded-xl font-bold transition-all",
-                  matchType === '5vs5'
-                    ? "bg-white text-slate-900 border-2 border-slate-900"
-                    : "bg-slate-50 text-slate-400 border-2 border-transparent"
-                )}
-              >
-                5vs5
-              </button>
-              <button
-                onClick={() => setMatchType('3vs3')}
-                className={cn(
-                  "h-12 rounded-xl font-bold transition-all",
-                  matchType === '3vs3'
-                    ? "bg-white text-slate-900 border-2 border-slate-900"
-                    : "bg-slate-50 text-slate-400 border-2 border-transparent"
-                )}
-              >
-                3vs3
-              </button>
-            </div>
-          </div>
-
-          {/* Gender */}
-          <div className="mb-6">
-            <Label className="text-sm font-bold text-slate-900 mb-3 block">성별</Label>
-            <div className="grid grid-cols-3 gap-3">
-              {(['남성', '혼성', '여성'] as const).map((g) => (
-                <button
-                  key={g}
-                  onClick={() => setGender(g)}
-                  className={cn(
-                    "h-12 rounded-xl font-bold transition-all",
-                    gender === g
-                      ? "bg-slate-900 text-white"
-                      : "bg-white text-slate-600 border-2 border-slate-200"
-                  )}
-                >
-                  {g}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Level */}
-          <div className="mb-6">
-            <Label className="text-sm font-bold text-slate-900 mb-3 block">레벨</Label>
-            <div className="grid grid-cols-3 gap-3">
-              {(['초보(C)', '중수(B)', '고수(A)'] as const).map((l) => (
-                <button
-                  key={l}
-                  onClick={() => setLevel(l)}
-                  className={cn(
-                    "h-12 rounded-xl font-bold transition-all",
-                    level === l
-                      ? "bg-[#FF6600] text-white"
-                      : "bg-white text-slate-600 border-2 border-slate-200"
-                  )}
-                >
-                  {l}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Facilities */}
-          <div>
-            <Label className="text-sm font-bold text-slate-900 mb-3 block">편의 시설</Label>
-            <div className="flex flex-wrap gap-2">
-              {facilityOptions.map((facility) => (
-                <Badge
-                  key={facility}
-                  onClick={() => toggleFacility(facility)}
-                  className={cn(
-                    "px-4 py-2 text-sm cursor-pointer transition-all",
-                    facilities.includes(facility)
-                      ? "bg-slate-900 text-white hover:bg-slate-800"
-                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                  )}
-                >
-                  {facility}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Notes Section */}
-        <section className="bg-white rounded-2xl p-6 shadow-sm">
-          <h2 className="text-lg font-bold text-slate-900 mb-6">참고 사항</h2>
-
-          <div>
-            <Label className="text-sm font-bold text-slate-900 mb-2 block">공지 내용</Label>
-            <Textarea
-              placeholder="경기 진행 방식, 주차 안내, 기타 공지사항을 자유롭게 적어주세요."
-              value={notes}
-              onChange={handleNotesChange}
-              onFocus={handleInputFocus}
-              className="min-h-[120px] resize-none overflow-hidden"
-            />
-          </div>
-        </section>
-      </div>
-
-      {/* Sticky Footer */}
-      <div className="fixed bottom-0 left-0 right-0 z-20 bg-white border-t border-slate-100 shadow-lg">
-        <div className="max-w-[760px] mx-auto px-5 py-4">
-          <Button
-            onClick={handleSubmit}
-            className="w-full h-14 bg-[#FF6600] hover:bg-[#FF6600]/90 text-white font-bold text-lg rounded-xl"
-          >
-            경기 생성하기
-          </Button>
-        </div>
-      </div>
     </div>
   );
 }
