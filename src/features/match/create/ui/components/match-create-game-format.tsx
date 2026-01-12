@@ -183,12 +183,12 @@ export function MatchCreateGameFormat({
                     setGuaranteedQuarters("");
                 }}
             >
-                <div className="flex items-center gap-2 max-w-[120px]">
+                <div className="flex items-center gap-2">
                     <Input
                         value={guaranteedQuarters}
                         onChange={(e) => setGuaranteedQuarters(e.target.value)}
                         placeholder="0"
-                        className="h-10 bg-white border-slate-200 text-right pr-2 rounded-lg"
+                        className="w-16 h-10 text-center bg-white border-slate-200 rounded-lg"
                         inputMode="numeric"
                     />
                     <span className="text-slate-500 text-sm whitespace-nowrap">쿼터</span>
