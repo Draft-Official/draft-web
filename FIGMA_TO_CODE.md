@@ -84,6 +84,20 @@ Claude Code가 자동으로:
 - **분리 기준**: 도메인 의미 단위 (예: `BasicInfo`, `Facilities`, `Recruitment`)
 - `useFormContext` 등을 활용해 Props Drilling을 최소화합니다.
 
+## 4. 구현 원칙 (Implementation Principles)
+**CRITICAL**: 다음 규칙을 위반하는 코드는 생성을 금지합니다.
+
+### 4.1 Config-Driven UI 패턴 (반복 요소 제거)
+- **규칙**: 리스트, 칩, 라디오 버튼 등 반복되는 UI 요소는 절대 하드코딩하지 않습니다.
+- **방식**: 
+  1. `config/constants.ts` (또는 해당 파일 상단)에 `const` 배열로 데이터를 정의합니다.
+  2. 공통 컴포넌트(`OptionChip` 등)를 만들고 `.map()`으로 렌더링합니다.
+- **Why**: 수정 시 UI 코드를 건드리지 않고 `constant` 데이터만 수정하여 유지보수성을 극대화합니다.
+
+### 4.2 State Management (Props Drilling 방지)
+- **규칙**: Form 관련 상태는 `useFormContext`를 사용하여 하위 컴포넌트에서 직접 접근합니다.
+- 부모에서 `register`나 `control`을 Props로 3단계 이상 내려보내지 않습니다.
+
 ## 📝 실제 예시: Host Dashboard 구현
 
 ### 요청 메시지
