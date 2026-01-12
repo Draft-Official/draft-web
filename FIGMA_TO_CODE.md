@@ -79,6 +79,11 @@ Claude Code가 자동으로:
 - 빌드 성공 여부 확인
 - 404 오류 등 라우팅 문제 해결
 
+#### 3.6 컴포넌트 분리 (리팩토링)
+- **규칙**: 파일 길이가 300줄을 초과하면 즉시 하위 컴포넌트로 분리합니다.
+- **분리 기준**: 도메인 의미 단위 (예: `BasicInfo`, `Facilities`, `Recruitment`)
+- `useFormContext` 등을 활용해 Props Drilling을 최소화합니다.
+
 ## 📝 실제 예시: Host Dashboard 구현
 
 ### 요청 메시지

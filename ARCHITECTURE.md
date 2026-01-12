@@ -106,6 +106,12 @@ Shared (공유)
 App (라우팅)
 ```
 
+**컴포넌트 분리 원칙:**
+- **단일 파일 제한**: 300줄 초과 시 분리 검토
+- **구성**:
+  - `*_view.tsx`: 페이지 전체 레이아웃 및 상태 관리 (Controller 역할)
+  - `components/*`: 도메인별 하위 컴포넌트 (Presentational 역할)
+
 ### 2. Registry 패턴 (Monet 방식)
 
 Figma Make에서 가져온 UI를 독립적으로 관리:
