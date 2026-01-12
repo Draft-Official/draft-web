@@ -10,8 +10,6 @@ import { toast } from "sonner";
 import { X, FileText, MessageCircle } from 'lucide-react';
 
 interface MatchCreateTeamInfoProps {
-  isTeamLoading: boolean;
-  setIsTeamLoading: (v: boolean) => void;
   selectedTeam: string;
   setSelectedTeam: (v: string) => void;
   isDirectInput: boolean;
@@ -20,13 +18,33 @@ interface MatchCreateTeamInfoProps {
   setDirectTeamName: (v: string) => void;
 }
 
+// Mock Data for Auto-fill
+const MOCK_TEAMS: Record<string, {
+    bankName: string;
+    accountNumber: string;
+    kakaoLink: string;
+    description: string;
+}> = {
+    "team_slamdunk": {
+        bankName: "카카오뱅크",
+        accountNumber: "3333-01-2345678",
+        kakaoLink: "https://open.kakao.com/o/slamdunk",
+        description: "즐겁게 농구하실 분 환영합니다! 매너 게임 부탁드립니다."
+    },
+    "team_jordan": {
+        bankName: "토스뱅크",
+        accountNumber: "1000-00-100000",
+        kakaoLink: "https://open.kakao.com/o/jordan23",
+        description: "빡겜 지향합니다. 늦으시면 안됩니다."
+    }
+};
+
 export function MatchCreateTeamInfo({
-  isTeamLoading, setIsTeamLoading,
   selectedTeam, setSelectedTeam,
   isDirectInput, setIsDirectInput,
   directTeamName, setDirectTeamName
 }: MatchCreateTeamInfoProps) {
-  const { register } = useFormContext();
+  const { register, setValue } = useFormContext();
 
   return (
     <section className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-6 mb-8">
@@ -35,21 +53,6 @@ export function MatchCreateTeamInfo({
                 <FileText className="w-5 h-5 text-slate-400" />
                 운영 정보
             </h2>
-            <button
-                type="button"
-                onClick={() => {
-                    setIsTeamLoading(true);
-                    setTimeout(() => {
-                            toast.success("팀 정보를 불러왔습니다.");
-                            setSelectedTeam("team_slamdunk");
-                            setIsTeamLoading(false);
-                    }, 800);
-                }}
-                disabled={isTeamLoading}
-                className="text-xs font-bold text-slate-600 hover:text-[#FF6600] transition-colors disabled:opacity-50"
-            >
-                {isTeamLoading ? "불러오는 중..." : "불러오기"}
-            </button>
         </div>
 
         {/* Team Selection */}
@@ -64,6 +67,16 @@ export function MatchCreateTeamInfo({
                             setSelectedTeam("");
                         } else {
                             setSelectedTeam(value);
+                            
+                            // Auto-fill logic
+                            const teamData = MOCK_TEAMS[value];
+                            if (teamData) {
+                                setValue('bankName', teamData.bankName);
+                                setValue('accountNumber', teamData.accountNumber);
+                                setValue('kakaoLink', teamData.kakaoLink);
+                                setValue('description', teamData.description);
+                                toast.success("팀 정보를 불러왔습니다.");
+                            }
                         }
                     }}
                 >
@@ -122,7 +135,6 @@ export function MatchCreateTeamInfo({
             <div className="space-y-2">
                 <Label className="text-sm font-bold text-slate-600 flex justify-between">
                     문의하기 (연락처)
-                    <span className="text-xs font-normal text-[#FF6600]">프로필 정보 사용됨</span>
                 </Label>
                 <div className="relative">
                     <MessageCircle className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
