@@ -18,6 +18,42 @@ interface MatchCreateRecruitmentProps {
   updateTotalCount: (delta: number) => void;
 }
 
+// Unified Recruitment Card Component
+function RecruitmentCard({
+    title,
+    count,
+    onDecrease,
+    onIncrease
+}: {
+    title: string;
+    count: number;
+    onDecrease: () => void;
+    onIncrease: () => void;
+}) {
+    return (
+        <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+            <span className="font-bold text-slate-700">{title}</span>
+            <div className="flex items-center gap-3">
+                <button 
+                    type="button" 
+                    onClick={onDecrease} 
+                    className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-100"
+                >
+                    <Minus className="w-4 h-4 text-slate-600"/>
+                </button>
+                <span className="w-6 text-center font-bold text-lg">{count}</span>
+                <button 
+                    type="button" 
+                    onClick={onIncrease} 
+                    className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center hover:bg-slate-800"
+                >
+                    <Plus className="w-4 h-4"/>
+                </button>
+            </div>
+        </div>
+    );
+}
+
 export function MatchCreateRecruitment({
   isPositionMode, setIsPositionMode,
   isFlexBigman, setIsFlexBigman,
@@ -60,58 +96,47 @@ export function MatchCreateRecruitment({
                 </div>
 
                 <div className="space-y-3">
-                    {/* Guard */}
-                    <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
-                        <span className="font-bold text-slate-700">가드 (G)</span>
-                        <div className="flex items-center gap-3">
-                            <button type="button" onClick={() => updatePosition('guard', -1)} className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-100"><Minus className="w-4 h-4 text-slate-600"/></button>
-                            <span className="w-4 text-center font-bold text-lg">{positions.guard}</span>
-                            <button type="button" onClick={() => updatePosition('guard', 1)} className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center hover:bg-slate-800"><Plus className="w-4 h-4"/></button>
-                        </div>
-                    </div>
+                    <RecruitmentCard 
+                        title="가드 (G)" 
+                        count={positions.guard} 
+                        onDecrease={() => updatePosition('guard', -1)} 
+                        onIncrease={() => updatePosition('guard', 1)} 
+                    />
 
                     {isFlexBigman ? (
-                        // Bigman Only
-                        <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
-                            <span className="font-bold text-slate-700">빅맨 (F/C)</span>
-                            <div className="flex items-center gap-3">
-                                <button type="button" onClick={() => updatePosition('bigman', -1)} className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-100"><Minus className="w-4 h-4 text-slate-600"/></button>
-                                <span className="w-4 text-center font-bold text-lg">{positions.bigman}</span>
-                                <button type="button" onClick={() => updatePosition('bigman', 1)} className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center hover:bg-slate-800"><Plus className="w-4 h-4"/></button>
-                            </div>
-                        </div>
+                        <RecruitmentCard 
+                            title="빅맨 (F/C)" 
+                            count={positions.bigman} 
+                            onDecrease={() => updatePosition('bigman', -1)} 
+                            onIncrease={() => updatePosition('bigman', 1)} 
+                        />
                     ) : (
-                        // Forward & Center
                         <>
-                            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
-                                <span className="font-bold text-slate-700">포워드 (F)</span>
-                                <div className="flex items-center gap-3">
-                                    <button type="button" onClick={() => updatePosition('forward', -1)} className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-100"><Minus className="w-4 h-4 text-slate-600"/></button>
-                                    <span className="w-4 text-center font-bold text-lg">{positions.forward}</span>
-                                    <button type="button" onClick={() => updatePosition('forward', 1)} className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center hover:bg-slate-800"><Plus className="w-4 h-4"/></button>
-                                </div>
-                            </div>
-                            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
-                                <span className="font-bold text-slate-700">센터 (C)</span>
-                                <div className="flex items-center gap-3">
-                                    <button type="button" onClick={() => updatePosition('center', -1)} className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-100"><Minus className="w-4 h-4 text-slate-600"/></button>
-                                    <span className="w-4 text-center font-bold text-lg">{positions.center}</span>
-                                    <button type="button" onClick={() => updatePosition('center', 1)} className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center hover:bg-slate-800"><Plus className="w-4 h-4"/></button>
-                                </div>
-                            </div>
+                            <RecruitmentCard 
+                                title="포워드 (F)" 
+                                count={positions.forward} 
+                                onDecrease={() => updatePosition('forward', -1)} 
+                                onIncrease={() => updatePosition('forward', 1)} 
+                            />
+                            <RecruitmentCard 
+                                title="센터 (C)" 
+                                count={positions.center} 
+                                onDecrease={() => updatePosition('center', -1)} 
+                                onIncrease={() => updatePosition('center', 1)} 
+                            />
                         </>
                     )}
                 </div>
             </div>
         ) : (
             // Any Position
-            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
-                <span className="font-bold text-slate-700">전체 인원</span>
-                <div className="flex items-center gap-3">
-                    <button type="button" onClick={() => updateTotalCount(-1)} className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-100"><Minus className="w-5 h-5 text-slate-600"/></button>
-                    <span className="min-w-[40px] text-center font-bold text-xl">{totalCount}명</span>
-                    <button type="button" onClick={() => updateTotalCount(1)} className="w-10 h-10 rounded-full bg-slate-900 text-white flex items-center justify-center hover:bg-slate-800"><Plus className="w-5 h-5"/></button>
-                </div>
+            <div className="space-y-3">
+                <RecruitmentCard 
+                    title="전체 인원" 
+                    count={totalCount} 
+                    onDecrease={() => updateTotalCount(-1)} 
+                    onIncrease={() => updateTotalCount(1)} 
+                />
             </div>
         )}
     </section>
