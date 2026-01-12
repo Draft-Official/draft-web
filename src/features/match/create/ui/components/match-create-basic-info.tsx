@@ -13,6 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { cn } from '@/shared/lib/utils';
 import { Building2 } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import ScrollContainer from 'react-indiana-drag-scroll';
 
 interface LocationData {
   address: string;
@@ -36,6 +38,9 @@ interface MatchCreateBasicInfoProps {
   locationData: LocationData | null;
   openKakaoMap: () => void;
   locationInputRef: React.RefObject<HTMLDivElement | null>;
+  children?: React.ReactNode;
+  feeType: "cost" | "beverage";
+  setFeeType: (v: "cost" | "beverage") => void;
 }
 
 const DURATION_OPTIONS = [
@@ -60,9 +65,12 @@ export function MatchCreateBasicInfo({
   handleLocationSelect,
   locationData,
   openKakaoMap,
-  locationInputRef
+  locationInputRef,
+  children,
+  feeType,
+  setFeeType
 }: MatchCreateBasicInfoProps) {
-  const { register, control } = useFormContext();
+  const { register, control, setValue } = useFormContext();
 
   return (
     <section className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-6">
@@ -74,15 +82,15 @@ export function MatchCreateBasicInfo({
         {/* Date */}
         <div className="space-y-3">
             <Label className="text-sm font-bold text-slate-600">일시 <span className="text-[#FF6600] text-xs font-normal ml-1">(2주 내 예약 가능)</span></Label>
-            <ScrollArea className="w-full whitespace-nowrap -mx-1">
-                <div className="flex gap-2 pb-2 px-1">
+            <ScrollContainer className="w-full overflow-x-auto no-scrollbar -mx-5 px-5 cursor-grab active:cursor-grabbing">
+                <div className="flex gap-2 pb-1">
                     {calendarDates.map((d) => (
                         <button
                             type="button"
                             key={d.dateISO}
                             onClick={() => setSelectedDate(d.dateISO)}
                             className={cn(
-                                "flex flex-col items-center justify-center min-w-[64px] h-[64px] rounded-xl border transition-all active:scale-95",
+                                "flex flex-col items-center justify-center min-w-[64px] h-[64px] rounded-xl border transition-all active:scale-95 flex-shrink-0",
                                 selectedDate === d.dateISO
                                     ? "bg-slate-900 border-slate-900 text-white shadow-md"
                                     : "bg-white border-slate-100 text-slate-400 hover:bg-slate-50"
@@ -93,8 +101,7 @@ export function MatchCreateBasicInfo({
                         </button>
                     ))}
                 </div>
-                <ScrollBar orientation="horizontal" className="hidden" />
-            </ScrollArea>
+            </ScrollContainer>
         </div>
 
         {/* Time & Duration */}
@@ -229,18 +236,37 @@ export function MatchCreateBasicInfo({
             </div>
         </div>
 
+        {children}
+
         {/* Fee */}
-        <div className="space-y-2">
-            <Label className="text-sm font-bold text-slate-600">참가비 (1인)</Label>
+        <div className="space-y-2 pt-6 border-t border-slate-100">
+            <div className="flex items-center justify-between">
+                <Label className="text-sm font-bold text-slate-600">참가비 (1인)</Label>
+                <div className="flex items-center gap-2">
+                    <span className={cn("text-xs font-bold", feeType === 'cost' ? "text-[#FF6600]" : "text-slate-400")}>현금</span>
+                    <Switch
+                        checked={feeType === 'beverage'}
+                        onCheckedChange={(c) => {
+                            const newType = c ? 'beverage' : 'cost';
+                            setFeeType(newType);
+                            setValue('fee', newType === 'beverage' ? '1' : '10000');
+                        }}
+                        className="data-[state=checked]:bg-[#FF6600] data-[state=unchecked]:bg-slate-200" 
+                    />
+                    <span className={cn("text-xs font-bold", feeType === 'beverage' ? "text-[#FF6600]" : "text-slate-400")}>음료</span>
+                </div>
+            </div>
             <div className="relative">
                 <Input
                     type="number"
                     {...register('fee', { required: true })}
                     defaultValue="10000"
                     className="h-12 bg-white border-slate-200 pr-10 text-right font-bold text-lg [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                    placeholder="10000"
+                    placeholder={feeType === 'cost' ? '10000' : '1'}
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 font-medium">원</span>
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 font-medium">
+                    {feeType === 'cost' ? '원' : '병'}
+                </span>
             </div>
         </div>
     </section>

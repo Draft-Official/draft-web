@@ -76,7 +76,7 @@ export function MatchCreateView() {
 
   // Match Specs
   const [matchType, setMatchType] = useState("5vs5");
-  const [gender, setGender] = useState("mixed");
+  const [gender, setGender] = useState("male");
   const [level, setLevel] = useState("middle");
   const [selectedAges, setSelectedAges] = useState<string[]>([]);
 
@@ -89,6 +89,7 @@ export function MatchCreateView() {
   const [refereeType, setRefereeType] = useState("self");
 
   // Game Format Visibility (for nudge UI)
+  const [showGameFormatType, setShowGameFormatType] = useState(false);
   const [showRules, setShowRules] = useState(false);
   const [showGuaranteed, setShowGuaranteed] = useState(false);
   const [showReferee, setShowReferee] = useState(false);
@@ -98,6 +99,9 @@ export function MatchCreateView() {
   const [isDirectInput, setIsDirectInput] = useState(false);
   const [directTeamName, setDirectTeamName] = useState("");
 
+  // Fee Type
+  const [feeType, setFeeType] = useState<"cost" | "beverage">("cost");
+
   // Load Menu
   const [showLoadMenu, setShowLoadMenu] = useState(false);
 
@@ -105,9 +109,6 @@ export function MatchCreateView() {
   const [showParkingDialog, setShowParkingDialog] = useState(false);
   const [showShowerDialog, setShowShowerDialog] = useState(false);
   const [showCourtSizeDialog, setShowCourtSizeDialog] = useState(false);
-
-  // Loading States
-  const [isTeamLoading, setIsTeamLoading] = useState(false);
 
   // Location - Kakao Map Integration
   const [location, setLocation] = useState("");
@@ -318,6 +319,7 @@ export function MatchCreateView() {
             latitude: locationData?.y ? parseFloat(locationData.y) : 0,
             longitude: locationData?.x ? parseFloat(locationData.x) : 0,
         },
+        feeType,
         facilities: {
             parking: parkingCost,
             parkingDetail,
@@ -426,9 +428,9 @@ export function MatchCreateView() {
                 locationData={locationData}
                 openKakaoMap={openKakaoMap}
                 locationInputRef={locationDivRef}
-            />
-            
-            <section className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-6">
+                feeType={feeType}
+                setFeeType={setFeeType}
+            >
                 <MatchCreateFacilities
                     hasWater={hasWater} setHasWater={setHasWater}
                     hasAcHeat={hasAcHeat} setHasAcHeat={setHasAcHeat}
@@ -440,7 +442,7 @@ export function MatchCreateView() {
                     showShowerDialog={showShowerDialog} setShowShowerDialog={setShowShowerDialog}
                     showCourtSizeDialog={showCourtSizeDialog} setShowCourtSizeDialog={setShowCourtSizeDialog}
                 />
-            </section>
+            </MatchCreateBasicInfo>
 
             {/* SECTION 2: Recruitment */}
             <MatchCreateRecruitment
@@ -466,6 +468,7 @@ export function MatchCreateView() {
                 ruleGames={ruleGames} setRuleGames={setRuleGames}
                 guaranteedQuarters={guaranteedQuarters} setGuaranteedQuarters={setGuaranteedQuarters}
                 refereeType={refereeType} setRefereeType={setRefereeType}
+                showGameFormatType={showGameFormatType} setShowGameFormatType={setShowGameFormatType}
                 showRules={showRules} setShowRules={setShowRules}
                 showGuaranteed={showGuaranteed} setShowGuaranteed={setShowGuaranteed}
                 showReferee={showReferee} setShowReferee={setShowReferee}
@@ -473,7 +476,6 @@ export function MatchCreateView() {
 
             {/* SECTION 5: Admin Info */}
             <MatchCreateTeamInfo 
-                isTeamLoading={isTeamLoading} setIsTeamLoading={setIsTeamLoading}
                 selectedTeam={selectedTeam} setSelectedTeam={setSelectedTeam}
                 isDirectInput={isDirectInput} setIsDirectInput={setIsDirectInput}
                 directTeamName={directTeamName} setDirectTeamName={setDirectTeamName}
