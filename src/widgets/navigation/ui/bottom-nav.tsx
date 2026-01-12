@@ -15,6 +15,11 @@ export function BottomNav() {
     { label: '마이', href: '/my', icon: User },
   ];
 
+  // Hide bottom nav on detail pages (e.g. /match/create, /guest/123)
+  const isDetailPage = pathname.split('/').filter(Boolean).length > 1;
+
+  if (isDetailPage) return null;
+
   return (
     <div className="fixed bottom-0 left-0 w-full h-[60px] bg-white border-t border-slate-100 flex items-center justify-around z-50 md:hidden pb-safe">
       {NAV_ITEMS.map((item) => {

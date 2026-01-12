@@ -5,6 +5,7 @@ import { Providers } from "./providers";
 import { Toaster } from "sonner";
 import { Sidebar } from "@/widgets/navigation/ui/sidebar";
 import { BottomNav } from "@/widgets/navigation/ui/bottom-nav";
+import { Header as LayoutHeader } from "@/widgets/header";
 
 export const metadata: Metadata = {
   title: "DRAFT | 농구 용병 모집",
@@ -30,6 +31,10 @@ export default function RootLayout({
           {/* Main Content Area (Center) */}
           <main className="w-full max-w-[760px] md:ml-[240px] min-h-screen bg-white relative shadow-sm pb-20 md:pb-0 border-x border-slate-50/50">
             <Providers>
+              <div className="md:hidden">
+                 {/* Only show mobile header here, desktop has sidebar */}
+                 <LayoutHeader />
+              </div>
               {children}
             </Providers>
           </main>
