@@ -43,9 +43,9 @@ UI가 그대로 적용되도록 만들어줘.
 애매한 점이 있다면 물어보고 결정해.
 ```
 
-### 3단계: Claude Code가 수행할 작업
+### 3단계: Claude가 수행할 작업
 
-Claude Code는 다음 순서로 작업을 진행합니다:
+Claude는 다음 순서로 작업을 진행합니다:
 
 #### 3.1 코드 분석
 - Figma Make 코드 구조 파악
@@ -63,7 +63,7 @@ UI Components              →  src/components/ui/[component].tsx
 ```
 
 #### 3.3 필요한 컴포넌트 확인 및 생성
-Claude Code가 자동으로:
+Claude가 자동으로:
 - 누락된 shadcn/ui 컴포넌트 확인 (Card, Avatar, Tabs 등)
 - 필요한 컴포넌트 자동 생성
 - 올바른 import 경로로 수정
