@@ -2,14 +2,15 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Share2, Trophy, User, Users as UsersIcon, Calendar as CalendarIcon, UsersRound, MessageCircle, ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Share2, Trophy, User, Users as UsersIcon, Calendar as CalendarIcon, UsersRound, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { cn } from '@/shared/lib/utils';
 import { toast } from 'sonner';
+import { MatchInfoCard } from './components/match-info-card';
+import { RecruitmentStatusCard } from './components/recruitment-status-card';
 
 interface Match {
   id: string;
@@ -202,69 +203,52 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
         <div className="grid grid-cols-2 gap-4 mb-8">
           {/* Level */}
           {match.level && (
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-orange-50">
-              <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shrink-0">
-                <Trophy className="w-5 h-5 text-[#FF6600]" />
-              </div>
-              <div>
-                <div className="text-xs text-slate-500 mb-0.5">레벨</div>
-                <div className="font-bold text-sm text-slate-900">{match.level}</div>
-              </div>
-            </div>
+            <MatchInfoCard
+                icon={Trophy}
+                label="레벨"
+                value={match.level}
+                color="orange"
+            />
           )}
 
           {/* Gender */}
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-blue-50">
-            <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shrink-0">
-              <User className="w-5 h-5 text-blue-500" />
-            </div>
-            <div>
-              <div className="text-xs text-slate-500 mb-0.5">성별</div>
-              <div className="font-bold text-sm text-slate-900">{formatGender(match.gender)}</div>
-            </div>
-          </div>
+          <MatchInfoCard
+              icon={User}
+              label="성별"
+              value={formatGender(match.gender)}
+              color="blue"
+          />
 
           {/* Game Format */}
           {match.gameFormat && (
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-red-50">
-              <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shrink-0">
-                <UsersIcon className="w-5 h-5 text-red-500" />
-              </div>
-              <div>
-                <div className="text-xs text-slate-500 mb-0.5">진행 방식</div>
-                <div className="font-bold text-sm text-slate-900">{match.gameFormat}</div>
-              </div>
-            </div>
+            <MatchInfoCard
+                icon={UsersIcon}
+                label="진행 방식"
+                value={match.gameFormat}
+                color="red"
+            />
           )}
 
           {/* Age Range */}
           {match.ageRange && (
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-green-50">
-              <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shrink-0">
-                <CalendarIcon className="w-5 h-5 text-green-600" />
-              </div>
-              <div>
-                <div className="text-xs text-slate-500 mb-0.5">나이</div>
-                <div className="font-bold text-sm text-slate-900">{match.ageRange}</div>
-              </div>
-            </div>
+            <MatchInfoCard
+                icon={CalendarIcon}
+                label="나이"
+                value={match.ageRange}
+                color="green"
+            />
           )}
         </div>
 
         {/* Total Players */}
         {match.totalPlayers && (
           <div className="grid grid-cols-2 gap-4 mb-8">
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-purple-50">
-              <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shrink-0">
-                <UsersRound className="w-5 h-5 text-purple-600" />
-              </div>
-              <div>
-                <div className="text-xs text-slate-500 mb-0.5">총인원</div>
-                <div className="font-bold text-sm text-slate-900">
-                  {match.totalPlayers}명 (현재 {match.currentPlayers || 0}명)
-                </div>
-              </div>
-            </div>
+            <MatchInfoCard
+                icon={UsersRound}
+                label="총인원"
+                value={`${match.totalPlayers}명 (현재 ${match.currentPlayers || 0}명)`}
+                color="purple"
+            />
           </div>
         )}
 
@@ -316,206 +300,50 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
           <div className="space-y-3">
             {/* Guard */}
             {match.positions.g && (
-              <div className={cn(
-                "flex items-center justify-between p-3 rounded-xl border-2",
-                match.positions.g.status === 'closed'
-                  ? "bg-slate-50 border-slate-200"
-                  : "bg-white border-slate-200"
-              )}>
-                <div className="flex items-center gap-3">
-                  <div className={cn(
-                    "w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-base",
-                    match.positions.g.status === 'closed' ? "bg-slate-300" : "bg-slate-400"
-                  )}>
-                    G
-                  </div>
-                  <div>
-                    <div className={cn(
-                      "font-bold text-base mb-1",
-                      match.positions.g.status === 'closed' ? "text-slate-400" : "text-slate-900"
-                    )}>
-                      가드
-                    </div>
-                    <div className={cn(
-                      "text-sm",
-                      match.positions.g.status === 'closed' ? "text-slate-400" : "text-slate-500"
-                    )}>
-                      {match.positions.g.status === 'closed' ? match.positions.g.max : 0}/{match.positions.g.max} 명
-                    </div>
-                  </div>
-                </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (match.positions.g?.status === 'open') {
-                      openDialogWithPosition('g');
-                    }
-                  }}
-                  disabled={match.positions.g.status === 'closed'}
-                  className={cn(
-                    "px-4 py-2 rounded-lg text-sm font-bold transition-all",
-                    match.positions.g.status === 'closed'
-                      ? "bg-slate-200 text-slate-400 cursor-not-allowed"
-                      : "bg-[#FF6600] text-white hover:bg-[#FF6600]/90 active:scale-95 cursor-pointer"
-                  )}
-                >
-                  {match.positions.g.status === 'closed' ? '마감' : '신청가능'}
-                </button>
-              </div>
+              <RecruitmentStatusCard
+                positionCode="g"
+                label="가드"
+                status={match.positions.g.status}
+                max={match.positions.g.max}
+                current={0} // Mock current
+                onClick={() => openDialogWithPosition('g')}
+              />
             )}
 
             {/* Forward */}
             {match.positions.f && (
-              <div className={cn(
-                "rounded-xl border-2",
-                match.positions.f.status === 'open'
-                  ? "bg-orange-50/30 border-orange-200"
-                  : "bg-slate-50 border-slate-200"
-              )}>
-                <div className="flex items-center justify-between p-3">
-                  <div className="flex items-center gap-3">
-                    <div className={cn(
-                      "w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-base",
-                      match.positions.f.status === 'open' ? "bg-[#FF6600]" : "bg-slate-300"
-                    )}>
-                      F
-                    </div>
-                    <div>
-                      <div className={cn(
-                        "font-bold text-base mb-1",
-                        match.positions.f.status === 'closed' ? "text-slate-400" : "text-slate-900"
-                      )}>
-                        포워드
-                      </div>
-                      <div className={cn(
-                        "text-sm",
-                        match.positions.f.status === 'closed' ? "text-slate-400" : "text-slate-600"
-                      )}>
-                        {match.positions.f.status === 'closed' ? match.positions.f.max : 0}/{match.positions.f.max} 명
-                      </div>
-                    </div>
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (match.positions.f?.status === 'open') {
-                        openDialogWithPosition('f');
-                      }
-                    }}
-                    disabled={match.positions.f.status === 'closed'}
-                    className={cn(
-                      "px-4 py-2 rounded-lg text-sm font-bold transition-all",
-                      match.positions.f.status === 'closed'
-                        ? "bg-slate-200 text-slate-400 cursor-not-allowed"
-                        : "bg-[#FF6600] text-white hover:bg-[#FF6600]/90 active:scale-95 cursor-pointer"
-                    )}
-                  >
-                    {match.positions.f.status === 'closed' ? '마감' : '신청가능'}
-                  </button>
-                </div>
-              </div>
+              <RecruitmentStatusCard
+                positionCode="f"
+                label="포워드"
+                status={match.positions.f.status}
+                max={match.positions.f.max}
+                current={0}
+                onClick={() => openDialogWithPosition('f')}
+              />
             )}
 
             {/* Center */}
             {match.positions.c && (
-              <div className={cn(
-                "rounded-xl border-2",
-                match.positions.c.status === 'open'
-                  ? "bg-orange-50/30 border-orange-200"
-                  : "bg-slate-50 border-slate-200"
-              )}>
-                <div className="flex items-center justify-between p-3">
-                  <div className="flex items-center gap-3">
-                    <div className={cn(
-                      "w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-base",
-                      match.positions.c.status === 'open' ? "bg-[#FF6600]" : "bg-slate-300"
-                    )}>
-                      C
-                    </div>
-                    <div>
-                      <div className={cn(
-                        "font-bold text-base mb-1",
-                        match.positions.c.status === 'closed' ? "text-slate-400" : "text-slate-900"
-                      )}>
-                        센터
-                      </div>
-                      <div className={cn(
-                        "text-sm",
-                        match.positions.c.status === 'closed' ? "text-slate-400" : "text-slate-600"
-                      )}>
-                        {match.positions.c.status === 'closed' ? match.positions.c.max : 0}/{match.positions.c.max} 명
-                      </div>
-                    </div>
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (match.positions.c?.status === 'open') {
-                        openDialogWithPosition('c');
-                      }
-                    }}
-                    disabled={match.positions.c.status === 'closed'}
-                    className={cn(
-                      "px-4 py-2 rounded-lg text-sm font-bold transition-all",
-                      match.positions.c.status === 'closed'
-                        ? "bg-slate-200 text-slate-400 cursor-not-allowed"
-                        : "bg-[#FF6600] text-white hover:bg-[#FF6600]/90 active:scale-95 cursor-pointer"
-                    )}
-                  >
-                    {match.positions.c.status === 'closed' ? '마감' : '신청가능'}
-                  </button>
-                </div>
-              </div>
+              <RecruitmentStatusCard
+                positionCode="c"
+                label="센터"
+                status={match.positions.c.status}
+                max={match.positions.c.max}
+                current={0}
+                onClick={() => openDialogWithPosition('c')}
+              />
             )}
 
             {/* All positions */}
             {match.positions.all && (
-              <div className={cn(
-                "flex items-center justify-between p-3 rounded-xl border-2",
-                match.positions.all.status === 'closed'
-                  ? "bg-slate-50 border-slate-200"
-                  : "bg-orange-50/30 border-orange-200"
-              )}>
-                <div className="flex items-center gap-3">
-                  <div className={cn(
-                    "w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm",
-                    match.positions.all.status === 'closed' ? "bg-slate-300" : "bg-[#FF6600]"
-                  )}>
-                    ALL
-                  </div>
-                  <div>
-                    <div className={cn(
-                      "font-bold text-base mb-1",
-                      match.positions.all.status === 'closed' ? "text-slate-400" : "text-slate-900"
-                    )}>
-                      포지션 무관
-                    </div>
-                    <div className={cn(
-                      "text-sm",
-                      match.positions.all.status === 'closed' ? "text-slate-400" : "text-slate-600"
-                    )}>
-                      {match.positions.all.status === 'closed' ? match.positions.all.max : 0}/{match.positions.all.max} 명
-                    </div>
-                  </div>
-                </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (match.positions.all?.status === 'open') {
-                      openDialogWithPosition('all');
-                    }
-                  }}
-                  disabled={match.positions.all.status === 'closed'}
-                  className={cn(
-                    "px-4 py-2 rounded-lg text-sm font-bold transition-all",
-                    match.positions.all.status === 'closed'
-                      ? "bg-slate-200 text-slate-400 cursor-not-allowed"
-                      : "bg-[#FF6600] text-white hover:bg-[#FF6600]/90 active:scale-95 cursor-pointer"
-                  )}
-                >
-                  {match.positions.all.status === 'closed' ? '마감' : '신청가능'}
-                </button>
-              </div>
+              <RecruitmentStatusCard
+                positionCode="all"
+                label="포지션 무관"
+                status={match.positions.all.status}
+                max={match.positions.all.max}
+                current={0}
+                onClick={() => openDialogWithPosition('all')}
+              />
             )}
           </div>
         </div>
