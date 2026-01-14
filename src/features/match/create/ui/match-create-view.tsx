@@ -71,6 +71,8 @@ export function MatchCreateView() {
   const [parkingDetail, setParkingDetail] = useState("");
   const [hasWater, setHasWater] = useState(false);
   const [hasAcHeat, setHasAcHeat] = useState(false);
+  const [hasBall, setHasBall] = useState(false); // 공 (웜업볼)
+  const [hasBeverage, setHasBeverage] = useState(false); // 음료수
   const [showerOption, setShowerOption] = useState("unavailable");
   const [courtSize, setCourtSize] = useState("");
 
@@ -415,7 +417,7 @@ export function MatchCreateView() {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 p-4">
 
             {/* SECTION 1: Basic Info & Facilities */}
-            <MatchCreateBasicInfo 
+            <MatchCreateBasicInfo
                 selectedDate={selectedDate}
                 setSelectedDate={setSelectedDate}
                 calendarDates={calendarDates}
@@ -430,10 +432,13 @@ export function MatchCreateView() {
                 locationInputRef={locationDivRef}
                 feeType={feeType}
                 setFeeType={setFeeType}
+                hasBeverage={hasBeverage}
+                setHasBeverage={setHasBeverage}
             >
                 <MatchCreateFacilities
                     hasWater={hasWater} setHasWater={setHasWater}
                     hasAcHeat={hasAcHeat} setHasAcHeat={setHasAcHeat}
+                    hasBall={hasBall} setHasBall={setHasBall}
                     parkingCost={parkingCost} setParkingCost={setParkingCost}
                     parkingDetail={parkingDetail} setParkingDetail={setParkingDetail}
                     showerOption={showerOption} setShowerOption={setShowerOption}

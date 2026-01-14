@@ -1,14 +1,14 @@
 'use client';
 
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
+import { Chip } from '@/components/ui/chip';
 import { cn } from '@/shared/lib/utils';
 import { Settings } from 'lucide-react';
-import { 
-  MATCH_TYPE_OPTIONS, 
-  GENDER_OPTIONS, 
-  LEVEL_OPTIONS, 
-  AGE_OPTIONS 
+import {
+  MATCH_TYPE_OPTIONS,
+  GENDER_OPTIONS,
+  LEVEL_OPTIONS,
+  AGE_OPTIONS
 } from '@/features/match/create/config/constants';
 
 interface MatchCreateSpecsProps {
@@ -41,19 +41,14 @@ export function MatchCreateSpecs({
                 <Label className="text-sm font-bold text-slate-600">매치 타입</Label>
                 <div className="flex gap-2">
                     {MATCH_TYPE_OPTIONS.map((type) => (
-                        <Badge
+                        <Chip
                             key={type.value}
+                            label={type.label}
+                            variant="slate"
+                            isActive={matchType === type.value}
+                            showCheckIcon={false}
                             onClick={() => setMatchType(type.value)}
-                            variant="outline"
-                            className={cn(
-                                "cursor-pointer px-4 py-2 text-sm font-bold border transition-all",
-                                matchType === type.value
-                                    ? "bg-slate-900 text-white border-slate-900"
-                                    : "bg-white text-slate-500 border-slate-200"
-                            )}
-                        >
-                            {type.label}
-                        </Badge>
+                        />
                     ))}
                 </div>
             </div>
@@ -63,19 +58,14 @@ export function MatchCreateSpecs({
                 <Label className="text-sm font-bold text-slate-600">성별</Label>
                 <div className="flex gap-2">
                     {GENDER_OPTIONS.map((g) => (
-                        <Badge
+                        <Chip
                             key={g.value}
+                            label={g.label}
+                            variant="slate"
+                            isActive={gender === g.value}
+                            showCheckIcon={false}
                             onClick={() => setGender(g.value)}
-                            variant="outline"
-                            className={cn(
-                                "cursor-pointer px-4 py-2 text-sm font-bold border transition-all",
-                                gender === g.value
-                                    ? "bg-slate-900 text-white border-slate-900"
-                                    : "bg-white text-slate-500 border-slate-200"
-                            )}
-                        >
-                            {g.label}
-                        </Badge>
+                        />
                     ))}
                 </div>
             </div>
@@ -138,40 +128,28 @@ export function MatchCreateSpecs({
             <div className="space-y-2">
                 <Label className="text-sm font-bold text-slate-600">권장 나이</Label>
                 <div className="flex flex-wrap items-center gap-2">
-                    <Badge
+                    <Chip
+                        label="무관"
+                        variant="slate"
+                        isActive={selectedAges.includes('any')}
+                        showCheckIcon={false}
                         onClick={() => handleAgeSelection('any')}
-                        variant="outline"
-                        className={cn(
-                            "cursor-pointer px-4 py-2 text-sm font-bold border transition-all flex-shrink-0",
-                            selectedAges.includes('any')
-                                ? "bg-slate-900 text-white border-slate-900"
-                                : "bg-white text-slate-500 border-slate-200"
-                        )}
-                    >
-                        무관
-                    </Badge>
-                    
+                        className="flex-shrink-0"
+                    />
+
                     <div className="h-4 w-px bg-slate-200 mx-1"></div>
 
                     <div className="flex flex-wrap gap-2">
-                        {AGE_OPTIONS.map((a) => {
-                            const isSelected = selectedAges.includes(a.value);
-                            return (
-                                <Badge
-                                    key={a.value}
-                                    onClick={() => handleAgeSelection(a.value)}
-                                    variant="outline"
-                                    className={cn(
-                                        "cursor-pointer px-4 py-2 text-sm font-bold border transition-all",
-                                        isSelected
-                                            ? "bg-slate-900 text-white border-slate-900"
-                                            : "bg-white text-slate-500 border-slate-200"
-                                    )}
-                                >
-                                    {a.label}
-                                </Badge>
-                            );
-                        })}
+                        {AGE_OPTIONS.map((a) => (
+                            <Chip
+                                key={a.value}
+                                label={a.label}
+                                variant="slate"
+                                isActive={selectedAges.includes(a.value)}
+                                showCheckIcon={false}
+                                onClick={() => handleAgeSelection(a.value)}
+                            />
+                        ))}
                     </div>
                 </div>
             </div>
