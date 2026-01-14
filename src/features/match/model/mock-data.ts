@@ -35,12 +35,12 @@ export interface Match {
   facilities?: Record<string, any>; // { parking: 'free', shower: true, equipment: 'provided' }
 
   // Detail Fields typical for Match Create Form
-  gender?: 'men' | 'women' | 'mixed';
+  gender: 'men' | 'women' | 'mixed';
   courtType?: 'indoor' | 'outdoor';
 
   // Guest Detail View Fields
   level?: string; // e.g., "중수 (B) 이상"
-  gameFormat?: string; // e.g., "5vs5"
+  gameFormat: string; // e.g., "5vs5"
   ageRange?: string; // e.g., "20대 ~ 30대"
   totalPlayers?: number; // e.g., 12
   currentPlayers?: number; // e.g., 9
@@ -61,6 +61,7 @@ export const MOCK_MATCHES: Match[] = [
     endTime: '21:00',
     title: '강남구민회관 체육관',
     teamName: '팀 슬램덩크',
+    teamLogo: 'https://api.dicebear.com/7.x/identicon/svg?seed=slamdunk',
     location: '강남구민회관',
     address: '서울 강남구 삼성로 123',
     price: '10,000원',
@@ -90,11 +91,13 @@ export const MOCK_MATCHES: Match[] = [
     endTime: '22:00',
     title: '반포종합운동장',
     teamName: 'Unknown Ballers',
+    teamLogo: 'https://api.dicebear.com/7.x/identicon/svg?seed=unknown',
     location: '서초구 반포동',
     address: '서울 서초구 반포동 15-2',
     price: '15,000원',
     priceNum: 15000,
     gender: 'men',
+    gameFormat: '5vs5',
     facilities: { parking: 'paid', shower: false },
     courtType: 'outdoor',
     positions: {
@@ -115,6 +118,7 @@ export const MOCK_MATCHES: Match[] = [
     price: '12,000원',
     priceNum: 12000,
     gender: 'mixed',
+    gameFormat: '5vs5',
     facilities: { parking: 'impossible' },
     courtType: 'indoor',
     positions: {
@@ -135,6 +139,7 @@ export const MOCK_MATCHES: Match[] = [
     price: '10,000원',
     priceNum: 10000,
     gender: 'men',
+    gameFormat: '5vs5',
     facilities: { parking: 'free' },
     courtType: 'indoor',
     positions: {
@@ -155,6 +160,7 @@ export const MOCK_MATCHES: Match[] = [
     price: '11,000원',
     priceNum: 11000,
     gender: 'women',
+    gameFormat: '3vs3',
     facilities: { parking: 'paid' },
     courtType: 'outdoor',
     positions: {
@@ -174,6 +180,7 @@ export const MOCK_MATCHES: Match[] = [
     price: '5,000원',
     priceNum: 5000,
     gender: 'mixed',
+    gameFormat: '5vs5',
     facilities: { parking: 'free' },
     courtType: 'indoor',
     positions: {

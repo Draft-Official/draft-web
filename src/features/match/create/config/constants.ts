@@ -4,9 +4,9 @@ export const MATCH_TYPE_OPTIONS = [
 ] as const;
 
 export const GENDER_OPTIONS = [
-  { value: 'male', label: '남성' },
-  { value: 'female', label: '여성' },
-  { value: 'mixed', label: '혼성' }
+  { value: 'men', label: '남성' },
+  { value: 'women', label: '여성' },
+  { value: 'mixed', label: '성별 무관' }
 ] as const;
 
 export const LEVEL_OPTIONS = [
