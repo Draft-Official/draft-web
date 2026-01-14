@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
+import Link from 'next/link';
 import { Search, Bell, ChevronDown, Check, X, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
@@ -175,7 +176,13 @@ export function FilterBar({
         <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">
           게스트 모집
         </h1>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
+          <Link 
+            href="/match/create" 
+            className="px-3 py-1.5 bg-[#FF6600] text-white text-xs font-bold rounded-full shadow-sm hover:bg-[#FF6600]/90 active:scale-95 transition-all mr-1"
+          >
+            경기 개설하기
+          </Link>
           <Search className="w-6 h-6 text-slate-900" />
           <Bell className="w-6 h-6 text-slate-900" />
         </div>
@@ -188,21 +195,21 @@ export function FilterBar({
             <button
               onClick={() => onDateSelect(null)}
               className={cn(
-                "flex flex-col items-center justify-center min-w-[72px] h-[52px] px-2 rounded-xl border transition-all active:scale-95",
+                "flex flex-col items-center justify-center w-[58px] h-[58px] min-w-[58px] rounded-xl border transition-all active:scale-95",
                 selectedDateISO === null
                   ? "bg-slate-900 border-slate-900 text-white shadow-md"
                   : "bg-white border-slate-100 text-slate-600"
               )}
             >
-              <span className="text-xs font-medium mb-0.5">전체</span>
-              <span className="text-sm font-bold">보기</span>
+              <span className="text-[11px] font-medium mb-0.5">전체</span>
+              <span className="text-[13px] font-bold">보기</span>
             </button>
             {calendarDates.map((d) => (
               <button
                 key={d.dateISO}
                 onClick={() => onDateSelect(d.dateISO)}
                 className={cn(
-                  "flex flex-col items-center justify-center min-w-[72px] h-[52px] rounded-xl border transition-all active:scale-95",
+                  "flex flex-col items-center justify-center w-[58px] h-[58px] min-w-[58px] rounded-xl border transition-all active:scale-95",
                   selectedDateISO === d.dateISO
                     ? "bg-slate-900 border-slate-900 text-white shadow-md"
                     : "bg-white border-slate-100 text-slate-400"
