@@ -1,33 +1,40 @@
-'use client';
-
 import { Label } from '@/components/ui/label';
 import { Chip } from '@/components/ui/chip';
 import { cn } from '@/shared/lib/utils';
 import { Settings } from 'lucide-react';
 import {
   MATCH_TYPE_OPTIONS,
-  GENDER_OPTIONS,
-  LEVEL_OPTIONS,
-  AGE_OPTIONS
+  GENDER_OPTIONS
 } from '@/features/match/create/config/constants';
+import { AgeSelector } from './age-selector';
+import { SkillSlider } from '@/components/ui/skill-slider';
 
 interface MatchCreateSpecsProps {
   matchType: string;
   setMatchType: (v: string) => void;
   gender: string;
   setGender: (v: string) => void;
-  level: string;
-  setLevel: (v: string) => void;
+  level: number;
+  setLevel: (v: number) => void;
   selectedAges: string[];
   handleAgeSelection: (age: string) => void;
+  handleAgeRangeUpdate: (ages: string[]) => void;
+  hasShoes: boolean;
+  setHasShoes: (v: boolean) => void;
+  hasJersey: boolean;
+  setHasJersey: (v: boolean) => void;
 }
 
 export function MatchCreateSpecs({
   matchType, setMatchType,
   gender, setGender,
   level, setLevel,
-  selectedAges, handleAgeSelection
+  selectedAges, handleAgeSelection,
+  handleAgeRangeUpdate,
+  hasShoes, setHasShoes,
+  hasJersey, setHasJersey
 }: MatchCreateSpecsProps) {
+  
   return (
     <section className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-6">
         <h2 className="font-bold text-slate-900 flex items-center gap-2">
@@ -70,88 +77,41 @@ export function MatchCreateSpecs({
                 </div>
             </div>
 
-            {/* Level Progress Bar */}
-            <div className="space-y-3">
-                <Label className="text-sm font-bold text-slate-600">권장 레벨</Label>
-                <div className="space-y-3">
-                    {/* Level Buttons Group */}
-                    <div className="flex gap-1">
-                        {LEVEL_OPTIONS.map((lvl) => (
-                            // Render 2 buttons for the first 3 levels to match original design visual weight (2:2:2:1 ratio)
-                            (lvl.value === 'pro' ? [1] : [1, 2]).map((i) => (
-                                <button
-                                    key={`${lvl.value}-${i}`}
-                                    type="button"
-                                    onClick={() => setLevel(lvl.value)}
-                                    className={cn(
-                                        "flex-1 h-10 rounded-lg transition-all",
-                                        level === lvl.value ? "" : "bg-slate-200"
-                                    )}
-                                    style={{
-                                        backgroundColor: level === lvl.value ? lvl.color : undefined
-                                    }}
-                                    aria-label={`${lvl.label} 레벨 선택`}
-                                >
-                                    <span className="sr-only">{lvl.label}</span>
-                                </button>
-                            ))
-                        ))}
-                    </div>
-
-                    {/* Color Underlines */}
-                    <div className="flex gap-1">
-                         {LEVEL_OPTIONS.map((lvl) => (
-                            <div key={lvl.value} className="flex gap-1" style={{ flex: lvl.value === 'pro' ? 1 : 2 }}>
-                                {(lvl.value === 'pro' ? [1] : [1, 2]).map((i) => (
-                                     <div key={i} className="flex-1 h-[3px] rounded-full" style={{ backgroundColor: lvl.color }}></div>
-                                ))}
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Labels */}
-                    <div className="flex gap-1">
-                        {LEVEL_OPTIONS.map((lvl) => (
-                             <div 
-                                key={lvl.value} 
-                                className="text-center font-medium text-xs" 
-                                style={{ flex: lvl.value === 'pro' ? 1 : 2, color: lvl.color }}
-                             >
-                                {lvl.label}
-                             </div>
-                        ))}
-                    </div>
+            {/* Preparation Items */}
+            <div className="space-y-2">
+                <Label className="text-sm font-bold text-slate-600">준비물</Label>
+                <div className="flex gap-2">
+                    <Chip
+                        label="실내 농구화"
+                        variant="slate"
+                        isActive={hasShoes}
+                        showCheckIcon={false}
+                        onClick={() => setHasShoes(!hasShoes)}
+                    />
+                    <Chip
+                        label="흰색/검은색 상의"
+                        variant="slate"
+                        isActive={hasJersey}
+                        showCheckIcon={false}
+                        onClick={() => setHasJersey(!hasJersey)}
+                    />
                 </div>
+            </div>
+
+            {/* Level Slider */}
+            <div className="space-y-3">
+                <Label className="text-sm font-bold text-slate-600">권장 실력</Label>
+                <SkillSlider value={level} onChange={setLevel} />
             </div>
 
             {/* Age */}
             <div className="space-y-2">
                 <Label className="text-sm font-bold text-slate-600">권장 나이</Label>
-                <div className="flex flex-wrap items-center gap-2">
-                    <Chip
-                        label="무관"
-                        variant="slate"
-                        isActive={selectedAges.includes('any')}
-                        showCheckIcon={false}
-                        onClick={() => handleAgeSelection('any')}
-                        className="flex-shrink-0"
-                    />
-
-                    <div className="h-4 w-px bg-slate-200 mx-1"></div>
-
-                    <div className="flex flex-wrap gap-2">
-                        {AGE_OPTIONS.map((a) => (
-                            <Chip
-                                key={a.value}
-                                label={a.label}
-                                variant="slate"
-                                isActive={selectedAges.includes(a.value)}
-                                showCheckIcon={false}
-                                onClick={() => handleAgeSelection(a.value)}
-                            />
-                        ))}
-                    </div>
-                </div>
+                <AgeSelector 
+                    selectedAges={selectedAges}
+                    onSelect={handleAgeSelection}
+                    onRangeUpdate={handleAgeRangeUpdate}
+                />
             </div>
         </div>
     </section>
