@@ -6,7 +6,10 @@ import { useRouter } from 'next/navigation';
 import {
   Users,
   RefreshCw,
+  Zap,
+  X,
 } from 'lucide-react';
+import { useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { toast } from "sonner";
@@ -58,10 +61,11 @@ export function MatchCreateView() {
   const { handleSubmit, setValue } = methods;
 
   // -- State --
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  // -- State --
+  const [selectedDate, setSelectedDate] = useState<string | null>(() => getNext14Days()[0].dateISO);
 
   // Recruitment
-  const [isPositionMode, setIsPositionMode] = useState(true); // true: Position-based, false: Any
+  const [isPositionMode, setIsPositionMode] = useState(false); // true: Position-based, false: Any
   const [isFlexBigman, setIsFlexBigman] = useState(false);
   const [positions, setPositions] = useState({ guard: 0, forward: 0, center: 0, bigman: 0 });
   const [totalCount, setTotalCount] = useState(1);
@@ -71,22 +75,30 @@ export function MatchCreateView() {
   const [parkingDetail, setParkingDetail] = useState("");
   const [hasWater, setHasWater] = useState(false);
   const [hasAcHeat, setHasAcHeat] = useState(false);
+  const [hasBall, setHasBall] = useState(false); // 공 (웜업볼)
+  const [hasBeverage, setHasBeverage] = useState(false); // 음료수
   const [showerOption, setShowerOption] = useState("unavailable");
   const [courtSize, setCourtSize] = useState("");
 
   // Match Specs
   const [matchType, setMatchType] = useState("5vs5");
   const [gender, setGender] = useState("male");
-  const [level, setLevel] = useState("middle");
+  const [level, setLevel] = useState(4); // 4 = Middle 2 (Default)
   const [selectedAges, setSelectedAges] = useState<string[]>([]);
+  const [hasShoes, setHasShoes] = useState(true);
+  const [hasJersey, setHasJersey] = useState(true);
 
   // Game Format (Optional)
   const [gameFormatType, setGameFormatType] = useState("internal_2");
-  const [ruleMinutes, setRuleMinutes] = useState("");
-  const [ruleQuarters, setRuleQuarters] = useState("");
-  const [ruleGames, setRuleGames] = useState("");
-  const [guaranteedQuarters, setGuaranteedQuarters] = useState("");
+  const [ruleMinutes, setRuleMinutes] = useState("8");
+  const [ruleQuarters, setRuleQuarters] = useState("4");
+  const [ruleGames, setRuleGames] = useState("2");
+  const [guaranteedQuarters, setGuaranteedQuarters] = useState("6");
   const [refereeType, setRefereeType] = useState("self");
+  
+  // ...
+
+
 
   // Game Format Visibility (for nudge UI)
   const [showGameFormatType, setShowGameFormatType] = useState(false);
@@ -104,6 +116,21 @@ export function MatchCreateView() {
 
   // Load Menu
   const [showLoadMenu, setShowLoadMenu] = useState(false);
+
+  // Tip Banner Visibility
+  const [showTip, setShowTip] = useState(false);
+
+  useEffect(() => {
+      const isHidden = localStorage.getItem('hideMatchCreateTip');
+      if (!isHidden) {
+          setShowTip(true);
+      }
+  }, []);
+
+  const handleDismissTip = () => {
+      setShowTip(false);
+      localStorage.setItem('hideMatchCreateTip', 'true');
+  };
 
   // Facilities Dialogs
   const [showParkingDialog, setShowParkingDialog] = useState(false);
@@ -203,6 +230,11 @@ export function MatchCreateView() {
     setTotalCount(prev => Math.max(1, prev + delta));
   };
 
+  // Handler for direct array update (used by Drag-to-Select)
+  const handleAgeRangeUpdate = (newAges: string[]) => {
+    setSelectedAges(newAges);
+  };
+
   const handleAgeSelection = (age: string) => {
     if (age === 'any') {
         setSelectedAges(['any']);
@@ -214,15 +246,34 @@ export function MatchCreateView() {
         return;
     }
 
-    let newAges = selectedAges.includes(age)
-      ? selectedAges.filter(a => a !== age)
-      : [...selectedAges, age];
-
-    newAges = newAges.filter(a => a !== 'any');
-
-    // Fill range logic
-    const ageOrder = ['20', '30', '40', '50', '60', '70'];
+    const isRemoving = selectedAges.includes(age);
     const ageValues: Record<string, number> = { '20': 20, '30': 30, '40': 40, '50': 50, '60': 60, '70': 70 };
+    
+    // Helper to sort ages
+    const sortAges = (ages: string[]) => ages.sort((a, b) => (ageValues[a] || 0) - (ageValues[b] || 0));
+
+    if (isRemoving) {
+        // Split & Keep Logic
+        const sortedCurrent = sortAges([...selectedAges]);
+        const removeIndex = sortedCurrent.indexOf(age);
+        
+        if (removeIndex === -1) return; // Should not happen
+
+        const leftSegment = sortedCurrent.slice(0, removeIndex);
+        const rightSegment = sortedCurrent.slice(removeIndex + 1);
+
+        // Keep the larger segment. Tie-break: Keep Left (Lower ages)
+        if (leftSegment.length >= rightSegment.length) {
+            setSelectedAges(leftSegment.length > 0 ? leftSegment : []);
+        } else {
+            setSelectedAges(rightSegment);
+        }
+        return;
+    }
+
+    // Adding Logic (with Conditional Auto-Fill)
+    let newAges = [...selectedAges, age];
+    newAges = newAges.filter(a => a !== 'any');
 
     if (newAges.length >= 2) {
         const numericAges = newAges
@@ -234,6 +285,8 @@ export function MatchCreateView() {
         const max = numericAges[numericAges.length - 1];
 
         const filledAges: string[] = [];
+        const ageOrder = ['20', '30', '40', '50', '60', '70'];
+        
         ageOrder.forEach(ageStr => {
             const val = ageValues[ageStr];
             if (val >= min && val <= max) {
@@ -285,7 +338,7 @@ export function MatchCreateView() {
     // Specs
     setMatchType('5vs5');
     setGender('male');
-    setLevel('middle');
+    setLevel(4);
     setSelectedAges(['20', '30']);
 
     // Game Format
@@ -412,10 +465,26 @@ export function MatchCreateView() {
             </div>
         </header>
 
+        {/* Onboarding Tip Banner */}
+        {showTip && (
+            <div className="mx-5 mt-4 p-3 bg-orange-50 rounded-xl flex items-center gap-3 relative animate-in fade-in slide-in-from-top-2 duration-300">
+                <Zap className="w-5 h-5 text-[#FF6600] flex-shrink-0 fill-orange-500" />
+                <p className="text-sm font-bold text-orange-800 pr-6">
+                    딱 한 번만 작성하세요! 다음부턴 '불러오기'로 3초만에 개설가능!
+                </p>
+                <button 
+                    onClick={handleDismissTip}
+                    className="absolute top-2 right-2 p-1 text-orange-400 hover:text-orange-600 transition-colors"
+                >
+                    <X className="w-4 h-4" />
+                </button>
+            </div>
+        )}
+
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 p-4">
 
             {/* SECTION 1: Basic Info & Facilities */}
-            <MatchCreateBasicInfo 
+            <MatchCreateBasicInfo
                 selectedDate={selectedDate}
                 setSelectedDate={setSelectedDate}
                 calendarDates={calendarDates}
@@ -430,10 +499,13 @@ export function MatchCreateView() {
                 locationInputRef={locationDivRef}
                 feeType={feeType}
                 setFeeType={setFeeType}
+                hasBeverage={hasBeverage}
+                setHasBeverage={setHasBeverage}
             >
                 <MatchCreateFacilities
                     hasWater={hasWater} setHasWater={setHasWater}
                     hasAcHeat={hasAcHeat} setHasAcHeat={setHasAcHeat}
+                    hasBall={hasBall} setHasBall={setHasBall}
                     parkingCost={parkingCost} setParkingCost={setParkingCost}
                     parkingDetail={parkingDetail} setParkingDetail={setParkingDetail}
                     showerOption={showerOption} setShowerOption={setShowerOption}
@@ -458,6 +530,9 @@ export function MatchCreateView() {
                 gender={gender} setGender={setGender}
                 level={level} setLevel={setLevel}
                 selectedAges={selectedAges} handleAgeSelection={handleAgeSelection}
+                handleAgeRangeUpdate={handleAgeRangeUpdate}
+                hasShoes={hasShoes} setHasShoes={setHasShoes}
+                hasJersey={hasJersey} setHasJersey={setHasJersey}
             />
 
             {/* SECTION 4: Game Format (Optional) */}

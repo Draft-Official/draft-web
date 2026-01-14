@@ -63,19 +63,22 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 * **Trust** - 신뢰할 수 있는 정보 (경기 상세, 호스트 공지)
 * **Convenience** - 쉬운 지원 (간편한 폼, 원클릭 지원)
 
-## 2. Technology Stack & Architecture
+## 2. Technology Stack
+
 우리는 최신 웹 기술을 사용하여 **Native App 수준의 사용자 경험(UX)**을 제공하는 적응형 웹앱을 구축합니다.
 
-* **Framework:** Next.js 14 (App Router)
+* **Framework:** Next.js 16 (App Router)
 * **Language:** TypeScript (Strict Mode)
-* **Styling:** Tailwind CSS + Shadcn UI (Customized)
-    * **Global Theme:** Primary Color `#FF6600` (Orange).
-    * **Layout:** **Mobile-First Fixed Width** (`max-w-[430px]`, `mx-auto`). PC에서는 웹 / 폰에서는  모바일 앱 뷰로 만듭니다 -> 적응형으로 만듬
+* **Styling:** Tailwind CSS 4 + Shadcn UI (Customized)
+    * **Global Theme:** Primary Color `#FF6600` (Orange)
+    * **Layout:** **Mobile-First Fixed Width** (`max-w-[430px]`, `mx-auto`)
 * **Icons:** Lucide React
-* **State Management:** React Hooks + Server State (React Query / RSC Pattern)
+* **State Management:** React Hooks + Server State (React Query / Phase 2)
 * **Development Flow:**
-    1.  **Figma First:** 피그마(또는 AI 이미지)로 시각적 구조 확정.
-    2.  **Agent Coding:** `.claude/` 폴더의 Claude Sub-agents를 활용하여 코드 구현.
+    1.  **Figma First:** 피그마로 시각적 구조 확정
+    2.  **Agent Coding:** Claude Code를 활용하여 코드 구현
+
+→ **For detailed tech stack and phases**: See [ARCHITECTURE.md](ARCHITECTURE.md)
 
 ## 3. Design Philosophy & UX Rules (Visual Reference)
 우리의 UI는 **'당근마켓(지역 기반)', '토스(간결함)', '플랩풋볼(매치 리스트)'**의 장점을 벤치마킹합니다.
@@ -132,8 +135,13 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
     * 수락/거절 원클릭 처리
     * 확정된 게스트 현황
 
-## 5. Development Workflow (with Agents)
+## 5. Development Workflow
 
-1.  **Planning:** `pipeline-designer` 에이전트로 구현 설계를 먼저 진행합니다.
-2.  **Tooling:** 반복 작업은 `agent-creator`로 전용 에이전트를 만들어 처리합니다.
-3.  **Implementation:** `feature-implementor`가 실제 코드를 작성하며, 항상 `project-context.md`의 규칙(모바일 퍼스트, 테일윈드 등)을 준수합니다.
+→ **For detailed workflow and architecture**: See [ARCHITECTURE.md](ARCHITECTURE.md) and [CLAUDE.md](../CLAUDE.md)
+
+→ **For Figma UI import**: See [FIGMA_TO_CODE.md](FIGMA_TO_CODE.md)
+
+---
+
+**Last Updated**: 2026-01-14
+**Maintainer**: @beom

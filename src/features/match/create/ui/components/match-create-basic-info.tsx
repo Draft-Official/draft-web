@@ -2,18 +2,17 @@
 
 import { useFormContext, Controller } from 'react-hook-form';
 import {
-  Clock,
   MapPin,
   MapPinned,
-  ExternalLink
+  ExternalLink,
+  Building2
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { cn } from '@/shared/lib/utils';
-import { Building2 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
+import { TimePickerSelect } from '@/components/ui/time-picker-select';
 import ScrollContainer from 'react-indiana-drag-scroll';
 
 interface LocationData {
@@ -41,6 +40,8 @@ interface MatchCreateBasicInfoProps {
   children?: React.ReactNode;
   feeType: "cost" | "beverage";
   setFeeType: (v: "cost" | "beverage") => void;
+  hasBeverage: boolean;
+  setHasBeverage: (v: boolean) => void;
 }
 
 const DURATION_OPTIONS = [
@@ -68,7 +69,9 @@ export function MatchCreateBasicInfo({
   locationInputRef,
   children,
   feeType,
-  setFeeType
+  setFeeType,
+  hasBeverage,
+  setHasBeverage
 }: MatchCreateBasicInfoProps) {
   const { register, control, setValue } = useFormContext();
 
@@ -81,7 +84,14 @@ export function MatchCreateBasicInfo({
 
         {/* Date */}
         <div className="space-y-3">
-            <Label className="text-sm font-bold text-slate-600">일시 <span className="text-[#FF6600] text-xs font-normal ml-1">(2주 내 예약 가능)</span></Label>
+            <Label className="text-sm font-bold text-slate-600 flex items-center gap-2">
+                경기 날짜 
+                {selectedDate && (() => {
+                    const [_, m, d] = selectedDate.split('-');
+                    return <span className="text-[#FF6600]">{parseInt(m)}월 {parseInt(d)}일</span>;
+                })()}
+                <span className="text-slate-400 text-xs font-normal ml-auto">(2주 이내의 경기만 게시 가능)</span>
+            </Label>
             <ScrollContainer className="w-full overflow-x-auto no-scrollbar -mx-5 px-5 cursor-grab active:cursor-grabbing">
                 <div className="flex gap-2 pb-1">
                     {calendarDates.map((d) => (
@@ -108,16 +118,18 @@ export function MatchCreateBasicInfo({
         <div className="grid grid-cols-2 gap-4">
              <div className="space-y-2">
                 <Label className="text-sm font-bold text-slate-600">시작 시간</Label>
-                <div className="relative">
-                    <Clock className="absolute left-3 top-3.5 h-5 w-5 text-slate-400 pointer-events-none" />
-                    <Input
-                        type="time"
-                        step="600"
-                        {...register('startTime')}
-                        className="pl-10 h-12 bg-white border-slate-200 font-bold"
-                        defaultValue="19:00"
-                    />
-                </div>
+                <Controller
+                    name="startTime"
+                    control={control}
+                    defaultValue="19:00"
+                    render={({ field }) => (
+                        <TimePickerSelect
+                            value={field.value}
+                            onValueChange={field.onChange}
+                            defaultValue="19:00"
+                        />
+                    )}
+                />
             </div>
 
             <div className="space-y-2">
@@ -268,6 +280,27 @@ export function MatchCreateBasicInfo({
                     {feeType === 'cost' ? '원' : '병'}
                 </span>
             </div>
+
+            {/* Beverage Checkbox */}
+            <button
+                type="button"
+                onClick={() => setHasBeverage(!hasBeverage)}
+                className="flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-slate-50 transition-colors"
+            >
+                <div className={cn(
+                    "w-5 h-5 rounded border-2 flex items-center justify-center transition-colors",
+                    hasBeverage
+                        ? "bg-[#FF6600] border-[#FF6600]"
+                        : "bg-white border-slate-300"
+                )}>
+                    {hasBeverage && (
+                        <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                    )}
+                </div>
+                <span className="text-sm font-medium text-slate-700">음료/물 제공</span>
+            </button>
         </div>
     </section>
   );

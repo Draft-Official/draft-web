@@ -4,6 +4,9 @@
 
 이 문서는 Figma Make로 생성한 UI 코드를 Draft 프로젝트 아키텍처에 맞게 적용하는 방법을 설명합니다.
 
+→ **For project architecture**: See [ARCHITECTURE.md](ARCHITECTURE.md)
+→ **For quick reference**: See [CLAUDE.md](../CLAUDE.md)
+
 ## 🎯 전제 조건
 
 1. Figma Design이 완성되어 있어야 함
@@ -17,7 +20,7 @@
 #### 옵션 A: GitHub에 푸시한 경우
 ```
 GitHub 링크를 준비합니다.
-예: https://github.com/beom84/Creatematchform
+예: https://github.com/Draft-Official/draft_figma
 ```
 
 #### 옵션 B: 로컬에 코드가 있는 경우
@@ -32,7 +35,7 @@ GitHub 링크를 준비합니다.
 
 ```
 안녕 클로드야.
-https://github.com/beom84/Creatematchform 이 깃허브 링크는
+https://github.com/Draft-Official/draft_figma 이 깃허브 링크는
 내가 피그마 메이크를 통해 만든 코드를 push한 파일이야.
 
 내가 보내는 사진과 코드를 통해서 우리의 프로젝트에
@@ -224,11 +227,12 @@ export function HostDashboardView() {
 해결: Claude가 자동으로 변환 처리
 ```
 
-## 📚 추가 참고 자료
+## 📚 참고 문서
 
-- [CLAUDE.md](CLAUDE.md) - 프로젝트 전체 가이드
-- [ARCHITECTURE.md](ARCHITECTURE.md) - 아키텍처 상세 설명
-- [project-context.md](project-context.md) - 프로젝트 비전 및 MVP 범위
+- **[CLAUDE.md](../CLAUDE.md)** - Quick reference for Claude Code
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Detailed architecture and tech stack
+- **[project-context.md](project-context.md)** - Business context and MVP scope
+- **[CHANGELOG.md](CHANGELOG.md)** - Recent changes and milestones
 
 ## 💡 팁
 
@@ -303,6 +307,6 @@ export const ComponentName = () => {
 
 ---
 
-**마지막 업데이트**: 2026-01-08
-**작성자**: Claude Code + @beom
-**프로젝트**: DRAFT - 농구 용병 모집 플랫폼
+**Last Updated**: 2026-01-14
+**Maintainer**: @beom
+**Project**: Draft - 농구 용병 모집 플랫폼
