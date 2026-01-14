@@ -2,13 +2,13 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, ArrowDown, Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Search, ArrowDown } from 'lucide-react';
 import { FilterBar } from '@/features/match/ui/filter-bar';
 import { MatchListItem } from '@/features/match/ui/match-list-item';
 import { useMatches } from '../src/entities/match/model/match-context';
 import { filterMatches, groupMatchesByDate, getDayLabel } from '@/features/match/lib/utils';
 import { cn } from '@/shared/lib/utils';
+import { useLocalStorage } from '@/shared/lib/hooks/use-local-storage';
 
 // Hook to detect scroll with hysteresis to prevent flickering
 const useScrollDirection = () => {
@@ -28,7 +28,6 @@ const useScrollDirection = () => {
         // Scrolled up below threshold - show header
         setIsScrolled(false);
       }
-      // Do nothing in the middle zone (20-60px) to prevent flickering
     };
 
     window.addEventListener("scroll", updateScrollDirection, { passive: true });
@@ -43,12 +42,19 @@ export default function GuestMatchListPage() {
   const { matches } = useMatches();
   const isScrolled = useScrollDirection();
 
-  // --- State ---
+  // --- State (Persisted) ---
+  const [selectedPositions, setSelectedPositions] = useLocalStorage<string[]>('filter_positions', []);
+  const [selectedLocations, setSelectedLocations] = useLocalStorage<string[]>('filter_locations', []);
+  const [selectedPriceMax, setSelectedPriceMax] = useLocalStorage<number | null>('filter_price_max', null);
+  const [minVacancy, setMinVacancy] = useLocalStorage<number | null>('filter_min_vacancy', null);
+  
+  // New Filters (Persisted)
+  const [selectedGenders, setSelectedGenders] = useLocalStorage<string[]>('filter_genders', []);
+  const [selectedAges, setSelectedAges] = useLocalStorage<string[]>('filter_ages', []);
+  const [selectedGameFormats, setSelectedGameFormats] = useLocalStorage<string[]>('filter_game_formats', []);
+
+  // --- State (Transient) ---
   const [selectedDateISO, setSelectedDateISO] = useState<string | null>(null);
-  const [selectedPositions, setSelectedPositions] = useState<string[]>([]);
-  const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
-  const [selectedPriceMax, setSelectedPriceMax] = useState<number | null>(null);
-  const [isHideClosed, setIsHideClosed] = useState(false);
 
   // --- Filtering Logic ---
   const filteredMatches = useMemo(() => {
@@ -57,9 +63,16 @@ export default function GuestMatchListPage() {
       positions: selectedPositions,
       locations: selectedLocations,
       priceMax: selectedPriceMax,
-      hideClosed: isHideClosed,
+      minVacancy: minVacancy,
+      genders: selectedGenders,
+      ages: selectedAges,
+      gameFormats: selectedGameFormats,
     });
-  }, [selectedDateISO, selectedPositions, selectedLocations, selectedPriceMax, isHideClosed, matches]);
+  }, [
+      matches, 
+      selectedDateISO, selectedPositions, selectedLocations, selectedPriceMax, 
+      minVacancy, selectedGenders, selectedAges, selectedGameFormats
+  ]);
 
   // Group by Date
   const groupedMatches = useMemo(() => {
@@ -80,8 +93,14 @@ export default function GuestMatchListPage() {
           onLocationsChange={setSelectedLocations}
           selectedPriceMax={selectedPriceMax}
           onPriceMaxChange={setSelectedPriceMax}
-          isHideClosed={isHideClosed}
-          onHideClosedChange={setIsHideClosed}
+          minVacancy={minVacancy}
+          onMinVacancyChange={setMinVacancy}
+          selectedGenders={selectedGenders}
+          onGendersChange={setSelectedGenders}
+          selectedAges={selectedAges}
+          onAgesChange={setSelectedAges}
+          selectedGameFormats={selectedGameFormats}
+          onGameFormatsChange={setSelectedGameFormats}
         />
 
         {/* --- Main List Content --- */}

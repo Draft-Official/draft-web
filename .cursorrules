@@ -1,5 +1,5 @@
 # General Behavior
-- Always read `docs/AGENT_RULES.md` at the start of the session to understand mandatory workflow rules.
+- IF you're not Claude, always read `docs/AGENT_RULES.md` at the start of the session to understand mandatory workflow rules.
 - Follow the architectural guidelines in `docs/ARCHITECTURE.md`.
 
 # Project Specifics

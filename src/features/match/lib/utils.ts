@@ -24,9 +24,6 @@ export const formatDateISO = (date: Date): string => {
 
 export const getDayLabel = (dateISO: string): string => {
     const date = new Date(dateISO);
-    // Note: new Date('YYYY-MM-DD') depends on timezone. 
-    // To be safe, we can parse manually or rely on browser interpretation if consistent.
-    // For this mock app, standard Date parsing is acceptable.
     const month = date.getMonth() + 1;
     const day = date.getDate();
     const dayOfWeek = ['일', '월', '화', '수', '목', '금', '토'][date.getDay()];
@@ -48,6 +45,11 @@ export interface FilterOptions {
     locations: string[]; // e.g. ["서울 강남구", "서울 서초구"]
     priceMax?: number | null; // e.g. 10000
     hideClosed?: boolean; // hide closed matches
+    minVacancy?: number | null; // e.g. 3 (at least 3 spots)
+    // Detailed Filters
+    genders?: string[]; // 'men', 'women', 'mixed'
+    ages?: string[]; // '20', '30' ...
+    gameFormats?: string[]; // '3vs3', '5vs5'
 }
 
 export const filterMatches = (
@@ -57,24 +59,19 @@ export const filterMatches = (
     let filtered = [...matches];
 
     // 1. Date Filter
-    // Ensure strict comparison of YYYY-MM-DD strings
     if (options.dateISO) {
         filtered = filtered.filter(m => m.dateISO === options.dateISO);
     }
 
     // 2. Location Filter
-    // Compare selected location (e.g. "서울 강남구") with match.address (e.g. "서울 강남구 대치동...")
     if (options.locations.length > 0) {
         filtered = filtered.filter(m => {
-            const matchAddress = m.address || ''; // Fallback if missing
+            const matchAddress = m.address || '';
             return options.locations.some(selectedLoc => {
-                // Handle "서울 전체" case
                 if (selectedLoc.includes('전체')) {
-                    const region = selectedLoc.split(' ')[0]; // "서울"
+                    const region = selectedLoc.split(' ')[0];
                     return matchAddress.startsWith(region);
                 }
-                // Standard case: "서울 강남구" matches "서울 강남구 대치동..."
-                // Using startsWith for accurate prefix matching
                 return matchAddress.startsWith(selectedLoc);
             });
         });
@@ -95,14 +92,14 @@ export const filterMatches = (
                 const posKey = posMap[posLabel];
                 if (!posKey) return false;
                 
-                // Direct match
                 const posData = m.positions[posKey];
+                // Check specific position
                 if (posData && posData.status === 'open') return true;
 
-                // "All" position (wildcard)
+                // Check "All"
                 if (m.positions.all && m.positions.all.status === 'open') return true;
 
-                // Bigman Logic: If searching for Forward or Center, also check Bigman
+                // Check "Bigman" for F/C
                 if ((posKey === 'f' || posKey === 'c') && m.positions.bigman && m.positions.bigman.status === 'open') {
                     return true;
                 }
@@ -117,9 +114,48 @@ export const filterMatches = (
         filtered = filtered.filter(m => m.priceNum <= options.priceMax!);
     }
 
-    // 5. Hide Closed Filter
-    if (options.hideClosed) {
+    // 5. Hide Closed / Min Vacancy Filter
+    if (options.minVacancy && options.minVacancy > 0) {
+        filtered = filtered.filter(m => {
+            if (m.isClosed) return false;
+
+            // Calculate total vacancy
+            let totalVacancy = 0;
+            const p = m.positions;
+            
+            // Helper to add vacancy
+            const add = (pos?: { status: string, max: number }) => {
+                if (pos && pos.status === 'open') totalVacancy += pos.max;
+            };
+
+            // Sum up standard positions
+            add(p.all);
+            add(p.g);
+            add(p.f);
+            add(p.c);
+            add(p.bigman);
+         
+            return totalVacancy >= options.minVacancy!;
+        });
+    } else if (options.hideClosed) {
         filtered = filtered.filter(m => !m.isClosed);
+    }
+
+    // 6. Detailed Filters (Gender, Age, GameFormat)
+    if (options.genders && options.genders.length > 0) {
+         filtered = filtered.filter(m => m.gender && options.genders!.includes(m.gender));
+    }
+
+    if (options.ages && options.ages.length > 0) {
+        filtered = filtered.filter(m => {
+            if (!m.ageRange) return false;
+            if (options.ages!.includes('any')) return true;
+            return options.ages!.some(age => m.ageRange!.includes(age));
+        });
+    }
+
+    if (options.gameFormats && options.gameFormats.length > 0) {
+        filtered = filtered.filter(m => m.gameFormat && options.gameFormats!.includes(m.gameFormat));
     }
 
     return filtered;
