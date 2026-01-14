@@ -142,9 +142,11 @@ When implementing from Figma designs:
 
 5. **Connect to App Router**:
    ```tsx
-   // app/(...)/page.tsx
-   import Component from '@/features/{feature}/ui/Component';
-   ```
+
+### Workflow Rules (Mandatory)
+1. **Read Documentation First**: Before starting any task, ALWAYS read relevant `.md` files (CLAUDE.md, docs/*) to align with architectural and design guidelines.
+2. **Commit by Feature**: When finishing work, group commits by feature (e.g., `feat(match)`, `ui(filter-bar)`). Do NOT squash unrelated changes into one commit.
+
 
 ## Git Commit Guidelines
 
