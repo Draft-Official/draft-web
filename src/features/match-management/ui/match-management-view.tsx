@@ -98,41 +98,45 @@ export function MatchManagementView() {
 
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
-      {/* Header */}
-      <header className="bg-white border-b border-slate-200 px-5 py-4 sticky top-0 z-10">
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold text-slate-900">경기 관리</h1>
+      {/* Header + Filters - Sticky */}
+      <div className="sticky top-0 z-10">
+        <header className="bg-white border-b border-slate-200 px-5 py-4">
+          <div className="flex items-center justify-between">
+            <h1 className="text-xl font-bold text-slate-900">경기 관리</h1>
 
-          {/* Guest/Host Toggle - Rounded Pill Style */}
-          <div className="flex items-center bg-slate-100 rounded-full p-1 gap-1">
-            <button
-              onClick={() => setViewMode("guest")}
-              className={cn(
-                "px-4 py-1.5 text-sm font-bold rounded-full transition-all",
-                viewMode === "guest"
-                  ? "bg-slate-900 text-white"
-                  : "text-slate-600"
-              )}
-            >
-              게스트
-            </button>
-            <button
-              onClick={() => setViewMode("host")}
-              className={cn(
-                "px-4 py-1.5 text-sm font-bold rounded-full transition-all",
-                viewMode === "host"
-                  ? "bg-slate-900 text-white"
-                  : "text-slate-600"
-              )}
-            >
-              호스트
-            </button>
+            {/* Guest/Host Toggle - Slide Animation */}
+            <div className="relative flex items-center bg-slate-100 rounded-full p-1">
+              {/* Sliding Indicator */}
+              <div
+                className={cn(
+                  "absolute h-[calc(100%-8px)] w-[calc(50%-2px)] bg-slate-900 rounded-full transition-transform duration-300 ease-in-out",
+                  viewMode === "host" ? "translate-x-full" : "translate-x-0"
+                )}
+              />
+              <button
+                onClick={() => setViewMode("guest")}
+                className={cn(
+                  "relative z-10 px-4 py-1.5 text-sm font-bold rounded-full transition-colors duration-300",
+                  viewMode === "guest" ? "text-white" : "text-slate-600"
+                )}
+              >
+                게스트
+              </button>
+              <button
+                onClick={() => setViewMode("host")}
+                className={cn(
+                  "relative z-10 px-4 py-1.5 text-sm font-bold rounded-full transition-colors duration-300",
+                  viewMode === "host" ? "text-white" : "text-slate-600"
+                )}
+              >
+                호스트
+              </button>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      {/* Filters - Single Row */}
-      <section className="bg-white border-b border-slate-100 px-5 py-3">
+        {/* Filters - Single Row */}
+        <section className="bg-white border-b border-slate-100 px-5 py-3">
         <div className="flex gap-2 overflow-x-auto hide-scrollbar">
           {/* Type Filter - Only show in guest mode */}
           {viewMode === "guest" && (
@@ -158,7 +162,8 @@ export function MatchManagementView() {
             getDisplayLabel={getPastFilterDisplayLabel}
           />
         </div>
-      </section>
+        </section>
+      </div>
 
       {/* Match List */}
       <section className="px-5 py-4 space-y-3">

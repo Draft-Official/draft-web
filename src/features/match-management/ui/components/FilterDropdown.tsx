@@ -45,13 +45,16 @@ export function FilterDropdown<T extends string>({
           <ChevronDown className="w-3 h-3" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-36 p-1 rounded-2xl" align="start">
+      <PopoverContent
+        className="w-36 p-1.5 rounded-2xl bg-white border border-slate-200 shadow-lg"
+        align="start"
+      >
         {options.map((option) => (
           <button
             key={option.value}
             onClick={() => onChange(option.value)}
             className={cn(
-              'w-full text-left px-3 py-2 text-sm rounded-xl hover:bg-slate-100 transition-colors flex items-center justify-between',
+              'w-full text-left px-3 py-2 text-sm rounded-full hover:bg-slate-100 transition-colors flex items-center justify-between',
               value === option.value && 'bg-slate-100'
             )}
           >
