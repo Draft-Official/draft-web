@@ -45,16 +45,18 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* Action Button */}
-      <div className="mt-auto pb-6">
-        <Link href="/match/create" className="block w-full">
-          <Button 
-            className="w-full h-14 rounded-full bg-[#FF6600] hover:bg-[#FF6600]/90 text-white text-lg font-bold shadow-lg shadow-orange-200"
-          >
-            경기 개설하기
-          </Button>
-        </Link>
-      </div>
+      {/* Action Button - Only visible on Home Tab (Match List) */}
+      {pathname === '/' && (
+        <div className="mt-auto pb-6">
+          <Link href="/match/create" className="block w-full">
+            <Button 
+              className="w-full h-14 rounded-full bg-[#FF6600] hover:bg-[#FF6600]/90 text-white text-lg font-bold shadow-lg shadow-orange-200"
+            >
+              경기 개설하기
+            </Button>
+          </Link>
+        </div>
+      )}
       
       {/* User Mini Profile (Optional X style) */}
       <div className="flex items-center gap-3 p-3 rounded-full hover:bg-slate-100 cursor-pointer transition-colors mt-4">

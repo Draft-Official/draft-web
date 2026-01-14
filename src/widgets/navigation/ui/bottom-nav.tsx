@@ -5,8 +5,11 @@ import { usePathname } from 'next/navigation';
 import { Home, Users, Calendar, User } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 
+import { useScrollDirection } from '@/shared/lib/hooks/use-scroll-direction';
+
 export function BottomNav() {
   const pathname = usePathname();
+  const isScrolledDown = useScrollDirection(); // Shared scroll logic
 
   const NAV_ITEMS = [
     { label: '홈', href: '/', icon: Home },
@@ -21,7 +24,12 @@ export function BottomNav() {
   if (isDetailPage) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 w-full h-[60px] bg-white border-t border-slate-100 flex items-center justify-around z-50 md:hidden pb-safe">
+    <div 
+      className={cn(
+        "fixed bottom-0 left-0 w-full h-[60px] bg-white border-t border-slate-100 flex items-center justify-around z-50 md:hidden pb-safe transition-transform duration-300 ease-in-out",
+        isScrolledDown ? "translate-y-full" : "translate-y-0"
+      )}
+    >
       {NAV_ITEMS.map((item) => {
         const isActive = pathname === item.href;
         return (

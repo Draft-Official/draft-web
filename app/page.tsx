@@ -125,21 +125,7 @@ export default function GuestMatchListPage() {
           )}
         </div>
 
-        {/* --- FAB Button --- */}
-        <div className="fixed bottom-24 z-50 left-1/2 -translate-x-1/2 w-full max-w-[760px] pointer-events-none">
-          <div className="absolute right-4 bottom-0 pointer-events-auto">
-            <Button
-              onClick={() => router.push('/match/create')}
-              className={cn(
-                "rounded-full bg-[#FF6600] shadow-xl shadow-orange-200 hover:bg-[#FF6600]/90 flex items-center justify-center transition-all active:scale-95",
-                "w-12 h-12 md:hidden"
-              )}
-            >
-              {/* Mobile: Plus Icon Only */}
-              <Plus className="w-6 h-6 text-white" />
-            </Button>
-          </div>
-        </div>
+
       </div>
     </div>
   );
