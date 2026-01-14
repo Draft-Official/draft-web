@@ -84,7 +84,14 @@ export function MatchCreateBasicInfo({
 
         {/* Date */}
         <div className="space-y-3">
-            <Label className="text-sm font-bold text-slate-600">일시 <span className="text-[#FF6600] text-xs font-normal ml-1">(2주 내 예약 가능)</span></Label>
+            <Label className="text-sm font-bold text-slate-600 flex items-center gap-2">
+                경기 날짜 
+                {selectedDate && (() => {
+                    const [_, m, d] = selectedDate.split('-');
+                    return <span className="text-[#FF6600]">{parseInt(m)}월 {parseInt(d)}일</span>;
+                })()}
+                <span className="text-slate-400 text-xs font-normal ml-auto">(2주 이내의 경기만 게시 가능)</span>
+            </Label>
             <ScrollContainer className="w-full overflow-x-auto no-scrollbar -mx-5 px-5 cursor-grab active:cursor-grabbing">
                 <div className="flex gap-2 pb-1">
                     {calendarDates.map((d) => (
