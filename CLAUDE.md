@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code when working with code in this repository.
 
 ## Project Overview
 
@@ -8,6 +8,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Target Users**: Basketball enthusiasts (Guests) and team organizers (Hosts)
 **Core Values**: Speed, Trust, Convenience
+
+→ **For detailed business context**: See [project-context.md](docs/project-context.md)
 
 ## Development Commands
 
@@ -23,52 +25,31 @@ npm start           # Start production server
 npm run lint        # Run ESLint
 ```
 
-## Architecture
+## Architecture (Quick Reference)
 
-This project uses a **simplified Feature-Sliced Design** pattern for scalability and maintainability.
-
-### Directory Structure
+This project uses **simplified Feature-Sliced Design**:
 
 ```
 app/                    # Next.js App Router (routing only)
-├── page.tsx           # Home - Match list
-├── guest/[id]/        # Match detail page
-├── match/create/      # Host create match
-└── layout.tsx         # Root layout with Header + BottomNav
-
 src/
-├── features/          # Feature modules (isolated business logic)
-│   ├── match/         # Match-related features
-│   │   ├── ui/        # Match UI components (FilterBar, MatchListItem, etc.)
-│   │   ├── api/       # API functions (queries.ts, mutations.ts)
-│   │   ├── model/     # Types & schemas (types.ts, schema.ts)
-│   │   └── lib/       # Helper functions
-│   ├── auth/          # Authentication
-│   └── user/          # User profile
-│
-├── shared/            # Global shared resources
-│   ├── lib/           # Utilities (utils.ts, supabase.ts, query-client.ts)
-│   ├── config/        # Constants
-│   └── types/         # Global types
-│
-├── widgets/           # Composite layout components
-│   ├── header.tsx     # App header
-│   └── bottom-nav.tsx # Bottom navigation
-│
+├── features/          # Feature modules (match, auth, user)
+│   └── {feature}/
+│       ├── ui/        # UI components
+│       ├── api/       # API functions (Phase 2)
+│       ├── model/     # Types & schemas
+│       └── lib/       # Helper functions
+├── shared/            # Global resources
+├── widgets/           # Layout components (Header, BottomNav)
 └── components/
-    ├── ui/            # shadcn/ui components (button, card, etc.)
-    └── registry/      # Figma-imported UI components
-
-.claude/
-├── agents/            # Custom Claude Code agents
-│   ├── figma-ui-importer.md   # Figma → Draft converter
-│   └── pipeline-designer.md   # Implementation planner
-└── docs/              # Agent documentation
+    ├── ui/            # shadcn/ui components
+    └── registry/      # Figma-imported components
 ```
+
+→ **For detailed architecture**: See [ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
 ### Import Path Aliases
 
-Always use these TypeScript path aliases (defined in tsconfig.json):
+Always use these TypeScript path aliases:
 
 ```typescript
 @/*                    # Root directory
@@ -102,10 +83,7 @@ Widgets → Features/Shared/Components
   - Date section headers: `top-[195px]` (below FilterBar)
 
 ### Typography
-Use Pretendard font (imported in globals.css):
-```css
-@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
-```
+Use Pretendard font (imported in globals.css)
 
 ### Component Conventions
 - shadcn/ui components: kebab-case filenames (`button.tsx`)
@@ -118,42 +96,33 @@ Use Pretendard font (imported in globals.css):
 
 When implementing from Figma designs:
 
-1. **Prioritize Figma over GitHub code** - Always reference the actual Figma design, not just existing code
-2. **Match exact component order** - Follow Figma's top-to-bottom layout structure precisely
+1. **Prioritize Figma over GitHub code** - Always reference the actual Figma design
+2. **Match exact component order** - Follow Figma's top-to-bottom layout structure
 3. **Symmetric spacing** - Dividers must have equal spacing above and below (use `my-X` not `mb-X`)
-4. **Precise sizing** - Adjust text sizes in 1px increments (e.g., `text-[21px]` instead of `text-xl`)
+4. **Precise sizing** - Adjust text sizes in 1px increments (e.g., `text-[21px]`)
 5. **Tight spacing control** - Card padding, gaps, and margins should match Figma exactly
 6. **Visual hierarchy** - Font weights, colors, and sizes must match design specs
-
-### How to Request Figma Implementation
-
-**Clear instructions:**
-```
-"피그마 디자인과 동일하게 구현해줘"
-"레이아웃 순서를 피그마 순서대로"
-"구분선 위아래 간격을 동일하게"
-"텍스트 크기 1px 조정"
-"포지션 카드 크기 줄여줘"
-```
-
-**What NOT to do:**
-- ❌ "GitHub 코드 참고해서 만들어줘" (may differ from design)
-- ❌ Generic spacing like "좀 줄여줘" (be specific: "mb-4에서 mb-3으로")
 
 ### Common Figma-to-Code Patterns
 
 ```tsx
 // Dividers with symmetric spacing
 <div className="h-px bg-slate-100 my-4" />  // ✅ Equal top/bottom
-<div className="h-px bg-slate-100 mb-4" />  // ❌ Asymmetric
 
 // Precise text sizing
 <h1 className="text-[21px]">  // ✅ Exact 21px
-<h1 className="text-xl">      // ❌ Generic (20px)
 
 // Color opacity matching
 <div className="bg-orange-50/30">  // ✅ Exact opacity
-<div className="bg-orange-50">     // ❌ Full opacity
+```
+
+### Figma UI Import Workflow
+
+→ **For complete workflow**: See [FIGMA_TO_CODE.md](docs/FIGMA_TO_CODE.md)
+
+**Quick command**:
+```
+"Figma Make 코드를 Draft로 import 해줘"
 ```
 
 ## Feature Development Workflow
@@ -165,41 +134,17 @@ When implementing from Figma designs:
    mkdir -p src/features/{feature-name}/{ui,api,model,lib}
    ```
 
-2. **Define types** in `model/types.ts`:
-   ```typescript
-   export interface Feature {
-     id: string;
-     // ...
-   }
-   ```
+2. **Define types** in `model/types.ts`
 
-3. **Create UI components** in `ui/`:
-   - Use PascalCase filenames
-   - Import from `@/components/ui` for base components
+3. **Create UI components** in `ui/`
 
-4. **Add API functions** (when Supabase is connected) in `api/`:
-   - `queries.ts` for GET operations (React Query)
-   - `mutations.ts` for POST/PUT/DELETE
+4. **Add API functions** (Phase 2) in `api/`
 
 5. **Connect to App Router**:
    ```tsx
    // app/(...)/page.tsx
    import Component from '@/features/{feature}/ui/Component';
    ```
-
-### Working with Figma Components
-
-Use the `figma-ui-importer` agent when importing UI from Figma:
-
-```
-"Import the HostCreateMatch component from Figma to Draft"
-```
-
-The agent will:
-1. Convert Figma Make code to Draft structure
-2. Place in `src/components/registry/`
-3. Update import paths
-4. Check for TypeScript errors
 
 ## Git Commit Guidelines
 
@@ -229,36 +174,33 @@ The app uses multiple sticky layers. When adding sticky elements, calculate `top
 
 ### State Management
 - **Local state**: React hooks (useState, useReducer)
-- **Server state** (future): React Query with Supabase
+- **Server state** (Phase 2): React Query with Supabase
 - **Form state**: React Hook Form + Zod validation
 
 ### Responsive Behavior
 Desktop: Centered column (max-w-[430px]) with dark background
 Mobile: Full-width app-like experience
 
-The layout wrapper in `app/layout.tsx`:
 ```tsx
+// Layout wrapper in app/layout.tsx
 <div className="w-full max-w-[430px] mx-auto min-h-screen bg-white shadow-2xl">
 ```
 
-## Future Backend Integration (Supabase)
+## Key Files Reference
 
-When connecting to Supabase (Phase 2):
+**Types**:
+- Common types: `src/shared/types/match.ts`
+- Feature types: `src/features/{feature}/model/types.ts`
 
-1. Install dependencies:
-   ```bash
-   npm install @supabase/supabase-js @supabase/ssr @tanstack/react-query
-   ```
+**Validation**:
+- Match Create: `src/features/match/create/model/schema.ts`
 
-2. Add environment variables:
-   ```
-   NEXT_PUBLIC_SUPABASE_URL=
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=
-   ```
+**API** (Phase 2):
+- Kakao Maps: `app/api/search-places/route.ts`, `src/shared/api/kakao-map.ts`
 
-3. Create client in `src/shared/lib/supabase.ts`
-4. Set up React Query in `src/shared/lib/query-client.ts`
-5. Add API functions in feature `api/` folders
+**Mock Data**:
+- Host Dashboard: `src/features/host/model/mock-data.ts`
+- Match List: `src/features/match/model/mock-data.ts`
 
 ## Critical Rules
 
@@ -273,40 +215,22 @@ When connecting to Supabase (Phase 2):
 ### DON'T ❌
 - Put business logic in `app/` directory
 - Import features from other features
-- Modify `src/components/registry/` files manually (use agent)
+- Modify `src/components/registry/` files manually
 - Use relative imports when aliases exist
 - Create components wider than 430px
 - Change sticky `top` values without testing scroll
 
-## Working with Figma Components
-
-### Figma UI Import Process
-
-When importing UI from Figma Make, follow these steps:
-
-**Use when:**
-- User mentions "Figma Make" or "피그마 메이크"
-- User provides a GitHub link to Figma-generated code
-- User asks to "import", "가져와", or "적용" UI from Figma
-
-**Process:**
-1. Pull latest Figma Make code from `/tmp/figma-sample`
-2. Analyze the component structure
-3. Run the import script: `python3 scripts/import-figma-component.py`
-4. Apply Phase 2 type system (`src/shared/types/match.ts`)
-5. Add Zod validation for forms
-6. Connect to App Router
-
-**Example user requests:**
-- "Figma Make의 HostDashboard를 Draft로 가져와줘"
-- "https://github.com/beom84/Creatematchform 이 코드를 우리 프로젝트에 적용해줘"
-- "피그마에서 만든 UI를 Draft 구조로 변환해줘"
-
-Refer to [.claude/docs/figma-ui-importer.md](.claude/docs/figma-ui-importer.md) for detailed implementation guide.
-
 ## Reference Documents
 
-For deeper architectural context:
-- `project-context.md` - Project vision and MVP scope
-- `ARCHITECTURE.md` - Detailed architecture documentation
-- `.claude/docs/sub-agent.md` - Agent usage guide
+For deeper context, refer to:
+
+- **[project-context.md](docs/project-context.md)** - Project vision, MVP scope, target audience
+- **[ARCHITECTURE.md](docs/ARCHITECTURE.md)** - Detailed architecture, tech stack phases, expansion roadmap
+- **[FIGMA_TO_CODE.md](docs/FIGMA_TO_CODE.md)** - Figma → Draft conversion workflow
+- **[CHANGELOG.md](docs/CHANGELOG.md)** - Recent changes and milestones
+
+---
+
+**Last Updated**: 2026-01-14
+**Maintainer**: @beom
+**Project**: Draft - 농구 용병 모집 플랫폼
