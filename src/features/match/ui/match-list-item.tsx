@@ -14,7 +14,10 @@ interface Match {
   priceNum?: number;
   title: string;
   teamName?: string;
+  teamLogo?: string;
   location: string;
+  gender: 'men' | 'women' | 'mixed';
+  gameFormat: string; // e.g. "5vs5"
   isClosed?: boolean;
   positions: {
     all?: { status: 'open' | 'closed'; max: number };
@@ -29,6 +32,13 @@ interface MatchListItemProps {
   showDate?: boolean;
   getShortDayLabel?: (iso: string) => string;
 }
+
+// --- Constants ---
+const GENDER_CONFIG: Record<string, { label: string; className: string }> = {
+  men: { label: '남성', className: 'text-blue-600 bg-blue-50 border-blue-200' },
+  women: { label: '여성', className: 'text-pink-600 bg-pink-50 border-pink-200' },
+  mixed: { label: '성별 무관', className: 'text-purple-600 bg-purple-50 border-purple-200' },
+};
 
 // --- Position Chip Component ---
 const PositionChip = ({ label, max, status }: { label: string; max: number; status?: 'open' | 'closed' }) => {
@@ -56,6 +66,8 @@ export const MatchListItem = React.memo(function MatchListItem({ match, showDate
     router.push(`/guest/${match.id}`);
   };
 
+  const genderInfo = GENDER_CONFIG[match.gender];
+
   return (
     <div
       onClick={handleClick}
@@ -68,12 +80,31 @@ export const MatchListItem = React.memo(function MatchListItem({ match, showDate
     >
       {/* 1. Top Section: Time (Left) & Price (Right) */}
       <div className="flex justify-between items-start mb-0.5">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
+          {/* Time */}
           <span className={cn(
-            "font-bold tracking-tight text-[15px]",
-            match.isClosed ? "text-slate-400" : "text-slate-900"
+            "text-[15px] font-bold tracking-tight text-slate-900 mr-1",
+            match.isClosed && "text-slate-400"
           )}>
             {match.startTime} ~ {match.endTime}
+          </span>
+          
+          {/* Match Type Badge */}
+          <span className={cn(
+            "px-1.5 py-[2px] text-[10px] font-bold border rounded-[4px] leading-none",
+            match.isClosed 
+              ? "bg-slate-100 border-slate-100 text-slate-400" 
+              : "bg-white border-slate-300 text-slate-900"
+          )}>
+            {match.gameFormat}
+          </span>
+
+          {/* Gender Badge */}
+          <span className={cn(
+            "px-1.5 py-[2px] text-[10px] font-bold border rounded-[4px] leading-none",
+            genderInfo.className
+          )}>
+            {genderInfo.label}
           </span>
         </div>
 
@@ -102,11 +133,22 @@ export const MatchListItem = React.memo(function MatchListItem({ match, showDate
           </span>
         </div>
         {match.teamName && (
-          <div className={cn(
-            "truncate text-[13px] text-slate-400",
-            match.isClosed && "text-slate-300"
-          )}>
-            {match.teamName}
+          <div className="flex items-center gap-1.5 mt-1">
+             <div className="w-5 h-5 rounded-full overflow-hidden bg-slate-100 border border-slate-100 shrink-0">
+               {match.teamLogo ? (
+                 <img src={match.teamLogo} alt={match.teamName} className="w-full h-full object-cover" />
+               ) : (
+                 <div className="w-full h-full flex items-center justify-center bg-slate-100 text-[8px] text-slate-400 font-bold">
+                   {match.teamName.slice(0, 1)}
+                 </div>
+               )}
+             </div>
+             <span className={cn(
+                "truncate text-[13px] font-medium text-slate-500",
+                match.isClosed && "text-slate-300"
+              )}>
+                {match.teamName}
+              </span>
           </div>
         )}
       </div>
