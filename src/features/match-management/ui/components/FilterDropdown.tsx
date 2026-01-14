@@ -35,21 +35,23 @@ export function FilterDropdown<T extends string>({
         <Button
           variant="outline"
           className={cn(
-            'h-9 px-3 text-sm font-normal border-slate-200',
-            isActive && 'bg-slate-100 text-slate-700'
+            'rounded-full h-8 px-3 text-xs font-bold border transition-all flex items-center gap-1',
+            isActive
+              ? 'border-primary text-primary bg-orange-50'
+              : 'border-slate-200 text-slate-600'
           )}
         >
           {displayLabel}
-          <ChevronDown className="ml-1.5 h-4 w-4 opacity-50" />
+          <ChevronDown className="w-3 h-3" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-fit min-w-[120px] p-1 bg-white" align="start">
+      <PopoverContent className="w-36 p-1 rounded-2xl" align="start">
         {options.map((option) => (
           <button
             key={option.value}
             onClick={() => onChange(option.value)}
             className={cn(
-              'w-full text-left px-3 py-2 text-sm rounded-md hover:bg-slate-100 transition-colors flex items-center justify-between',
+              'w-full text-left px-3 py-2 text-sm rounded-xl hover:bg-slate-100 transition-colors flex items-center justify-between',
               value === option.value && 'bg-slate-100'
             )}
           >

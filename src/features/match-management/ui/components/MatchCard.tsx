@@ -1,6 +1,6 @@
 'use client';
 
-import { Calendar, Clock, MapPin, Navigation, Users } from 'lucide-react';
+import { Calendar, Clock, MapPin, Navigation, Users, Shield, Trophy } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/shared/lib/utils';
 import type { ManagedMatch } from '../../model/types';
@@ -36,7 +36,7 @@ export function MatchCard({ match, onClick }: MatchCardProps) {
       )}
     >
       <div className="p-4 space-y-3">
-        {/* Type & Status Badges */}
+        {/* Top Section - Type Badge (Left) + Status Badge (Right) */}
         <div className="flex items-center justify-between">
           <Badge
             variant="outline"
@@ -59,48 +59,36 @@ export function MatchCard({ match, onClick }: MatchCardProps) {
           </Badge>
         </div>
 
-        {/* Body Section */}
+        {/* Body Section - Date, Time, Location, Team Name, Tournament Info */}
         <div className="space-y-2">
-          {/* Team Name */}
-          <h3 className="font-bold text-slate-900 text-lg">{match.teamName}</h3>
-
-          {/* Tournament Info */}
-          {match.type === 'tournament' && (
-            <div className="text-slate-600">
-              {match.tournamentName} | {match.round}
-            </div>
-          )}
-
-          {/* Date & Time */}
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-slate-400" />
-              <span className="font-bold text-lg text-slate-900">
-                {match.date}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Clock className="w-5 h-5 text-slate-400" />
-              <span className="font-bold text-lg text-slate-900">
-                {match.time}
-              </span>
-            </div>
+          {/* Date & Time - Larger and prominent */}
+          <div className="flex items-center gap-2">
+            <Calendar className="w-5 h-5 text-slate-400" />
+            <span className="font-bold text-xl text-slate-900">{match.date}</span>
+            <Clock className="w-5 h-5 text-slate-400 ml-2" />
+            <span className="font-bold text-xl text-slate-900">{match.time}</span>
           </div>
 
-          {/* Location */}
+          {/* Location with Navigation - Larger */}
           <div className="flex items-start gap-2">
             <MapPin className="w-5 h-5 text-slate-400 mt-0.5 shrink-0" />
             <button
               onClick={(e) => handleLocationClick(e, match.locationUrl)}
-              className="text-slate-600 hover:text-slate-900 text-left flex items-center gap-1 group"
+              className="text-slate-900 hover:text-slate-700 text-left flex items-center gap-1 group text-lg font-medium"
             >
               <span>{match.location}</span>
               <Navigation className="w-4 h-4 text-slate-400 group-hover:text-slate-600" />
             </button>
           </div>
+
+          {/* Team Name - Same size as location with Shield icon */}
+          <div className="flex items-center gap-1.5 text-lg text-slate-500">
+            <Shield className="w-5 h-5" />
+            <span>{match.teamName}</span>
+          </div>
         </div>
 
-        {/* Type-specific Footer */}
+        {/* Bottom Section - Type Specific Info */}
         {match.type === 'guest' && (
           <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -117,15 +105,11 @@ export function MatchCard({ match, onClick }: MatchCardProps) {
             <div className="flex items-center gap-2">
               <Users className="w-5 h-5 text-slate-400" />
               <span className="text-sm text-slate-500">신청자</span>
-              <span className="font-bold text-primary text-lg">
-                {match.applicants}명
-              </span>
+              <span className="font-bold text-primary text-lg">{match.applicants}명</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-sm text-slate-500">빈자리</span>
-              <span className="font-bold text-slate-900 text-lg">
-                {match.vacancies}명
-              </span>
+              <span className="font-bold text-slate-900 text-lg">{match.vacancies}명</span>
             </div>
           </div>
         )}
@@ -134,9 +118,18 @@ export function MatchCard({ match, onClick }: MatchCardProps) {
           <div className="pt-3 border-t border-slate-100 flex items-center gap-2">
             <Users className="w-5 h-5 text-slate-400" />
             <span className="text-sm text-slate-500">참여 인원</span>
-            <span className="font-bold text-slate-900 text-lg">
-              {match.participants}명
-            </span>
+            <span className="font-bold text-slate-900 text-lg">{match.participants}명</span>
+          </div>
+        )}
+
+        {match.type === 'tournament' && (
+          <div className="pt-3 border-t border-slate-100">
+            <div className="flex items-center gap-2 text-slate-600">
+              <Trophy className="w-5 h-5 text-slate-400" />
+              <span className="font-medium">{match.tournamentName}</span>
+              <span className="text-slate-300">|</span>
+              <span>{match.round}</span>
+            </div>
           </div>
         )}
       </div>

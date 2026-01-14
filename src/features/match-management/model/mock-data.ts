@@ -9,7 +9,7 @@ export const MOCK_MANAGED_MATCHES: ManagedMatch[] = [
   {
     id: '1',
     type: 'guest',
-    status: 'confirmed',
+    status: 'scheduled',
     teamName: '강남 썬더스',
     date: '2025. 01. 20 (월)',
     time: '19:00',

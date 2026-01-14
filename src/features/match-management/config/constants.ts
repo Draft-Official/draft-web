@@ -5,26 +5,21 @@
 
 import type { MatchType, MatchStatus, FilterOption } from '../model/types';
 
-// 경기 타입 필터 옵션
-export const MATCH_TYPE_FILTER_OPTIONS: FilterOption<'all' | MatchType>[] = [
+// 경기 타입 필터 옵션 (게스트 모드에서만 사용 - host 제외)
+export const MATCH_TYPE_FILTER_OPTIONS: FilterOption<'all' | Exclude<MatchType, 'host'>>[] = [
   { value: 'all', label: '전체' },
   { value: 'guest', label: '게스트' },
-  { value: 'host', label: '호스트' },
   { value: 'team', label: '팀운동' },
   { value: 'tournament', label: '대회' },
 ];
 
-// 경기 상태 필터 옵션
-export const MATCH_STATUS_FILTER_OPTIONS: FilterOption<'all' | MatchStatus>[] = [
+// 경기 상태 필터 옵션 (기본 4가지만 표시)
+export const MATCH_STATUS_FILTER_OPTIONS: FilterOption<'all' | 'scheduled' | 'ongoing' | 'ended' | 'cancelled'>[] = [
   { value: 'all', label: '전체' },
   { value: 'scheduled', label: '예정' },
   { value: 'ongoing', label: '진행중' },
   { value: 'ended', label: '종료' },
   { value: 'cancelled', label: '취소' },
-  { value: 'pending', label: '승인대기' },
-  { value: 'confirmed', label: '확정' },
-  { value: 'closed', label: '마감' },
-  { value: 'rejected', label: '승인거부' },
 ];
 
 // 지난 경기 필터 옵션
@@ -74,4 +69,4 @@ export const MATCH_STATUS_COLORS: Record<MatchStatus, string> = {
 };
 
 // 지난 경기로 간주되는 상태
-export const PAST_MATCH_STATUSES: MatchStatus[] = ['ended', 'cancelled'];
+export const PAST_MATCH_STATUSES: MatchStatus[] = ['ended', 'cancelled', 'rejected'];
