@@ -70,8 +70,8 @@ export function MatchCard({ match, onClick }: MatchCardProps) {
           </div>
 
           {/* Location with Navigation - Larger */}
-          <div className="flex items-start gap-2">
-            <MapPin className="w-5 h-5 text-slate-400 mt-0.5 shrink-0" />
+          <div className="flex items-center gap-2">
+            <MapPin className="w-5 h-5 text-slate-400 shrink-0" />
             <button
               onClick={(e) => handleLocationClick(e, match.locationUrl)}
               className="text-slate-900 hover:text-slate-700 text-left flex items-center gap-1 group text-lg font-medium"
