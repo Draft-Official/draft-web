@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Share2, Trophy, User, Users as UsersIcon, Calendar as CalendarIcon, UsersRound, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Share2, Trophy, User, Users as UsersIcon, Calendar as CalendarIcon, UsersRound, MessageCircle, ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -139,7 +139,7 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
             onClick={() => router.back()}
             className="p-2 hover:bg-slate-50 rounded-lg transition-colors -ml-2"
           >
-            <ArrowLeft className="w-5 h-5 text-slate-900" />
+            <ChevronLeft className="w-6 h-6 text-slate-900" />
           </button>
           <button
             onClick={handleShareClick}

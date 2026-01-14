@@ -422,8 +422,18 @@ export function MatchCreateView() {
         <div className="min-h-screen bg-slate-50 pb-[120px] max-w-[760px] mx-auto relative font-sans">
 
         {/* Header */}
-        <header className="bg-white px-5 h-14 flex items-center justify-between border-b border-slate-100">
-            <h1 className="font-bold text-lg text-slate-900">경기 개설</h1>
+        <header className="bg-white px-4 h-14 flex items-center justify-between border-b border-slate-100 sticky top-0 z-30">
+            <div className="flex items-center gap-3">
+                <button 
+                  type="button"
+                  onClick={() => router.back()}
+                  className="-ml-2 p-2 text-slate-900 hover:bg-slate-50 rounded-full transition-colors"
+                >
+                    <X className="w-6 h-6" />
+                </button>
+                <h1 className="font-bold text-lg text-slate-900">경기 개설</h1>
+            </div>
+            
             <div className="flex gap-2 relative">
                 <button
                     type="button"
