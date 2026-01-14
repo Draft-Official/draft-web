@@ -1,18 +1,21 @@
 'use client';
 
-import { Check } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
+import { Chip } from '@/components/ui/chip';
 import { cn } from '@/shared/lib/utils';
 import { SHOWER_OPTIONS, COURT_SIZE_OPTIONS } from '@/features/match/create/config/constants';
+import { X } from 'lucide-react';
 
 interface MatchCreateFacilitiesProps {
   hasWater: boolean;
   setHasWater: (v: boolean) => void;
   hasAcHeat: boolean;
   setHasAcHeat: (v: boolean) => void;
+  hasBall: boolean;
+  setHasBall: (v: boolean) => void;
   parkingCost: string;
   setParkingCost: (v: string) => void;
   parkingDetail: string;
@@ -21,7 +24,7 @@ interface MatchCreateFacilitiesProps {
   setShowerOption: (v: string) => void;
   courtSize: string;
   setCourtSize: (v: string) => void;
-  
+
   showParkingDialog: boolean;
   setShowParkingDialog: (v: boolean) => void;
   showShowerDialog: boolean;
@@ -30,39 +33,11 @@ interface MatchCreateFacilitiesProps {
   setShowCourtSizeDialog: (v: boolean) => void;
 }
 
-// Reusable Facility Chip Component
-function FacilityChip({ 
-    label, 
-    isActive, 
-    onClick, 
-    valueLabel 
-}: { 
-    label: string, 
-    isActive: boolean, 
-    onClick: () => void,
-    valueLabel?: string 
-}) {
-    return (
-        <button
-            type="button"
-            onClick={onClick}
-            className={cn(
-                "px-4 py-2 rounded-full text-sm font-medium border transition-all flex items-center gap-1.5",
-                isActive
-                    ? "bg-[#FF6600] text-white border-[#FF6600]"
-                    : "bg-white text-slate-600 border-slate-300 hover:border-slate-400"
-            )}
-        >
-            {isActive && <Check className="w-3.5 h-3.5" />}
-            {label}
-            {isActive && valueLabel && `: ${valueLabel}`}
-        </button>
-    );
-}
 
 export function MatchCreateFacilities({
   hasWater, setHasWater,
   hasAcHeat, setHasAcHeat,
+  hasBall, setHasBall,
   parkingCost, setParkingCost,
   parkingDetail, setParkingDetail,
   showerOption, setShowerOption,
@@ -84,21 +59,35 @@ export function MatchCreateFacilities({
                 <span className="text-[11px] font-bold text-[#FF6600] bg-orange-50 px-2 py-0.5 rounded-full">작성시 문의가 80% 감소해요!</span>
             </div>
             <div className="flex flex-wrap gap-2">
-                <FacilityChip 
-                    label="정수기" 
-                    isActive={hasWater} 
-                    onClick={() => setHasWater(!hasWater)} 
-                />
-                
-                <FacilityChip 
-                    label="냉난방" 
-                    isActive={hasAcHeat} 
-                    onClick={() => setHasAcHeat(!hasAcHeat)} 
+                <Chip
+                    variant="orange"
+                    label="🏀 농구공"
+                    isActive={hasBall}
+                    checkIconPosition="right"
+                    onClick={() => setHasBall(!hasBall)}
                 />
 
-                <FacilityChip 
-                    label="주차" 
-                    isActive={parkingCost !== ""} 
+                <Chip
+                    variant="orange"
+                    label="정수기"
+                    isActive={hasWater}
+                    checkIconPosition="right"
+                    onClick={() => setHasWater(!hasWater)}
+                />
+
+                <Chip
+                    variant="orange"
+                    label="냉난방"
+                    isActive={hasAcHeat}
+                    checkIconPosition="right"
+                    onClick={() => setHasAcHeat(!hasAcHeat)}
+                />
+
+                <Chip
+                    variant="orange"
+                    label="주차"
+                    isActive={parkingCost !== ""}
+                    checkIconPosition="right"
                     valueLabel={parkingCost === "0" ? "0원 (무료)" : (parkingCost ? `${Number(parkingCost).toLocaleString()}원/시간` : undefined)}
                     onClick={() => {
                         if (parkingCost !== "") {
@@ -110,9 +99,11 @@ export function MatchCreateFacilities({
                     }}
                 />
 
-                <FacilityChip 
-                    label="샤워실" 
-                    isActive={showerOption !== "unavailable"} 
+                <Chip
+                    variant="orange"
+                    label="샤워실"
+                    isActive={showerOption !== "unavailable"}
+                    checkIconPosition="right"
                     valueLabel={getShowerLabel()}
                     onClick={() => {
                         if (showerOption !== "unavailable") {
@@ -123,9 +114,11 @@ export function MatchCreateFacilities({
                     }}
                 />
 
-                <FacilityChip 
-                    label="코트 크기" 
-                    isActive={courtSize !== ""} 
+                <Chip
+                    variant="orange"
+                    label="코트 크기"
+                    isActive={courtSize !== ""}
+                    checkIconPosition="right"
                     valueLabel={getCourtSizeLabel()}
                     onClick={() => {
                         if (courtSize !== "") {
@@ -144,6 +137,10 @@ export function MatchCreateFacilities({
           <DialogHeader>
             <DialogTitle>주차 정보</DialogTitle>
           </DialogHeader>
+          <DialogClose className="absolute right-6 top-6 opacity-70 hover:opacity-100 transition-opacity">
+            <X className="h-5 w-5" />
+            <span className="sr-only">Close</span>
+          </DialogClose>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label className="text-sm font-medium text-slate-700">시간당 주차 요금</Label>
@@ -186,9 +183,12 @@ export function MatchCreateFacilities({
           <DialogHeader>
             <DialogTitle>샤워실 정보</DialogTitle>
           </DialogHeader>
+          <DialogClose className="absolute right-6 top-6 opacity-70 hover:opacity-100 transition-opacity">
+            <X className="h-5 w-5" />
+            <span className="sr-only">Close</span>
+          </DialogClose>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-slate-700">샤워실 이용</Label>
               <div className="flex gap-2">
                 {SHOWER_OPTIONS.map(opt => (
                   <button
@@ -223,9 +223,12 @@ export function MatchCreateFacilities({
           <DialogHeader>
             <DialogTitle>코트 크기</DialogTitle>
           </DialogHeader>
+          <DialogClose className="absolute right-6 top-6 opacity-70 hover:opacity-100 transition-opacity">
+            <X className="h-5 w-5" />
+            <span className="sr-only">Close</span>
+          </DialogClose>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-slate-700">코트 사이즈</Label>
               <div className="space-y-2">
                 {COURT_SIZE_OPTIONS.map(opt => (
                   <button
