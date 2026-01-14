@@ -2,18 +2,17 @@
 
 import { useFormContext, Controller } from 'react-hook-form';
 import {
-  Clock,
   MapPin,
   MapPinned,
-  ExternalLink
+  ExternalLink,
+  Building2
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { cn } from '@/shared/lib/utils';
-import { Building2 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
+import { TimePickerSelect } from '@/components/ui/time-picker-select';
 import ScrollContainer from 'react-indiana-drag-scroll';
 
 interface LocationData {
@@ -108,16 +107,18 @@ export function MatchCreateBasicInfo({
         <div className="grid grid-cols-2 gap-4">
              <div className="space-y-2">
                 <Label className="text-sm font-bold text-slate-600">시작 시간</Label>
-                <div className="relative">
-                    <Clock className="absolute left-3 top-3.5 h-5 w-5 text-slate-400 pointer-events-none" />
-                    <Input
-                        type="time"
-                        step="600"
-                        {...register('startTime')}
-                        className="pl-10 h-12 bg-white border-slate-200 font-bold"
-                        defaultValue="19:00"
-                    />
-                </div>
+                <Controller
+                    name="startTime"
+                    control={control}
+                    defaultValue="19:00"
+                    render={({ field }) => (
+                        <TimePickerSelect
+                            value={field.value}
+                            onValueChange={field.onChange}
+                            defaultValue="19:00"
+                        />
+                    )}
+                />
             </div>
 
             <div className="space-y-2">
