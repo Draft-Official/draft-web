@@ -4,6 +4,75 @@
 
 ---
 
+## [2026-01-15] Phase 2 아키텍처 구현
+
+### 3계층 아키텍처 도입
+- **인프라 레이어** (`src/lib/supabase/`)
+  - `client.ts`: 브라우저용 Supabase 클라이언트
+  - `server.ts`: 서버 컴포넌트/API용 클라이언트
+  - `middleware.ts`: 미들웨어용 클라이언트 (세션 갱신)
+  - 환경변수 미설정 시 graceful fallback 처리
+
+- **서비스 레이어** (`src/services/`)
+  - `match/`: MatchService, 타입 매퍼 (DB ↔ 클라이언트)
+  - `auth/`: AuthService (로그인, 프로필 관리)
+  - `application/`: ApplicationService (경기 신청 관리)
+  - 모든 DB 접근을 서비스 레이어로 캡슐화
+
+- **API 레이어** (`src/features/*/api/`)
+  - React Query hooks (queries.ts, mutations.ts)
+  - Query key 중앙 관리 (keys.ts)
+  - 캐싱, 로딩 상태, 에러 처리 통합
+
+### 인증 시스템
+- **AuthProvider** (`src/features/auth/model/auth-context.tsx`)
+  - 전역 인증 상태 관리
+  - Supabase Auth 통합 (OAuth 준비 완료)
+
+- **Middleware** (`app/middleware.ts`)
+  - 보호된 라우트: `/match/create`, `/match/management`, `/my`, `/team`
+  - 세션 자동 갱신
+
+- **OAuth Callback** (`app/auth/callback/route.ts`)
+  - Kakao, Google OAuth 처리 준비 완료
+
+### React Query 설정
+- `src/shared/lib/query-client.ts`: QueryClient 설정
+- `src/shared/lib/errors.ts`: 커스텀 에러 타입 (AppError, AuthError, NotFoundError 등)
+- `app/providers.tsx`: QueryClientProvider + AuthProvider 통합
+
+### 타입 시스템
+- `src/shared/types/database.types.ts`: Supabase 타입 placeholder
+  - `supabase gen types` 명령어로 자동 생성 예정
+- `src/services/match/match.mapper.ts`: DB ↔ 클라이언트 타입 변환
+
+### 설치된 패키지
+```bash
+@supabase/supabase-js  # Supabase 클라이언트
+@supabase/ssr          # SSR 지원 (쿠키 기반 세션)
+@tanstack/react-query  # 서버 상태 관리
+@tanstack/react-query-devtools  # 개발 도구
+```
+
+### 주요 파일 위치
+| 파일 | 용도 |
+|-----|------|
+| `src/lib/supabase/` | Supabase 클라이언트 설정 |
+| `src/services/` | DB 접근 서비스 레이어 |
+| `src/features/*/api/` | React Query hooks |
+| `src/features/auth/` | 인증 Provider, Guard, hooks |
+| `app/middleware.ts` | 라우트 보호 |
+| `src/shared/lib/query-client.ts` | React Query 설정 |
+| `src/shared/lib/errors.ts` | 에러 타입 정의 |
+
+### 다음 단계 (Supabase 연결)
+1. `.env.local`에 Supabase URL/Key 설정
+2. `supabase/schema.sql` 실행
+3. `npx supabase gen types typescript` 실행
+4. OAuth Provider 설정 (Kakao, Google)
+
+---
+
 ## [2026-01-10] Phase 2 준비 완료
 
 ### 보안 강화

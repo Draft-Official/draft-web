@@ -23,7 +23,9 @@
       "@/components/*": ["./src/components/*"],
       "@/features/*": ["./src/features/*"],
       "@/shared/*": ["./src/shared/*"],
-      "@/widgets/*": ["./src/widgets/*"]
+      "@/widgets/*": ["./src/widgets/*"],
+      "@/lib/*": ["./src/lib/*"],
+      "@/services/*": ["./src/services/*"]
     }
   },
   "include": [
