@@ -14,14 +14,15 @@ export function BottomNav() {
   const NAV_ITEMS = [
     { label: '홈', href: '/', icon: Home },
     { label: '팀', href: '/team', icon: Users },
-    { label: '일정', href: '/schedule', icon: Calendar },
+    { label: '경기관리', href: '/match/management', icon: Calendar },
     { label: '마이', href: '/my', icon: User },
   ];
 
-  // Hide bottom nav on detail pages (e.g. /match/create, /guest/123)
-  const isDetailPage = pathname.split('/').filter(Boolean).length > 1;
+  // Pages where bottom nav should be visible
+  const showNavOnPages = ['/', '/team', '/match/management', '/my'];
+  const shouldShowNav = showNavOnPages.includes(pathname);
 
-  if (isDetailPage) return null;
+  if (!shouldShowNav) return null;
 
   return (
     <div 
