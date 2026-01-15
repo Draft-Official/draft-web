@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Chip } from '@/components/ui/chip';
 import { cn } from '@/shared/lib/utils';
 import { RegionFilterModal } from './region-filter-modal';
-import { DateStrip } from './components/filter/date-strip';
+import { DateStrip } from './components/date-strip';
 import { PositionFilterModal } from './components/filter/position-filter-modal';
 import { VacancyFilterModal } from './components/filter/vacancy-filter-modal';
 import { DetailedFilterModal } from './components/filter/detail-filter-modal';
@@ -79,6 +79,13 @@ export function FilterBar({
 }: FilterBarProps) {
   // -- Scroll Detection --
   const isScrolled = useScrollDirection();
+  
+  // -- Date Generation --
+  const calendarDates = React.useMemo(() => {
+    // Dynamically import or require? No, extracting to shared utils is better.
+    // I assumed getNext14Days is exported from '@/features/match/lib/utils'
+    return require('@/features/match/lib/utils').getNext14Days();
+  }, []);
 
   // -- Modal Open States --
   const [isLocationOpen, setIsLocationOpen] = useState(false);
@@ -172,8 +179,10 @@ export function FilterBar({
 
       {/* 2. Date Strip */}
       <DateStrip 
-        selectedDateISO={selectedDateISO} 
-        onDateSelect={onDateSelect} 
+        dates={calendarDates}
+        selectedDate={selectedDateISO} 
+        onSelect={onDateSelect}
+        showAllOption={true}
       />
 
       {/* 3. Integrated Filter Bar */}

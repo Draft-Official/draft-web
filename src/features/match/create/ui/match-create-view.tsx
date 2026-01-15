@@ -32,28 +32,7 @@ interface LocationData {
 }
 
 // --- Helpers ---
-const getNext14Days = () => {
-    const days = ['일', '월', '화', '수', '목', '금', '토'];
-    const dates = [];
-    const today = new Date();
-
-    for(let i=0; i<14; i++) {
-        const d = new Date(today);
-        d.setDate(today.getDate() + i);
-        const month = d.getMonth() + 1;
-        const date = d.getDate();
-        const day = days[d.getDay()];
-
-        dates.push({
-            dateISO: d.toISOString().split('T')[0],
-            label: `${month}.${date} (${day})`,
-            dayNum: date,
-            dayStr: day,
-            isToday: i === 0,
-        });
-    }
-    return dates;
-};
+import { getNext14Days } from '../../lib/utils';
 
 export function MatchCreateView() {
   const router = useRouter();
@@ -176,8 +155,7 @@ export function MatchCreateView() {
       try {
         const { searchPlaces } = await import('@/shared/api/kakao-map');
         const results = await searchPlaces(query);
-
-        const mappedResults: LocationData[] = results.map(place => ({
+        const mappedResults: LocationData[] = results.map((place: any) => ({
             address: place.road_address_name || place.address_name,
             buildingName: place.place_name,
             bname: place.address_name.split(' ')[2],
