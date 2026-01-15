@@ -12,7 +12,7 @@ export function Sidebar() {
   const NAV_ITEMS = [
     { label: '홈', href: '/', icon: Home },
     { label: '팀', href: '/team', icon: Users },
-    { label: '일정', href: '/schedule', icon: Calendar },
+    { label: '경기관리', href: '/match/management', icon: Calendar },
     { label: '마이', href: '/my', icon: User },
   ];
 
