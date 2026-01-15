@@ -44,6 +44,16 @@ export interface Match {
   ageRange?: string; // e.g., "20대 ~ 30대"
   totalPlayers?: number; // e.g., 12
   currentPlayers?: number; // e.g., 9
+  // Match Rule Details
+  rule?: {
+    type: '2team' | '3team' | 'lesson' | 'exchange'; // 자채전(2파전), 자채전(3파전), 연습/레슨, 팀 교류전
+    quarterTime: number; // e.g. 10 (minutes)
+    quarterCount: number; // e.g. 4 (quarters per game)
+    fullGames?: number; // e.g. 2 (if applicable)
+    guaranteedQuarters: number; // e.g. 6
+    referee: 'self' | 'guest' | 'pro'; // 자체콜, 게스트/팀원, 전문 심판
+  };
+
   hostName?: string; // e.g., "호스트 김농구"
   hostImage?: string; // Profile image URL
   teamLogo?: string; // Team logo URL
@@ -74,6 +84,14 @@ export const MOCK_MATCHES: Match[] = [
     ageRange: '20대 ~ 30대',
     totalPlayers: 12,
     currentPlayers: 9,
+    rule: {
+        type: '2team',
+        quarterTime: 10,
+        quarterCount: 4,
+        fullGames: 2,
+        guaranteedQuarters: 6,
+        referee: 'self'
+    },
     hostName: '호스트 김농구',
     hostMessage: '"승부욕보다는 즐겁게 뛰실 분 환영합니다! 거친 플레이는 지양합니다. 서로 매너 지켜요!"',
     cancelPolicy: '참가비는 노쇼 방지용으로 사용됩니다. 신청 이후에 환불은 불가합니다.\n\n단, 취소는 가능합니다.',
