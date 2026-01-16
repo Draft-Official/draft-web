@@ -6,8 +6,6 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type {
   Database,
   Application,
-  ApplicationInsert,
-  ApplicationUpdate,
   ApplicationStatus,
   PositionType,
 } from '@/shared/types/database.types';
@@ -25,12 +23,11 @@ export class ApplicationService {
       .select(
         `
         *,
-        user:profiles!user_id (
+        user:users!user_id (
           id,
           nickname,
           avatar_url,
-          height,
-          position,
+          positions,
           manner_score
         )
       `
@@ -54,10 +51,11 @@ export class ApplicationService {
         match:matches!match_id (
           id,
           title,
-          location_name,
           start_time,
-          fee,
-          status
+          cost_type,
+          cost_amount,
+          status,
+          gym:gyms(name, address)
         )
       `
       )
@@ -77,7 +75,7 @@ export class ApplicationService {
       .select(
         `
         *,
-        user:profiles!user_id (*),
+        user:users!user_id (*),
         match:matches!match_id (*)
       `
       )
@@ -108,7 +106,7 @@ export class ApplicationService {
         match_id: matchId,
         user_id: userId,
         position,
-        status: 'pending_payment',
+        status: 'PENDING',
       })
       .select()
       .single();
@@ -146,14 +144,14 @@ export class ApplicationService {
    * 신청 확정
    */
   async confirmApplication(applicationId: string) {
-    return this.updateApplicationStatus(applicationId, 'confirmed');
+    return this.updateApplicationStatus(applicationId, 'CONFIRMED');
   }
 
   /**
    * 신청 거절
    */
   async rejectApplication(applicationId: string) {
-    return this.updateApplicationStatus(applicationId, 'rejected');
+    return this.updateApplicationStatus(applicationId, 'REJECTED');
   }
 
   /**
@@ -163,7 +161,7 @@ export class ApplicationService {
     const { data, error } = await this.supabase
       .from('applications')
       .update({
-        status: 'cancelled',
+        status: 'CANCELED',
         cancellation_reason: reason || null,
         updated_at: new Date().toISOString(),
       })
@@ -173,13 +171,6 @@ export class ApplicationService {
 
     if (error) handleSupabaseError(error, '신청 취소');
     return data!;
-  }
-
-  /**
-   * 노쇼 처리 (호스트용)
-   */
-  async markAsNoshow(applicationId: string) {
-    return this.updateApplicationStatus(applicationId, 'noshow');
   }
 }
 
