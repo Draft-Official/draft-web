@@ -1,9 +1,6 @@
 export { MatchService, createMatchService } from './match.service';
 export {
+  toMatchInsertData,
+  extractGymData,
   matchRowToGuestListMatch,
-  matchRowToHostDashboardMatch,
-  matchCreateFormToInsert,
-  dbPositionToClient,
-  clientPositionToDb,
-  dbStatusToClient,
 } from './match.mapper';

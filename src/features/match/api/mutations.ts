@@ -5,90 +5,53 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
-import { createMatchService, matchCreateFormToInsert } from '@/services/match';
+import { createMatchService } from '@/services/match/match.service';
 import { matchKeys } from './keys';
-
-interface CreateMatchInput {
-  title: string;
-  location: { name: string; address: string };
-  date: string;
-  startTime: string;
-  endTime: string;
-  price: number;
-  recruitment: {
-    type: 'position' | 'any';
-    guard?: number;
-    forward?: number;
-    center?: number;
-    total?: number;
-  };
-  notice?: string;
-  hostId: string;
-}
+import { MatchCreateFormData } from '../create/model/schema';
+// ⚠️ 임시: OAuth 설정 후 아래 줄 복구
+// import { useAuth } from '@/features/auth/model/auth-context';
 
 /**
  * 매치 생성
  */
 export function useCreateMatch() {
   const queryClient = useQueryClient();
+  // ⚠️ 임시: OAuth 설정 후 아래 줄 복구
+  // const { user } = useAuth();
+
+  // ⚠️ 임시 테스트용 UUID - OAuth 설정 후 삭제할 것
+  // test@naver.com 유저의 UUID
+  const TEST_USER_ID = 'd1011295-3375-41f4-83c7-9663dc00becf';
 
   return useMutation({
-    mutationFn: async (input: CreateMatchInput) => {
+    mutationFn: async (input: MatchCreateFormData) => {
+      // ⚠️ 임시: 테스트 UUID 강제 사용 (OAuth 설정 전까지)
+      // TODO: OAuth 설정 후 아래 줄로 복구
+      // const hostId = user?.id || TEST_USER_ID;
+      const hostId = TEST_USER_ID;
+
+      console.log('[useCreateMatch] hostId:', hostId);
+
       const supabase = getSupabaseBrowserClient();
       const matchService = createMatchService(supabase);
 
-      // Form Data -> DB Insert 변환
-      const insertData = matchCreateFormToInsert(input, input.hostId);
-      return matchService.createMatch(insertData);
+      return matchService.createMatch(hostId, input);
     },
-    onSuccess: (data) => {
-      // 캐시 무효화
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: matchKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: matchKeys.byHost(data.host_id) });
       toast.success('경기가 생성되었습니다');
     },
-  });
-}
-
-/**
- * 매치 상태 업데이트
- */
-export function useUpdateMatchStatus() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ matchId, status }: { matchId: string; status: string }) => {
-      const supabase = getSupabaseBrowserClient();
-      const matchService = createMatchService(supabase);
-      return matchService.updateMatchStatus(matchId, status);
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: matchKeys.detail(data.id) });
-      queryClient.invalidateQueries({ queryKey: matchKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: matchKeys.byHost(data.host_id) });
-      toast.success('경기 상태가 변경되었습니다');
-    },
-  });
-}
-
-/**
- * 매치 삭제
- */
-export function useDeleteMatch() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ matchId, hostId }: { matchId: string; hostId: string }) => {
-      const supabase = getSupabaseBrowserClient();
-      const matchService = createMatchService(supabase);
-      await matchService.deleteMatch(matchId);
-      return { matchId, hostId };
-    },
-    onSuccess: ({ matchId, hostId }) => {
-      queryClient.invalidateQueries({ queryKey: matchKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: matchKeys.byHost(hostId) });
-      queryClient.removeQueries({ queryKey: matchKeys.detail(matchId) });
-      toast.success('경기가 삭제되었습니다');
+    onError: (error: any) => {
+      // Supabase 에러는 다양한 형태로 올 수 있음
+      const errorMessage = error?.message || error?.error_description || JSON.stringify(error);
+      console.error('Match creation error:', error);
+      console.error('Error details:', {
+        message: error?.message,
+        code: error?.code,
+        details: error?.details,
+        hint: error?.hint,
+      });
+      toast.error(`경기 생성 실패: ${errorMessage}`);
     },
   });
 }

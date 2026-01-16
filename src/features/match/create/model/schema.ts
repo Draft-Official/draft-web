@@ -1,11 +1,12 @@
 import { z } from 'zod';
 
-// Location schema - Phase 2 compatible
+// Location schema - Phase 2 compatible (with kakaoPlaceId for Gym Upsert)
 export const locationSchema = z.object({
   name: z.string().min(1, '장소명을 입력하세요'),
   address: z.string().min(1, '주소를 입력하세요'),
   latitude: z.number(),
   longitude: z.number(),
+  kakaoPlaceId: z.string().optional(), // 카카오맵 place_id (Gym 중복 방지)
 });
 
 // Position recruitment schema
@@ -29,13 +30,16 @@ export const recruitmentSchema = z.union([
   anyRecruitmentSchema,
 ]);
 
-// Facilities schema - Phase 2 compatible (JSONB style)
+// Facilities schema - Phase 2 compatible (JSONB style, Gym에 귀속)
 export const facilitiesSchema = z.object({
-  parking: z.string().optional(),
-  water: z.boolean().default(false),
-  acHeat: z.boolean().default(false),
+  parking: z.string().optional(),       // 주차비 (금액 문자열, "0"=무료, ""=없음)
+  parkingDetail: z.string().optional(), // 주차 상세 (예: "3시간 무료")
+  water: z.boolean().default(false),    // 정수기
+  acHeat: z.boolean().default(false),   // 냉난방
   shower: z.enum(['none', 'free', 'paid']).default('none'),
-  courtSize: z.enum(['half', 'full']).default('full'),
+  courtSize: z.enum(['regular', 'short', 'narrow']).default('regular'), // UI 값으로 변경
+  ball: z.boolean().default(false),     // 농구공 제공
+  beverage: z.boolean().default(false), // 음료 제공
 });
 
 // Age range schema
@@ -72,8 +76,11 @@ export const matchCreateSchema = z.object({
   recruitment: recruitmentSchema,
 
   // Match Specs
-  level: z.enum(['beginner', 'intermediate', 'advanced', 'pro'], {
-    message: '레벨을 선택하세요',
+  level: z.number().or(z.string()),
+
+  // matchType: 5vs5, 3vs3
+  matchType: z.enum(['5vs5', '3vs3'], {
+    message: '경기 인원을 선택하세요',
   }),
 
   ageRange: ageRangeSchema.optional(),
@@ -83,13 +90,22 @@ export const matchCreateSchema = z.object({
   }),
 
   // Game Format
-  gameFormat: z.enum(['3vs3', '4vs4', '5vs5'], {
-    message: '경기 형식을 선택하세요',
+  // gameFormat: internal_2, exchange, etc.
+  gameFormat: z.enum(['internal_2', 'internal_3', 'exchange', 'practice'], {
+    message: '경기 방식을 선택하세요',
   }),
 
-  matchType: z.enum(['game', 'scrimmage', 'practice'], {
-    message: '경기 유형을 선택하세요',
-  }),
+  // Optional detailed rules (gameFormat은 별도 필드로 관리, rules에 저장 시 포함)
+  rules: z.object({
+    quarterTime: z.number().min(1).max(20).optional(),
+    quarterCount: z.number().min(1).max(10).optional(),
+    fullGames: z.number().min(0).max(10).optional(),
+    guaranteedQuarters: z.number().min(0).max(10).optional(),
+    referee: z.enum(['self', 'member', 'pro']).optional(), // 심판 유형
+  }).optional(),
+
+  // Bigman 옵션 (포지션 모집 시 센터/포워드 유동적 배치)
+  isFlexBigman: z.boolean().default(false),
 
   facilities: facilitiesSchema.optional(),
 

@@ -4,7 +4,8 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
-import { createMatchService, matchRowToGuestListMatch, matchRowToHostDashboardMatch } from '@/services/match';
+import { createMatchService } from '@/services/match/match.service';
+import { matchRowToGuestListMatch } from '@/services/match/match.mapper';
 import { matchKeys } from './keys';
 
 /**
@@ -28,6 +29,7 @@ export function useRecruitingMatches() {
 /**
  * 단일 매치 상세 조회
  * @param matchId 매치 ID
+ * @returns GuestListMatch 형태로 변환된 매치 상세
  */
 export function useMatch(matchId: string) {
   return useQuery({
@@ -35,27 +37,11 @@ export function useMatch(matchId: string) {
     queryFn: async () => {
       const supabase = getSupabaseBrowserClient();
       const matchService = createMatchService(supabase);
-      return matchService.getMatchById(matchId);
+      const row = await matchService.getMatchDetail(matchId);
+
+      // DB Row -> 클라이언트 타입 변환
+      return matchRowToGuestListMatch(row);
     },
     enabled: !!matchId,
-  });
-}
-
-/**
- * 호스트의 매치 목록 조회
- * @param hostId 호스트 ID
- */
-export function useHostMatches(hostId: string | undefined) {
-  return useQuery({
-    queryKey: matchKeys.byHost(hostId!),
-    queryFn: async () => {
-      const supabase = getSupabaseBrowserClient();
-      const matchService = createMatchService(supabase);
-      const rows = await matchService.getMatchesByHost(hostId!);
-
-      // DB Row -> Host Dashboard 타입 변환
-      return rows.map(matchRowToHostDashboardMatch);
-    },
-    enabled: !!hostId,
   });
 }

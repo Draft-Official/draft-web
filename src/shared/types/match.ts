@@ -1,9 +1,9 @@
 /**
- * 공통 Match 타입 정의 (Phase 2 확장성 준수)
- * 
+ * 공통 Match 타입 정의 (Schema v2)
+ *
  * 설계 원칙:
  * 1. 유연한 매치 속성: facilities를 JSONB 스타일로 관리
- * 2. 가격 구조 확장성: Base Price + Modifiers 모델
+ * 2. 가격 구조: cost_type + cost_amount 모델
  * 3. 지리적 위치: latitude, longitude 필수 포함
  * 4. 매치 타입: Enum으로 관리하여 쉽게 확장 가능
  */
@@ -14,69 +14,100 @@
 
 export enum MatchType {
   GUEST_RECRUIT = 'GUEST_RECRUIT', // MVP
-  PICKUP_GAME = 'PICKUP_GAME',     // MVP
-  TUTORIAL = 'TUTORIAL',           // Phase 2
-  LESSON = 'LESSON',               // Phase 2
-  TOURNAMENT = 'TOURNAMENT',       // Future
+  PICKUP_GAME = 'PICKUP_GAME', // MVP
+  TUTORIAL = 'TUTORIAL', // Phase 2
+  LESSON = 'LESSON', // Phase 2
+  TOURNAMENT = 'TOURNAMENT', // Future
 }
 
 export enum MatchStatus {
-  RECRUITING = 'recruiting',
-  CLOSING_SOON = 'closing_soon',
-  CLOSED = 'closed',
-  CANCELED = 'canceled',
+  RECRUITING = 'RECRUITING',
+  CLOSING_SOON = 'CLOSING_SOON',
+  CLOSED = 'CLOSED',
+  FINISHED = 'FINISHED',
+  CANCELED = 'CANCELED',
 }
 
 export enum ApplicantStatus {
-  PENDING = 'pending',
-  CHECKING = 'checking',
-  CONFIRMED = 'confirmed',
-  REJECTED = 'rejected',
+  PENDING = 'PENDING',
+  CHECKING = 'CHECKING', // 하위 호환성
+  CONFIRMED = 'CONFIRMED',
+  REJECTED = 'REJECTED',
+  CANCELED = 'CANCELED',
+  // 하위 호환성 (소문자)
+  pending = 'pending',
+  checking = 'checking',
+  confirmed = 'confirmed',
+  rejected = 'rejected',
 }
 
-export type Position = 'G' | 'F' | 'C' | 'Big';
+/**
+ * 참가비 타입
+ */
+export enum CostType {
+  MONEY = 'MONEY', // 일반 참가비 (원)
+  FREE = 'FREE', // 무료
+  BEVERAGE = 'BEVERAGE', // 음료 내기 (병 수)
+}
+
+/**
+ * 성별 규칙 (DB는 대문자, UI는 소문자 모두 지원)
+ */
+export type GenderRule = 'MALE' | 'MIXED' | 'FEMALE' | 'men' | 'women' | 'mixed';
+
+/**
+ * 포지션 타입 (DB Enum과 동일)
+ */
+export type Position = 'G' | 'F' | 'C';
 
 // ============================================
-// Core Interfaces (Phase 2 확장성 적용)
+// Core Interfaces
 // ============================================
 
 /**
  * 지리적 위치 정보
- * Phase 2: 카풀 매칭, 근처 검색 기능에 필수
  */
 export interface Location {
-  name: string;       // 표시 이름 (예: "강남구민회관")
-  address: string;    // 전체 주소
-  latitude: number;   // 위도 (필수)
-  longitude: number;  // 경도 (필수)
+  name: string; // 표시 이름 (예: "강남구민회관")
+  address: string; // 전체 주소
+  latitude: number;
+  longitude: number;
 }
 
 /**
- * 가격 정보 (확장 가능한 구조)
- * Phase 2: 카풀 할인, 장비 대여 요금 등 추가 가능
+ * 가격 정보 (새 스키마)
  */
 export interface PriceInfo {
-  base: number;        // 기본 가격
-  modifiers?: Array<{
-    type: string;      // 'CARPOOL_DISCOUNT', 'EQUIPMENT_FEE' 등
-    amount: number;    // 양수(추가) 또는 음수(할인)
-  }>;
-  final: number;       // 최종 가격 (계산된 값)
+  type: CostType;
+  amount: number; // 금액(원) 또는 음료 개수(병)
+  providesBeverage?: boolean; // 음료 제공 여부 (뱃지용)
+  /** @deprecated Use amount instead - 하위 호환성용 */
+  base?: number;
+  /** @deprecated Use amount instead - 하위 호환성용 */
+  final?: number;
+}
+
+/**
+ * 모집 상태 (포지션별)
+ */
+export interface PositionStatus {
+  open: number;
+  closed: number;
 }
 
 /**
  * 베이스 Match 인터페이스
- * 모든 Match 타입의 공통 필드
  */
 export interface BaseMatch {
   id: string;
   title: string;
-  matchType: MatchType;
+  matchType: string; // '5vs5', '3vs3'
   location: Location;
-  dateISO: string;     // YYYY-MM-DD
-  startTime: string;   // HH:mm
+  dateISO: string; // YYYY-MM-DD
+  startTime: string; // HH:mm
+  endTime: string; // HH:mm
   price: PriceInfo;
-  facilities: Record<string, any>; // JSONB 스타일: { shower: true, parking: 'paid', equipment: 'provided' }
+  facilities: Record<string, unknown>;
 }
 
 // ============================================
@@ -102,19 +133,13 @@ export interface HostDashboardMatch extends BaseMatch {
  */
 export interface GuestListMatch extends BaseMatch {
   teamName: string;
-  positions: Record<string, PositionStatus>;
+  positions: Record<Position, PositionStatus>;
   level: string;
-  gender: 'men' | 'women' | 'mixed';
-  gameFormat: string; // "5vs5", "3vs3" 등
-  courtType: 'indoor' | 'outdoor';
-}
-
-/**
- * Position별 모집 상태
- */
-export interface PositionStatus {
-  open: number;
-  closed: number;
+  gender: GenderRule;
+  gameFormat?: string; // "내부 2게임", "교류전" 등
+  courtType?: string;
+  ageMin?: number;
+  ageMax?: number;
 }
 
 // ============================================

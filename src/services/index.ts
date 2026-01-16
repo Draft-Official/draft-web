@@ -17,9 +17,10 @@ export { ApplicationService, createApplicationService } from './application';
 
 // Mappers
 export {
+  toMatchInsertData,
+  extractGymData,
   matchRowToGuestListMatch,
-  matchRowToHostDashboardMatch,
-  matchCreateFormToInsert,
-  dbPositionToClient,
-  clientPositionToDb,
 } from './match';
+
+// Gym Service
+export { GymService, createGymService, findOrCreateGym } from './gym';

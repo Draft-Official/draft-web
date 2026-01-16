@@ -1,16 +1,51 @@
-/**
- * Match Service
- * 매치 관련 모든 DB 접근을 캡슐화
- */
-import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Database, MatchInsert, MatchUpdate } from '@/shared/types/database.types';
-import { handleSupabaseError, NotFoundError } from '@/shared/lib/errors';
+import { SupabaseClient } from '@supabase/supabase-js';
+import { MatchCreateFormData } from '@/features/match/create/model/schema';
+import { toMatchInsertData, extractGymData } from './match.mapper';
+import { findOrCreateGym } from '@/services/gym';
+import type { Database } from '@/shared/types/database.types';
 
 export class MatchService {
   constructor(private supabase: SupabaseClient<Database>) {}
 
   /**
-   * 모집중인 매치 목록 조회 (Guest List용)
+   * Create a new match
+   * 1. Gym Upsert (찾거나 생성)
+   * 2. Match Insert (gym_id 포함)
+   */
+  async createMatch(hostId: string, form: MatchCreateFormData) {
+    // 1. Gym 찾거나 생성 (Upsert 전략)
+    const gymData = extractGymData(form);
+    const gymId = await findOrCreateGym(this.supabase, gymData);
+
+    // 2. Match Insert 데이터 생성 (gym_id 포함)
+    const insertData = toMatchInsertData(hostId, form, gymId);
+
+    console.log('[MatchService] Creating match with data:', insertData);
+
+    const { data, error } = await this.supabase
+      .from('matches')
+      .insert(insertData)
+      .select(
+        `
+        *,
+        gym:gyms(*),
+        team:teams(*)
+      `
+      )
+      .single();
+
+    if (error) {
+      console.error('[MatchService] Insert error:', error);
+      throw error;
+    }
+
+    console.log('[MatchService] Match created:', data);
+    return data;
+  }
+
+  /**
+   * Get all matches that are currently recruiting
+   * gym, team 정보를 JOIN으로 가져옴
    */
   async getRecruitingMatches() {
     const { data, error } = await this.supabase
@@ -18,139 +53,45 @@ export class MatchService {
       .select(
         `
         *,
-        host:profiles!host_id (
-          id,
-          nickname,
-          avatar_url,
-          manner_score
-        )
+        gym:gyms(*),
+        team:teams(*)
       `
       )
-      .eq('status', 'recruiting')
+      .eq('status', 'RECRUITING')
       .order('start_time', { ascending: true });
 
-    if (error) handleSupabaseError(error, '매치 목록');
-    return data!;
+    if (error) {
+      throw error;
+    }
+
+    return data;
   }
 
   /**
-   * 단일 매치 상세 조회
+   * Get match details by ID
+   * gym, host, team 정보를 JOIN으로 가져옴
    */
-  async getMatchById(matchId: string) {
+  async getMatchDetail(id: string) {
     const { data, error } = await this.supabase
       .from('matches')
       .select(
         `
         *,
-        host:profiles!host_id (
-          id,
-          nickname,
-          avatar_url,
-          manner_score
-        ),
-        applications (
-          id,
-          position,
-          status,
-          user:profiles!user_id (
-            id,
-            nickname,
-            avatar_url,
-            height,
-            position,
-            manner_score
-          )
-        )
+        gym:gyms(*),
+        host:users!host_id(*),
+        team:teams(*)
       `
       )
-      .eq('id', matchId)
+      .eq('id', id)
       .single();
 
     if (error) {
-      if (error.code === 'PGRST116') {
-        throw new NotFoundError('매치');
-      }
-      handleSupabaseError(error, '매치');
+      throw error;
     }
 
-    return data!;
-  }
-
-  /**
-   * 호스트의 매치 목록 조회 (Dashboard용)
-   */
-  async getMatchesByHost(hostId: string) {
-    const { data, error } = await this.supabase
-      .from('matches')
-      .select(
-        `
-        *,
-        applications (
-          id,
-          status,
-          position
-        )
-      `
-      )
-      .eq('host_id', hostId)
-      .order('start_time', { ascending: false });
-
-    if (error) handleSupabaseError(error, '호스트 매치 목록');
-    return data!;
-  }
-
-  /**
-   * 새 매치 생성
-   */
-  async createMatch(match: MatchInsert) {
-    const { data, error } = await this.supabase
-      .from('matches')
-      .insert(match)
-      .select()
-      .single();
-
-    if (error) handleSupabaseError(error, '매치 생성');
-    return data!;
-  }
-
-  /**
-   * 매치 정보 업데이트
-   */
-  async updateMatch(matchId: string, updates: MatchUpdate) {
-    const { data, error } = await this.supabase
-      .from('matches')
-      .update(updates)
-      .eq('id', matchId)
-      .select()
-      .single();
-
-    if (error) handleSupabaseError(error, '매치 수정');
-    return data!;
-  }
-
-  /**
-   * 매치 상태 변경
-   */
-  async updateMatchStatus(matchId: string, status: string) {
-    return this.updateMatch(matchId, { status });
-  }
-
-  /**
-   * 매치 삭제 (호스트만)
-   */
-  async deleteMatch(matchId: string) {
-    const { error } = await this.supabase
-      .from('matches')
-      .delete()
-      .eq('id', matchId);
-
-    if (error) handleSupabaseError(error, '매치 삭제');
+    return data;
   }
 }
 
-/**
- * MatchService 팩토리 함수
- */
-export function createMatchService(supabase: SupabaseClient<Database>) {
-  return new MatchService(supabase);
-}
+export const createMatchService = (client: SupabaseClient<Database>) =>
+  new MatchService(client);

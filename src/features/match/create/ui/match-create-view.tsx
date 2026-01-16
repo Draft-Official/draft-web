@@ -20,6 +20,8 @@ import { MatchCreateRecruitment } from './components/match-create-recruitment';
 import { MatchCreateSpecs } from './components/match-create-specs';
 import { MatchCreateGameFormat } from './components/match-create-game-format';
 import { MatchCreateTeamInfo } from './components/match-create-team-info';
+import { useCreateMatch } from '@/features/match/api/mutations';
+import { MatchCreateFormData } from '@/features/match/create/model/schema';
 
 // Location data type
 interface LocationData {
@@ -330,6 +332,9 @@ export function MatchCreateView() {
     toast.success("이전 경기 정보를 불러왔습니다.");
   };
 
+  // Mutation
+  const { mutate: createMatch, isPending } = useCreateMatch();
+
   const onSubmit = (data: any) => {
     if (!selectedDate) {
         toast.error("날짜를 선택해주세요.");
@@ -341,55 +346,101 @@ export function MatchCreateView() {
         return;
     }
 
-    const payload = {
-        ...data,
+    // Calculate endTime from startTime + duration
+    const startTime = data.startTime || '19:00';
+    const duration = parseFloat(data.duration || '2');
+
+    // Parse startTime (HH:mm format)
+    const [startHour, startMin] = startTime.split(':').map(Number);
+    const totalMinutes = startHour * 60 + startMin + (duration * 60);
+    const endHour = Math.floor(totalMinutes / 60) % 24;
+    const endMin = totalMinutes % 60;
+    const endTime = `${String(endHour).padStart(2, '0')}:${String(endMin).padStart(2, '0')}`;
+
+    console.log('[onSubmit] Time calculation:', { startTime, duration, endTime });
+
+    // Map UI state to MatchCreateFormData schema structure
+    const payload: MatchCreateFormData = {
+        title: data.title || '농구 경기',
         date: selectedDate,
+        startTime: startTime,
+        endTime: endTime,
+        
         location: {
             name: location,
-            address: locationData?.address || "",
+            address: locationData?.address || location,
             latitude: locationData?.y ? parseFloat(locationData.y) : 0,
             longitude: locationData?.x ? parseFloat(locationData.x) : 0,
         },
-        feeType,
-        facilities: {
-            parking: parkingCost,
-            parkingDetail,
-            water: hasWater,
-            acHeat: hasAcHeat,
-            shower: showerOption,
-            courtSize
-        },
+        
+        // Recruitment
         recruitment: isPositionMode ? {
             type: 'position',
-            ...positions,
+            guard: positions.guard,
+            forward: positions.forward,
+            center: positions.center,
+            // bigman is typically mapped to center or ignored if not in schema
             isFlexBigman
         } : {
             type: 'any',
             count: totalCount
         },
-        specs: {
-            matchType,
-            gender,
-            level,
-            ages: selectedAges
+        
+        // Specs 
+        // Note: Flattening specs as per schema definition
+        matchType: matchType as any, // 5vs5, 3vs3
+        gameFormat: gameFormatType as any, // internal_2, etc
+        level: level,
+        gender: gender as any,
+        ageRange: selectedAges.length > 0 ? { min: 20, max: 40 } : undefined, // Simplification for MVP
+        
+        // Detailed Rules
+        rules: {
+            quarterTime: Number(ruleMinutes),
+            quarterCount: Number(ruleQuarters),
+            fullGames: Number(ruleGames),
+            guaranteedQuarters: Number(guaranteedQuarters),
+            referee: refereeType as 'self' | 'member' | 'pro' | undefined
         },
-        gameFormat: {
-            type: gameFormatType,
-            rules: { minutes: ruleMinutes, quarters: ruleQuarters, games: ruleGames },
-            guaranteedQuarters,
-            referee: refereeType
+
+        facilities: {
+            parking: parkingCost,
+            parkingDetail: undefined, // TODO: UI에서 입력받기
+            water: hasWater,
+            acHeat: hasAcHeat,
+            shower: showerOption as 'none' | 'free' | 'paid',
+            courtSize: courtSize as 'regular' | 'short' | 'narrow',
+            ball: false, // TODO: UI에서 입력받기
+            beverage: false, // TODO: UI에서 입력받기
         },
-        team: {
-            selected: selectedTeam,
-            directInput: isDirectInput ? directTeamName : null
-        }
+
+        // Bigman 옵션 (포지션 모집 시)
+        isFlexBigman: isPositionMode ? isFlexBigman : false,
+
+        // Admin Info
+        price: Number(feeType === 'cost' ? data.fee : 0),
+        bank: data.bankName,
+        accountNumber: data.accountNumber,
+        accountHolder: "예금주", // Missing in form input? Assuming data has it or default
+        refundPolicy: "환불 규정...", // Default or from form
+        notice: data.description,
     };
+    
+    // Add missing fields if they exist in data but not in payload
+    if (data.accountHolder) payload.accountHolder = data.accountHolder;
+    if (data.refundPolicy) payload.refundPolicy = data.refundPolicy;
 
     console.log("Submitting Match:", payload);
-    toast.success("경기 모집이 등록되었습니다!");
-
-    // Navigate to host dashboard or match list
-    router.push('/');
+    
+    createMatch(payload, {
+        onSuccess: () => {
+            router.push('/');
+        },
+        onError: (err) => {
+            console.error(err);
+            toast.error("경기 생성에 실패했습니다: " + err.message);
+        }
+    });
   };
 
   // Fix ref type for Location
@@ -544,16 +595,18 @@ export function MatchCreateView() {
                 directTeamName={directTeamName} setDirectTeamName={setDirectTeamName}
             />
 
-        </form>
+            {/* Submit Button - inside form */}
+            <div className="pt-4">
+                <Button
+                    type="submit"
+                    disabled={isPending}
+                    className="w-full h-14 text-lg font-bold bg-[#FF6600] hover:bg-[#FF6600]/90 text-white rounded-xl shadow-lg shadow-orange-100 disabled:opacity-50"
+                >
+                    {isPending ? '생성 중...' : '경기 생성하기'}
+                </Button>
+            </div>
 
-        <div className="p-4 max-w-[760px] mx-auto">
-            <Button
-                onClick={handleSubmit(onSubmit)}
-                className="w-full h-14 text-lg font-bold bg-[#FF6600] hover:bg-[#FF6600]/90 text-white rounded-xl shadow-lg shadow-orange-100"
-            >
-                경기 생성하기
-            </Button>
-        </div>
+        </form>
 
         </div>
     </FormProvider>

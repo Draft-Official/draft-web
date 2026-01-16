@@ -1,252 +1,259 @@
-/**
- * Match 타입 매퍼
- * DB Row 타입 <-> 클라이언트 타입 변환
- */
-import type { Match as MatchRow } from '@/shared/types/database.types';
-import { MatchType } from '@/shared/types/match';
-import type {
+import { MatchCreateFormData, FacilitiesFormData } from '@/features/match/create/model/schema';
+import {
   GuestListMatch,
-  HostDashboardMatch,
-  MatchStatus,
+  CostType,
+  Position,
 } from '@/shared/types/match';
-
-// 호스트 정보가 포함된 매치 Row
-type MatchWithHost = MatchRow & {
-  host: {
-    id: string;
-    nickname: string | null;
-    avatar_url: string | null;
-    manner_score: number;
-  } | null;
-};
-
-// 신청 정보가 포함된 매치 Row
-type MatchWithApplications = MatchRow & {
-  applications: Array<{
-    id: string;
-    status: string;
-    position: string;
-  }>;
-};
+import {
+  MatchInsert,
+  RecruitmentSetup,
+  MatchOptions,
+  GymFacilities,
+} from '@/shared/types/database.types';
 
 /**
- * DB position_type -> 클라이언트 Position 변환
+ * Frontend Form -> Match Insert Data (새 스키마 v2)
  */
-export function dbPositionToClient(
-  dbPosition: 'guard' | 'forward' | 'center'
-): 'G' | 'F' | 'C' {
-  const map = {
-    guard: 'G' as const,
-    forward: 'F' as const,
-    center: 'C' as const,
+export function toMatchInsertData(
+  hostId: string,
+  form: MatchCreateFormData,
+  gymId: string
+): MatchInsert {
+  const {
+    title,
+    date,
+    startTime,
+    endTime,
+    recruitment,
+    level,
+    gender,
+    gameFormat,
+    matchType,
+    price,
+    bank,
+    accountNumber,
+    accountHolder,
+    notice,
+  } = form;
+
+  // Combine date and time
+  const startDateTime = new Date(`${date}T${startTime}:00`).toISOString();
+  const endDateTime = new Date(`${date}T${endTime}:00`).toISOString();
+
+  // Gender mapping (form: 'men'/'women'/'mixed' → DB: 'MALE'/'FEMALE'/'MIXED')
+  const genderRuleMap: Record<string, string> = {
+    men: 'MALE',
+    women: 'FEMALE',
+    mixed: 'MIXED',
   };
-  return map[dbPosition];
-}
 
-/**
- * 클라이언트 Position -> DB position_type 변환
- */
-export function clientPositionToDb(
-  position: 'G' | 'F' | 'C'
-): 'guard' | 'forward' | 'center' {
-  const map = {
-    G: 'guard' as const,
-    F: 'forward' as const,
-    C: 'center' as const,
+  // recruitment_setup JSONB 생성
+  const recruitmentSetup: RecruitmentSetup =
+    recruitment.type === 'position'
+      ? {
+          type: 'POSITION',
+          max_total:
+            recruitment.guard + recruitment.forward + recruitment.center,
+          positions: {
+            G: { max: recruitment.guard, current: 0 },
+            F: { max: recruitment.forward, current: 0 },
+            C: { max: recruitment.center, current: 0 },
+          },
+        }
+      : {
+          type: 'ANY',
+          max_count: recruitment.count,
+        };
+
+  // match_options JSONB 생성 (rules 정보 포함)
+  const formRules = form.rules || {};
+  const matchOptions: MatchOptions = {
+    game_format: gameFormat as MatchOptions['game_format'],
+    quarter_time: formRules.quarterTime,
+    quarter_count: formRules.quarterCount,
+    referee: formRules.referee as MatchOptions['referee'],
   };
-  return map[position];
-}
 
-/**
- * DB status -> 클라이언트 MatchStatus 변환
- */
-export function dbStatusToClient(dbStatus: string): MatchStatus {
-  const map: Record<string, MatchStatus> = {
-    recruiting: 'recruiting' as MatchStatus,
-    closed: 'closed' as MatchStatus,
-    finished: 'closed' as MatchStatus,
-  };
-  return map[dbStatus] || ('recruiting' as MatchStatus);
-}
-
-/**
- * DB Match Row -> GuestListMatch 변환
- * 게스트 매치 목록 표시용
- */
-export function matchRowToGuestListMatch(row: MatchWithHost): GuestListMatch {
-  const startDate = new Date(row.start_time);
-
-  return {
-    id: row.id,
-    title: row.title,
-    matchType: MatchType.GUEST_RECRUIT,
-
-    // Location
-    location: {
-      name: row.location_name,
-      address: row.location_address || '',
-      latitude: 0, // DB에 없으면 기본값 (Phase 2에서 추가 예정)
-      longitude: 0,
-    },
-
-    // DateTime
-    dateISO: startDate.toISOString().split('T')[0],
-    startTime: startDate.toTimeString().slice(0, 5),
-
-    // Price
-    price: {
-      base: row.fee,
-      final: row.fee,
-    },
-
-    // Positions
-    positions: {
-      G: {
-        open: row.vacancy_guards,
-        closed: row.max_guards - row.vacancy_guards,
-      },
-      F: {
-        open: row.vacancy_forwards,
-        closed: row.max_forwards - row.vacancy_forwards,
-      },
-      C: {
-        open: row.vacancy_centers,
-        closed: row.max_centers - row.vacancy_centers,
-      },
-    },
-
-    // Team info
-    teamName: row.host?.nickname || '호스트',
-
-    // Default values (Phase 2에서 DB 필드 추가 예정)
-    level: 'intermediate',
-    gender: 'men',
-    gameFormat: '5vs5',
-    courtType: 'indoor',
-    facilities: {},
-  };
-}
-
-/**
- * DB Match Row -> HostDashboardMatch 변환
- * 호스트 대시보드 표시용
- */
-export function matchRowToHostDashboardMatch(
-  row: MatchWithApplications
-): HostDashboardMatch {
-  const startDate = new Date(row.start_time);
-  const now = new Date();
-
-  // 확정된 신청 수 계산
-  const confirmedCount = row.applications.filter(
-    (app) => app.status === 'confirmed'
-  ).length;
-
-  // 대기 중인 신청 수 계산
-  const pendingCount = row.applications.filter(
-    (app) => app.status === 'pending_payment' || app.status === 'verification_pending'
-  ).length;
-
-  // 총 모집 인원
-  const totalSlots = row.max_guards + row.max_forwards + row.max_centers;
-
-  return {
-    id: row.id,
-    title: row.title,
-    matchType: MatchType.GUEST_RECRUIT,
-
-    location: {
-      name: row.location_name,
-      address: row.location_address || '',
-      latitude: 0,
-      longitude: 0,
-    },
-
-    dateISO: startDate.toISOString().split('T')[0],
-    startTime: startDate.toTimeString().slice(0, 5),
-
-    price: {
-      base: row.fee,
-      final: row.fee,
-    },
-
-    facilities: {},
-
-    // Host Dashboard specific
-    status: dbStatusToClient(row.status),
-    stats: {
-      total: totalSlots,
-      confirmed: confirmedCount,
-      left: totalSlots - confirmedCount,
-    },
-    pendingCount,
-    isPast: startDate < now,
-  };
-}
-
-/**
- * 매치 생성 폼 데이터 -> DB Insert 데이터 변환
- */
-export function matchCreateFormToInsert(
-  formData: {
-    title: string;
-    location: { name: string; address: string };
-    date: string;
-    startTime: string;
-    endTime: string;
-    price: number;
-    recruitment: {
-      type: 'position' | 'any';
-      guard?: number;
-      forward?: number;
-      center?: number;
-      total?: number;
-    };
-    notice?: string;
-  },
-  hostId: string
-): {
-  host_id: string;
-  title: string;
-  description: string | null;
-  location_name: string;
-  location_address: string | null;
-  start_time: string;
-  end_time: string | null;
-  fee: number;
-  max_guards: number;
-  max_forwards: number;
-  max_centers: number;
-  vacancy_guards: number;
-  vacancy_forwards: number;
-  vacancy_centers: number;
-  status: string;
-} {
-  const recruitment = formData.recruitment;
-
-  // 포지션별 모집이면 각 포지션 인원, 아니면 전체를 가드로
-  const guards =
-    recruitment.type === 'position' ? (recruitment.guard || 0) : (recruitment.total || 0);
-  const forwards = recruitment.type === 'position' ? (recruitment.forward || 0) : 0;
-  const centers = recruitment.type === 'position' ? (recruitment.center || 0) : 0;
+  // 참가비 타입 결정
+  // 현재 폼은 price만 있으므로, 0이면 FREE, 아니면 MONEY
+  const costType = price === 0 ? 'FREE' : 'MONEY';
 
   return {
     host_id: hostId,
-    title: formData.title,
-    description: formData.notice || null,
-    location_name: formData.location.name,
-    location_address: formData.location.address || null,
-    start_time: `${formData.date}T${formData.startTime}:00+09:00`,
-    end_time: formData.endTime
-      ? `${formData.date}T${formData.endTime}:00+09:00`
-      : null,
-    fee: formData.price,
-    max_guards: guards,
-    max_forwards: forwards,
-    max_centers: centers,
-    vacancy_guards: guards,
-    vacancy_forwards: forwards,
-    vacancy_centers: centers,
-    status: 'recruiting',
+    gym_id: gymId,
+    team_id: null, // 추후 팀 기능 구현 시 사용
+    title,
+    description: notice || '',
+
+    // Time
+    start_time: startDateTime,
+    end_time: endDateTime,
+
+    // Specs
+    match_type: matchType, // '5vs5', '3vs3'
+    gender_rule: genderRuleMap[gender] || 'MIXED',
+    level_limit: String(level),
+
+    // Cost (새 스키마)
+    cost_type: costType,
+    cost_amount: price,
+    provides_beverage: false, // 폼에서 추가 필요 시 확장
+
+    // Account
+    account_bank: bank || null,
+    account_number: accountNumber || null,
+    account_holder: accountHolder || null,
+
+    // Recruitment (JSONB)
+    recruitment_setup: recruitmentSetup,
+
+    // Options (JSONB)
+    match_options: matchOptions,
+
+    status: 'RECRUITING',
+  };
+}
+
+/**
+ * Form에서 Gym 데이터 추출
+ * findOrCreateGym에 전달할 데이터 형식으로 변환
+ */
+export function extractGymData(form: MatchCreateFormData): {
+  name: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
+  kakaoPlaceId?: string;
+  facilities: GymFacilities;
+} {
+  const formFacilities: FacilitiesFormData | undefined = form.facilities;
+
+  return {
+    name: form.location.name,
+    address: form.location.address,
+    latitude: form.location.latitude,
+    longitude: form.location.longitude,
+    kakaoPlaceId: form.location.kakaoPlaceId,
+    facilities: {
+      parking: formFacilities?.parking !== '' && formFacilities?.parking !== undefined,
+      water: formFacilities?.water,
+      ac_heat: formFacilities?.acHeat,
+      shower: formFacilities?.shower !== 'none',
+      ball: formFacilities?.ball,
+      indoor: formFacilities?.courtSize === 'regular',
+    },
+  };
+}
+
+/**
+ * Database Row -> GuestListMatch (UI Model)
+ * 새 스키마 v2: recruitment_setup JSONB 사용
+ */
+export function matchRowToGuestListMatch(row: any): GuestListMatch {
+  // gym은 JOIN 결과로 포함됨
+  const gym = row.gym || {};
+  const matchOptions = row.match_options || {};
+  const facilities = gym.facilities || {};
+  const recruitmentSetup: RecruitmentSetup = row.recruitment_setup || {
+    type: 'ANY',
+    max_count: 10,
+  };
+
+  // positions 계산 (recruitment_setup에서)
+  const positions: Record<Position, { open: number; closed: number }> = {
+    G: { open: 0, closed: 0 },
+    F: { open: 0, closed: 0 },
+    C: { open: 0, closed: 0 },
+  };
+
+  if (recruitmentSetup.type === 'POSITION' && recruitmentSetup.positions) {
+    const posData = recruitmentSetup.positions;
+    if (posData.G) {
+      positions.G = {
+        open: posData.G.max - posData.G.current,
+        closed: posData.G.current,
+      };
+    }
+    if (posData.F) {
+      positions.F = {
+        open: posData.F.max - posData.F.current,
+        closed: posData.F.current,
+      };
+    }
+    if (posData.C) {
+      positions.C = {
+        open: posData.C.max - posData.C.current,
+        closed: posData.C.current,
+      };
+    }
+  }
+
+  // cost_type -> CostType enum 매핑
+  const costTypeMap: Record<string, CostType> = {
+    MONEY: CostType.MONEY,
+    FREE: CostType.FREE,
+    BEVERAGE: CostType.BEVERAGE,
+  };
+
+  // gender_rule -> GenderRule 매핑 (UI는 소문자 사용)
+  const genderMap: Record<string, 'men' | 'women' | 'mixed'> = {
+    MALE: 'men',
+    FEMALE: 'women',
+    MIXED: 'mixed',
+  };
+
+  return {
+    id: row.id,
+    title: row.title,
+    matchType: row.match_type || '5vs5',
+
+    // Location은 gym에서 가져옴
+    location: {
+      name: gym.name || '',
+      address: gym.address || '',
+      latitude: gym.latitude || 0,
+      longitude: gym.longitude || 0,
+    },
+
+    dateISO: row.start_time ? row.start_time.split('T')[0] : '',
+    startTime: row.start_time
+      ? new Date(row.start_time).toLocaleTimeString('ko-KR', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+        })
+      : '',
+    endTime: row.end_time
+      ? new Date(row.end_time).toLocaleTimeString('ko-KR', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+        })
+      : '',
+
+    // 새 스키마 가격 구조
+    price: {
+      type: costTypeMap[row.cost_type] || CostType.MONEY,
+      amount: row.cost_amount || 0,
+      providesBeverage: row.provides_beverage || false,
+      // 하위 호환성
+      base: row.cost_amount || 0,
+      final: row.cost_amount || 0,
+    },
+
+    // Facilities는 gym에서 가져옴
+    facilities,
+
+    // Specs
+    gameFormat: matchOptions.game_format,
+    level: row.level_limit || '',
+    gender: genderMap[row.gender_rule] || 'mixed',
+    courtType: (facilities.indoor ? 'indoor' : 'outdoor') as 'indoor' | 'outdoor',
+
+    // Team name은 team JOIN 결과에서 가져옴 (있으면)
+    teamName: row.team?.name || 'DRAFT Team',
+
+    // Positions
+    positions,
   };
 }

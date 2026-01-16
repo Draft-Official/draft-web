@@ -34,6 +34,7 @@ export function DateStrip({
         <div className={cn("flex gap-2 pb-1 min-w-max", listClassName)}>
           {showAllOption && (
             <button
+              type="button"
               onClick={() => onSelect(null)}
               className={cn(
                 "flex flex-col items-center justify-center min-w-[64px] h-[64px] rounded-xl border transition-all active:scale-95 flex-shrink-0",
@@ -49,6 +50,7 @@ export function DateStrip({
 
           {dates.map((d) => (
             <button
+              type="button"
               key={d.dateISO}
               onClick={() => onSelect(d.dateISO)}
               className={cn(

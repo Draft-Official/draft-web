@@ -5,10 +5,55 @@ import { useRouter } from 'next/navigation';
 import { Search, ArrowDown } from 'lucide-react';
 import { FilterBar } from '@/features/match/ui/filter-bar';
 import { MatchListItem } from '@/features/match/ui/match-list-item';
-import { useMatches } from '../src/entities/match/model/match-context';
+import { useRecruitingMatches } from '@/features/match/api/queries';
 import { filterMatches, groupMatchesByDate, getDayLabel } from '@/features/match/lib/utils';
 import { cn } from '@/shared/lib/utils';
 import { useLocalStorage } from '@/shared/lib/hooks/use-local-storage';
+import { GuestListMatch } from '@/shared/types/match';
+
+// DB 대문자 → UI 소문자 변환
+const genderMap: Record<string, 'men' | 'women' | 'mixed'> = {
+  MALE: 'men', FEMALE: 'women', MIXED: 'mixed',
+  men: 'men', women: 'women', mixed: 'mixed',
+};
+
+// Adapter to convert GuestListMatch to MatchListItem props
+function adaptMatch(match: GuestListMatch) {
+  // 새 스키마: amount 사용, 하위 호환: final
+  const priceAmount = match.price.amount ?? match.price.final ?? 0;
+
+  return {
+    id: match.id,
+    dateISO: match.dateISO,
+    startTime: match.startTime,
+    endTime: match.endTime,
+    price: `${priceAmount.toLocaleString()}원`,
+    priceNum: priceAmount,
+    title: match.title,
+    location: match.location.name,
+    address: match.location.address,
+    gender: genderMap[match.gender] || 'mixed',
+    gameFormat: match.gameFormat ?? '',
+    ageRange: match.ageMin && match.ageMax ? `${match.ageMin}대 ~ ${match.ageMax}대` : undefined,
+    positions: {
+      g: match.positions.G && { 
+        status: match.positions.G.open > 0 ? 'open' as const : 'closed' as const, 
+        max: match.positions.G.closed + match.positions.G.open 
+      },
+      f: match.positions.F && { 
+        status: match.positions.F.open > 0 ? 'open' as const : 'closed' as const, 
+        max: match.positions.F.closed + match.positions.F.open 
+      },
+      c: match.positions.C && { 
+        status: match.positions.C.open > 0 ? 'open' as const : 'closed' as const, 
+        max: match.positions.C.closed + match.positions.C.open 
+      },
+      // Handle 'any' type recruitment? Current mapper assumes G/F/C.
+      // If mapper supports 'any', it might put it in 'all'? 
+      // Current mapper hardcodes G/F/C.
+    }
+  };
+}
 
 // Hook to detect scroll with hysteresis to prevent flickering
 const useScrollDirection = () => {
@@ -39,7 +84,9 @@ const useScrollDirection = () => {
 
 export default function GuestMatchListPage() {
   const router = useRouter();
-  const { matches } = useMatches();
+  const { data: rawMatches = [], isLoading } = useRecruitingMatches();
+  const matches = useMemo(() => rawMatches.map(adaptMatch), [rawMatches]);
+  
   const isScrolled = useScrollDirection();
 
   // --- State (Persisted) ---
