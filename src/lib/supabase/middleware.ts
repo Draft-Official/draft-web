@@ -10,13 +10,21 @@ const PLACEHOLDER_URL = 'https://placeholder.supabase.co';
 const PLACEHOLDER_KEY = 'placeholder-key';
 
 /**
+ * Supabase anon key 가져오기
+ */
+function getSupabaseAnonKey(): string {
+  return process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+         process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY ||
+         '';
+}
+
+/**
  * Supabase 환경변수 설정 여부 확인
  */
 function isSupabaseConfigured(): boolean {
-  return !!(
-    process.env.NEXT_PUBLIC_SUPABASE_URL &&
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  );
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = getSupabaseAnonKey();
+  return !!(url && key);
 }
 
 /**
@@ -36,9 +44,12 @@ export async function updateSession(request: NextRequest) {
     return { supabaseResponse, user: null };
   }
 
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = getSupabaseAnonKey();
+
   const supabase = createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || PLACEHOLDER_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || PLACEHOLDER_KEY,
+    url || PLACEHOLDER_URL,
+    anonKey || PLACEHOLDER_KEY,
     {
       cookies: {
         getAll() {

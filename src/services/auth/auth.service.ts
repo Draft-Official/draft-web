@@ -2,21 +2,21 @@
  * Auth Service
  * 인증 및 프로필 관련 DB 접근을 캡슐화
  */
-import type { SupabaseClient, User } from '@supabase/supabase-js';
+import type { SupabaseClient, User as SupabaseUser } from '@supabase/supabase-js';
 import type {
   Database,
-  Profile,
-  ProfileUpdate,
+  User,
+  UserUpdate,
 } from '@/shared/types/database.types';
-import { handleSupabaseError, NotFoundError, AuthError } from '@/shared/lib/errors';
+import { handleSupabaseError, AuthError } from '@/shared/lib/errors';
 
 export class AuthService {
   constructor(private supabase: SupabaseClient<Database>) {}
 
   /**
-   * 현재 로그인한 사용자 조회
+   * 현재 로그인한 사용자 조회 (Supabase Auth User)
    */
-  async getCurrentUser(): Promise<User | null> {
+  async getCurrentUser(): Promise<SupabaseUser | null> {
     const {
       data: { user },
     } = await this.supabase.auth.getUser();
@@ -24,11 +24,11 @@ export class AuthService {
   }
 
   /**
-   * 프로필 조회
+   * 유저 프로필 조회 (users 테이블)
    */
-  async getProfile(userId: string): Promise<Profile | null> {
+  async getProfile(userId: string): Promise<User | null> {
     const { data, error } = await this.supabase
-      .from('profiles')
+      .from('users')
       .select('*')
       .eq('id', userId)
       .single();
@@ -44,7 +44,7 @@ export class AuthService {
   /**
    * 현재 사용자의 프로필 조회
    */
-  async getCurrentProfile(): Promise<Profile | null> {
+  async getCurrentProfile(): Promise<User | null> {
     const user = await this.getCurrentUser();
     if (!user) return null;
     return this.getProfile(user.id);
@@ -53,9 +53,9 @@ export class AuthService {
   /**
    * 프로필 업데이트
    */
-  async updateProfile(userId: string, updates: ProfileUpdate): Promise<Profile> {
+  async updateProfile(userId: string, updates: UserUpdate): Promise<User> {
     const { data, error } = await this.supabase
-      .from('profiles')
+      .from('users')
       .update(updates)
       .eq('id', userId)
       .select()
@@ -68,7 +68,7 @@ export class AuthService {
   /**
    * 현재 사용자 프로필 업데이트
    */
-  async updateCurrentProfile(updates: ProfileUpdate): Promise<Profile> {
+  async updateCurrentProfile(updates: UserUpdate): Promise<User> {
     const user = await this.getCurrentUser();
     if (!user) throw new AuthError();
     return this.updateProfile(user.id, updates);
@@ -80,6 +80,21 @@ export class AuthService {
   async signInWithKakao(redirectTo?: string) {
     const { data, error } = await this.supabase.auth.signInWithOAuth({
       provider: 'kakao',
+      options: {
+        redirectTo: redirectTo || `${window.location.origin}/auth/callback`,
+      },
+    });
+
+    if (error) throw new AuthError(error.message);
+    return data;
+  }
+
+  /**
+   * Apple OAuth 로그인
+   */
+  async signInWithApple(redirectTo?: string) {
+    const { data, error } = await this.supabase.auth.signInWithOAuth({
+      provider: 'apple',
       options: {
         redirectTo: redirectTo || `${window.location.origin}/auth/callback`,
       },
@@ -141,9 +156,7 @@ export class AuthService {
   /**
    * 인증 상태 변경 리스너
    */
-  onAuthStateChange(
-    callback: (event: string, session: unknown) => void
-  ) {
+  onAuthStateChange(callback: (event: string, session: unknown) => void) {
     return this.supabase.auth.onAuthStateChange(callback);
   }
 }
