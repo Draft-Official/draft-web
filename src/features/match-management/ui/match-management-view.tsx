@@ -76,7 +76,19 @@ export function MatchManagementView() {
   }, [viewMode, typeFilter, statusFilter, showPastMatches]);
 
   const handleCardClick = (matchId: string) => {
-    router.push(`/match/${matchId}`);
+    // Find the match to determine its type
+    const match = MOCK_MANAGED_MATCHES.find((m) => m.id === matchId);
+    if (!match) return;
+
+    // Navigate based on match type
+    const routeMap: Record<MatchType, string> = {
+      guest: `/match/guest/${matchId}`,
+      host: `/match/host/${matchId}`,
+      team: `/match/team/${matchId}`,
+      tournament: `/match/tournament/${matchId}`,
+    };
+
+    router.push(routeMap[match.type]);
   };
 
   const getTypeFilterDisplayLabel = (value: TypeFilterValue[]) => {
