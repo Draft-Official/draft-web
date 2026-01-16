@@ -204,6 +204,30 @@ Mobile: Full-width app-like experience
 - Host Dashboard: `src/features/host/model/mock-data.ts`
 - Match List: `src/features/match/model/mock-data.ts`
 
+## Supabase 개발 설정 (⚠️ 임시)
+
+### RLS 정책 변경 사항
+개발 테스트를 위해 다음 RLS 정책이 임시로 변경됨:
+
+```sql
+-- ❌ 비활성화된 프로덕션 정책:
+-- create policy "Users can create matches" on matches for insert with check (auth.uid() = host_id);
+
+-- ✅ 현재 활성화된 개발용 정책:
+create policy "Anyone can create matches (DEV ONLY)" on matches for insert with check (true);
+```
+
+**복구 방법** (OAuth 설정 완료 후):
+```sql
+DROP POLICY IF EXISTS "Anyone can create matches (DEV ONLY)" ON matches;
+CREATE POLICY "Users can create matches" ON matches FOR INSERT WITH CHECK (auth.uid() = host_id);
+```
+
+### 테스트 유저
+- Email: `test@naver.com`
+- UUID: `d1011295-3375-41f4-83c7-9663dc00becf`
+- mutations.ts에서 임시 하드코딩됨 (OAuth 설정 후 제거 필요)
+
 ## Critical Rules
 
 ### DO ✅
