@@ -11,6 +11,8 @@ import type {
   TeamExerciseDetail,
   TournamentDetail,
   GuestMatchDetail,
+  TeamExerciseManageDetail,
+  TournamentManageDetail,
 } from './types';
 
 export const MOCK_MANAGED_MATCHES: ManagedMatch[] = [
@@ -244,4 +246,34 @@ export const MOCK_GUEST_MATCH_DETAIL: GuestMatchDetail = {
     account: '3333-01-234567',
     holder: '김농구',
   },
+};
+
+// ============================================
+// 관리 페이지 Mock 데이터
+// ============================================
+
+// 팀운동 관리 상세 Mock
+export const MOCK_TEAM_EXERCISE_MANAGE: TeamExerciseManageDetail = {
+  id: '3',
+  teamName: '판교 드래곤즈',
+  date: '2025. 01. 13 (월)',
+  time: '18:30',
+  location: '판교테크노밸리 체육관',
+  locationUrl: 'https://map.kakao.com',
+  description: '오늘은 속공 연습 + 존 디펜스 연습합니다. 링크의 영상 보고오세요',
+  participants: MOCK_PARTICIPANTS,
+};
+
+// 대회 관리 상세 Mock
+export const MOCK_TOURNAMENT_MANAGE: TournamentManageDetail = {
+  id: '4',
+  teamName: '용산 매버릭스',
+  tournamentName: '2025 서울시 농구대회',
+  round: '본선 16강',
+  date: '2025. 01. 25 (토)',
+  time: '14:00',
+  location: '올림픽공원 농구장',
+  locationUrl: 'https://map.kakao.com',
+  description: '대회 출전 선수 명단 확정되었습니다. 12시 30분까지 현장 도착 부탁드립니다.',
+  participants: MOCK_PARTICIPANTS.slice(0, 10),
 };

@@ -32,13 +32,15 @@ export function MatchManagementView() {
 
     // View mode filter
     if (viewMode === "guest") {
-      // Guest mode shows: guest, team, tournament (not host)
+      // 참여 모드: 게스트로 참여하는 경기 (guest, team, tournament)
       filtered = filtered.filter(
         (m) => m.type === "guest" || m.type === "team" || m.type === "tournament"
       );
     } else {
-      // Host mode shows only host matches
-      filtered = filtered.filter((m) => m.type === "host");
+      // 관리 모드: 호스트로 관리하는 경기 (host, team, tournament)
+      filtered = filtered.filter(
+        (m) => m.type === "host" || m.type === "team" || m.type === "tournament"
+      );
     }
 
     // Type filter (only applicable in guest mode) - Multi-select
@@ -80,15 +82,27 @@ export function MatchManagementView() {
     const match = MOCK_MANAGED_MATCHES.find((m) => m.id === matchId);
     if (!match) return;
 
-    // Navigate based on match type
-    const routeMap: Record<MatchType, string> = {
-      guest: `/match/guest/${matchId}`,
-      host: `/match/host/${matchId}`,
-      team: `/match/team/${matchId}`,
-      tournament: `/match/tournament/${matchId}`,
-    };
-
-    router.push(routeMap[match.type]);
+    // Navigate based on match type and view mode
+    if (match.type === "host") {
+      router.push(`/match/host/${matchId}`);
+    } else if (match.type === "team") {
+      // 관리 모드면 관리 페이지로, 참여 모드면 상세 페이지로
+      if (viewMode === "host") {
+        router.push(`/match/team/manage/${matchId}`);
+      } else {
+        router.push(`/match/team/${matchId}`);
+      }
+    } else if (match.type === "tournament") {
+      // 관리 모드면 관리 페이지로, 참여 모드면 상세 페이지로
+      if (viewMode === "host") {
+        router.push(`/match/tournament/manage/${matchId}`);
+      } else {
+        router.push(`/match/tournament/${matchId}`);
+      }
+    } else {
+      // guest
+      router.push(`/match/guest/${matchId}`);
+    }
   };
 
   const getTypeFilterDisplayLabel = (value: TypeFilterValue[]) => {
@@ -144,7 +158,7 @@ export function MatchManagementView() {
                 viewMode === "guest" ? "text-white" : "text-slate-600"
               )}
             >
-              게스트
+              참여
             </button>
             <button
               onClick={() => setViewMode("host")}
@@ -153,7 +167,7 @@ export function MatchManagementView() {
                 viewMode === "host" ? "text-white" : "text-slate-600"
               )}
             >
-              호스트
+              관리
             </button>
           </div>
         </div>

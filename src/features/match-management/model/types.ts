@@ -168,3 +168,33 @@ export interface GuestMatchPosition {
   isOpen: boolean;
   canSupportCenter?: boolean;
 }
+
+// ============================================
+// 관리 페이지 타입 정의
+// ============================================
+
+// 팀운동 관리 상세
+export interface TeamExerciseManageDetail {
+  id: string;
+  teamName: string;
+  date: string;
+  time: string;
+  location: string;
+  locationUrl: string;
+  description: string;
+  participants: Participant[];
+}
+
+// 대회 관리 상세
+export interface TournamentManageDetail {
+  id: string;
+  teamName: string;
+  tournamentName: string;
+  round: string;
+  date: string;
+  time: string;
+  location: string;
+  locationUrl: string;
+  description: string;
+  participants: Participant[];
+}
