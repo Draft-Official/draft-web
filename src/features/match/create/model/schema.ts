@@ -15,6 +15,7 @@ export const positionRecruitmentSchema = z.object({
   guard: z.number().min(0).max(10),
   forward: z.number().min(0).max(10),
   center: z.number().min(0).max(10),
+  bigman: z.number().min(0).max(10).default(0), // 빅맨 통합 시 사용
   isFlexBigman: z.boolean(),
 });
 
@@ -107,7 +108,17 @@ export const matchCreateSchema = z.object({
   // Bigman 옵션 (포지션 모집 시 센터/포워드 유동적 배치)
   isFlexBigman: z.boolean().default(false),
 
+  // 준비물 (실내화, 흰/검 상의 등)
+  requirements: z.array(z.string()).default([]),
+
   facilities: facilitiesSchema.optional(),
+
+  // 참가비 타입 (현금/음료 구분)
+  costInputType: z.enum(['money', 'beverage']).default('money'),
+
+  // 연락처 타입 및 내용
+  contactType: z.enum(['PHONE', 'KAKAO_OPEN']).default('KAKAO_OPEN'),
+  contactContent: z.string().optional(),
 
   // Admin Info
   price: z.number()
@@ -132,6 +143,10 @@ export const matchCreateSchema = z.object({
   notice: z.string()
     .max(1000, '공지사항은 1000자 이내로 입력하세요')
     .optional(),
+
+  // Team Info (V3)
+  selectedTeamId: z.string().optional().nullable(),
+  manualTeamName: z.string().optional(), // 팀 미선택 시 직접 입력 (혹은 비워두면 '개인 주최')
 }).refine(
   (data) => {
     // Validate that end time is after start time

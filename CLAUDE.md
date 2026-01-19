@@ -4,7 +4,7 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 ## Project Overview
 
-**DRAFT** is a basketball guest recruiting platform for Korean amateur basketball players. It's a mobile-first adaptive web app (max-width: 430px) built with Next.js 16 that aims to provide a native app-like experience.
+**DRAFT** is a basketball guest recruiting platform for Korean amateur basketball players. It's a mobile-first adaptive web app (max-width: 430px) built with Next.js 15.5.9 that aims to provide a native app-like experience.
 
 **Target Users**: Basketball enthusiasts (Guests) and team organizers (Hosts)
 **Core Values**: Speed, Trust, Convenience

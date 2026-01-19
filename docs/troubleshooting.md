@@ -11,33 +11,42 @@
 ### 원인
 `@supabase/ssr` 패키지가 Next.js 16 (canary)과 호환되지 않음
 
-### 환경
+### 환경 (문제 발생 시)
 - Next.js: 16.1.1
 - @supabase/ssr: 0.8.0
 - @supabase/supabase-js: 2.90.1
 
 ### 해결 방법
-`@supabase/ssr`의 `createBrowserClient` 대신 `@supabase/supabase-js`의 `createClient`를 직접 사용
+Next.js 15.5.9로 다운그레이드 (CVE-2025-66478 보안 패치 적용 버전)
 
-**변경 전 (src/lib/supabase/client.ts):**
-```typescript
-import { createBrowserClient } from '@supabase/ssr';
-
-export function createClient() {
-  return createBrowserClient<Database>(url, anonKey);
-}
+```bash
+npm install next@15.5.9 eslint-config-next@15.5.9
 ```
 
-**변경 후:**
-```typescript
-import { createClient as createSupabaseClient } from '@supabase/supabase-js';
-
-export function createClient() {
-  return createSupabaseClient<Database>(url, anonKey);
-}
-```
+### 현재 안정 환경
+- Next.js: **15.5.9**
+- React: 19.2.3
+- @supabase/ssr: 0.8.0
+- @supabase/supabase-js: 2.90.1
 
 ### 참고
-- `@supabase/ssr`은 SSR/SSG 환경에서 쿠키 기반 인증을 쉽게 처리하기 위한 래퍼
-- 클라이언트 사이드에서는 `@supabase/supabase-js`를 직접 사용해도 문제없음
-- Next.js stable 버전에서는 `@supabase/ssr`이 정상 작동할 수 있음
+- Next.js 16.x는 아직 canary 버전으로 일부 패키지와 호환성 문제가 있음
+- Next.js 15.5.9는 CVE-2025-66478 (RCE 취약점) 패치가 적용된 최신 안정 버전
+- `@supabase/ssr`은 Next.js 15.x에서 정상 작동
+
+---
+
+## 중복 쿠키로 인한 인증 오류
+
+### 증상
+- 쿼리가 pending 상태로 멈춤
+- 콘솔에 `AbortError: signal is aborted without reason` 에러
+- Network 탭에 Supabase 요청이 없음
+
+### 원인
+브라우저에 동일한 이름의 Supabase 인증 쿠키가 중복 저장됨
+
+### 해결 방법
+1. 개발자 도구 → Application → Cookies → localhost
+2. Supabase 관련 쿠키 모두 삭제 (특히 중복된 쿠키)
+3. 페이지 새로고침 (Cmd+Shift+R / Ctrl+Shift+R)

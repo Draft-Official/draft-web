@@ -8,34 +8,39 @@ import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { createMatchService } from '@/services/match/match.service';
 import { matchKeys } from './keys';
 import { MatchCreateFormData } from '../create/model/schema';
-// ⚠️ 임시: OAuth 설정 후 아래 줄 복구
-// import { useAuth } from '@/features/auth/model/auth-context';
+import { useAuth } from '@/features/auth/model/auth-context';
 
 /**
  * 매치 생성
  */
 export function useCreateMatch() {
   const queryClient = useQueryClient();
-  // ⚠️ 임시: OAuth 설정 후 아래 줄 복구
-  // const { user } = useAuth();
-
-  // ⚠️ 임시 테스트용 UUID - OAuth 설정 후 삭제할 것
-  // test@naver.com 유저의 UUID
-  const TEST_USER_ID = 'd1011295-3375-41f4-83c7-9663dc00becf';
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async (input: MatchCreateFormData) => {
-      // ⚠️ 임시: 테스트 UUID 강제 사용 (OAuth 설정 전까지)
-      // TODO: OAuth 설정 후 아래 줄로 복구
-      // const hostId = user?.id || TEST_USER_ID;
-      const hostId = TEST_USER_ID;
+      if (!user?.id) {
+        throw new Error('로그인이 필요합니다');
+      }
+      const hostId = user.id;
 
       console.log('[useCreateMatch] hostId:', hostId);
+      console.log('[useCreateMatch] input:', input);
 
       const supabase = getSupabaseBrowserClient();
-      const matchService = createMatchService(supabase);
+      console.log('[useCreateMatch] supabase client created');
 
-      return matchService.createMatch(hostId, input);
+      const matchService = createMatchService(supabase);
+      console.log('[useCreateMatch] matchService created, calling createMatchV3...');
+
+      try {
+        const result = await matchService.createMatchV3(hostId, input);
+        console.log('[useCreateMatch] createMatchV3 result:', result);
+        return result;
+      } catch (err) {
+        console.error('[useCreateMatch] createMatchV3 error:', err);
+        throw err;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: matchKeys.lists() });

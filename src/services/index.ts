@@ -16,6 +16,7 @@ export { AuthService, createAuthService } from './auth';
 export { ApplicationService, createApplicationService } from './application';
 
 // Mappers
+// Mappers
 export {
   toMatchInsertData,
   extractGymData,
@@ -23,4 +24,4 @@ export {
 } from './match';
 
 // Gym Service
-export { GymService, createGymService, findOrCreateGym } from './gym';
+export { GymService, createGymService } from './gym';

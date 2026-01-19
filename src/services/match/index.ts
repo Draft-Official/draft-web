@@ -1,6 +1,6 @@
 export { MatchService, createMatchService } from './match.service';
 export {
-  toMatchInsertData,
-  extractGymData,
+  toMatchInsertDataV3 as toMatchInsertData,
+  extractGymDataV3 as extractGymData,
   matchRowToGuestListMatch,
 } from './match.mapper';

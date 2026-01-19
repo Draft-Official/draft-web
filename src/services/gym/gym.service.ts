@@ -6,10 +6,10 @@ import { Database, GymInsert, GymFacilities, Gym } from '@/shared/types/database
  */
 export interface GymData {
   name: string;
-  address?: string;
-  latitude?: number;
-  longitude?: number;
-  kakaoPlaceId?: string;
+  address: string; // Required in Schema V3
+  latitude?: number | null;
+  longitude?: number | null;
+  kakaoPlaceId?: string | null;
   facilities?: GymFacilities;
 }
 
@@ -31,14 +31,17 @@ export class GymService {
    * @returns gym_id
    */
   async findOrCreateGym(gymData: GymData): Promise<string> {
+    console.log('[GymService.findOrCreateGym] Starting with:', gymData);
     try {
       // 1. 카카오 place_id로 먼저 검색 (가장 정확)
       if (gymData.kakaoPlaceId) {
+        console.log('[GymService] Searching by kakaoPlaceId:', gymData.kakaoPlaceId);
         const { data: existingByKakao, error: kakaoError } = await this.supabase
           .from('gyms')
           .select('id')
           .eq('kakao_place_id', gymData.kakaoPlaceId)
           .single();
+        console.log('[GymService] Kakao search result:', existingByKakao, 'error:', kakaoError);
 
         if (!kakaoError && existingByKakao) {
           return existingByKakao.id;
@@ -46,22 +49,23 @@ export class GymService {
       }
 
       // 2. 이름 + 주소로 검색 (fallback)
-      let query = this.supabase
+      // 이름은 필수, 주소도 필수이므로 둘 다 사용하여 검색
+      console.log('[GymService] Searching by name + address:', gymData.name, gymData.address);
+      const { data: existingByName, error: nameError } = await this.supabase
         .from('gyms')
         .select('id')
-        .eq('name', gymData.name);
-
-      if (gymData.address) {
-        query = query.eq('address', gymData.address);
-      }
-
-      const { data: existingByName, error: nameError } = await query.maybeSingle();
+        .eq('name', gymData.name)
+        .eq('address', gymData.address)
+        .maybeSingle();
+      console.log('[GymService] Name search result:', existingByName, 'error:', nameError);
 
       if (!nameError && existingByName) {
+        console.log('[GymService] Found existing gym by name:', existingByName.id);
         return existingByName.id;
       }
 
       // 3. 없으면 새로 생성
+      console.log('[GymService] Creating new gym...');
       const insertData: GymInsert = {
         name: gymData.name,
         address: gymData.address,
@@ -70,6 +74,7 @@ export class GymService {
         kakao_place_id: gymData.kakaoPlaceId,
         facilities: gymData.facilities || {},
       };
+      console.log('[GymService] Insert data:', insertData);
 
       const { data: newGym, error: insertError } = await this.supabase
         .from('gyms')
@@ -77,10 +82,14 @@ export class GymService {
         .select('id')
         .single();
 
+      console.log('[GymService] Insert result:', newGym, 'error:', insertError);
+
       if (insertError) {
+        console.error('[GymService] Insert error:', insertError);
         throw insertError;
       }
 
+      console.log('[GymService] Created new gym:', newGym.id);
       return newGym.id;
     } catch (error) {
       console.error('[GymService] Unexpected error:', error);
@@ -144,16 +153,7 @@ export class GymService {
   }
 }
 
-export const createGymService = (client: SupabaseClient<Database>) => new GymService(client);
-
-/**
- * Standalone helper function for findOrCreateGym
- * MatchService 등에서 간편하게 사용
- */
-export async function findOrCreateGym(
-  supabase: SupabaseClient<Database>,
-  gymData: GymData
-): Promise<string> {
-  const service = new GymService(supabase);
-  return service.findOrCreateGym(gymData);
+export function createGymService(client: SupabaseClient<Database>) {
+  return new GymService(client);
 }
+

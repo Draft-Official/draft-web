@@ -1,11 +1,11 @@
 /**
- * Supabase Database 타입 정의 (v2)
+ * Supabase Database 타입 정의 (v3)
  *
  * ⚠️ 이 파일은 수동 작성되었습니다.
  * Supabase CLI로 자동 생성하려면:
  * npx supabase gen types typescript --project-id YOUR_PROJECT_ID > src/shared/types/database.types.ts
  *
- * 마지막 수정: 2026-01-16 (Schema v2)
+ * 마지막 수정: 2026-01-16 (Schema v3)
  */
 
 export type Json =
@@ -24,14 +24,15 @@ export type Json =
  * Gym 시설 정보 (gyms.facilities)
  */
 export interface GymFacilities {
-  parking?: boolean;          // 주차 가능 여부
-  shower?: boolean;           // 샤워실 유무
-  court_type?: 'WOOD' | 'RUBBER' | 'ASPHALT' | 'OTHER';
-  indoor?: boolean;           // 실내 여부
-  water?: boolean;            // 정수기
-  ac_heat?: boolean;          // 냉난방
-  ball?: boolean;             // 공 제공
-  [key: string]: unknown;     // 확장 가능
+  shower?: boolean;
+  parking?: boolean;
+  parking_fee?: string;
+  parking_location?: string;
+  court_size_type?: 'REGULAR' | 'SHORT' | 'NARROW';
+  air_conditioner?: boolean;
+  water_purifier?: boolean;
+  ball?: boolean;
+  [key: string]: unknown;
 }
 
 /**
@@ -49,14 +50,18 @@ export interface UserMetadata {
 /**
  * 모집 인원 설정 (matches.recruitment_setup)
  */
+// 🔥 [변경] 포지션 키에 'B' (Big Man) 추가
 export interface RecruitmentSetup {
   type: 'ANY' | 'POSITION';
-  max_count?: number;  // type === 'ANY' 일 때 사용
-  max_total?: number;  // type === 'POSITION' 일 때 전체 최대
+  max_count?: number; // type === 'ANY' 일 때 사용 (total) / User defined: max_count is mandatory in interface, but type optional in DB? adhere to user def.
+  // User's def: max_count: number;
+  // DB schema default: { "type": "ANY", "max_count": 10 }
+  max_total?: number; // legacy derived helper? User def doesn't have it explicitly but mapped logic uses it. I will keep it optional.
   positions?: {
     G?: { max: number; current: number };
     F?: { max: number; current: number };
     C?: { max: number; current: number };
+    B?: { max: number; current: number }; // [NEW] 빅맨
   };
 }
 
@@ -64,13 +69,31 @@ export interface RecruitmentSetup {
  * 경기 옵션 (matches.match_options)
  */
 export interface MatchOptions {
-  ball_provided?: boolean;      // 공 제공
-  vest_provided?: boolean;      // 조끼 제공
-  referee?: 'self' | 'member' | 'pro';
-  quarter_time?: number;        // 분
-  quarter_count?: number;
-  game_format?: 'internal_2' | 'internal_3' | 'exchange' | 'practice';
+  play_style?: 'INTERNAL_2WAY' | 'INTERNAL_3WAY' | 'EXCHANGE' | 'PRACTICE';
+  quarter_rule?: {
+    minutes_per_quarter: number;
+    quarter_count: number;
+    game_count: number;
+  };
+  guaranteed_quarters?: number;
+  referee_type?: 'SELF' | 'STAFF' | 'PRO';
+  
+  ball_provided?: boolean;
+  vest_provided?: boolean;
+  shoes_rental?: boolean;
+  shower_available?: boolean;
+  
   [key: string]: unknown;
+}
+
+/**
+ * 참여자 정보 (applications.participants_info)
+ */
+export interface ParticipantInfo {
+  type: 'MAIN' | 'GUEST';
+  name: string;
+  position: 'G' | 'F' | 'C' | 'B' | string; // [NEW] B 추가
+  cost: number;
 }
 
 // ============================================
@@ -93,6 +116,7 @@ export type Database = {
           manner_score: number;
           metadata: UserMetadata;
           created_at: string;
+          deleted_at: string | null; // Soft Delete
         };
         Insert: {
           id: string;
@@ -106,6 +130,7 @@ export type Database = {
           manner_score?: number;
           metadata?: UserMetadata;
           created_at?: string;
+          deleted_at?: string | null;
         };
         Update: {
           id?: string;
@@ -119,6 +144,7 @@ export type Database = {
           manner_score?: number;
           metadata?: UserMetadata;
           created_at?: string;
+          deleted_at?: string | null;
         };
         Relationships: [];
       };
@@ -126,7 +152,7 @@ export type Database = {
         Row: {
           id: string;
           name: string;
-          address: string | null;
+          address: string;
           latitude: number | null;
           longitude: number | null;
           facilities: GymFacilities;
@@ -137,7 +163,7 @@ export type Database = {
         Insert: {
           id?: string;
           name: string;
-          address?: string | null;
+          address: string;
           latitude?: number | null;
           longitude?: number | null;
           facilities?: GymFacilities;
@@ -148,7 +174,7 @@ export type Database = {
         Update: {
           id?: string;
           name?: string;
-          address?: string | null;
+          address?: string;
           latitude?: number | null;
           longitude?: number | null;
           facilities?: GymFacilities;
@@ -166,7 +192,7 @@ export type Database = {
           region_depth1: string | null;
           region_depth2: string | null;
           home_gym_id: string | null;
-          description: string | null;
+          host_notice: string | null;
           is_recruiting: boolean;
           regular_schedule: string | null;
           contact_link: string | null;
@@ -185,7 +211,7 @@ export type Database = {
           region_depth1?: string | null;
           region_depth2?: string | null;
           home_gym_id?: string | null;
-          description?: string | null;
+          host_notice?: string | null;
           is_recruiting?: boolean;
           regular_schedule?: string | null;
           contact_link?: string | null;
@@ -194,7 +220,7 @@ export type Database = {
           account_holder?: string | null;
           team_avg_level?: string | null;
           team_avg_age?: string | null;
-          team_avg_gender?: string | null;
+          team_gender?: string | null;
           created_at?: string;
         };
         Update: {
@@ -204,7 +230,7 @@ export type Database = {
           region_depth1?: string | null;
           region_depth2?: string | null;
           home_gym_id?: string | null;
-          description?: string | null;
+          host_notice?: string | null;
           is_recruiting?: boolean;
           regular_schedule?: string | null;
           contact_link?: string | null;
@@ -213,7 +239,7 @@ export type Database = {
           account_holder?: string | null;
           team_avg_level?: string | null;
           team_avg_age?: string | null;
-          team_avg_gender?: string | null;
+          team_gender?: string | null;
           created_at?: string;
         };
         Relationships: [
@@ -274,10 +300,12 @@ export type Database = {
           host_id: string;
           team_id: string | null;
           gym_id: string;
-          title: string;
-          description: string | null;
+          manual_team_name: string;
+          contact_type: string;
+          contact_content: string | null;
+          host_notice: string | null;
           start_time: string;
-          end_time: string | null;
+          end_time: string;
           match_type: string;
           gender_rule: string;
           level_limit: string | null;
@@ -291,16 +319,26 @@ export type Database = {
           status: string;
           match_options: MatchOptions;
           created_at: string;
+          // 비정규화 필드 (Gym 정보)
+          gym_latitude: number | null;
+          gym_longitude: number | null;
+          gym_address: string | null;
+          // 자동 집계 필드
+          current_players_count: number;
+          // 준비물
+          requirements: string[];
         };
         Insert: {
           id?: string;
           host_id: string;
           team_id?: string | null;
           gym_id: string;
-          title: string;
-          description?: string | null;
+          manual_team_name: string;
+          contact_type?: string;
+          contact_content?: string | null;
+          host_notice?: string | null;
           start_time: string;
-          end_time?: string | null;
+          end_time: string;
           match_type: string;
           gender_rule: string;
           level_limit?: string | null;
@@ -314,16 +352,24 @@ export type Database = {
           status?: string;
           match_options?: MatchOptions;
           created_at?: string;
+          // 비정규화 필드는 트리거가 자동 설정하므로 선택적
+          gym_latitude?: number | null;
+          gym_longitude?: number | null;
+          gym_address?: string | null;
+          current_players_count?: number;
+          requirements?: string[];
         };
         Update: {
           id?: string;
           host_id?: string;
           team_id?: string | null;
           gym_id?: string;
-          title?: string;
-          description?: string | null;
+          manual_team_name?: string;
+          contact_type?: string;
+          contact_content?: string | null;
+          host_notice?: string | null;
           start_time?: string;
-          end_time?: string | null;
+          end_time?: string;
           match_type?: string;
           gender_rule?: string;
           level_limit?: string | null;
@@ -337,6 +383,11 @@ export type Database = {
           status?: string;
           match_options?: MatchOptions;
           created_at?: string;
+          gym_latitude?: number | null;
+          gym_longitude?: number | null;
+          gym_address?: string | null;
+          current_players_count?: number;
+          requirements?: string[];
         };
         Relationships: [
           {
@@ -367,9 +418,8 @@ export type Database = {
           id: string;
           match_id: string;
           user_id: string;
-          position: Database['public']['Enums']['position_type'];
           status: Database['public']['Enums']['application_status'];
-          cancellation_reason: string | null;
+          participants_info: ParticipantInfo[];
           created_at: string;
           updated_at: string;
         };
@@ -377,9 +427,8 @@ export type Database = {
           id?: string;
           match_id: string;
           user_id: string;
-          position: Database['public']['Enums']['position_type'];
           status?: Database['public']['Enums']['application_status'];
-          cancellation_reason?: string | null;
+          participants_info?: ParticipantInfo[];
           created_at?: string;
           updated_at?: string;
         };
@@ -387,9 +436,8 @@ export type Database = {
           id?: string;
           match_id?: string;
           user_id?: string;
-          position?: Database['public']['Enums']['position_type'];
           status?: Database['public']['Enums']['application_status'];
-          cancellation_reason?: string | null;
+          participants_info?: ParticipantInfo[];
           created_at?: string;
           updated_at?: string;
         };
@@ -419,7 +467,7 @@ export type Database = {
     };
     Enums: {
       application_status: 'PENDING' | 'CONFIRMED' | 'REJECTED' | 'CANCELED';
-      position_type: 'G' | 'F' | 'C';
+      position_type: 'G' | 'F' | 'C' | 'B'; // B: 빅맨 (F/C 통합)
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -514,7 +562,7 @@ export type ApplicationWithUser = Application & {
 };
 
 /**
- * Application with Match details
+ * ApplicationWithMatch
  */
 export type ApplicationWithMatch = Application & {
   match: Match;

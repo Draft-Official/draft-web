@@ -1,170 +1,252 @@
-import { MatchCreateFormData, FacilitiesFormData } from '@/features/match/create/model/schema';
+import {
+  MatchInsert,
+  GymInsert,
+  GymFacilities,
+  MatchOptions,
+  RecruitmentSetup,
+} from '@/shared/types/database.types';
 import {
   GuestListMatch,
   CostType,
   Position,
 } from '@/shared/types/match';
-import {
-  MatchInsert,
-  RecruitmentSetup,
-  MatchOptions,
-  GymFacilities,
-} from '@/shared/types/database.types';
 
-/**
- * Frontend Form -> Match Insert Data (새 스키마 v2)
- */
-export function toMatchInsertData(
-  hostId: string,
-  form: MatchCreateFormData,
-  gymId: string
-): MatchInsert {
-  const {
-    title,
-    date,
-    startTime,
-    endTime,
-    recruitment,
-    level,
-    gender,
-    gameFormat,
-    matchType,
-    price,
-    bank,
-    accountNumber,
-    accountHolder,
-    notice,
-  } = form;
+import { MatchCreateFormData } from '@/features/match/create/model/schema';
 
-  // Combine date and time
-  const startDateTime = new Date(`${date}T${startTime}:00`).toISOString();
-  const endDateTime = new Date(`${date}T${endTime}:00`).toISOString();
+// ==============================================
+// 1. Gym Data Extraction
+// ==============================================
+export function extractGymDataV3(form: MatchCreateFormData): GymInsert {
+  const formFacilities = form.facilities;
+  
+  // Parking logic map
+  const parkingFeeText = formFacilities?.parking === '0' ? '무료' : formFacilities?.parking;
+  // If parking is empty string or undefined, assume no parking provided explicitly or 'unavailable'?
+  // Facilities schema says: parking is optional string.
+  // We map it to GymFacilities.
+  const isParking = !!formFacilities?.parking;
 
-  // Gender mapping (form: 'men'/'women'/'mixed' → DB: 'MALE'/'FEMALE'/'MIXED')
-  const genderRuleMap: Record<string, string> = {
-    men: 'MALE',
-    women: 'FEMALE',
-    mixed: 'MIXED',
+  const facilities: GymFacilities = {
+    ball: formFacilities?.ball,
+    // water/acHeat in schema are booleans
+    water_purifier: formFacilities?.water,
+    air_conditioner: formFacilities?.acHeat,
+    shower: formFacilities?.shower !== 'none',
+    parking: isParking,
+    parking_fee: isParking ? parkingFeeText : undefined,
+    parking_location: formFacilities?.parkingDetail, // parkingDetail -> parking_location
+    court_size_type: formFacilities?.courtSize === 'regular' ? 'REGULAR' : formFacilities?.courtSize === 'short' ? 'SHORT' : 'NARROW', // Map string to enum
   };
-
-  // recruitment_setup JSONB 생성
-  const recruitmentSetup: RecruitmentSetup =
-    recruitment.type === 'position'
-      ? {
-          type: 'POSITION',
-          max_total:
-            recruitment.guard + recruitment.forward + recruitment.center,
-          positions: {
-            G: { max: recruitment.guard, current: 0 },
-            F: { max: recruitment.forward, current: 0 },
-            C: { max: recruitment.center, current: 0 },
-          },
-        }
-      : {
-          type: 'ANY',
-          max_count: recruitment.count,
-        };
-
-  // match_options JSONB 생성 (rules 정보 포함)
-  const formRules = form.rules || {};
-  const matchOptions: MatchOptions = {
-    game_format: gameFormat as MatchOptions['game_format'],
-    quarter_time: formRules.quarterTime,
-    quarter_count: formRules.quarterCount,
-    referee: formRules.referee as MatchOptions['referee'],
-  };
-
-  // 참가비 타입 결정
-  // 현재 폼은 price만 있으므로, 0이면 FREE, 아니면 MONEY
-  const costType = price === 0 ? 'FREE' : 'MONEY';
-
-  return {
-    host_id: hostId,
-    gym_id: gymId,
-    team_id: null, // 추후 팀 기능 구현 시 사용
-    title,
-    description: notice || '',
-
-    // Time
-    start_time: startDateTime,
-    end_time: endDateTime,
-
-    // Specs
-    match_type: matchType, // '5vs5', '3vs3'
-    gender_rule: genderRuleMap[gender] || 'MIXED',
-    level_limit: String(level),
-
-    // Cost (새 스키마)
-    cost_type: costType,
-    cost_amount: price,
-    provides_beverage: false, // 폼에서 추가 필요 시 확장
-
-    // Account
-    account_bank: bank || null,
-    account_number: accountNumber || null,
-    account_holder: accountHolder || null,
-
-    // Recruitment (JSONB)
-    recruitment_setup: recruitmentSetup,
-
-    // Options (JSONB)
-    match_options: matchOptions,
-
-    status: 'RECRUITING',
-  };
-}
-
-/**
- * Form에서 Gym 데이터 추출
- * findOrCreateGym에 전달할 데이터 형식으로 변환
- */
-export function extractGymData(form: MatchCreateFormData): {
-  name: string;
-  address?: string;
-  latitude?: number;
-  longitude?: number;
-  kakaoPlaceId?: string;
-  facilities: GymFacilities;
-} {
-  const formFacilities: FacilitiesFormData | undefined = form.facilities;
 
   return {
     name: form.location.name,
     address: form.location.address,
     latitude: form.location.latitude,
     longitude: form.location.longitude,
-    kakaoPlaceId: form.location.kakaoPlaceId,
-    facilities: {
-      parking: formFacilities?.parking !== '' && formFacilities?.parking !== undefined,
-      water: formFacilities?.water,
-      ac_heat: formFacilities?.acHeat,
-      shower: formFacilities?.shower !== 'none',
-      ball: formFacilities?.ball,
-      indoor: formFacilities?.courtSize === 'regular',
+    // kakaoPlaceId in location schema
+    kakao_place_id: form.location.kakaoPlaceId || null,
+    facilities,
+  };
+}
+
+// ==============================================
+// 2. Match Data Transformation
+// ==============================================
+
+function toKSTISOString(dateStr: string, timeStr: string): string {
+  return `${dateStr}T${timeStr}:00+09:00`;
+}
+
+function calculateEndTime(startISO: string, endTimeStr: string): string {
+   // Use form's endTime directly if available, combined with date?
+   // Form has `endTime` string HH:mm.
+   // But user might play overnight?
+   // The form validation checks start < end in minutes, so it assumes same day.
+   // We should use the date from context. 
+   // Actually, `toMatchInsertDataV3` takes `form`. `form` has `date` and `endTime`.
+   // We can construct ISO from that.
+   const dateStr = startISO.split('T')[0]; // Extract date part or use form.date
+   // Wait, if we use form.date, we are safe.
+   return `${dateStr}T${endTimeStr}:00+09:00`;
+}
+
+export function toMatchInsertDataV3(
+  hostId: string,
+  form: MatchCreateFormData,
+  gymId: string
+): MatchInsert {
+  // A. Time
+  const startTimeISO = toKSTISOString(form.date, form.startTime);
+  const endTimeISO = toKSTISOString(form.date, form.endTime); // Form has explicit endTime
+
+  // C. Cost Logic
+  // costInputType으로 현금/음료 구분
+  let costType = 'MONEY';
+  let costAmount = 0;
+
+  if (form.costInputType === 'beverage') {
+    // 음료 내기: N병
+    costType = 'BEVERAGE';
+    costAmount = form.price; // 병 수
+  } else if (form.price === 0) {
+    // 현금 무료
+    costType = 'FREE';
+    costAmount = 0;
+  } else {
+    // 현금 유료
+    costType = 'MONEY';
+    costAmount = form.price;
+  }
+
+  // D. Recruitment Setup
+  let recruitmentSetup: RecruitmentSetup;
+  
+  if (form.recruitment.type === 'any') {
+    recruitmentSetup = {
+      type: 'ANY',
+      max_count: form.recruitment.count,
+    };
+  } else {
+    // POSITION
+    const { guard, forward, center, bigman = 0 } = form.recruitment;
+
+    // isFlexBigman일 때: F/C를 0으로 하고 bigman 값 사용
+    // 아닐 때: F/C 각각 사용, bigman은 0
+    const actualForward = form.isFlexBigman ? 0 : forward;
+    const actualCenter = form.isFlexBigman ? 0 : center;
+    const actualBigman = form.isFlexBigman ? bigman : 0;
+
+    const maxTotal = guard + actualForward + actualCenter + actualBigman;
+
+    recruitmentSetup = {
+      type: 'POSITION',
+      max_total: maxTotal,
+      positions: {
+        G: { max: guard, current: 0 },
+        F: { max: actualForward, current: 0 },
+        C: { max: actualCenter, current: 0 },
+        B: { max: actualBigman, current: 0 }, // 빅맨 통합
+      },
+    };
+  }
+
+  // E. Match Options
+  // Map GameFormat string -> DB Enum
+  const gameFormatMap: Record<string, 'INTERNAL_2WAY' | 'INTERNAL_3WAY' | 'EXCHANGE' | 'PRACTICE'> = {
+    internal_2: 'INTERNAL_2WAY',
+    internal_3: 'INTERNAL_3WAY',
+    exchange: 'EXCHANGE',
+    practice: 'PRACTICE',
+  };
+  
+  const rules = form.rules || {};
+  
+  // referee: 'self' | 'member' | 'pro' -> map to DB UPPER CASE if needed?
+  // DB Check: referee_type?: 'SELF' | 'STAFF' | 'PRO';
+  // Form: 'self', 'member', 'pro'.
+  const refereeMap: Record<string, 'SELF' | 'STAFF' | 'PRO'> = {
+    self: 'SELF',
+    member: 'STAFF', // member -> staff? usually member ref is "staff" or "participating ref"? let's map to STAFF or leave undefined if mismatch.
+    pro: 'PRO',
+  };
+
+  const matchOptions: MatchOptions = {
+    play_style: gameFormatMap[form.gameFormat],
+    quarter_rule: {
+      minutes_per_quarter: rules.quarterTime || 10,
+      quarter_count: rules.quarterCount || 4,
+      game_count: rules.fullGames || 1, // field usage?
     },
+    guaranteed_quarters: rules.guaranteedQuarters,
+    referee_type: rules.referee ? refereeMap[rules.referee] : undefined,
+    supplies: undefined, // form doesn't seem to have supplies text field distinct from facilities?
+    
+    // Additional booleans from facilities
+    ball_provided: form.facilities?.ball,
+    // vest_provided: form.facilities?.vest, // Schema doesn't have vest?
+    shower_available: form.facilities?.shower !== 'none',
+  };
+
+  // F. Team & Host
+  const manualTeamName = form.selectedTeamId
+    ? '' 
+    : (form.manualTeamName || ''); 
+    
+  // Contact info? 
+  // Form doesn't have explicit contact method field in `matchCreateSchema` (I viewed it).
+  // It only has `accountHolder`, `accountNumber` etc.
+  // Wait, did I miss it? 
+  // The schema defines "Admin Info" but no phone/kakao contact field.
+  // I will default to KAKAO_OPEN and use empty content or notice? 
+  // Maybe the form assumes User Profile contact? 
+  // I'll set a default "PROFILE" or similar if DB allows? 
+  // DB: contact_type 'PHONE' | 'KAKAO_OPEN'.
+  // I'll default to KAKAO_OPEN with empty string if not in form.
+  
+  // Validating what's in schema: `refundPolicy`, `notice`.
+  // `bindName`? No.
+  
+  return {
+    host_id: hostId,
+    gym_id: gymId,
+    team_id: form.selectedTeamId || null,
+    
+    manual_team_name: manualTeamName,
+    
+    contact_type: form.contactType || 'KAKAO_OPEN',
+    contact_content: form.contactContent || '',
+    
+    host_notice: form.notice || '', 
+    
+    start_time: startTimeISO,
+    end_time: endTimeISO,
+
+    match_type: form.matchType,     // 5vs5, 3vs3
+    gender_rule: form.gender === 'men' ? 'MALE' : form.gender === 'women' ? 'FEMALE' : 'MIXED',
+    level_limit: String(form.level),   // number to string
+    
+    cost_type: costType,
+    cost_amount: costAmount,
+    provides_beverage: form.facilities?.beverage || false,
+    
+    account_bank: form.bank,
+    account_number: form.accountNumber,
+    account_holder: form.accountHolder,
+    
+    recruitment_setup: recruitmentSetup,
+    match_options: matchOptions,
+
+    // 준비물
+    requirements: form.requirements || [],
+
+    status: 'RECRUITING',
   };
 }
 
 /**
- * Database Row -> GuestListMatch (UI Model)
- * 새 스키마 v2: recruitment_setup JSONB 사용
+ * 3. Match Row to GuestListMatch (UI Model) Conversion
+ * Used by queries to format data for the listing UI
  */
 export function matchRowToGuestListMatch(row: any): GuestListMatch {
-  // gym은 JOIN 결과로 포함됨
   const gym = row.gym || {};
-  const matchOptions = row.match_options || {};
+  const matchOptions: MatchOptions = row.match_options || {};
   const facilities = gym.facilities || {};
   const recruitmentSetup: RecruitmentSetup = row.recruitment_setup || {
     type: 'ANY',
     max_count: 10,
   };
 
-  // positions 계산 (recruitment_setup에서)
+  // Position logic (V3)
   const positions: Record<Position, { open: number; closed: number }> = {
     G: { open: 0, closed: 0 },
     F: { open: 0, closed: 0 },
     C: { open: 0, closed: 0 },
+    B: { open: 0, closed: 0 }, // 빅맨 (F/C 통합)
   };
+  
+  // Note: GuestListMatch UI types usually only have G, F, C. 
+  // If 'B' is not in UI type yet, we might ignore it or we need to update GuestListMatch type later.
+  // For now we map standard G, F, C.
 
   if (recruitmentSetup.type === 'POSITION' && recruitmentSetup.positions) {
     const posData = recruitmentSetup.positions;
@@ -186,16 +268,20 @@ export function matchRowToGuestListMatch(row: any): GuestListMatch {
         closed: posData.C.current,
       };
     }
+    if (posData.B) {
+      positions.B = {
+        open: posData.B.max - posData.B.current,
+        closed: posData.B.current,
+      };
+    }
   }
 
-  // cost_type -> CostType enum 매핑
   const costTypeMap: Record<string, CostType> = {
     MONEY: CostType.MONEY,
     FREE: CostType.FREE,
     BEVERAGE: CostType.BEVERAGE,
   };
 
-  // gender_rule -> GenderRule 매핑 (UI는 소문자 사용)
   const genderMap: Record<string, 'men' | 'women' | 'mixed'> = {
     MALE: 'men',
     FEMALE: 'women',
@@ -204,10 +290,9 @@ export function matchRowToGuestListMatch(row: any): GuestListMatch {
 
   return {
     id: row.id,
-    title: row.title,
+    title: row.host_notice || row.manual_team_name || 'Match', // V3: title column is gone, use host_notice or team name
     matchType: row.match_type || '5vs5',
 
-    // Location은 gym에서 가져옴
     location: {
       name: gym.name || '',
       address: gym.address || '',
@@ -231,29 +316,25 @@ export function matchRowToGuestListMatch(row: any): GuestListMatch {
         })
       : '',
 
-    // 새 스키마 가격 구조
     price: {
       type: costTypeMap[row.cost_type] || CostType.MONEY,
       amount: row.cost_amount || 0,
       providesBeverage: row.provides_beverage || false,
-      // 하위 호환성
       base: row.cost_amount || 0,
       final: row.cost_amount || 0,
     },
 
-    // Facilities는 gym에서 가져옴
     facilities,
 
-    // Specs
-    gameFormat: matchOptions.game_format,
+    gameFormat: matchOptions.play_style || 'INTERNAL_3WAY', // V3 uses play_style
     level: row.level_limit || '',
     gender: genderMap[row.gender_rule] || 'mixed',
-    courtType: (facilities.indoor ? 'indoor' : 'outdoor') as 'indoor' | 'outdoor',
+    courtType: (facilities.court_size_type === 'REGULAR' ? 'indoor' : 'outdoor') as 'indoor' | 'outdoor', 
+    // ^ Mapping logic adjusted slightly for court_size_type availability
 
-    // Team name은 team JOIN 결과에서 가져옴 (있으면)
-    teamName: row.team?.name || 'DRAFT Team',
+    teamName: row.team?.name || row.manual_team_name || 'DRAFT Team',
 
-    // Positions
     positions,
   };
 }
+

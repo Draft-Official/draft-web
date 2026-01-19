@@ -8,6 +8,7 @@ import type {
   Application,
   ApplicationStatus,
   PositionType,
+  ParticipantInfo,
 } from '@/shared/types/database.types';
 import { handleSupabaseError, NotFoundError, ValidationError } from '@/shared/lib/errors';
 
@@ -93,19 +94,37 @@ export class ApplicationService {
   }
 
   /**
-   * 신청 생성
+   * 신청 생성 (레거시 - 단일 포지션)
+   * @deprecated Use createApplicationV2 instead
    */
   async createApplication(
     matchId: string,
     userId: string,
     position: PositionType
   ): Promise<Application> {
+    // 레거시 호환: 단일 포지션을 participants_info 배열로 변환
+    const participantsInfo: ParticipantInfo[] = [
+      { type: 'MAIN', name: '', position, cost: 0 }
+    ];
+
+    return this.createApplicationV2(matchId, userId, participantsInfo);
+  }
+
+  /**
+   * 신청 생성 V2 (participants_info 배열 지원)
+   * 본인 + 동반인 처리 가능
+   */
+  async createApplicationV2(
+    matchId: string,
+    userId: string,
+    participantsInfo: ParticipantInfo[]
+  ): Promise<Application> {
     const { data, error } = await this.supabase
       .from('applications')
       .insert({
         match_id: matchId,
         user_id: userId,
-        position,
+        participants_info: participantsInfo,
         status: 'PENDING',
       })
       .select()

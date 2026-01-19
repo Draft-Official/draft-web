@@ -57,8 +57,9 @@ export type GenderRule = 'MALE' | 'MIXED' | 'FEMALE' | 'men' | 'women' | 'mixed'
 
 /**
  * 포지션 타입 (DB Enum과 동일)
+ * B: 빅맨 (F/C 통합 포지션)
  */
-export type Position = 'G' | 'F' | 'C';
+export type Position = 'G' | 'F' | 'C' | 'B';
 
 // ============================================
 // Core Interfaces

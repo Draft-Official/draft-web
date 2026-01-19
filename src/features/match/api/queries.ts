@@ -16,12 +16,17 @@ export function useRecruitingMatches() {
   return useQuery({
     queryKey: matchKeys.lists(),
     queryFn: async () => {
+      console.log('[useRecruitingMatches] Fetching matches...');
       const supabase = getSupabaseBrowserClient();
       const matchService = createMatchService(supabase);
+
       const rows = await matchService.getRecruitingMatches();
+      console.log('[useRecruitingMatches] Raw rows:', rows);
 
       // DB Row -> 클라이언트 타입 변환
-      return rows.map(matchRowToGuestListMatch);
+      const mapped = rows.map(matchRowToGuestListMatch);
+      console.log('[useRecruitingMatches] Mapped matches:', mapped);
+      return mapped;
     },
   });
 }

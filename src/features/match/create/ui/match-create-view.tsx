@@ -39,7 +39,14 @@ import { getNext14Days } from '../../lib/utils';
 export function MatchCreateView() {
   const router = useRouter();
   const methods = useForm();
-  const { handleSubmit, setValue } = methods;
+  const { handleSubmit, setValue, formState: { errors } } = methods;
+
+  // Debug: form errors
+  useEffect(() => {
+    if (Object.keys(errors).length > 0) {
+      console.log('[Form Errors]', errors);
+    }
+  }, [errors]);
 
   // -- State --
   // -- State --
@@ -377,9 +384,9 @@ export function MatchCreateView() {
         recruitment: isPositionMode ? {
             type: 'position',
             guard: positions.guard,
-            forward: positions.forward,
-            center: positions.center,
-            // bigman is typically mapped to center or ignored if not in schema
+            forward: isFlexBigman ? 0 : positions.forward,
+            center: isFlexBigman ? 0 : positions.center,
+            bigman: isFlexBigman ? positions.bigman : 0, // 빅맨 통합 시 사용
             isFlexBigman
         } : {
             type: 'any',
@@ -405,20 +412,33 @@ export function MatchCreateView() {
 
         facilities: {
             parking: parkingCost,
-            parkingDetail: undefined, // TODO: UI에서 입력받기
+            parkingDetail: parkingDetail || undefined,
             water: hasWater,
             acHeat: hasAcHeat,
             shower: showerOption as 'none' | 'free' | 'paid',
             courtSize: courtSize as 'regular' | 'short' | 'narrow',
-            ball: false, // TODO: UI에서 입력받기
-            beverage: false, // TODO: UI에서 입력받기
+            ball: hasBall,
+            beverage: hasBeverage,
         },
 
         // Bigman 옵션 (포지션 모집 시)
         isFlexBigman: isPositionMode ? isFlexBigman : false,
 
+        // 준비물
+        requirements: [
+            ...(hasShoes ? ['INDOOR_SHOES'] : []),
+            ...(hasJersey ? ['WHITE_BLACK_JERSEY'] : []),
+        ],
+
+        // 참가비 타입
+        costInputType: feeType === 'cost' ? 'money' : 'beverage',
+
+        // 연락처
+        contactType: 'KAKAO_OPEN' as const,
+        contactContent: data.kakaoLink || '',
+
         // Admin Info
-        price: Number(feeType === 'cost' ? data.fee : 0),
+        price: Number(data.fee || 0),
         bank: data.bankName,
         accountNumber: data.accountNumber,
         accountHolder: "예금주", // Missing in form input? Assuming data has it or default
