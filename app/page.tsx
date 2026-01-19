@@ -84,7 +84,10 @@ const useScrollDirection = () => {
 
 export default function GuestMatchListPage() {
   const router = useRouter();
-  const { data: rawMatches = [], isLoading } = useRecruitingMatches();
+  const { data: rawMatches = [], isLoading, error, status } = useRecruitingMatches();
+
+
+
   const matches = useMemo(() => rawMatches.map(adaptMatch), [rawMatches]);
   
   const isScrolled = useScrollDirection();
@@ -152,7 +155,30 @@ export default function GuestMatchListPage() {
 
         {/* --- Main List Content --- */}
         <div className="pb-24 min-h-[50vh] w-full">
-          {Object.keys(groupedMatches).length === 0 ? (
+          {isLoading ? (
+            // Loading State
+            <div className="flex flex-col items-center justify-center pt-20 px-6 text-center">
+              <div className="w-12 h-12 border-4 border-slate-200 border-t-[#FF6600] rounded-full animate-spin mb-4" />
+              <p className="text-slate-500 text-sm">경기를 불러오는 중...</p>
+            </div>
+          ) : error ? (
+            // Error State
+            <div className="flex flex-col items-center justify-center pt-20 px-6 text-center">
+              <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4">
+                <span className="text-2xl">⚠️</span>
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 mb-1">경기를 불러오지 못했어요</h3>
+              <p className="text-slate-500 text-sm mb-4">
+                잠시 후 다시 시도해주세요
+              </p>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-4 py-2 bg-[#FF6600] text-white rounded-lg text-sm font-medium"
+              >
+                새로고침
+              </button>
+            </div>
+          ) : Object.keys(groupedMatches).length === 0 ? (
             // Empty State
             <div className="flex flex-col items-center justify-center pt-20 px-6 text-center animate-in fade-in zoom-in duration-300">
               <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
