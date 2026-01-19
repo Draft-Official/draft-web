@@ -7,6 +7,8 @@ import { Card } from '@/components/ui/card';
 import { ProfileCard } from '@/features/my/ui/ProfileCard';
 import { ProfileSetupModal } from '@/features/my/ui/ProfileSetupModal';
 import { ProfileData } from '@/features/my/model/types';
+import { useAuth } from '@/features/auth/model/auth-context';
+import { useRouter } from 'next/navigation';
 
 export default function MyPage() {
   const [profile, setProfile] = useState<ProfileData | null>(null);
@@ -40,6 +42,22 @@ export default function MyPage() {
     setIsModalOpen(true);
   };
 
+  const { signOut } = useAuth();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      // Clear local mock data if needed
+      localStorage.removeItem('userProfile');
+      localStorage.removeItem('profileCompleted'); 
+      localStorage.removeItem('profileSkipped');
+      router.push('/');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+
   return (
     <div className="bg-background min-h-full p-4 space-y-6 pb-24">
       <ProfileCard
@@ -66,7 +84,11 @@ export default function MyPage() {
           </div>
         </Card>
 
-        <Button variant="outline" className="w-full justify-start p-4 h-auto text-destructive hover:text-destructive hover:bg-destructive/10">
+        <Button 
+          variant="outline" 
+          className="w-full justify-start p-4 h-auto text-destructive hover:text-destructive hover:bg-destructive/10"
+          onClick={handleLogout}
+        >
           <LogOut className="mr-3 h-5 w-5" />
           로그아웃
         </Button>
