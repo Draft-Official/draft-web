@@ -1,4 +1,4 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
@@ -17,29 +17,45 @@ export async function GET(request: Request) {
   // if "next" is in param, use it as the redirect URL
   const next = searchParams.get('next') ?? '/'
 
+  console.log('[Auth Callback] Full URL:', request.url)
+  console.log('[Auth Callback] All params:', Object.fromEntries(searchParams.entries()))
+  console.log('[Auth Callback] code:', code ? 'exists' : 'missing')
+
   if (code) {
     const cookieStore = await cookies()
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       getSupabaseAnonKey(),
       {
+
         cookies: {
-          get(name: string) {
-            return cookieStore.get(name)?.value
+          getAll() {
+            return cookieStore.getAll()
           },
-          set(name: string, value: string, options: CookieOptions) {
-            cookieStore.set(name, value, options)
-          },
-          remove(name: string, options: CookieOptions) {
-            cookieStore.delete({ name, ...options })
+          setAll(cookiesToSet) {
+            try {
+              cookiesToSet.forEach(({ name, value, options }) =>
+                cookieStore.set(name, value, options)
+              )
+            } catch {
+              // Server Component에서 호출 시 무시
+            }
           },
         },
+        cookieEncoding: 'raw',
       }
     )
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+    console.log('[Auth Callback] exchangeCodeForSession result:', {
+      hasSession: !!data?.session,
+      hasUser: !!data?.user,
+      error: error?.message
+    })
     if (!error) {
+      console.log('[Auth Callback] Success! Redirecting to:', `${origin}${next}`)
       return NextResponse.redirect(`${origin}${next}`)
     }
+    console.error('[Auth Callback] Error:', error)
   }
 
   // return the user to an error page with instructions

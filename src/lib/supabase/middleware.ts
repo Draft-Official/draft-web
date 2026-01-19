@@ -51,6 +51,7 @@ export async function updateSession(request: NextRequest) {
     url || PLACEHOLDER_URL,
     anonKey || PLACEHOLDER_KEY,
     {
+
       cookies: {
         getAll() {
           return request.cookies.getAll();
@@ -70,6 +71,7 @@ export async function updateSession(request: NextRequest) {
           );
         },
       },
+      cookieEncoding: 'raw',
     }
   );
 

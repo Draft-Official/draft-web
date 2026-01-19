@@ -1,8 +1,12 @@
 /**
- * Supabase Browser Client
- * 클라이언트 컴포넌트에서 사용하는 Supabase 클라이언트
+ * Supabase Browser Client (통합 버전)
+ *
+ * @supabase/ssr의 createBrowserClient 사용
+ * - OAuth/PKCE 지원
+ * - 쿠키 기반 세션 관리
+ * - 싱글톤 패턴으로 인스턴스 중복 방지
  */
-import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { createBrowserClient } from '@supabase/ssr';
 import type { Database } from '@/shared/types/database.types';
 
 /**
@@ -24,43 +28,54 @@ function getSupabaseAnonKey(): string {
          '';
 }
 
+// 모듈 레벨 싱글톤 (window 대신 모듈 스코프 사용)
+let browserClient: ReturnType<typeof createBrowserClient<Database>> | null = null;
+
 /**
  * 브라우저용 Supabase 클라이언트 생성
- * 매 호출마다 새 인스턴스 생성 (SSR 안전)
+ * 싱글톤 패턴 - 최초 1회만 생성
  */
-export function createClient() {
+function createClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = getSupabaseAnonKey();
 
   if (!url || !anonKey) {
     console.warn(
-      '[Supabase] 환경변수가 설정되지 않았습니다. .env.local 파일을 확인하세요.\n' +
-        'NEXT_PUBLIC_SUPABASE_URL과 NEXT_PUBLIC_SUPABASE_ANON_KEY가 필요합니다.'
+      '[Supabase] 환경변수가 설정되지 않았습니다. .env.local 파일을 확인하세요.'
     );
-    // 개발 환경에서 빈 URL로 진행 (에러 방지)
-    return createSupabaseClient<Database>(
+    return createBrowserClient<Database>(
       'https://placeholder.supabase.co',
       'placeholder-key'
     );
   }
 
-  return createSupabaseClient<Database>(url, anonKey);
+  return createBrowserClient<Database>(url, anonKey, {
+    // Restoring raw encoding as removing it caused hangs
+    cookieEncoding: 'raw', 
+  });
 }
-
-// 클라이언트 사이드 싱글톤
-let browserClient: ReturnType<typeof createClient> | null = null;
 
 /**
  * 브라우저용 Supabase 클라이언트 싱글톤
- * 클라이언트 컴포넌트에서 재사용
+ * 인증 + 데이터 조회 모두 이 클라이언트 사용
  */
 export function getSupabaseBrowserClient() {
   if (typeof window === 'undefined') {
-    throw new Error('getSupabaseBrowserClient는 클라이언트에서만 사용 가능합니다');
+    // 서버 환경에서는 브라우저 클라이언트를 생성하지 않음
+    return null as unknown as ReturnType<typeof createBrowserClient<Database>>;
   }
 
   if (!browserClient) {
+    console.log('[Supabase] Creating unified browser client...');
     browserClient = createClient();
   }
   return browserClient;
+}
+
+/**
+ * 인증용 클라이언트 (하위 호환성)
+ * getSupabaseBrowserClient와 동일한 인스턴스 반환
+ */
+export function getSupabaseAuthClient() {
+  return getSupabaseBrowserClient();
 }

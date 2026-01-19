@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { getSupabaseBrowserClient, getSupabaseAuthClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
@@ -15,7 +15,8 @@ export default function LoginPage() {
 
   const handleKakaoLogin = async () => {
     setIsLoading(true);
-    const supabase = getSupabaseBrowserClient();
+    // OAuth는 PKCE를 지원하는 AuthClient 사용
+    const supabase = getSupabaseAuthClient();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'kakao',
       options: {
