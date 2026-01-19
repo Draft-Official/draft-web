@@ -13,7 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/shared/lib/utils';
 import { Switch } from '@/components/ui/switch';
 import { TimePickerSelect } from '@/components/ui/time-picker-select';
-import ScrollContainer from 'react-indiana-drag-scroll';
+// import ScrollContainer from 'react-indiana-drag-scroll'; // Moved to internal component
+import { DateStrip } from '@/features/match/ui/components/date-strip';
 
 interface LocationData {
   address: string;
@@ -92,26 +93,14 @@ export function MatchCreateBasicInfo({
                 })()}
                 <span className="text-slate-400 text-xs font-normal ml-auto">(2주 이내의 경기만 게시 가능)</span>
             </Label>
-            <ScrollContainer className="w-full overflow-x-auto no-scrollbar -mx-5 px-5 cursor-grab active:cursor-grabbing">
-                <div className="flex gap-2 pb-1">
-                    {calendarDates.map((d) => (
-                        <button
-                            type="button"
-                            key={d.dateISO}
-                            onClick={() => setSelectedDate(d.dateISO)}
-                            className={cn(
-                                "flex flex-col items-center justify-center min-w-[64px] h-[64px] rounded-xl border transition-all active:scale-95 flex-shrink-0",
-                                selectedDate === d.dateISO
-                                    ? "bg-slate-900 border-slate-900 text-white shadow-md"
-                                    : "bg-white border-slate-100 text-slate-400 hover:bg-slate-50"
-                            )}
-                        >
-                            <span className={cn("text-[11px] mb-1 font-medium", selectedDate === d.dateISO ? "text-slate-300" : "text-slate-500")}>{d.dayStr}</span>
-                            <span className="text-lg font-bold leading-none">{d.dayNum}</span>
-                        </button>
-                    ))}
-                </div>
-            </ScrollContainer>
+            <DateStrip
+                dates={calendarDates}
+                selectedDate={selectedDate}
+                onSelect={(date) => date && setSelectedDate(date)}
+                showAllOption={false}
+                className="-mx-5 w-[calc(100%+40px)]" // Negative margin to bleed to edge
+                listClassName="px-5" // Content alignment
+            />
         </div>
 
         {/* Time & Duration */}

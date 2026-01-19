@@ -73,10 +73,18 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
     * **Global Theme:** Primary Color `#FF6600` (Orange)
     * **Layout:** **Mobile-First Fixed Width** (`max-w-[430px]`, `mx-auto`)
 * **Icons:** Lucide React
-* **State Management:** React Hooks + Server State (React Query / Phase 2)
+* **Backend:** Supabase (Auth + PostgreSQL + Storage)
+* **State Management:**
+    * **Server State:** React Query (`@tanstack/react-query`)
+    * **Auth State:** AuthProvider (Context API)
 * **Development Flow:**
     1.  **Figma First:** 피그마로 시각적 구조 확정
     2.  **Agent Coding:** Claude Code를 활용하여 코드 구현
+
+### Architecture Layers
+```
+UI Layer (components) → API Layer (React Query hooks) → Service Layer (Supabase) → Database
+```
 
 → **For detailed tech stack and phases**: See [ARCHITECTURE.md](ARCHITECTURE.md)
 
@@ -143,5 +151,5 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 ---
 
-**Last Updated**: 2026-01-14
+**Last Updated**: 2026-01-15
 **Maintainer**: @beom

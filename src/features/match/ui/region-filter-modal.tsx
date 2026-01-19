@@ -28,11 +28,28 @@ export function RegionFilterModal({ open, onOpenChange, onApply, selectedRegions
     };
 
     const toggleSubRegion = (subRegion: string) => {
-        setTempSelected(prev => 
-            prev.includes(subRegion) 
-                ? prev.filter(r => r !== subRegion)
-                : [...prev, subRegion]
-        );
+        const isAll = subRegion.endsWith('전체');
+        const regionPrefix = subRegion.split(' ')[0]; // e.g., "서울"
+
+        setTempSelected(prev => {
+            // 1. If removing an existing selection, just filter it out
+            if (prev.includes(subRegion)) {
+                return prev.filter(r => r !== subRegion);
+            }
+
+            // 2. If adding "XX 전체" (All)
+            if (isAll) {
+                // Remove any existing specific districts of this region (e.g. remove "서울 강남구" if adding "서울 전체")
+                const withoutSpecifics = prev.filter(r => !r.startsWith(regionPrefix));
+                return [...withoutSpecifics, subRegion];
+            }
+
+            // 3. If adding a specific district (e.g. "서울 강남구")
+            // Remove "XX 전체" if it exists (e.g. remove "서울 전체" if adding "서울 강남구")
+            const allKey = `${regionPrefix} 전체`;
+            const withoutAll = prev.filter(r => r !== allKey);
+            return [...withoutAll, subRegion];
+        });
     };
 
     const clearTempLocations = () => {
@@ -153,7 +170,7 @@ export function RegionFilterModal({ open, onOpenChange, onApply, selectedRegions
                                 <div className="flex gap-2">
                                     {tempSelected.map(loc => (
                                         <div key={loc} className="flex items-center gap-1 bg-slate-100 text-[#FF6600] border border-orange-100 pl-3 pr-2 py-1.5 rounded-lg text-xs font-bold animate-in fade-in zoom-in duration-200 whitespace-nowrap">
-                                            {loc.split(' ')[1] || loc}
+                                            {loc.endsWith('전체') ? loc : (loc.split(' ')[1] || loc)}
                                             <button 
                                                 onClick={(e) => { e.stopPropagation(); removeRegion(loc); }} 
                                                 className="p-0.5 hover:bg-black/5 rounded-full text-slate-400 hover:text-slate-600 outline-none"

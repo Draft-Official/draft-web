@@ -7,12 +7,15 @@ import { Sidebar } from "@/widgets/navigation/ui/sidebar";
 import { BottomNav } from "@/widgets/navigation/ui/bottom-nav";
 import { Header as LayoutHeader } from "@/widgets/header";
 
+
 export const metadata: Metadata = {
   title: "DRAFT | 농구 용병 모집",
   description: "농구 용병 모집 플랫폼",
 };
 
-export default function RootLayout({
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;

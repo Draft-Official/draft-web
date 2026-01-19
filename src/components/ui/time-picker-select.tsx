@@ -104,7 +104,7 @@ export function TimePickerSelect({
           </svg>
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-[280px] p-0" align="start">
+      <PopoverContent className="w-[280px] p-0 bg-white border border-slate-200 shadow-lg z-[100]" align="start">
         {selectedPeriod === null ? (
           // Step 1: Select AM/PM
           <div className="p-2">

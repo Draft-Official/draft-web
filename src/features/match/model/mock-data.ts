@@ -35,15 +35,25 @@ export interface Match {
   facilities?: Record<string, any>; // { parking: 'free', shower: true, equipment: 'provided' }
 
   // Detail Fields typical for Match Create Form
-  gender?: 'men' | 'women' | 'mixed';
+  gender: 'men' | 'women' | 'mixed';
   courtType?: 'indoor' | 'outdoor';
 
   // Guest Detail View Fields
   level?: string; // e.g., "중수 (B) 이상"
-  gameFormat?: string; // e.g., "5vs5"
+  gameFormat: string; // e.g., "5vs5"
   ageRange?: string; // e.g., "20대 ~ 30대"
   totalPlayers?: number; // e.g., 12
   currentPlayers?: number; // e.g., 9
+  // Match Rule Details
+  rule?: {
+    type: '2team' | '3team' | 'lesson' | 'exchange'; // 자채전(2파전), 자채전(3파전), 연습/레슨, 팀 교류전
+    quarterTime: number; // e.g. 10 (minutes)
+    quarterCount: number; // e.g. 4 (quarters per game)
+    fullGames?: number; // e.g. 2 (if applicable)
+    guaranteedQuarters: number; // e.g. 6
+    referee: 'self' | 'guest' | 'pro'; // 자체콜, 게스트/팀원, 전문 심판
+  };
+
   hostName?: string; // e.g., "호스트 김농구"
   hostImage?: string; // Profile image URL
   teamLogo?: string; // Team logo URL
@@ -61,6 +71,7 @@ export const MOCK_MATCHES: Match[] = [
     endTime: '21:00',
     title: '강남구민회관 체육관',
     teamName: '팀 슬램덩크',
+    teamLogo: 'https://api.dicebear.com/7.x/identicon/svg?seed=slamdunk',
     location: '강남구민회관',
     address: '서울 강남구 삼성로 123',
     price: '10,000원',
@@ -73,6 +84,14 @@ export const MOCK_MATCHES: Match[] = [
     ageRange: '20대 ~ 30대',
     totalPlayers: 12,
     currentPlayers: 9,
+    rule: {
+        type: '2team',
+        quarterTime: 10,
+        quarterCount: 4,
+        fullGames: 2,
+        guaranteedQuarters: 6,
+        referee: 'self'
+    },
     hostName: '호스트 김농구',
     hostMessage: '"승부욕보다는 즐겁게 뛰실 분 환영합니다! 거친 플레이는 지양합니다. 서로 매너 지켜요!"',
     cancelPolicy: '참가비는 노쇼 방지용으로 사용됩니다. 신청 이후에 환불은 불가합니다.\n\n단, 취소는 가능합니다.',
@@ -90,11 +109,13 @@ export const MOCK_MATCHES: Match[] = [
     endTime: '22:00',
     title: '반포종합운동장',
     teamName: 'Unknown Ballers',
+    teamLogo: 'https://api.dicebear.com/7.x/identicon/svg?seed=unknown',
     location: '서초구 반포동',
     address: '서울 서초구 반포동 15-2',
     price: '15,000원',
     priceNum: 15000,
     gender: 'men',
+    gameFormat: '5vs5',
     facilities: { parking: 'paid', shower: false },
     courtType: 'outdoor',
     positions: {
@@ -115,6 +136,7 @@ export const MOCK_MATCHES: Match[] = [
     price: '12,000원',
     priceNum: 12000,
     gender: 'mixed',
+    gameFormat: '5vs5',
     facilities: { parking: 'impossible' },
     courtType: 'indoor',
     positions: {
@@ -135,6 +157,7 @@ export const MOCK_MATCHES: Match[] = [
     price: '10,000원',
     priceNum: 10000,
     gender: 'men',
+    gameFormat: '5vs5',
     facilities: { parking: 'free' },
     courtType: 'indoor',
     positions: {
@@ -155,6 +178,7 @@ export const MOCK_MATCHES: Match[] = [
     price: '11,000원',
     priceNum: 11000,
     gender: 'women',
+    gameFormat: '3vs3',
     facilities: { parking: 'paid' },
     courtType: 'outdoor',
     positions: {
@@ -174,6 +198,7 @@ export const MOCK_MATCHES: Match[] = [
     price: '5,000원',
     priceNum: 5000,
     gender: 'mixed',
+    gameFormat: '5vs5',
     facilities: { parking: 'free' },
     courtType: 'indoor',
     positions: {
