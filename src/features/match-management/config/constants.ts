@@ -5,17 +5,15 @@
 
 import type { MatchType, MatchStatus, FilterOption } from '../model/types';
 
-// 경기 타입 필터 옵션 (게스트 모드에서만 사용 - host 제외)
-export const MATCH_TYPE_FILTER_OPTIONS: FilterOption<'all' | Exclude<MatchType, 'host'>>[] = [
-  { value: 'all', label: '전체' },
+// 경기 타입 필터 옵션 (게스트 모드에서만 사용 - host 제외, 중복선택용)
+export const MATCH_TYPE_FILTER_OPTIONS: FilterOption<Exclude<MatchType, 'host'>>[] = [
   { value: 'guest', label: '게스트' },
   { value: 'team', label: '팀운동' },
   { value: 'tournament', label: '대회' },
 ];
 
-// 경기 상태 필터 옵션 (기본 4가지만 표시)
-export const MATCH_STATUS_FILTER_OPTIONS: FilterOption<'all' | 'scheduled' | 'ongoing' | 'ended' | 'cancelled'>[] = [
-  { value: 'all', label: '전체' },
+// 경기 상태 필터 옵션 (기본 4가지만 표시, 중복선택용)
+export const MATCH_STATUS_FILTER_OPTIONS: FilterOption<'scheduled' | 'ongoing' | 'ended' | 'cancelled'>[] = [
   { value: 'scheduled', label: '예정' },
   { value: 'ongoing', label: '진행중' },
   { value: 'ended', label: '종료' },
