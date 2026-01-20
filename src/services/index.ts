@@ -14,6 +14,8 @@
 export { MatchService, createMatchService } from './match';
 export { AuthService, createAuthService } from './auth';
 export { ApplicationService, createApplicationService } from './application';
+export { TeamService, createTeamService } from './team';
+
 
 // Mappers
 // Mappers

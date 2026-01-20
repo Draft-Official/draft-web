@@ -19,9 +19,12 @@ import { MatchCreateFacilities } from './components/match-create-facilities';
 import { MatchCreateRecruitment } from './components/match-create-recruitment';
 import { MatchCreateSpecs } from './components/match-create-specs';
 import { MatchCreateGameFormat } from './components/match-create-game-format';
-import { MatchCreateTeamInfo } from './components/match-create-team-info';
+import { MatchCreateOperations, OperationsData } from './components/match-create-operations';
 import { useCreateMatch } from '@/features/match/api/mutations';
 import { MatchCreateFormData } from '@/features/match/create/model/schema';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { createAuthService } from '@/services/auth';
+import { createTeamService } from '@/services/team';
 
 // Location data type
 interface LocationData {
@@ -95,10 +98,10 @@ export function MatchCreateView() {
   const [showGuaranteed, setShowGuaranteed] = useState(false);
   const [showReferee, setShowReferee] = useState(false);
 
-  // Admin Info
-  const [selectedTeam, setSelectedTeam] = useState("");
-  const [isDirectInput, setIsDirectInput] = useState(false);
-  const [directTeamName, setDirectTeamName] = useState("");
+  // Operations Info (replaces Admin Info)
+  const [operationsData, setOperationsData] = useState<OperationsData | null>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [myTeams, setMyTeams] = useState<any[]>([]);
 
   // Fee Type
   const [feeType, setFeeType] = useState<"cost" | "beverage">("cost");
@@ -114,6 +117,28 @@ export function MatchCreateView() {
       if (!isHidden) {
           setShowTip(true);
       }
+  }, []);
+
+  // Fetch user and teams data
+  useEffect(() => {
+    const fetchUserAndTeams = async () => {
+      const supabase = getSupabaseBrowserClient();
+      const authService = createAuthService(supabase);
+      const teamService = createTeamService(supabase);
+
+      try {
+        const user = await authService.getCurrentProfile();
+        if (user) {
+          setCurrentUser(user);
+          const teams = await teamService.getMyTeams(user.id);
+          setMyTeams(teams);
+        }
+      } catch (error) {
+        console.error('Failed to fetch user/teams:', error);
+      }
+    };
+
+    fetchUserAndTeams();
   }, []);
 
   const handleDismissTip = () => {
@@ -426,7 +451,7 @@ export function MatchCreateView() {
   // Mutation
   const { mutate: createMatch, isPending } = useCreateMatch();
 
-  const onSubmit = (data: any) => {
+  const onSubmit = async (data: any) => {
     if (!selectedDate) {
         toast.error("날짜를 선택해주세요.");
         return;
@@ -537,7 +562,68 @@ export function MatchCreateView() {
     console.log("Submitting Match:", payload);
     
     createMatch(payload, {
-        onSuccess: () => {
+        onSuccess: async () => {
+            // Save defaults if checkboxes were checked
+            if (operationsData && currentUser) {
+              const supabase = getSupabaseBrowserClient();
+              const authService = createAuthService(supabase);
+              const teamService = createTeamService(supabase);
+
+              try {
+                // Save all defaults if checkbox was checked
+                if (operationsData.saveAsDefault) {
+                  // Save to user or team based on selectedHost
+                  if (operationsData.selectedHost === 'me') {
+                    // Save all user defaults
+                    await authService.updateOperationsDefaults(currentUser.id, {
+                      default_account_bank: operationsData.accountInfo.bank,
+                      default_account_number: operationsData.accountInfo.number,
+                      default_account_holder: operationsData.accountInfo.holder,
+                      default_contact_type: operationsData.contactInfo.type,
+                      kakao_open_chat_url: operationsData.contactInfo.type === 'KAKAO_OPEN_CHAT' 
+                        ? operationsData.contactInfo.content 
+                        : null,
+                      default_host_notice: operationsData.hostNotice,
+                    });
+                    
+                    // Update phone if contact type is PHONE
+                    if (operationsData.contactInfo.type === 'PHONE') {
+                      await authService.updateProfile(currentUser.id, {
+                        phone: operationsData.contactInfo.content,
+                      });
+                    }
+                  } else {
+                    // Save team defaults
+                    await teamService.updateTeamDefaults(operationsData.selectedHost, {
+                      account_bank: operationsData.accountInfo.bank,
+                      account_number: operationsData.accountInfo.number,
+                      account_holder: operationsData.accountInfo.holder,
+                      host_notice: operationsData.hostNotice,
+                    });
+                    
+                    // Contact info is always saved to user
+                    await authService.updateOperationsDefaults(currentUser.id, {
+                      default_contact_type: operationsData.contactInfo.type,
+                      kakao_open_chat_url: operationsData.contactInfo.type === 'KAKAO_OPEN_CHAT' 
+                        ? operationsData.contactInfo.content 
+                        : null,
+                    });
+                    
+                    if (operationsData.contactInfo.type === 'PHONE') {
+                      await authService.updateProfile(currentUser.id, {
+                        phone: operationsData.contactInfo.content,
+                      });
+                    }
+                  }
+                }
+
+                console.log('✅ Defaults saved successfully');
+              } catch (saveError) {
+                console.error('Failed to save defaults:', saveError);
+                // Don't block navigation on save failure
+              }
+            }
+
             router.push('/');
         },
         onError: (err) => {
@@ -590,18 +676,6 @@ export function MatchCreateView() {
                     >
                     <RefreshCw className="w-4 h-4 text-[#FF6600]" />
                     이전 경기
-                    </button>
-                    <button
-                    type="button"
-                    onClick={() => {
-                        setSelectedTeam("team_slamdunk");
-                        fillMockData();
-                        setShowLoadMenu(false);
-                    }}
-                    className="w-full px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2 border-t border-slate-100"
-                    >
-                    <Users className="w-4 h-4 text-slate-600" />
-                    팀 이전 운영
                     </button>
                 </div>
                 )}
@@ -694,11 +768,11 @@ export function MatchCreateView() {
                 showReferee={showReferee} setShowReferee={setShowReferee}
             />
 
-            {/* SECTION 5: Admin Info */}
-            <MatchCreateTeamInfo 
-                selectedTeam={selectedTeam} setSelectedTeam={setSelectedTeam}
-                isDirectInput={isDirectInput} setIsDirectInput={setIsDirectInput}
-                directTeamName={directTeamName} setDirectTeamName={setDirectTeamName}
+            {/* SECTION 5: Operations Info */}
+            <MatchCreateOperations
+                user={currentUser}
+                teams={myTeams}
+                onDataChange={setOperationsData}
             />
 
             {/* Submit Button - inside form */}
