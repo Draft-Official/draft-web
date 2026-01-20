@@ -117,13 +117,15 @@ export class ApplicationService {
   async createApplicationV2(
     matchId: string,
     userId: string,
-    participantsInfo: ParticipantInfo[]
+    participantsInfo: ParticipantInfo[],
+    teamId?: string | null
   ): Promise<Application> {
     const { data, error } = await this.supabase
       .from('applications')
       .insert({
         match_id: matchId,
         user_id: userId,
+        team_id: teamId || null,
         participants_info: participantsInfo,
         status: 'PENDING',
       })

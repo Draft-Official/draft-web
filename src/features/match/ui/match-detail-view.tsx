@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Share2, MoreVertical } from 'lucide-react';
 import { HeroSection } from './components/detail/hero-section';
@@ -11,6 +11,8 @@ import { FacilitySection } from './components/detail/facility-section';
 import { HostSection } from './components/detail/host-section';
 import { MatchDetailBottomBar } from './components/detail/bottom-bar';
 import { Match } from '@/features/match/model/mock-data';
+import { ApplyModal } from '@/features/application/ui/ApplyModal';
+import { useAuth } from '@/features/auth/model/auth-context';
 
 interface MatchDetailViewProps {
   match: Match;
@@ -18,6 +20,16 @@ interface MatchDetailViewProps {
 
 export function MatchDetailView({ match }: MatchDetailViewProps) {
   const router = useRouter();
+  const { isAuthenticated } = useAuth();
+  const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
+
+  const handleApplyClick = () => {
+    if (!isAuthenticated) {
+      router.push('/login');
+      return;
+    }
+    setIsApplyModalOpen(true);
+  };
 
   return (
     <div className="min-h-screen bg-white relative pb-[100px] max-w-[760px] mx-auto shadow-2xl shadow-slate-200">
@@ -67,9 +79,18 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
       </main>
 
       {/* 3. Bottom Bar */}
-      <MatchDetailBottomBar 
-        match={match} 
-        onApply={() => alert('신청하기 (Todo)')}
+      <MatchDetailBottomBar
+        match={match}
+        onApply={handleApplyClick}
+      />
+
+      {/* 4. Apply Modal */}
+      <ApplyModal
+        open={isApplyModalOpen}
+        onOpenChange={setIsApplyModalOpen}
+        matchId={match.id}
+        matchTitle={match.title}
+        costAmount={match.priceNum}
       />
     </div>
   );
