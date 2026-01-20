@@ -167,7 +167,7 @@ export function toMatchInsertDataV3(
   };
 
   const matchOptions: MatchOptions = {
-    play_style: gameFormatMap[form.gameFormat],
+    play_style: form.gameFormat ? gameFormatMap[form.gameFormat] : undefined,
     quarter_rule: {
       minutes_per_quarter: rules.quarterTime || 10,
       quarter_count: rules.quarterCount || 4,
@@ -176,11 +176,6 @@ export function toMatchInsertDataV3(
     guaranteed_quarters: rules.guaranteedQuarters,
     referee_type: rules.referee ? refereeMap[rules.referee] : undefined,
     supplies: undefined, // form doesn't seem to have supplies text field distinct from facilities?
-    
-    // Additional booleans from facilities
-    ball_provided: form.facilities?.ball,
-    // vest_provided: form.facilities?.vest, // Schema doesn't have vest?
-    shower_available: form.facilities?.shower ?? false, // boolean으로 변경
   };
 
   // F. Team & Host

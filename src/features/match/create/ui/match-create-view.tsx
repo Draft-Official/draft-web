@@ -71,9 +71,9 @@ export function MatchCreateView() {
 
   // Match Specs
   const [matchType, setMatchType] = useState("5vs5");
-  const [gender, setGender] = useState("male");
+  const [gender, setGender] = useState("men");
   const [level, setLevel] = useState(4); // 4 = Middle 2 (Default)
-  const [selectedAges, setSelectedAges] = useState<string[]>([]);
+  const [selectedAges, setSelectedAges] = useState<string[]>(['any']);
   const [hasShoes, setHasShoes] = useState(true);
   const [hasJersey, setHasJersey] = useState(true);
 
@@ -480,18 +480,18 @@ export function MatchCreateView() {
         // Specs 
         // Note: Flattening specs as per schema definition
         matchType: matchType as any, // 5vs5, 3vs3
-        gameFormat: gameFormatType as any, // internal_2, etc
+        gameFormat: showGameFormatType ? (gameFormatType as any) : undefined,
         level: level,
         gender: gender as any,
         ageRange: selectedAges.length > 0 ? { min: 20, max: 40 } : undefined, // Simplification for MVP
         
         // Detailed Rules
         rules: {
-            quarterTime: Number(ruleMinutes),
-            quarterCount: Number(ruleQuarters),
-            fullGames: Number(ruleGames),
-            guaranteedQuarters: Number(guaranteedQuarters),
-            referee: refereeType as 'self' | 'member' | 'pro' | undefined
+            quarterTime: showRules ? Number(ruleMinutes) : undefined,
+            quarterCount: showRules ? Number(ruleQuarters) : undefined,
+            fullGames: showRules ? Number(ruleGames) : undefined,
+            guaranteedQuarters: showGuaranteed ? Number(guaranteedQuarters) : undefined,
+            referee: showReferee ? (refereeType as 'self' | 'member' | 'pro') : undefined
         },
 
         facilities: {

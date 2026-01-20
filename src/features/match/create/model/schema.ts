@@ -92,9 +92,9 @@ export const matchCreateSchema = z.object({
 
   // Game Format
   // gameFormat: internal_2, exchange, etc.
-  gameFormat: z.enum(['internal_2', 'internal_3', 'exchange', 'practice'], {
+  gameFormat: z.enum(['internal_2', 'internal_3', 'exchange'], {
     message: '경기 방식을 선택하세요',
-  }),
+  }).optional(),
 
   // Optional detailed rules (gameFormat은 별도 필드로 관리, rules에 저장 시 포함)
   rules: z.object({
