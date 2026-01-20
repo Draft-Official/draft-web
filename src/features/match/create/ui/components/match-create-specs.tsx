@@ -98,12 +98,6 @@ export function MatchCreateSpecs({
                 </div>
             </div>
 
-            {/* Level Slider */}
-            <div className="space-y-3">
-                <Label className="text-sm font-bold text-slate-600">권장 실력</Label>
-                <SkillSlider value={level} onChange={setLevel} />
-            </div>
-
             {/* Age */}
             <div className="space-y-2">
                 <Label className="text-sm font-bold text-slate-600">권장 나이</Label>
@@ -112,6 +106,12 @@ export function MatchCreateSpecs({
                     onSelect={handleAgeSelection}
                     onRangeUpdate={handleAgeRangeUpdate}
                 />
+            </div>
+
+            {/* Level Slider */}
+            <div className="space-y-3">
+                <Label className="text-sm font-bold text-slate-600">권장 실력</Label>
+                <SkillSlider value={level} onChange={setLevel} />
             </div>
         </div>
     </section>
