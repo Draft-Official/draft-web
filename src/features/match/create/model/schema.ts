@@ -37,7 +37,7 @@ export const facilitiesSchema = z.object({
   parkingDetail: z.string().optional(), // 주차 상세 (예: "3시간 무료")
   water: z.boolean().default(false),    // 정수기
   acHeat: z.boolean().default(false),   // 냉난방
-  shower: z.enum(['none', 'free', 'paid']).default('none'),
+  shower: z.boolean().default(false),     // 샤워실
   courtSize: z.enum(['regular', 'short', 'narrow']).default('regular'), // UI 값으로 변경
   ball: z.boolean().default(false),     // 농구공 제공
   beverage: z.boolean().default(false), // 음료 제공

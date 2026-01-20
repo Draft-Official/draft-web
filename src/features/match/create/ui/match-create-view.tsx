@@ -31,6 +31,7 @@ interface LocationData {
   placeUrl?: string; // Kakao Map URL
   x?: string; // Longitude
   y?: string; // Latitude
+  kakaoPlaceId?: string; // 카카오 place_id (Gym 중복 방지)
 }
 
 // --- Helpers ---
@@ -65,7 +66,7 @@ export function MatchCreateView() {
   const [hasAcHeat, setHasAcHeat] = useState(false);
   const [hasBall, setHasBall] = useState(false); // 공 (웜업볼)
   const [hasBeverage, setHasBeverage] = useState(false); // 음료수
-  const [showerOption, setShowerOption] = useState("unavailable");
+  const [hasShower, setHasShower] = useState(false);
   const [courtSize, setCourtSize] = useState("");
 
   // Match Specs
@@ -122,7 +123,6 @@ export function MatchCreateView() {
 
   // Facilities Dialogs
   const [showParkingDialog, setShowParkingDialog] = useState(false);
-  const [showShowerDialog, setShowShowerDialog] = useState(false);
   const [showCourtSizeDialog, setShowCourtSizeDialog] = useState(false);
 
   // Location - Kakao Map Integration
@@ -130,7 +130,10 @@ export function MatchCreateView() {
   const [locationData, setLocationData] = useState<LocationData | null>(null);
   const [locationSearchResults, setLocationSearchResults] = useState<LocationData[]>([]);
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
-  const locationInputRef = useRef<HTMLInputElement>(null); 
+  const locationInputRef = useRef<HTMLInputElement>(null);
+
+  // Gym 프리필 상태
+  const [isExistingGym, setIsExistingGym] = useState(false); 
   
   const calendarDates = useMemo(() => getNext14Days(), []);
 
@@ -170,7 +173,8 @@ export function MatchCreateView() {
             bname: place.address_name.split(' ')[2],
             placeUrl: place.place_url,
             x: place.x,
-            y: place.y
+            y: place.y,
+            kakaoPlaceId: place.id,
         }));
 
         setLocationSearchResults(mappedResults);
@@ -178,14 +182,94 @@ export function MatchCreateView() {
       } catch (e) {
         console.error("Search error", e);
       }
-    }, 300);
+    }, 200);
+  };
+
+  // 시설 정보 초기화
+  const resetFacilities = () => {
+    setHasBall(false);
+    setHasWater(false);
+    setHasAcHeat(false);
+    setHasShower(false);
+    setParkingCost("");
+    setParkingDetail("");
+    setCourtSize("");
+  };
+
+  // 시설 정보 프리필 (빈 값 대비: ?? 연산자 사용)
+  const prefillFacilities = (facilities: any) => {
+    if (!facilities) {
+      resetFacilities();
+      return;
+    }
+
+    setHasBall(facilities.ball ?? false);
+    setHasWater(facilities.water_purifier ?? false);
+    setHasAcHeat(facilities.air_conditioner ?? false);
+    setHasShower(facilities.shower ?? false);
+
+    // parking 처리
+    if (facilities.parking) {
+      setParkingCost(facilities.parking_fee ?? "0");
+    } else {
+      setParkingCost("");
+    }
+    setParkingDetail(facilities.parking_location ?? "");
+
+    // court_size_type 처리
+    if (facilities.court_size_type) {
+      const sizeMap: Record<string, string> = {
+        'REGULAR': 'regular',
+        'SHORT': 'short',
+        'NARROW': 'narrow'
+      };
+      setCourtSize(sizeMap[facilities.court_size_type] ?? "");
+    } else {
+      setCourtSize("");
+    }
   };
 
   // Handle location selection
-  const handleLocationSelect = (data: LocationData) => {
+  const handleLocationSelect = async (data: LocationData) => {
     setLocationData(data);
     setLocation(formatLocation(data));
     setShowLocationDropdown(false);
+
+    // Gym 조회 및 프리필
+    if (data.kakaoPlaceId) {
+      try {
+        const { lookupGymByKakaoPlaceId } = await import('@/shared/api/gym');
+        const existingGym = await lookupGymByKakaoPlaceId(data.kakaoPlaceId);
+
+        if (existingGym) {
+          setIsExistingGym(true);
+          prefillFacilities(existingGym.facilities);
+        } else {
+          setIsExistingGym(false);
+          resetFacilities();
+        }
+      } catch (error) {
+        console.error('Gym lookup error:', error);
+        setIsExistingGym(false);
+        resetFacilities();
+      }
+    } else {
+      setIsExistingGym(false);
+      resetFacilities();
+    }
+  };
+
+  // 장소 선택 해제
+  const handleClearLocation = () => {
+    setLocationData(null);
+    setLocation("");
+    
+    // 기존 Gym 데이터였던 경우에만 시설 정보 초기화
+    if (isExistingGym) {
+      resetFacilities();
+    }
+    
+    setIsExistingGym(false);
   };
 
   // Open Kakao Map
@@ -314,7 +398,7 @@ export function MatchCreateView() {
     setParkingCost("0");
     setHasWater(true);
     setHasAcHeat(true);
-    setShowerOption("free");
+    setHasShower(true);
     setCourtSize("regular");
 
     // Recruitment
@@ -415,7 +499,7 @@ export function MatchCreateView() {
             parkingDetail: parkingDetail || undefined,
             water: hasWater,
             acHeat: hasAcHeat,
-            shower: showerOption as 'none' | 'free' | 'paid',
+            shower: hasShower,
             courtSize: courtSize as 'regular' | 'short' | 'narrow',
             ball: hasBall,
             beverage: hasBeverage,
@@ -560,6 +644,8 @@ export function MatchCreateView() {
                 setFeeType={setFeeType}
                 hasBeverage={hasBeverage}
                 setHasBeverage={setHasBeverage}
+                isExistingGym={isExistingGym}
+                onClearLocation={handleClearLocation}
             >
                 <MatchCreateFacilities
                     hasWater={hasWater} setHasWater={setHasWater}
@@ -567,11 +653,11 @@ export function MatchCreateView() {
                     hasBall={hasBall} setHasBall={setHasBall}
                     parkingCost={parkingCost} setParkingCost={setParkingCost}
                     parkingDetail={parkingDetail} setParkingDetail={setParkingDetail}
-                    showerOption={showerOption} setShowerOption={setShowerOption}
+                    hasShower={hasShower} setHasShower={setHasShower}
                     courtSize={courtSize} setCourtSize={setCourtSize}
                     showParkingDialog={showParkingDialog} setShowParkingDialog={setShowParkingDialog}
-                    showShowerDialog={showShowerDialog} setShowShowerDialog={setShowShowerDialog}
                     showCourtSizeDialog={showCourtSizeDialog} setShowCourtSizeDialog={setShowCourtSizeDialog}
+                    isExistingGym={isExistingGym}
                 />
             </MatchCreateBasicInfo>
 

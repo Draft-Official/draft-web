@@ -30,41 +30,85 @@ export class GymService {
    * @param gymData - 체육관 정보
    * @returns gym_id
    */
-  async findOrCreateGym(gymData: GymData): Promise<string> {
-    console.log('[GymService.findOrCreateGym] Starting with:', gymData);
+  /**
+   * 체육관 Upsert (Latest Wins Strategy)
+   * 
+   * 1. kakao_place_id로 검색
+   * 2. 있으면: facilities 병합 업데이트 (Latest Wins)
+   * 3. 없으면: name + address로 검색 (fallback)
+   * 4. 있으면: facilities 병합 업데이트 & kakao_place_id 업데이트
+   * 5. 없으면: 신규 생성
+   */
+  async upsertGym(gymData: GymData): Promise<string> {
+    console.log('[GymService.upsertGym] Starting with:', gymData);
+
     try {
-      // 1. 카카오 place_id로 먼저 검색 (가장 정확)
+      // 1. kakao_place_id로 검색
       if (gymData.kakaoPlaceId) {
-        console.log('[GymService] Searching by kakaoPlaceId:', gymData.kakaoPlaceId);
-        const { data: existingByKakao, error: kakaoError } = await this.supabase
+        const { data: existingGym, error: lookupError } = await this.supabase
           .from('gyms')
-          .select('id')
+          .select('id, facilities')
           .eq('kakao_place_id', gymData.kakaoPlaceId)
           .single();
-        console.log('[GymService] Kakao search result:', existingByKakao, 'error:', kakaoError);
 
-        if (!kakaoError && existingByKakao) {
-          return existingByKakao.id;
+        if (!lookupError && existingGym) {
+          console.log('[GymService] Found existing gym:', existingGym.id);
+
+          // Latest Wins: facilities 병합 (빈 필드는 기존 값 유지)
+          if (gymData.facilities && Object.keys(gymData.facilities).length > 0) {
+            const mergedFacilities = {
+              ...(existingGym.facilities as any || {}),
+              ...gymData.facilities,
+            };
+
+            await this.supabase
+              .from('gyms')
+              .update({
+                facilities: mergedFacilities,
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', existingGym.id);
+
+            console.log('[GymService] Facilities updated');
+          }
+
+          return existingGym.id;
         }
       }
 
-      // 2. 이름 + 주소로 검색 (fallback)
-      // 이름은 필수, 주소도 필수이므로 둘 다 사용하여 검색
-      console.log('[GymService] Searching by name + address:', gymData.name, gymData.address);
-      const { data: existingByName, error: nameError } = await this.supabase
+      // 2. name + address fallback
+      const { data: existingByName } = await this.supabase
         .from('gyms')
-        .select('id')
+        .select('id, facilities')
         .eq('name', gymData.name)
         .eq('address', gymData.address)
         .maybeSingle();
-      console.log('[GymService] Name search result:', existingByName, 'error:', nameError);
 
-      if (!nameError && existingByName) {
-        console.log('[GymService] Found existing gym by name:', existingByName.id);
+      if (existingByName) {
+        console.log('[GymService] Found by name+address:', existingByName.id);
+
+        const updateData: any = { updated_at: new Date().toISOString() };
+
+        if (gymData.facilities && Object.keys(gymData.facilities).length > 0) {
+          updateData.facilities = {
+            ...(existingByName.facilities as any || {}),
+            ...gymData.facilities,
+          };
+        }
+
+        if (gymData.kakaoPlaceId) {
+          updateData.kakao_place_id = gymData.kakaoPlaceId;
+        }
+
+        await this.supabase
+          .from('gyms')
+          .update(updateData)
+          .eq('id', existingByName.id);
+
         return existingByName.id;
       }
 
-      // 3. 없으면 새로 생성
+      // 3. INSERT
       console.log('[GymService] Creating new gym...');
       const insertData: GymInsert = {
         name: gymData.name,
@@ -74,7 +118,6 @@ export class GymService {
         kakao_place_id: gymData.kakaoPlaceId,
         facilities: gymData.facilities || {},
       };
-      console.log('[GymService] Insert data:', insertData);
 
       const { data: newGym, error: insertError } = await this.supabase
         .from('gyms')
@@ -82,17 +125,13 @@ export class GymService {
         .select('id')
         .single();
 
-      console.log('[GymService] Insert result:', newGym, 'error:', insertError);
-
-      if (insertError) {
-        console.error('[GymService] Insert error:', insertError);
-        throw insertError;
-      }
+      if (insertError) throw insertError;
 
       console.log('[GymService] Created new gym:', newGym.id);
       return newGym.id;
+
     } catch (error) {
-      console.error('[GymService] Unexpected error:', error);
+      console.error('[GymService] Error:', error);
       throw error;
     }
   }

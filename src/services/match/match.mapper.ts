@@ -18,32 +18,48 @@ import { MatchCreateFormData } from '@/features/match/create/model/schema';
 // ==============================================
 export function extractGymDataV3(form: MatchCreateFormData): GymInsert {
   const formFacilities = form.facilities;
-  
-  // Parking logic map
-  const parkingFeeText = formFacilities?.parking === '0' ? '무료' : formFacilities?.parking;
-  // If parking is empty string or undefined, assume no parking provided explicitly or 'unavailable'?
-  // Facilities schema says: parking is optional string.
-  // We map it to GymFacilities.
-  const isParking = !!formFacilities?.parking;
 
-  const facilities: GymFacilities = {
-    ball: formFacilities?.ball,
-    // water/acHeat in schema are booleans
-    water_purifier: formFacilities?.water,
-    air_conditioner: formFacilities?.acHeat,
-    shower: formFacilities?.shower !== 'none',
-    parking: isParking,
-    parking_fee: isParking ? parkingFeeText : undefined,
-    parking_location: formFacilities?.parkingDetail, // parkingDetail -> parking_location
-    court_size_type: formFacilities?.courtSize === 'regular' ? 'REGULAR' : formFacilities?.courtSize === 'short' ? 'SHORT' : 'NARROW', // Map string to enum
-  };
+  // 빈 값이면 필드 자체를 제외 (undefined)
+  const facilities: GymFacilities = {};
+
+  // 값이 있을 때만 추가
+  if (formFacilities?.ball !== undefined) {
+    facilities.ball = formFacilities.ball;
+  }
+  if (formFacilities?.water !== undefined) {
+    facilities.water_purifier = formFacilities.water;
+  }
+  if (formFacilities?.acHeat !== undefined) {
+    facilities.air_conditioner = formFacilities.acHeat;
+  }
+  if (formFacilities?.shower !== undefined) {
+    facilities.shower = formFacilities.shower; // boolean으로 단순화
+  }
+
+  // parking 처리: 빈 문자열이 아닐 때만
+  if (formFacilities?.parking) {
+    facilities.parking = true;
+    facilities.parking_fee = formFacilities.parking === '0' ? '무료' : formFacilities.parking;
+    if (formFacilities.parkingDetail) {
+      facilities.parking_location = formFacilities.parkingDetail;
+    }
+  }
+
+  // court_size_type 처리: 빈 문자열이 아닐 때만
+  if (formFacilities?.courtSize) {
+    const sizeMap: Record<string, 'REGULAR' | 'SHORT' | 'NARROW'> = {
+      'regular': 'REGULAR',
+      'short': 'SHORT',
+      'narrow': 'NARROW'
+    };
+    facilities.court_size_type = sizeMap[formFacilities.courtSize];
+  }
 
   return {
     name: form.location.name,
     address: form.location.address,
     latitude: form.location.latitude,
     longitude: form.location.longitude,
-    // kakaoPlaceId in location schema
     kakao_place_id: form.location.kakaoPlaceId || null,
     facilities,
   };
@@ -164,7 +180,7 @@ export function toMatchInsertDataV3(
     // Additional booleans from facilities
     ball_provided: form.facilities?.ball,
     // vest_provided: form.facilities?.vest, // Schema doesn't have vest?
-    shower_available: form.facilities?.shower !== 'none',
+    shower_available: form.facilities?.shower ?? false, // boolean으로 변경
   };
 
   // F. Team & Host

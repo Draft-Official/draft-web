@@ -27,10 +27,9 @@ export class MatchService {
     const gymData = extractGymDataV3(form);
     console.log('[createMatchV3] gymData:', gymData);
 
-    // Gym 생성 또는 조회 (이름/위치 기반)
-    // GymService.findOrCreateGym 반환값은 gym_id (string) 입니다.
-    console.log('[createMatchV3] Calling findOrCreateGym...');
-    const gymId = await gymService.findOrCreateGym(gymData);
+    // Gym 생성 또는 조회 (Upsert + Latest Wins)
+    console.log('[createMatchV3] Calling upsertGym...');
+    const gymId = await gymService.upsertGym(gymData);
     console.log('[createMatchV3] gymId:', gymId);
 
     // 2. Match Data 매핑 (gymId 전달)

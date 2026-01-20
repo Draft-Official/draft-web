@@ -38,11 +38,6 @@ export const REFEREE_OPTIONS = [
   { value: 'pro', label: '전문 심판' }
 ] as const;
 
-export const SHOWER_OPTIONS = [
-  { value: 'free', label: '무료' },
-  { value: 'paid', label: '유료' }
-] as const;
-
 export const COURT_SIZE_OPTIONS = [
   { value: 'regular', label: '정규 사이즈', description: '표준 코트입니다' },
   { value: 'short', label: '세로가 좀 짧아요', description: '정규보다 짧습니다' },

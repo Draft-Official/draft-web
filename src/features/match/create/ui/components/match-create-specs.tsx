@@ -51,7 +51,7 @@ export function MatchCreateSpecs({
                         <Chip
                             key={type.value}
                             label={type.label}
-                            variant="slate"
+                            variant="orange"
                             isActive={matchType === type.value}
                             showCheckIcon={false}
                             onClick={() => setMatchType(type.value)}
@@ -68,7 +68,7 @@ export function MatchCreateSpecs({
                         <Chip
                             key={g.value}
                             label={g.label}
-                            variant="slate"
+                            variant="orange"
                             isActive={gender === g.value}
                             showCheckIcon={false}
                             onClick={() => setGender(g.value)}
@@ -83,14 +83,14 @@ export function MatchCreateSpecs({
                 <div className="flex gap-2">
                     <Chip
                         label="실내 농구화"
-                        variant="slate"
+                        variant="orange"
                         isActive={hasShoes}
                         showCheckIcon={false}
                         onClick={() => setHasShoes(!hasShoes)}
                     />
                     <Chip
                         label="흰색/검은색 상의"
-                        variant="slate"
+                        variant="orange"
                         isActive={hasJersey}
                         showCheckIcon={false}
                         onClick={() => setHasJersey(!hasJersey)}
