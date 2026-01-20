@@ -48,7 +48,7 @@ export const ageRangeSchema = z.object({
   min: z.number().min(10, '최소 연령은 10세 이상이어야 합니다').max(99),
   max: z.number().min(10).max(99, '최대 연령은 99세 이하여야 합니다'),
 }).refine(
-  (data) => data.max >= data.min,
+  (data: { min: number; max: number }) => data.max >= data.min,
   {
     message: '최대 연령은 최소 연령보다 크거나 같아야 합니다',
     path: ['max'],
@@ -148,7 +148,7 @@ export const matchCreateSchema = z.object({
   selectedTeamId: z.string().optional().nullable(),
   manualTeamName: z.string().optional(), // 팀 미선택 시 직접 입력 (혹은 비워두면 '개인 주최')
 }).refine(
-  (data) => {
+  (data: any) => {
     // Validate that end time is after start time
     const [startHour, startMin] = data.startTime.split(':').map(Number);
     const [endHour, endMin] = data.endTime.split(':').map(Number);
@@ -161,7 +161,7 @@ export const matchCreateSchema = z.object({
     path: ['endTime'],
   }
 ).refine(
-  (data) => {
+  (data: any) => {
     // Validate position recruitment totals
     if (data.recruitment.type === 'position') {
       const total = data.recruitment.guard + data.recruitment.forward + data.recruitment.center;
