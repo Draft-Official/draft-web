@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { CreditCard, LogOut, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -8,34 +8,76 @@ import { ProfileCard } from '@/features/my/ui/ProfileCard';
 import { ProfileSetupModal } from '@/features/my/ui/ProfileSetupModal';
 import { ProfileData } from '@/features/my/model/types';
 import { useAuth } from '@/features/auth/model/auth-context';
+import { useUpdateProfile } from '@/features/auth/api/mutations';
 import { useRouter } from 'next/navigation';
+import type { Profile, UserUpdate, UserMetadata } from '@/shared/types/database.types';
+
+// 포지션 매핑: UI ↔ DB
+const POSITION_MAP: Record<string, string> = {
+  '가드': 'G',
+  '포워드': 'F',
+  '센터': 'C',
+};
+const POSITION_MAP_REVERSE: Record<string, string> = {
+  'G': '가드',
+  'F': '포워드',
+  'C': '센터',
+};
+
+// DB Profile → UI ProfileData 변환
+function profileToFormData(dbProfile: Profile | null): ProfileData | null {
+  if (!dbProfile) return null;
+
+  const metadata = dbProfile.metadata as UserMetadata & { age?: number; skill_level?: number };
+  const position = dbProfile.positions?.[0];
+
+  return {
+    height: metadata?.height?.toString() || '',
+    age: metadata?.age?.toString() || '',
+    weight: metadata?.weight?.toString() || '',
+    position: position ? (POSITION_MAP_REVERSE[position] || '') : '',
+    skillLevel: metadata?.skill_level || 1,
+    team: '', // TODO: 팀 정보는 team_members 테이블에서 가져와야 함
+  };
+}
+
+// UI ProfileData → DB UserUpdate 변환
+function formDataToUpdate(formData: ProfileData): UserUpdate {
+  const positionCode = POSITION_MAP[formData.position];
+
+  return {
+    positions: positionCode ? [positionCode] : null,
+    metadata: {
+      height: formData.height ? parseInt(formData.height, 10) : undefined,
+      age: formData.age ? parseInt(formData.age, 10) : undefined,
+      weight: formData.weight ? parseInt(formData.weight, 10) : undefined,
+      skill_level: formData.skillLevel,
+    },
+  };
+}
 
 export default function MyPage() {
-  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const { user, profile: dbProfile, refreshProfile, isLoading: authLoading } = useAuth();
+  const updateProfileMutation = useUpdateProfile();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Load profile from localStorage on mount
-  useEffect(() => {
-    const savedProfile = localStorage.getItem('userProfile');
-    const profileCompleted = localStorage.getItem('profileCompleted');
-    const profileSkipped = localStorage.getItem('profileSkipped');
+  // DB 프로필을 UI용 ProfileData로 변환
+  const profile = useMemo(() => profileToFormData(dbProfile), [dbProfile]);
 
-    if (savedProfile) {
-      try {
-        setProfile(JSON.parse(savedProfile));
-      } catch (e) {
-        console.error('Failed to parse profile:', e);
-      }
-    } else if (!profileCompleted && !profileSkipped) {
-      // 최초 로그인: 프로필이 없고, 완료/스킵한 적 없으면 모달 자동 오픈
-      setIsModalOpen(true);
+
+  const handleProfileComplete = async (data: ProfileData) => {
+    if (!user) {
+      console.error('User not logged in');
+      return;
     }
-  }, []);
 
-  const handleProfileComplete = (data: ProfileData) => {
-    setProfile(data);
-    localStorage.setItem('userProfile', JSON.stringify(data));
-    localStorage.setItem('profileCompleted', 'true');
+    try {
+      const updates = formDataToUpdate(data);
+      await updateProfileMutation.mutateAsync({ userId: user.id, updates });
+      await refreshProfile();
+    } catch (error) {
+      console.error('Failed to save profile:', error);
+    }
   };
 
   const handleEditClick = () => {
@@ -45,12 +87,13 @@ export default function MyPage() {
   const { signOut } = useAuth();
   const router = useRouter();
 
+  // 사용자 이름과 이니셜
+  const userName = dbProfile?.nickname || dbProfile?.real_name || user?.email?.split('@')[0] || '사용자';
+  const userInitials = userName.slice(0, 2);
+
   const handleLogout = async () => {
     try {
       await signOut();
-      // Clear local mock data if needed
-      localStorage.removeItem('userProfile');
-      localStorage.removeItem('profileCompleted'); 
       localStorage.removeItem('profileSkipped');
       router.push('/');
     } catch (error) {
@@ -60,16 +103,19 @@ export default function MyPage() {
 
   return (
     <div className="bg-background min-h-full p-4 space-y-6 pb-24">
+      <h1 className="text-2xl font-bold text-foreground">내 프로필</h1>
+
       <ProfileCard
         profile={profile}
-        userName="김농구"
-        userInitials="김농"
+        userName={userName}
+        userInitials={userInitials}
         teamName={profile?.team}
+        isAuthenticated={!!user}
         onEditClick={handleEditClick}
       />
 
       <div className="space-y-4">
-        <h2 className="font-bold text-lg text-foreground">내 정보</h2>
+        <h2 className="font-bold text-lg text-foreground">설정</h2>
 
         <Card className="p-0 overflow-hidden border-border">
           <div className="divide-y divide-border">
@@ -79,19 +125,21 @@ export default function MyPage() {
             </Button>
             <Button variant="ghost" className="w-full justify-start p-4 h-auto rounded-none font-normal">
               <Settings className="mr-3 h-5 w-5 text-muted-foreground" />
-              설정
+              일반
             </Button>
           </div>
         </Card>
 
-        <Button 
-          variant="outline" 
-          className="w-full justify-start p-4 h-auto text-destructive hover:text-destructive hover:bg-destructive/10"
-          onClick={handleLogout}
-        >
-          <LogOut className="mr-3 h-5 w-5" />
-          로그아웃
-        </Button>
+        {user && (
+          <Button
+            variant="outline"
+            className="w-full justify-start p-4 h-auto text-destructive hover:text-destructive hover:bg-destructive/10"
+            onClick={handleLogout}
+          >
+            <LogOut className="mr-3 h-5 w-5" />
+            로그아웃
+          </Button>
+        )}
       </div>
 
       <ProfileSetupModal
