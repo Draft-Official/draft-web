@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { CreditCard, LogOut, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ProfileCard } from '@/features/my/ui/ProfileCard';
 import { ProfileSetupModal } from '@/features/my/ui/ProfileSetupModal';
-import { ProfileData, isProfileComplete } from '@/features/my/model/types';
+import { ProfileData } from '@/features/my/model/types';
 import { useAuth } from '@/features/auth/model/auth-context';
 import { useUpdateProfile } from '@/features/auth/api/mutations';
 import { useRouter } from 'next/navigation';
@@ -64,17 +64,6 @@ export default function MyPage() {
   // DB 프로필을 UI용 ProfileData로 변환
   const profile = useMemo(() => profileToFormData(dbProfile), [dbProfile]);
 
-  // 프로필 미완성이고, 로그인된 상태에서 최초 접근 시 모달 자동 오픈
-  useEffect(() => {
-    if (authLoading) return;
-
-    if (user && !isProfileComplete(profile)) {
-      const profileSkipped = localStorage.getItem('profileSkipped');
-      if (!profileSkipped) {
-        setIsModalOpen(true);
-      }
-    }
-  }, [user, profile, authLoading]);
 
   const handleProfileComplete = async (data: ProfileData) => {
     if (!user) {
@@ -114,16 +103,19 @@ export default function MyPage() {
 
   return (
     <div className="bg-background min-h-full p-4 space-y-6 pb-24">
+      <h1 className="text-2xl font-bold text-foreground">내 프로필</h1>
+
       <ProfileCard
         profile={profile}
         userName={userName}
         userInitials={userInitials}
         teamName={profile?.team}
+        isAuthenticated={!!user}
         onEditClick={handleEditClick}
       />
 
       <div className="space-y-4">
-        <h2 className="font-bold text-lg text-foreground">내 정보</h2>
+        <h2 className="font-bold text-lg text-foreground">설정</h2>
 
         <Card className="p-0 overflow-hidden border-border">
           <div className="divide-y divide-border">
@@ -133,19 +125,21 @@ export default function MyPage() {
             </Button>
             <Button variant="ghost" className="w-full justify-start p-4 h-auto rounded-none font-normal">
               <Settings className="mr-3 h-5 w-5 text-muted-foreground" />
-              설정
+              일반
             </Button>
           </div>
         </Card>
 
-        <Button 
-          variant="outline" 
-          className="w-full justify-start p-4 h-auto text-destructive hover:text-destructive hover:bg-destructive/10"
-          onClick={handleLogout}
-        >
-          <LogOut className="mr-3 h-5 w-5" />
-          로그아웃
-        </Button>
+        {user && (
+          <Button
+            variant="outline"
+            className="w-full justify-start p-4 h-auto text-destructive hover:text-destructive hover:bg-destructive/10"
+            onClick={handleLogout}
+          >
+            <LogOut className="mr-3 h-5 w-5" />
+            로그아웃
+          </Button>
+        )}
       </div>
 
       <ProfileSetupModal

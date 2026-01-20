@@ -1,6 +1,7 @@
 'use client';
 
-import { Edit } from 'lucide-react';
+import Link from 'next/link';
+import { Edit, LogIn } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -11,6 +12,7 @@ interface ProfileCardProps {
   userName: string;
   userInitials: string;
   teamName?: string;
+  isAuthenticated: boolean;
   onEditClick: () => void;
 }
 
@@ -19,9 +21,36 @@ export function ProfileCard({
   userName,
   userInitials,
   teamName,
+  isAuthenticated,
   onEditClick,
 }: ProfileCardProps) {
-  // If no profile data or incomplete, show setup prompt
+  // If not logged in, show login prompt
+  if (!isAuthenticated) {
+    return (
+      <Card className="bg-white rounded-2xl shadow-sm border-slate-200 p-6">
+        <div className="text-center space-y-4">
+          <div>
+            <div className="text-lg font-bold text-slate-900 mb-1">
+              로그인이 필요합니다
+            </div>
+            <div className="text-sm text-slate-600">
+              로그인하고 다양한 기능을 이용해보세요
+            </div>
+          </div>
+          <Link href="/login" className="block">
+            <Button
+              className="w-full h-12 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl"
+            >
+              <LogIn className="w-5 h-5 mr-2" />
+              로그인 하기
+            </Button>
+          </Link>
+        </div>
+      </Card>
+    );
+  }
+
+  // If logged in but no profile data or incomplete, show setup prompt
   if (!isProfileComplete(profile)) {
     return (
       <div className="space-y-4">
