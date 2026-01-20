@@ -4,7 +4,7 @@ import { Edit } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ProfileData, SKILL_LEVEL_NAMES } from '../model/types';
+import { ProfileData, SKILL_LEVEL_NAMES, isProfileComplete } from '../model/types';
 
 interface ProfileCardProps {
   profile: ProfileData | null;
@@ -21,8 +21,8 @@ export function ProfileCard({
   teamName,
   onEditClick,
 }: ProfileCardProps) {
-  // If no profile data, show setup prompt
-  if (!profile) {
+  // If no profile data or incomplete, show setup prompt
+  if (!isProfileComplete(profile)) {
     return (
       <div className="space-y-4">
         {/* User Header */}

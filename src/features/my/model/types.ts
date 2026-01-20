@@ -41,3 +41,10 @@ export const SKILL_LEVEL_NAMES: Record<number, string> = {
 
 export const POSITIONS = ['가드', '포워드', '센터'] as const;
 export type Position = typeof POSITIONS[number];
+
+// 프로필이 완성되었는지 확인 (필수 필드가 채워져 있는지)
+// 타입 가드: true 반환 시 profile이 완전한 ProfileData임을 보장
+export function isProfileComplete(profile: ProfileData | null): profile is ProfileData {
+  if (!profile) return false;
+  return !!(profile.height && profile.age && profile.weight && profile.position);
+}
