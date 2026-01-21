@@ -134,7 +134,9 @@ export interface HostDashboardMatch extends BaseMatch {
  */
 export interface GuestListMatch extends BaseMatch {
   teamName: string;
-  positions: Record<Position, PositionStatus>;
+  teamLogo?: string; // 팀 로고 URL (개인 주최 시 undefined)
+  isPersonalHost?: boolean; // 개인 주최 여부
+  positions: Partial<Record<Position, PositionStatus>>; // max가 0인 포지션은 제외
   level: string;
   gender: GenderRule;
   gameFormat?: string; // "내부 2게임", "교류전" 등

@@ -11,9 +11,16 @@ import { GuestListMatch } from '@/shared/types/match';
 function adaptToDetailMatch(data: GuestListMatch): Match {
   // Infer rule from game format or custom rules jsonb
   const ruleData = (data as any).rule || {}; // Assume mapped in service or default
-  
+
   // 가격 정보 (새 스키마: amount 사용, 하위 호환: final)
   const priceAmount = data.price.amount ?? data.price.final ?? 0;
+
+  // 가격 표시 문자열
+  const getPriceDisplay = () => {
+    if (data.price.type === 'FREE') return '무료';
+    if (data.price.type === 'BEVERAGE') return `음료수 ${priceAmount}병`;
+    return `${priceAmount.toLocaleString()}원`;
+  };
 
   return {
     id: data.id,
@@ -23,7 +30,7 @@ function adaptToDetailMatch(data: GuestListMatch): Match {
     title: data.title,
     location: data.location.name,
     address: data.location.address,
-    price: `${priceAmount.toLocaleString()}원`,
+    price: getPriceDisplay(),
     priceNum: priceAmount,
     gender: data.gender as 'men' | 'women' | 'mixed',
     gameFormat: data.gameFormat ?? '',
@@ -40,11 +47,12 @@ function adaptToDetailMatch(data: GuestListMatch): Match {
     
     facilities: data.facilities,
     
-    // Positions Adapter
+    // Positions Adapter - max가 0인 포지션은 제외됨
     positions: {
       g: data.positions.G ? { status: data.positions.G.open > 0 ? 'open' : 'closed', max: (data.positions.G.open + data.positions.G.closed) } : undefined,
       f: data.positions.F ? { status: data.positions.F.open > 0 ? 'open' : 'closed', max: (data.positions.F.open + data.positions.F.closed) } : undefined,
       c: data.positions.C ? { status: data.positions.C.open > 0 ? 'open' : 'closed', max: (data.positions.C.open + data.positions.C.closed) } : undefined,
+      bigman: data.positions.B ? { status: data.positions.B.open > 0 ? 'open' : 'closed', max: (data.positions.B.open + data.positions.B.closed) } : undefined,
     },
     
     // Rules

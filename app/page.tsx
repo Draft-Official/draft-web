@@ -22,35 +22,43 @@ function adaptMatch(match: GuestListMatch) {
   // 새 스키마: amount 사용, 하위 호환: final
   const priceAmount = match.price.amount ?? match.price.final ?? 0;
 
+  // 가격 표시 문자열
+  const getPriceDisplay = () => {
+    if (match.price.type === 'FREE') return '무료';
+    if (match.price.type === 'BEVERAGE') return `음료수 ${priceAmount}병`;
+    return `${priceAmount.toLocaleString()}원`;
+  };
+
   return {
     id: match.id,
     dateISO: match.dateISO,
     startTime: match.startTime,
     endTime: match.endTime,
-    price: `${priceAmount.toLocaleString()}원`,
+    price: getPriceDisplay(),
     priceNum: priceAmount,
     title: match.title,
-    location: match.location.name,
+    location: match.location.address, // 시/구 주소 표시
     address: match.location.address,
     gender: genderMap[match.gender] || 'mixed',
     gameFormat: match.gameFormat ?? '',
     ageRange: match.ageMin && match.ageMax ? `${match.ageMin}대 ~ ${match.ageMax}대` : undefined,
+    // 팀/호스트 정보
+    teamName: match.teamName,
+    teamLogo: match.isPersonalHost ? '🏀' : match.teamLogo, // 개인 주최면 농구공 이모지
+    isPersonalHost: match.isPersonalHost,
     positions: {
-      g: match.positions.G && { 
-        status: match.positions.G.open > 0 ? 'open' as const : 'closed' as const, 
-        max: match.positions.G.closed + match.positions.G.open 
+      g: match.positions.G && {
+        status: match.positions.G.open > 0 ? 'open' as const : 'closed' as const,
+        max: match.positions.G.closed + match.positions.G.open
       },
-      f: match.positions.F && { 
-        status: match.positions.F.open > 0 ? 'open' as const : 'closed' as const, 
-        max: match.positions.F.closed + match.positions.F.open 
+      f: match.positions.F && {
+        status: match.positions.F.open > 0 ? 'open' as const : 'closed' as const,
+        max: match.positions.F.closed + match.positions.F.open
       },
-      c: match.positions.C && { 
-        status: match.positions.C.open > 0 ? 'open' as const : 'closed' as const, 
-        max: match.positions.C.closed + match.positions.C.open 
+      c: match.positions.C && {
+        status: match.positions.C.open > 0 ? 'open' as const : 'closed' as const,
+        max: match.positions.C.closed + match.positions.C.open
       },
-      // Handle 'any' type recruitment? Current mapper assumes G/F/C.
-      // If mapper supports 'any', it might put it in 'all'? 
-      // Current mapper hardcodes G/F/C.
     }
   };
 }

@@ -91,9 +91,8 @@ export function HeroSection({ match }: HeroSectionProps) {
             {/* Price Text */}
             <div className="flex items-baseline">
                 <span className="text-xl font-bold text-slate-900">
-                    {match.price.replace('원', '')}
+                    {match.price}
                 </span>
-                <span className="text-sm text-slate-500 font-medium ml-0.5">원</span>
                 <span className="text-xs text-slate-400 ml-1.5">/ 2시간</span>
             </div>
           </div>

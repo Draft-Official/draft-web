@@ -246,56 +246,86 @@ export function toMatchInsertDataV3(
 }
 
 /**
+ * 주소에서 시/구까지만 추출
+ * 예: "서울 강남구 개포로 220" -> "서울 강남구"
+ * 예: "서울특별시 강남구 역삼동 123-4" -> "서울시 강남구"
+ */
+function extractCityDistrict(address: string): string {
+  if (!address) return '';
+
+  const parts = address.split(' ');
+  const result: string[] = [];
+
+  for (const part of parts) {
+    // 시/도 처리 (특별시, 광역시 등 -> 시로 축약)
+    if (part.endsWith('특별시') || part.endsWith('광역시')) {
+      result.push(part.replace('특별시', '시').replace('광역시', '시'));
+    } else if (part.endsWith('도')) {
+      result.push(part);
+    } else if (part.endsWith('시') || part.endsWith('군')) {
+      result.push(part);
+    } else if (part.endsWith('구')) {
+      result.push(part);
+      break; // 구까지만 추출
+    } else if (part === '서울' || part === '부산' || part === '대구' || part === '인천' ||
+               part === '광주' || part === '대전' || part === '울산' || part === '세종') {
+      // 축약형 도시명 처리
+      result.push(part);
+    }
+  }
+
+  return result.join(' ');
+}
+
+/**
  * 3. Match Row to GuestListMatch (UI Model) Conversion
  * Used by queries to format data for the listing UI
  */
 export function matchRowToGuestListMatch(row: any): GuestListMatch {
   const gym = row.gym || {};
-  const matchOptions: MatchOptions = row.match_options || {};
   const facilities = gym.facilities || {};
   const recruitmentSetup: RecruitmentSetup = row.recruitment_setup || {
     type: 'ANY',
     max_count: 10,
   };
 
-  // Position logic (V3)
-  const positions: Record<Position, { open: number; closed: number }> = {
-    G: { open: 0, closed: 0 },
-    F: { open: 0, closed: 0 },
-    C: { open: 0, closed: 0 },
-    B: { open: 0, closed: 0 }, // 빅맨 (F/C 통합)
-  };
-  
-  // Note: GuestListMatch UI types usually only have G, F, C. 
-  // If 'B' is not in UI type yet, we might ignore it or we need to update GuestListMatch type later.
-  // For now we map standard G, F, C.
+  // Position logic (V3) - max가 0보다 큰 포지션만 포함
+  const positions: Partial<Record<Position, { open: number; closed: number }>> = {};
 
   if (recruitmentSetup.type === 'POSITION' && recruitmentSetup.positions) {
     const posData = recruitmentSetup.positions;
-    if (posData.G) {
+    if (posData.G && posData.G.max > 0) {
       positions.G = {
         open: posData.G.max - posData.G.current,
         closed: posData.G.current,
       };
     }
-    if (posData.F) {
+    if (posData.F && posData.F.max > 0) {
       positions.F = {
         open: posData.F.max - posData.F.current,
         closed: posData.F.current,
       };
     }
-    if (posData.C) {
+    if (posData.C && posData.C.max > 0) {
       positions.C = {
         open: posData.C.max - posData.C.current,
         closed: posData.C.current,
       };
     }
-    if (posData.B) {
+    if (posData.B && posData.B.max > 0) {
       positions.B = {
         open: posData.B.max - posData.B.current,
         closed: posData.B.current,
       };
     }
+  } else if (recruitmentSetup.type === 'ANY') {
+    // ANY 타입: 전체 인원 표시
+    const maxCount = recruitmentSetup.max_count || 0;
+    const currentCount = row.current_players_count || 0;
+    positions.G = {
+      open: maxCount - currentCount,
+      closed: currentCount,
+    };
   }
 
   const costTypeMap: Record<string, CostType> = {
@@ -310,14 +340,18 @@ export function matchRowToGuestListMatch(row: any): GuestListMatch {
     MIXED: 'mixed',
   };
 
+  // 가격 정보 처리
+  const costType = row.cost_type || 'MONEY';
+  const costAmount = row.cost_amount || 0;
+
   return {
     id: row.id,
-    title: row.host_notice || row.manual_team_name || 'Match', // V3: title column is gone, use host_notice or team name
+    title: gym.name || '', // 체육관 이름을 title로 사용
     matchType: row.match_type || '5vs5',
 
     location: {
       name: gym.name || '',
-      address: gym.address || '',
+      address: extractCityDistrict(gym.address || ''), // 시/구까지만 표시
       latitude: gym.latitude || 0,
       longitude: gym.longitude || 0,
     },
@@ -339,22 +373,26 @@ export function matchRowToGuestListMatch(row: any): GuestListMatch {
       : '',
 
     price: {
-      type: costTypeMap[row.cost_type] || CostType.MONEY,
-      amount: row.cost_amount || 0,
+      type: costTypeMap[costType] || CostType.MONEY,
+      amount: costAmount,
       providesBeverage: row.provides_beverage || false,
-      base: row.cost_amount || 0,
-      final: row.cost_amount || 0,
+      base: costAmount,
+      final: costAmount,
     },
 
     facilities,
 
-    gameFormat: matchOptions.play_style || 'INTERNAL_3WAY', // V3 uses play_style
+    gameFormat: row.match_type || '5vs5', // match_type 사용 (5vs5, 3vs3)
     level: row.level_limit || '',
     gender: genderMap[row.gender_rule] || 'mixed',
-    courtType: (facilities.court_size_type === 'REGULAR' ? 'indoor' : 'outdoor') as 'indoor' | 'outdoor', 
-    // ^ Mapping logic adjusted slightly for court_size_type availability
+    courtType: (facilities.court_size_type === 'REGULAR' ? 'indoor' : 'outdoor') as 'indoor' | 'outdoor',
 
-    teamName: row.team?.name || row.manual_team_name || 'DRAFT Team',
+    // 팀/호스트 정보: team_id가 없으면 개인 주최
+    teamName: row.team_id
+      ? (row.team?.name || row.manual_team_name || '팀')
+      : `호스트 ${row.host?.nickname || ''}`,
+    teamLogo: row.team_id ? (row.team?.logo_url || undefined) : undefined,
+    isPersonalHost: !row.team_id,
 
     positions,
   };

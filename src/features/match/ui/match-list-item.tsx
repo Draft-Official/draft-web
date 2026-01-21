@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
+import { MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/shared/lib/utils';
 
@@ -15,6 +16,7 @@ interface Match {
   title: string;
   teamName?: string;
   teamLogo?: string;
+  isPersonalHost?: boolean; // 개인 주최 여부
   location: string;
   gender: 'men' | 'women' | 'mixed';
   gameFormat: string; // e.g. "5vs5"
@@ -126,26 +128,34 @@ export const MatchListItem = React.memo(function MatchListItem({ match, showDate
             {match.title}
           </h3>
           <span className={cn(
-            "text-xs truncate",
+            "flex items-center gap-0.5 text-xs truncate",
             match.isClosed ? "text-slate-300" : "text-slate-500"
           )}>
+            <MapPin className={cn(
+              "w-3 h-3 shrink-0",
+              match.isClosed ? "text-slate-300" : "text-slate-400"
+            )} />
             {match.location}
           </span>
         </div>
         {match.teamName && (
-          <div className="flex items-center gap-1.5 mt-1">
-             <div className="w-5 h-5 rounded-full overflow-hidden bg-slate-100 border border-slate-100 shrink-0">
-               {match.teamLogo ? (
-                 <img src={match.teamLogo} alt={match.teamName} className="w-full h-full object-cover" />
-               ) : (
-                 <div className="w-full h-full flex items-center justify-center bg-slate-100 text-[8px] text-slate-400 font-bold">
-                   {match.teamName.slice(0, 1)}
-                 </div>
-               )}
-             </div>
+          <div className="flex items-center gap-2 mt-1">
+             {match.isPersonalHost ? (
+               <span className="text-xl leading-none">🏀</span>
+             ) : (
+               <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-100 shrink-0">
+                 {match.teamLogo ? (
+                   <img src={match.teamLogo} alt={match.teamName} className="w-full h-full object-cover" />
+                 ) : (
+                   <div className="w-full h-full flex items-center justify-center bg-slate-200 text-xs text-slate-500 font-bold">
+                     {match.teamName.slice(0, 1)}
+                   </div>
+                 )}
+               </div>
+             )}
              <span className={cn(
-                "truncate text-[13px] font-medium text-slate-500",
-                match.isClosed && "text-slate-300"
+                "text-sm font-semibold text-slate-700",
+                match.isClosed && "opacity-50"
               )}>
                 {match.teamName}
               </span>
