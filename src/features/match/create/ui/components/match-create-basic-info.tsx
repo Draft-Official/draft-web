@@ -1,9 +1,9 @@
 'use client';
 
+import { useRef } from 'react';
 import { useFormContext, Controller } from 'react-hook-form';
 import {
   MapPin,
-  MapPinned,
   ExternalLink,
   Building2
 } from 'lucide-react';
@@ -15,6 +15,7 @@ import { Switch } from '@/components/ui/switch';
 import { TimePickerSelect } from '@/components/ui/time-picker-select';
 // import ScrollContainer from 'react-indiana-drag-scroll'; // Moved to internal component
 import { DateStrip } from '@/features/match/ui/components/date-strip';
+import { SelectedLocationCard } from './selected-location-card';
 
 interface LocationData {
   address: string;
@@ -23,6 +24,7 @@ interface LocationData {
   placeUrl?: string;
   x?: string;
   y?: string;
+  kakaoPlaceId?: string;
 }
 
 interface MatchCreateBasicInfoProps {
@@ -36,13 +38,15 @@ interface MatchCreateBasicInfoProps {
   locationSearchResults: LocationData[];
   handleLocationSelect: (data: LocationData) => void;
   locationData: LocationData | null;
-  openKakaoMap: () => void;
+  openKakaoMap?: () => void; // Optional - not used when card is shown
   locationInputRef: React.RefObject<HTMLDivElement | null>;
   children?: React.ReactNode;
   feeType: "cost" | "beverage";
   setFeeType: (v: "cost" | "beverage") => void;
   hasBeverage: boolean;
   setHasBeverage: (v: boolean) => void;
+  isExistingGym?: boolean;
+  onClearLocation?: () => void;
 }
 
 const DURATION_OPTIONS = [
@@ -72,9 +76,16 @@ export function MatchCreateBasicInfo({
   feeType,
   setFeeType,
   hasBeverage,
-  setHasBeverage
+  setHasBeverage,
+  isExistingGym = false,
+  onClearLocation
 }: MatchCreateBasicInfoProps) {
-  const { register, control, setValue } = useFormContext();
+  const { register, control, setValue, getValues } = useFormContext();
+  const methods = { getValues }; // Helper to match prev code
+
+  // Fee Persistence
+  const lastCostRef = useRef<string>("10000");
+  const lastBeverageRef = useRef<string>("1");
 
   return (
     <section className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-6">
@@ -146,100 +157,81 @@ export function MatchCreateBasicInfo({
         {/* Location - Kakao Map Search */}
         <div className="space-y-2">
             <Label className="text-sm font-bold text-slate-900 mb-2 block">장소</Label>
-            <div className="relative" ref={locationInputRef}>
-                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 z-10" />
-                <Input
-                    placeholder="체육관 검색 (예: 서초종합체육관)"
-                    value={location}
-                    onChange={(e) => handleLocationSearch(e.target.value)}
-                    onFocus={(e) => {
-                        handleInputFocus(e);
-                        if (locationSearchResults.length > 0) {
-                            // showLocationDropdown is controlled by parent state passed in as prop, 
-                            // but here we are just calling onFocus. 
-                            // The parent `match-create-view` logic for `onFocus` also sets `setShowLocationDropdown(true)`.
-                            // So we might need to expose that setter or just rely on the parent logic if we passed the right handler.
-                            // The prop `handleInputFocus` in the interface seems to be the one.
-                            // But wait, the parent `onFocus` in original code did two things: scroll and setDropdown.
-                            // I need to make sure `handleInputFocus` does both or I pass `setShowLocationDropdown`.
-                            // The interface has `showLocationDropdown` boolean, but not the setter.
-                            // Let's assume `handleInputFocus` handles the UI side (scroll), 
-                            // but we need to trigger the dropdown visibility too.
-                            // I will check the parent code later. For now, I'll pass `setShowLocationDropdown` via a new prop or just
-                            // assume the parent handles it if I can. But `onFocus` is an event.
-                            // Let's look at the original `onFocus` in `MatchCreateView`:
-                            // onFocus={(e) => { handleInputFocus(e); if(results > 0) setShowLocationDropdown(true); }}
-                        }
-                    }}
-                    className="pl-10 h-12 pr-12"
+
+            {locationData ? (
+                <SelectedLocationCard
+                    location={locationData}
+                    isExistingGym={isExistingGym}
+                    onClear={() => onClearLocation?.()}
                 />
+            ) : (
+                <div className="relative" ref={locationInputRef}>
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 z-10" />
+                    <Input
+                        placeholder="체육관 검색 (예: 서초종합체육관)"
+                        value={location}
+                        onChange={(e) => handleLocationSearch(e.target.value)}
+                        onFocus={(e) => {
+                            handleInputFocus(e);
+                        }}
+                        className="pl-10 h-12 pr-12"
+                    />
 
-                {/* Map Link Icon (Visible if placeUrl exists) */}
-                {locationData?.placeUrl && (
-                    <button
-                        onClick={openKakaoMap}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg transition-colors group flex items-center justify-center"
-                        title="카카오맵에서 보기"
-                        type="button"
-                    >
-                        <MapPinned className="w-4 h-4 text-[#FF6600]" />
-                    </button>
-                )}
-
-                {/* Search Results Dropdown */}
-                {showLocationDropdown && locationSearchResults.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-[240px] overflow-y-auto">
-                        {locationSearchResults.map((result, index) => (
-                            <div
-                                key={index}
-                                className="w-full flex items-center justify-between border-b border-slate-100 last:border-b-0 hover:bg-slate-50 transition-colors group"
-                            >
-                                {/* Main Select Action */}
-                                <button
-                                    onClick={() => handleLocationSelect(result)}
-                                    className="flex-1 px-4 py-3 text-left flex items-start gap-2 min-w-0"
-                                    type="button"
+                    {/* Search Results Dropdown */}
+                    {showLocationDropdown && locationSearchResults.length > 0 && (
+                        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-[240px] overflow-y-auto">
+                            {locationSearchResults.map((result, index) => (
+                                <div
+                                    key={index}
+                                    className="w-full flex items-center justify-between border-b border-slate-100 last:border-b-0 hover:bg-slate-50 transition-colors group"
                                 >
-                                    <MapPin className="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0 group-hover:text-[#FF6600]" />
-                                    <div className="flex-1 min-w-0">
-                                        {result.buildingName && (
-                                            <div className="text-sm font-bold text-slate-900 mb-0.5 truncate">
-                                                {result.buildingName}
-                                            </div>
-                                        )}
-                                        <div className={cn(
-                                            "text-xs text-slate-600 truncate",
-                                            !result.buildingName && "text-sm font-medium text-slate-900"
-                                        )}>
-                                            {result.address}
-                                        </div>
-                                    </div>
-                                </button>
-
-                                {/* External Link Icon */}
-                                {result.placeUrl && (
+                                    {/* Main Select Action */}
                                     <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            window.open(result.placeUrl, '_blank');
-                                        }}
-                                        className="px-3 py-3 text-slate-400 hover:text-[#FF6600] transition-colors flex-shrink-0"
-                                        title="카카오맵에서 보기"
+                                        onClick={() => handleLocationSelect(result)}
+                                        className="flex-1 px-4 py-3 text-left flex items-start gap-2 min-w-0"
                                         type="button"
                                     >
-                                        <ExternalLink className="w-4 h-4" />
+                                        <MapPin className="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0 group-hover:text-[#FF6600]" />
+                                        <div className="flex-1 min-w-0">
+                                            {result.buildingName && (
+                                                <div className="text-sm font-bold text-slate-900 mb-0.5 truncate">
+                                                    {result.buildingName}
+                                                </div>
+                                            )}
+                                            <div className={cn(
+                                                "text-xs text-slate-600 truncate",
+                                                !result.buildingName && "text-sm font-medium text-slate-900"
+                                            )}>
+                                                {result.address}
+                                            </div>
+                                        </div>
                                     </button>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </div>
+
+                                    {/* External Link Icon */}
+                                    {result.placeUrl && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                window.open(result.placeUrl, '_blank');
+                                            }}
+                                            className="px-3 py-3 text-slate-400 hover:text-[#FF6600] transition-colors flex-shrink-0"
+                                            title="카카오맵에서 보기"
+                                            type="button"
+                                        >
+                                            <ExternalLink className="w-4 h-4" />
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
 
         {children}
 
-        {/* Fee */}
+            {/* Fee */}
         <div className="space-y-2 pt-6 border-t border-slate-100">
             <div className="flex items-center justify-between">
                 <Label className="text-sm font-bold text-slate-600">참가비 (1인)</Label>
@@ -249,8 +241,22 @@ export function MatchCreateBasicInfo({
                         checked={feeType === 'beverage'}
                         onCheckedChange={(c) => {
                             const newType = c ? 'beverage' : 'cost';
+                            // Save current value
+                            const currentVal = methods.getValues('fee');
+                            if (feeType === 'cost') {
+                                lastCostRef.current = currentVal;
+                            } else {
+                                lastBeverageRef.current = currentVal;
+                            }
+
                             setFeeType(newType);
-                            setValue('fee', newType === 'beverage' ? '1' : '10000');
+                            
+                            // Restore or Default
+                            if (newType === 'beverage') {
+                                setValue('fee', lastBeverageRef.current || '1');
+                            } else {
+                                setValue('fee', lastCostRef.current || '10000');
+                            }
                         }}
                         className="data-[state=checked]:bg-[#FF6600] data-[state=unchecked]:bg-slate-200" 
                     />

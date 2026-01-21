@@ -39,6 +39,18 @@ create table public.users (
   positions text[],         
   manner_score float default 36.5,
 
+  -- 💰 개인 주최 기본 계좌 정보
+  default_account_bank text,
+  default_account_number text,
+  default_account_holder text,
+
+  -- 📞 연락처 기본 설정
+  default_contact_type text default 'PHONE',  -- 'PHONE' | 'KAKAO_OPEN_CHAT'
+  kakao_open_chat_url text,
+
+  -- 📝 개인 주최 기본 공지사항
+  default_host_notice text,
+
   -- 🔥 메타 데이터
   metadata jsonb default '{}'::jsonb,
 
@@ -131,7 +143,7 @@ create table public.matches (
   manual_team_name text not null,
 
   -- 📞 [필수] 연락처 타입 (NOT NULL)
-  contact_type text not null default 'KAKAO_OPEN', -- 'PHONE' or 'KAKAO_OPEN'
+  contact_type text not null default 'PHONE', -- 'PHONE' | 'KAKAO_OPEN_CHAT'
   contact_content text, -- 링크나 번호
 
   -- 📝 [변경] 공지사항 (기존 description)

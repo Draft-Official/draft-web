@@ -1,4 +1,4 @@
-'use client';
+import { useRef } from 'react';
 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { Chip } from '@/components/ui/chip';
 import { cn } from '@/shared/lib/utils';
-import { SHOWER_OPTIONS, COURT_SIZE_OPTIONS } from '@/features/match/create/config/constants';
+import { COURT_SIZE_OPTIONS } from '@/features/match/create/config/constants';
 import { X } from 'lucide-react';
 
 interface MatchCreateFacilitiesProps {
@@ -20,17 +20,17 @@ interface MatchCreateFacilitiesProps {
   setParkingCost: (v: string) => void;
   parkingDetail: string;
   setParkingDetail: (v: string) => void;
-  showerOption: string;
-  setShowerOption: (v: string) => void;
+  hasShower: boolean;
+  setHasShower: (v: boolean) => void;
   courtSize: string;
   setCourtSize: (v: string) => void;
 
   showParkingDialog: boolean;
   setShowParkingDialog: (v: boolean) => void;
-  showShowerDialog: boolean;
-  setShowShowerDialog: (v: boolean) => void;
   showCourtSizeDialog: boolean;
   setShowCourtSizeDialog: (v: boolean) => void;
+
+  isExistingGym?: boolean;
 }
 
 
@@ -40,23 +40,35 @@ export function MatchCreateFacilities({
   hasBall, setHasBall,
   parkingCost, setParkingCost,
   parkingDetail, setParkingDetail,
-  showerOption, setShowerOption,
+  hasShower, setHasShower,
   courtSize, setCourtSize,
   showParkingDialog, setShowParkingDialog,
-  showShowerDialog, setShowShowerDialog,
-  showCourtSizeDialog, setShowCourtSizeDialog
+  showCourtSizeDialog, setShowCourtSizeDialog,
+  isExistingGym = false
 }: MatchCreateFacilitiesProps) {
 
-    // Helper to get labels
-    const getShowerLabel = () => SHOWER_OPTIONS.find(o => o.value === showerOption)?.label;
-    const getCourtSizeLabel = () => COURT_SIZE_OPTIONS.find(o => o.value === courtSize)?.label;
+  // Persistence Refs
+  const lastParkingCost = useRef<string>("");
+  const lastParkingDetail = useRef<string>("");
+  const lastCourtSize = useRef<string>("");
+
+  // Helper to get labels
+  const getCourtSizeLabel = () => COURT_SIZE_OPTIONS.find(o => o.value === courtSize)?.label;
 
   return (
     <>
         <div className="space-y-4">
             <div className="flex items-center gap-2">
                 <Label className="text-sm font-bold text-slate-600">시설 정보</Label>
-                <span className="text-[11px] font-bold text-[#FF6600] bg-orange-50 px-2 py-0.5 rounded-full">작성시 문의가 80% 감소해요!</span>
+                {isExistingGym ? (
+                    <span className="text-[11px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                        정보가 다르다면 수정해 주세요
+                    </span>
+                ) : (
+                    <span className="text-[11px] font-bold text-[#FF6600] bg-orange-50 px-2 py-0.5 rounded-full">
+                        작성시 문의가 80% 감소해요!
+                    </span>
+                )}
             </div>
             <div className="flex flex-wrap gap-2">
                 <Chip
@@ -85,32 +97,25 @@ export function MatchCreateFacilities({
 
                 <Chip
                     variant="orange"
+                    label="샤워실"
+                    isActive={hasShower}
+                    checkIconPosition="right"
+                    onClick={() => setHasShower(!hasShower)}
+                />
+
+                <Chip
+                    variant="orange"
                     label="주차"
                     isActive={parkingCost !== ""}
                     checkIconPosition="right"
                     valueLabel={parkingCost === "0" ? "0원 (무료)" : (parkingCost ? `${Number(parkingCost).toLocaleString()}원/시간` : undefined)}
                     onClick={() => {
-                        if (parkingCost !== "") {
-                            setParkingCost("");
-                            setParkingDetail("");
-                        } else {
-                            setShowParkingDialog(true);
+                        // Always open dialog. If previously cleared, restore from ref.
+                        if (parkingCost === "" && lastParkingCost.current !== "") {
+                             setParkingCost(lastParkingCost.current);
+                             setParkingDetail(lastParkingDetail.current);
                         }
-                    }}
-                />
-
-                <Chip
-                    variant="orange"
-                    label="샤워실"
-                    isActive={showerOption !== "unavailable"}
-                    checkIconPosition="right"
-                    valueLabel={getShowerLabel()}
-                    onClick={() => {
-                        if (showerOption !== "unavailable") {
-                            setShowerOption("unavailable");
-                        } else {
-                            setShowShowerDialog(true);
-                        }
+                        setShowParkingDialog(true);
                     }}
                 />
 
@@ -121,11 +126,11 @@ export function MatchCreateFacilities({
                     checkIconPosition="right"
                     valueLabel={getCourtSizeLabel()}
                     onClick={() => {
-                        if (courtSize !== "") {
-                            setCourtSize("");
-                        } else {
-                            setShowCourtSizeDialog(true);
+                        // Always open dialog. If previously cleared, restore from ref.
+                        if (courtSize === "" && lastCourtSize.current !== "") {
+                            setCourtSize(lastCourtSize.current);
                         }
+                        setShowCourtSizeDialog(true);
                     }}
                 />
             </div>
@@ -133,7 +138,7 @@ export function MatchCreateFacilities({
 
         {/* Dialog: Parking */}
       <Dialog open={showParkingDialog} onOpenChange={setShowParkingDialog}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="w-[90%] max-w-[480px] rounded-2xl">
           <DialogHeader>
             <DialogTitle>주차 정보</DialogTitle>
           </DialogHeader>
@@ -156,10 +161,10 @@ export function MatchCreateFacilities({
               </div>
               <p className="text-xs text-slate-500">💡 0원을 입력하면 무료로 표시됩니다.</p>
             </div>
-            
+
             <div className="space-y-2">
                 <Label className="text-sm font-medium text-slate-700">주차 상세 위치 (선택)</Label>
-                <Input 
+                <Input
                     value={parkingDetail}
                     onChange={(e) => setParkingDetail(e.target.value)}
                     placeholder="예: 지하 2층, 정문 주차장 등"
@@ -167,59 +172,35 @@ export function MatchCreateFacilities({
                 />
             </div>
 
-            <Button
-              onClick={() => setShowParkingDialog(false)}
-              className="w-full h-12 bg-[#FF6600] hover:bg-[#FF6600]/90 text-white font-bold rounded-xl"
-            >
-              확인
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Dialog: Shower */}
-      <Dialog open={showShowerDialog} onOpenChange={setShowShowerDialog}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>샤워실 정보</DialogTitle>
-          </DialogHeader>
-          <DialogClose className="absolute right-6 top-6 opacity-70 hover:opacity-100 transition-opacity">
-            <X className="h-5 w-5" />
-            <span className="sr-only">Close</span>
-          </DialogClose>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <div className="flex gap-2">
-                {SHOWER_OPTIONS.map(opt => (
-                  <button
-                    type="button"
-                    key={opt.value}
-                    onClick={() => setShowerOption(opt.value)}
-                    className={cn(
-                      "flex-1 py-3 rounded-xl text-sm font-medium border transition-all",
-                      showerOption === opt.value
-                        ? "bg-[#FF6600] text-white border-[#FF6600]"
-                        : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-                    )}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
+            <div className="flex gap-2">
+                <Button
+                    onClick={() => setShowParkingDialog(false)}
+                    className="flex-[2] h-12 bg-[#FF6600] hover:bg-[#FF6600]/90 text-white font-bold rounded-xl"
+                >
+                    확인
+                </Button>
+                <Button
+                    variant="outline"
+                    onClick={() => {
+                        // Remove/Clear Logic
+                        lastParkingCost.current = parkingCost; // Save before clear
+                        lastParkingDetail.current = parkingDetail;
+                        setParkingCost("");
+                        setParkingDetail("");
+                        setShowParkingDialog(false);
+                    }}
+                    className="flex-1 h-12 border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50"
+                >
+                    삭제
+                </Button>
             </div>
-            <Button
-              onClick={() => setShowShowerDialog(false)}
-              className="w-full h-12 bg-[#FF6600] hover:bg-[#FF6600]/90 text-white font-bold rounded-xl"
-            >
-              확인
-            </Button>
           </div>
         </DialogContent>
       </Dialog>
 
       {/* Dialog: Court Size */}
       <Dialog open={showCourtSizeDialog} onOpenChange={setShowCourtSizeDialog}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="w-[90%] max-w-[480px] rounded-2xl">
           <DialogHeader>
             <DialogTitle>코트 크기</DialogTitle>
           </DialogHeader>
@@ -248,12 +229,26 @@ export function MatchCreateFacilities({
                 ))}
               </div>
             </div>
-            <Button
-              onClick={() => setShowCourtSizeDialog(false)}
-              className="w-full h-12 bg-[#FF6600] hover:bg-[#FF6600]/90 text-white font-bold rounded-xl"
-            >
-              확인
-            </Button>
+             <div className="flex gap-2">
+                <Button
+                    onClick={() => setShowCourtSizeDialog(false)}
+                    className="flex-[2] h-12 bg-[#FF6600] hover:bg-[#FF6600]/90 text-white font-bold rounded-xl"
+                >
+                    확인
+                </Button>
+                <Button
+                    variant="outline"
+                    onClick={() => {
+                         // Remove/Clear Logic
+                        lastCourtSize.current = courtSize;
+                        setCourtSize("");
+                        setShowCourtSizeDialog(false);
+                    }}
+                    className="flex-1 h-12 border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50"
+                >
+                    삭제
+                </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

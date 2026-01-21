@@ -75,6 +75,40 @@ export class AuthService {
   }
 
   /**
+   * 운영 정보 기본값 업데이트 (경기 생성용)
+   */
+  async updateOperationsDefaults(
+    userId: string,
+    updates: {
+      default_account_bank?: string | null;
+      default_account_number?: string | null;
+      default_account_holder?: string | null;
+      default_contact_type?: 'PHONE' | 'KAKAO_OPEN_CHAT';
+      kakao_open_chat_url?: string | null;
+      default_host_notice?: string | null;
+    }
+  ): Promise<User> {
+    return this.updateProfile(userId, updates);
+  }
+
+  /**
+   * 현재 사용자의 운영 정보 기본값 업데이트
+   */
+  async updateCurrentOperationsDefaults(updates: {
+    default_account_bank?: string | null;
+    default_account_number?: string | null;
+    default_account_holder?: string | null;
+    default_contact_type?: 'PHONE' | 'KAKAO_OPEN_CHAT';
+    kakao_open_chat_url?: string | null;
+    default_host_notice?: string | null;
+  }): Promise<User> {
+    const user = await this.getCurrentUser();
+    if (!user) throw new AuthError();
+    return this.updateOperationsDefaults(user.id, updates);
+  }
+
+
+  /**
    * Kakao OAuth 로그인
    */
   async signInWithKakao(redirectTo?: string) {

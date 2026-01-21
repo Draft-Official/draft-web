@@ -59,6 +59,7 @@ export interface Match {
   teamLogo?: string; // Team logo URL
   hostMessage?: string; // 호스트 특이사항 메시지
   cancelPolicy?: string; // 취소 및 환불 규정
+  requirements?: string[]; // 준비물 (e.g., ["INDOOR_SHOES", "WHITE_BLACK_JERSEY"])
 }
 
 // Mock Data from Figma Make

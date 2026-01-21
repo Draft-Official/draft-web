@@ -70,7 +70,7 @@ export function AgeSelector({
     <div className="flex flex-wrap items-center gap-2">
         <Chip
             label="무관"
-            variant="slate"
+            variant="orange"
             isActive={selectedAges.includes('any')}
             showCheckIcon={false}
             onClick={() => onSelect('any')}
@@ -84,7 +84,7 @@ export function AgeSelector({
                 <Chip
                     key={a.value}
                     label={a.label}
-                    variant="slate"
+                    variant="orange"
                     isActive={selectedAges.includes(a.value)}
                     showCheckIcon={false}
                     // Click (Normal Toggle/Split) - Block if dragged

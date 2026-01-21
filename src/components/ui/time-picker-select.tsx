@@ -16,21 +16,17 @@ interface TimePickerSelectProps {
   defaultValue?: string;
 }
 
-// Generate time options for 12-hour format (00:00 ~ 11:30 in 30min intervals)
+// Generate time options for 24-hour format in 30min intervals
+// AM: 00:00 ~ 11:30, PM: 12:00 ~ 23:30
 const generateTimeOptions = (isPM: boolean): TimeOption[] => {
   const options: TimeOption[] = [];
-  const startHour = 0;
-  const endHour = 12;
+  const startHour = isPM ? 12 : 0;
+  const endHour = isPM ? 24 : 12;
 
   for (let hour = startHour; hour < endHour; hour++) {
     for (let minute = 0; minute < 60; minute += 30) {
-      // Convert to 24-hour format for value
-      const hour24 = isPM ? (hour === 0 ? 12 : hour + 12) : hour;
-      const timeValue = `${String(hour24).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
-
-      // Display in 12-hour format
-      const displayHour = hour === 0 ? 12 : hour;
-      const label = `${String(displayHour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+      const timeValue = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+      const label = timeValue; // Display in 24-hour format
 
       options.push({ value: timeValue, label });
     }
@@ -39,17 +35,10 @@ const generateTimeOptions = (isPM: boolean): TimeOption[] => {
   return options;
 };
 
-// Format time value to display format
+// Format time value to display format (24-hour)
 const formatTimeDisplay = (timeValue: string): string => {
   if (!timeValue || !timeValue.includes(':')) return '시간 선택';
-
-  const [hourStr, minuteStr] = timeValue.split(':');
-  const hour = parseInt(hourStr, 10);
-  const isPM = hour >= 12;
-  const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-  const period = isPM ? '오후' : '오전';
-
-  return `${period} ${String(displayHour).padStart(2, '0')}:${minuteStr}`;
+  return timeValue; // Display as-is in 24-hour format
 };
 
 export function TimePickerSelect({
@@ -115,14 +104,14 @@ export function TimePickerSelect({
                 className="w-full rounded-md px-3 py-2.5 text-left text-sm hover:bg-slate-100 transition-colors"
               >
                 <div className="font-semibold text-slate-900">오전</div>
-                <div className="text-xs text-slate-600">12:00 AM ~ 11:30 AM</div>
+                <div className="text-xs text-slate-600">00:00 ~ 11:30</div>
               </button>
               <button
                 onClick={() => handlePeriodSelect('PM')}
                 className="w-full rounded-md px-3 py-2.5 text-left text-sm hover:bg-slate-100 transition-colors"
               >
                 <div className="font-semibold text-slate-900">오후</div>
-                <div className="text-xs text-slate-600">12:00 PM ~ 11:30 PM</div>
+                <div className="text-xs text-slate-600">12:00 ~ 23:30</div>
               </button>
             </div>
           </div>

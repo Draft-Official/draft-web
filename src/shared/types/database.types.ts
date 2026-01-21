@@ -114,6 +114,13 @@ export type Database = {
           phone_verified: boolean;
           positions: string[] | null;
           manner_score: number;
+          // 운영 정보 기본값
+          default_account_bank: string | null;
+          default_account_number: string | null;
+          default_account_holder: string | null;
+          default_contact_type: 'PHONE' | 'KAKAO_OPEN_CHAT';
+          kakao_open_chat_url: string | null;
+          default_host_notice: string | null;
           metadata: UserMetadata;
           created_at: string;
           deleted_at: string | null; // Soft Delete
@@ -128,6 +135,12 @@ export type Database = {
           phone_verified?: boolean;
           positions?: string[] | null;
           manner_score?: number;
+          default_account_bank?: string | null;
+          default_account_number?: string | null;
+          default_account_holder?: string | null;
+          default_contact_type?: 'PHONE' | 'KAKAO_OPEN_CHAT';
+          kakao_open_chat_url?: string | null;
+          default_host_notice?: string | null;
           metadata?: UserMetadata;
           created_at?: string;
           deleted_at?: string | null;
@@ -142,6 +155,12 @@ export type Database = {
           phone_verified?: boolean;
           positions?: string[] | null;
           manner_score?: number;
+          default_account_bank?: string | null;
+          default_account_number?: string | null;
+          default_account_holder?: string | null;
+          default_contact_type?: 'PHONE' | 'KAKAO_OPEN_CHAT';
+          kakao_open_chat_url?: string | null;
+          default_host_notice?: string | null;
           metadata?: UserMetadata;
           created_at?: string;
           deleted_at?: string | null;

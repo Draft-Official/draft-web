@@ -28,19 +28,13 @@ export const AGE_OPTIONS = [
 export const GAME_FORMAT_OPTIONS = [
   { value: 'internal_2', label: '자체전(2파전)' },
   { value: 'internal_3', label: '자체전(3파전)' },
-  { value: 'exchange', label: '팀 교류전' },
-  { value: 'practice', label: '연습/레슨' }
+  { value: 'exchange', label: '팀 교류전' }
 ] as const;
 
 export const REFEREE_OPTIONS = [
   { value: 'self', label: '자체콜' },
   { value: 'member', label: '게스트/팀원' },
   { value: 'pro', label: '전문 심판' }
-] as const;
-
-export const SHOWER_OPTIONS = [
-  { value: 'free', label: '무료' },
-  { value: 'paid', label: '유료' }
 ] as const;
 
 export const COURT_SIZE_OPTIONS = [

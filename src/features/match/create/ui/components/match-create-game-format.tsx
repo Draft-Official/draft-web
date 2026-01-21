@@ -110,7 +110,7 @@ export function MatchCreateGameFormat({
                         <Chip
                             key={t.value}
                             label={t.label}
-                            variant="slate"
+                            variant="orange"
                             isActive={gameFormatType === t.value}
                             showCheckIcon={false}
                             onClick={() => setGameFormatType(t.value)}
@@ -204,7 +204,7 @@ export function MatchCreateGameFormat({
                         <Chip
                             key={r.value}
                             label={r.label}
-                            variant="slate"
+                            variant="orange"
                             isActive={refereeType === r.value}
                             showCheckIcon={false}
                             onClick={() => setRefereeType(r.value)}

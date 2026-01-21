@@ -1,12 +1,12 @@
 import { z } from 'zod';
 
-// Location schema - Phase 2 compatible (with kakaoPlaceId for Gym Upsert)
+// Location schema - Kakao API를 통해 선택된 장소 (모든 필드 필수)
 export const locationSchema = z.object({
   name: z.string().min(1, '장소명을 입력하세요'),
   address: z.string().min(1, '주소를 입력하세요'),
   latitude: z.number(),
   longitude: z.number(),
-  kakaoPlaceId: z.string().optional(), // 카카오맵 place_id (Gym 중복 방지)
+  kakaoPlaceId: z.string().min(1, '장소를 선택하세요'), // 카카오맵 place_id (필수)
 });
 
 // Position recruitment schema
@@ -37,7 +37,7 @@ export const facilitiesSchema = z.object({
   parkingDetail: z.string().optional(), // 주차 상세 (예: "3시간 무료")
   water: z.boolean().default(false),    // 정수기
   acHeat: z.boolean().default(false),   // 냉난방
-  shower: z.enum(['none', 'free', 'paid']).default('none'),
+  shower: z.boolean().default(false),     // 샤워실
   courtSize: z.enum(['regular', 'short', 'narrow']).default('regular'), // UI 값으로 변경
   ball: z.boolean().default(false),     // 농구공 제공
   beverage: z.boolean().default(false), // 음료 제공
@@ -48,7 +48,7 @@ export const ageRangeSchema = z.object({
   min: z.number().min(10, '최소 연령은 10세 이상이어야 합니다').max(99),
   max: z.number().min(10).max(99, '최대 연령은 99세 이하여야 합니다'),
 }).refine(
-  (data) => data.max >= data.min,
+  (data: { min: number; max: number }) => data.max >= data.min,
   {
     message: '최대 연령은 최소 연령보다 크거나 같아야 합니다',
     path: ['max'],
@@ -92,9 +92,9 @@ export const matchCreateSchema = z.object({
 
   // Game Format
   // gameFormat: internal_2, exchange, etc.
-  gameFormat: z.enum(['internal_2', 'internal_3', 'exchange', 'practice'], {
+  gameFormat: z.enum(['internal_2', 'internal_3', 'exchange'], {
     message: '경기 방식을 선택하세요',
-  }),
+  }).optional(),
 
   // Optional detailed rules (gameFormat은 별도 필드로 관리, rules에 저장 시 포함)
   rules: z.object({
@@ -117,7 +117,7 @@ export const matchCreateSchema = z.object({
   costInputType: z.enum(['money', 'beverage']).default('money'),
 
   // 연락처 타입 및 내용
-  contactType: z.enum(['PHONE', 'KAKAO_OPEN']).default('KAKAO_OPEN'),
+  contactType: z.enum(['PHONE', 'KAKAO_OPEN_CHAT']).default('KAKAO_OPEN_CHAT'),
   contactContent: z.string().optional(),
 
   // Admin Info
@@ -148,7 +148,7 @@ export const matchCreateSchema = z.object({
   selectedTeamId: z.string().optional().nullable(),
   manualTeamName: z.string().optional(), // 팀 미선택 시 직접 입력 (혹은 비워두면 '개인 주최')
 }).refine(
-  (data) => {
+  (data: any) => {
     // Validate that end time is after start time
     const [startHour, startMin] = data.startTime.split(':').map(Number);
     const [endHour, endMin] = data.endTime.split(':').map(Number);
@@ -161,7 +161,7 @@ export const matchCreateSchema = z.object({
     path: ['endTime'],
   }
 ).refine(
-  (data) => {
+  (data: any) => {
     // Validate position recruitment totals
     if (data.recruitment.type === 'position') {
       const total = data.recruitment.guard + data.recruitment.forward + data.recruitment.center;
