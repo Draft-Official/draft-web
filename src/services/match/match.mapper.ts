@@ -8,6 +8,7 @@ import {
   GuestListMatch,
   CostType,
   Position,
+  MatchOptionsUI,
 } from '@/shared/types/match';
 import { GymData } from '@/services/gym/gym.service';
 
@@ -344,6 +345,36 @@ export function matchRowToGuestListMatch(row: any): GuestListMatch {
   const costType = row.cost_type || 'MONEY';
   const costAmount = row.cost_amount || 0;
 
+  // match_options 변환 (DB -> UI)
+  const dbMatchOptions: MatchOptions | undefined = row.match_options;
+  let matchOptionsUI: MatchOptionsUI | undefined;
+
+  if (dbMatchOptions) {
+    const hasAnyOption =
+      dbMatchOptions.play_style ||
+      dbMatchOptions.quarter_rule ||
+      (dbMatchOptions.guaranteed_quarters && dbMatchOptions.guaranteed_quarters > 0) ||
+      dbMatchOptions.referee_type;
+
+    if (hasAnyOption) {
+      matchOptionsUI = {
+        playStyle: dbMatchOptions.play_style,
+        quarterRule: dbMatchOptions.quarter_rule
+          ? {
+              minutesPerQuarter: dbMatchOptions.quarter_rule.minutes_per_quarter,
+              quarterCount: dbMatchOptions.quarter_rule.quarter_count,
+              gameCount: dbMatchOptions.quarter_rule.game_count,
+            }
+          : undefined,
+        guaranteedQuarters:
+          dbMatchOptions.guaranteed_quarters && dbMatchOptions.guaranteed_quarters > 0
+            ? dbMatchOptions.guaranteed_quarters
+            : undefined,
+        refereeType: dbMatchOptions.referee_type,
+      };
+    }
+  }
+
   return {
     id: row.id,
     title: gym.name || '', // 체육관 이름을 title로 사용
@@ -351,7 +382,8 @@ export function matchRowToGuestListMatch(row: any): GuestListMatch {
 
     location: {
       name: gym.name || '',
-      address: extractCityDistrict(gym.address || ''), // 시/구까지만 표시
+      address: extractCityDistrict(gym.address || ''), // 리스트용: 시/구까지만 표시
+      fullAddress: gym.address || '', // 상세용: 전체 주소
       latitude: gym.latitude || 0,
       longitude: gym.longitude || 0,
     },
@@ -395,6 +427,12 @@ export function matchRowToGuestListMatch(row: any): GuestListMatch {
     isPersonalHost: !row.team_id,
 
     positions,
+
+    // 상세 페이지 전용 필드
+    hostNotice: row.host_notice || undefined,
+    hostName: row.host?.nickname || undefined,
+    requirements: row.requirements?.length > 0 ? row.requirements : undefined,
+    matchOptions: matchOptionsUI,
   };
 }
 

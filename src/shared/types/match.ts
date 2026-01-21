@@ -70,7 +70,8 @@ export type Position = 'G' | 'F' | 'C' | 'B';
  */
 export interface Location {
   name: string; // 표시 이름 (예: "강남구민회관")
-  address: string; // 전체 주소
+  address: string; // 리스트용 축약 주소 (예: "서울 강남구")
+  fullAddress?: string; // 상세용 전체 주소 (예: "서울 강남구 개포로 220")
   latitude: number;
   longitude: number;
 }
@@ -130,7 +131,21 @@ export interface HostDashboardMatch extends BaseMatch {
 }
 
 /**
- * Guest 매치 리스트용 Match
+ * 경기 진행 방식 (상세 페이지용)
+ */
+export interface MatchOptionsUI {
+  playStyle?: 'INTERNAL_2WAY' | 'INTERNAL_3WAY' | 'EXCHANGE' | 'PRACTICE';
+  quarterRule?: {
+    minutesPerQuarter: number;
+    quarterCount: number;
+    gameCount: number;
+  };
+  guaranteedQuarters?: number;
+  refereeType?: 'SELF' | 'STAFF' | 'PRO';
+}
+
+/**
+ * Guest 매치 리스트/상세용 Match
  */
 export interface GuestListMatch extends BaseMatch {
   teamName: string;
@@ -143,6 +158,12 @@ export interface GuestListMatch extends BaseMatch {
   courtType?: string;
   ageMin?: number;
   ageMax?: number;
+
+  // 상세 페이지 전용 필드
+  hostNotice?: string; // 호스트 메시지
+  hostName?: string; // 호스트 닉네임
+  requirements?: string[]; // 준비물 (예: ["INDOOR_SHOES", "WHITE_BLACK_JERSEY"])
+  matchOptions?: MatchOptionsUI; // 경기 진행 방식
 }
 
 // ============================================

@@ -79,14 +79,16 @@ export function HeroSection({ match }: HeroSectionProps) {
       <div className="flex items-center gap-3 mt-7">
           <span className="text-xs font-medium text-slate-500 self-center mb-0.5">참가비</span>
           <div className="relative">
-            {/* Speech Bubble Badge */}
-            <div className="absolute -top-6 left-0 px-2 py-0.5 bg-[#FF6600] rounded-full shadow-sm whitespace-nowrap z-10">
-                <span className="text-[10px] font-bold text-white tracking-wide block">
-                물/음료 제공
-                </span>
-                {/* Tail */}
-                <div className="absolute left-3 bottom-[-3px] w-1.5 h-1.5 bg-[#FF6600] rotate-45"></div>
-            </div>
+            {/* Speech Bubble Badge - 음료 제공 시에만 표시 */}
+            {match.facilities?.providesBeverage && (
+              <div className="absolute -top-6 left-0 px-2 py-0.5 bg-[#FF6600] rounded-full shadow-sm whitespace-nowrap z-10">
+                  <span className="text-[10px] font-bold text-white tracking-wide block">
+                  물/음료 제공
+                  </span>
+                  {/* Tail */}
+                  <div className="absolute left-3 bottom-[-3px] w-1.5 h-1.5 bg-[#FF6600] rotate-45"></div>
+              </div>
+            )}
 
             {/* Price Text */}
             <div className="flex items-baseline">
