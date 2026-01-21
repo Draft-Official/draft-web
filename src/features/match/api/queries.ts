@@ -7,6 +7,7 @@ import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { createMatchService } from '@/services/match/match.service';
 import { matchRowToGuestListMatch } from '@/services/match/match.mapper';
 import { matchKeys } from './keys';
+import { useAuth } from '@/features/auth';
 
 /**
  * 모집중 매치 목록 조회
@@ -48,5 +49,25 @@ export function useMatch(matchId: string) {
       return matchRowToGuestListMatch(row);
     },
     enabled: !!matchId,
+  });
+}
+
+/**
+ * 내가 주최한 최근 경기 목록 (최대 5개)
+ * @returns gym, team 정보가 포함된 매치 목록 (raw DB row)
+ */
+export function useMyRecentMatches() {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: matchKeys.byHost(user?.id ?? ''),
+    queryFn: async () => {
+      if (!user?.id) return [];
+
+      const supabase = getSupabaseBrowserClient();
+      const matchService = createMatchService(supabase);
+      return await matchService.getMyHostedMatches(user.id, 5);
+    },
+    enabled: !!user?.id,
   });
 }

@@ -20,7 +20,9 @@ import { MatchCreateRecruitment } from './components/match-create-recruitment';
 import { MatchCreateSpecs } from './components/match-create-specs';
 import { MatchCreateGameFormat } from './components/match-create-game-format';
 import { MatchCreateOperations, OperationsData } from './components/match-create-operations';
+import { RecentMatchesDialog, MatchWithRelations } from './components/recent-matches-dialog';
 import { useCreateMatch } from '@/features/match/api/mutations';
+import { useMyRecentMatches } from '@/features/match/api/queries';
 import { MatchCreateFormData } from '@/features/match/create/model/schema';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { createAuthService } from '@/services/auth';
@@ -106,8 +108,9 @@ export function MatchCreateView() {
   // Fee Type
   const [feeType, setFeeType] = useState<"cost" | "beverage">("cost");
 
-  // Load Menu
-  const [showLoadMenu, setShowLoadMenu] = useState(false);
+  // Recent Matches Dialog
+  const [showRecentMatchesDialog, setShowRecentMatchesDialog] = useState(false);
+  const { data: recentMatches, isLoading: isLoadingRecentMatches } = useMyRecentMatches();
 
   // Tip Banner Visibility
   const [showTip, setShowTip] = useState(false);
@@ -396,70 +399,176 @@ export function MatchCreateView() {
     setSelectedAges(newAges);
   };
 
-  // Auto Fill Mock Data
-  const fillMockData = () => {
-    const targetDate = calendarDates[1].dateISO;
-    setSelectedDate(targetDate);
+  // Fill Form from Recent Match (날짜 제외)
+  const fillFromRecentMatch = (match: MatchWithRelations) => {
+    // 1. 날짜는 매핑하지 않음 - 사용자가 직접 선택
 
-    // Simple location input
-    setLocation('강남구민회관');
-    setLocationData({
-        address: '서울 강남구 개포동',
-        buildingName: '강남구민회관',
-        placeUrl: '',
-        x: '127.058863', // Mock longitude
-        y: '37.493922'  // Mock latitude
-    });
-    setValue('location', '강남구민회관');
-    setValue('startTime', '19:00');
-    setValue('duration', '2');
-    setValue('fee', '10000');
-    setValue('bankName', '카카오뱅크');
-    setValue('accountNumber', '3333-01-2345678');
-    setValue('kakaoLink', 'https://open.kakao.com/o/sXxXxXx');
-    setValue('description', '즐겁게 농구하실 분 환영합니다! 주차 3시간 무료입니다.');
+    // 2. 장소 정보 (gym 데이터 있으면 prefill)
+    if (match.gym) {
+      const gymData = match.gym;
+      setLocationData({
+        address: gymData.address,
+        buildingName: gymData.name,
+        placeUrl: '', // 이전 경기에서는 없을 수 있음
+        x: String(gymData.longitude),
+        y: String(gymData.latitude),
+        kakaoPlaceId: gymData.kakao_place_id || '',
+      });
+      setLocation(`${gymData.address} (${gymData.name})`);
+      setValue('location', gymData.name);
 
-    // Facilities
-    setParkingCost("0");
-    setHasWater(true);
-    setHasAcHeat(true);
-    setHasShower(true);
-    setCourtSize("regular");
+      // 시설 정보 프리필
+      if (gymData.facilities) {
+        prefillFacilities(gymData.facilities);
+        setIsExistingGym(true);
+      }
+    }
 
-    // Recruitment
-    setIsPositionMode(true);
-    setPositions({ guard: 2, forward: 2, center: 1, bigman: 0 });
-    setIsFlexBigman(false);
+    // 3. 시간 정보
+    if (match.start_time && match.end_time) {
+      const startDate = new Date(match.start_time);
+      const endDate = new Date(match.end_time);
+      const startTime = `${String(startDate.getHours()).padStart(2, '0')}:${String(startDate.getMinutes()).padStart(2, '0')}`;
+      const endTime = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
+      setValue('startTime', startTime);
 
-    // Specs
-    setMatchType('5vs5');
-    setGender('male');
-    setLevel(4);
-    setSelectedAges(['20', '30']);
+      // duration 계산
+      const durationMs = endDate.getTime() - startDate.getTime();
+      const durationHours = durationMs / (1000 * 60 * 60);
+      setValue('duration', String(durationHours));
+    }
 
-    // Game Format
-    setGameFormatType("internal_3");
-    setRuleMinutes("10");
-    setRuleQuarters("4");
-    setRuleGames("3");
-    setGuaranteedQuarters("6");
-    setRefereeType("member");
+    // 4. 가격 정보
+    setValue('fee', String(match.cost_amount || 0));
+    setFeeType(match.cost_type === 'BEVERAGE' ? 'beverage' : 'cost');
+    setHasBeverage(match.provides_beverage || false);
 
-    toast.success("이전 경기 정보를 불러왔습니다.");
+    // 5. 계좌 정보
+    if (match.account_bank) setValue('bankName', match.account_bank);
+    if (match.account_number) setValue('accountNumber', match.account_number);
+    if (match.account_holder) setValue('accountHolder', match.account_holder);
+
+    // 6. 연락처 정보
+    if (match.contact_content) setValue('kakaoLink', match.contact_content);
+
+    // 7. 공지사항
+    if (match.host_notice) setValue('description', match.host_notice);
+
+    // 8. 모집 설정
+    const recruitment = match.recruitment_setup;
+    if (recruitment?.type === 'POSITION') {
+      setIsPositionMode(true);
+      const pos = recruitment.positions || {};
+      setPositions({
+        guard: pos.G?.max || 0,
+        forward: pos.F?.max || 0,
+        center: pos.C?.max || 0,
+        bigman: pos.B?.max || 0,
+      });
+      setIsFlexBigman((pos.B?.max || 0) > 0);
+    } else {
+      setIsPositionMode(false);
+      setTotalCount(recruitment?.max_count || 1);
+    }
+
+    // 9. 경기 스펙
+    setMatchType(match.match_type || '5vs5');
+
+    const genderMap: Record<string, string> = {
+      MALE: 'men', FEMALE: 'women', MIXED: 'mixed'
+    };
+    setGender(genderMap[match.gender_rule] || 'men');
+
+    setLevel(Number(match.level_limit) || 4);
+
+    // 10. 경기 형식 (match_options)
+    const options = match.match_options;
+    if (options) {
+      // play_style
+      const formatMap: Record<string, string> = {
+        INTERNAL_2WAY: 'internal_2',
+        INTERNAL_3WAY: 'internal_3',
+        EXCHANGE: 'exchange',
+        PRACTICE: 'practice',
+      };
+      if (options.play_style) {
+        setGameFormatType(formatMap[options.play_style] || 'internal_2');
+        setShowGameFormatType(true);
+      }
+
+      // quarter_rule
+      if (options.quarter_rule) {
+        setRuleMinutes(String(options.quarter_rule.minutes_per_quarter || 8));
+        setRuleQuarters(String(options.quarter_rule.quarter_count || 4));
+        setRuleGames(String(options.quarter_rule.game_count || 2));
+        setShowRules(true);
+      }
+
+      // guaranteed_quarters
+      if (options.guaranteed_quarters) {
+        setGuaranteedQuarters(String(options.guaranteed_quarters));
+        setShowGuaranteed(true);
+      }
+
+      // referee_type
+      const refMap: Record<string, string> = {
+        SELF: 'self', STAFF: 'member', PRO: 'pro'
+      };
+      if (options.referee_type) {
+        setRefereeType(refMap[options.referee_type] || 'self');
+        setShowReferee(true);
+      }
+    }
+
+    // 11. 준비물
+    const reqs = match.requirements || [];
+    setHasShoes(reqs.includes('INDOOR_SHOES'));
+    setHasJersey(reqs.includes('WHITE_BLACK_JERSEY'));
+
+    // 12. Toast 메시지
+    toast.success("지난 경기 정보를 불러왔습니다. 경기 날짜를 선택해주세요.");
   };
 
   // Mutation
   const { mutate: createMatch, isPending } = useCreateMatch();
 
+  // 섹션으로 스크롤 이동
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
+
   const onSubmit = async (data: any) => {
+    // 기본 정보 검증
     if (!selectedDate) {
-        toast.error("날짜를 선택해주세요.");
+        toast.error("⚠️ 기본 정보를 확인해주세요: 날짜를 선택해주세요.");
+        scrollToSection('section-basic-info');
         return;
     }
 
-    if (!location) {
-        toast.error("장소를 입력해주세요.");
+    // locationData 검증 (Kakao API로 선택된 장소만 허용)
+    if (!locationData || !locationData.kakaoPlaceId || !locationData.x || !locationData.y) {
+        toast.error("⚠️ 기본 정보를 확인해주세요: 장소를 검색하여 선택해주세요.");
+        scrollToSection('section-basic-info');
         return;
+    }
+
+    // 모집 인원 검증
+    if (isPositionMode) {
+      const totalPositions = positions.guard + positions.forward + positions.center + positions.bigman;
+      if (totalPositions === 0) {
+        toast.error("⚠️ 모집 인원을 설정해주세요: 최소 1명 이상 모집해야 합니다.");
+        scrollToSection('section-recruitment');
+        return;
+      }
+    } else {
+      if (totalCount === 0) {
+        toast.error("⚠️ 모집 인원을 설정해주세요: 최소 1명 이상 모집해야 합니다.");
+        scrollToSection('section-recruitment');
+        return;
+      }
     }
 
     // Calculate endTime from startTime + duration
@@ -481,12 +590,13 @@ export function MatchCreateView() {
         date: selectedDate,
         startTime: startTime,
         endTime: endTime,
-        
+
         location: {
-            name: location,
-            address: locationData?.address || location,
-            latitude: locationData?.y ? parseFloat(locationData.y) : 0,
-            longitude: locationData?.x ? parseFloat(locationData.x) : 0,
+            name: locationData.buildingName || locationData.address,
+            address: locationData.address,
+            latitude: parseFloat(locationData.y),
+            longitude: parseFloat(locationData.x),
+            kakaoPlaceId: locationData.kakaoPlaceId,
         },
         
         // Recruitment
@@ -542,9 +652,9 @@ export function MatchCreateView() {
         // 참가비 타입
         costInputType: feeType === 'cost' ? 'money' : 'beverage',
 
-        // 연락처
-        contactType: 'KAKAO_OPEN' as const,
-        contactContent: data.kakaoLink || '',
+        // 연락처 (operationsData에서 가져옴)
+        contactType: operationsData?.contactInfo.type === 'KAKAO_OPEN_CHAT' ? 'KAKAO_OPEN_CHAT' : 'PHONE',
+        contactContent: operationsData?.contactInfo.content || '',
 
         // Admin Info
         price: Number(data.fee || 0),
@@ -656,29 +766,12 @@ export function MatchCreateView() {
             <div className="flex gap-2 relative">
                 <button
                     type="button"
-                    onClick={() => setShowLoadMenu(!showLoadMenu)}
+                    onClick={() => setShowRecentMatchesDialog(true)}
                     className="text-xs font-bold text-[#FF6600] flex items-center gap-1 bg-orange-50 px-2.5 py-1.5 rounded-full hover:bg-orange-100 transition-colors"
                 >
                     <RefreshCw className="w-3.5 h-3.5" />
-                    이전 경기
+                    최근 경기 불러오기
                 </button>
-
-                {/* Dropdown Menu for Load Options */}
-                {showLoadMenu && (
-                <div className="absolute top-full right-0 mt-2 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden z-50 min-w-[140px]">
-                    <button
-                    type="button"
-                    onClick={() => {
-                        fillMockData();
-                        setShowLoadMenu(false);
-                    }}
-                    className="w-full px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2"
-                    >
-                    <RefreshCw className="w-4 h-4 text-[#FF6600]" />
-                    이전 경기
-                    </button>
-                </div>
-                )}
             </div>
         </header>
 
@@ -701,6 +794,7 @@ export function MatchCreateView() {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 p-4">
 
             {/* SECTION 1: Basic Info & Facilities */}
+            <div id="section-basic-info">
             <MatchCreateBasicInfo
                 selectedDate={selectedDate}
                 setSelectedDate={setSelectedDate}
@@ -734,28 +828,33 @@ export function MatchCreateView() {
                     isExistingGym={isExistingGym}
                 />
             </MatchCreateBasicInfo>
+            </div>
 
             {/* SECTION 2: Recruitment */}
-            <MatchCreateRecruitment
-                isPositionMode={isPositionMode} setIsPositionMode={setIsPositionMode}
-                isFlexBigman={isFlexBigman} setIsFlexBigman={setIsFlexBigman}
-                positions={positions} updatePosition={updatePosition}
-                totalCount={totalCount} updateTotalCount={updateTotalCount}
-            />
+            <div id="section-recruitment">
+              <MatchCreateRecruitment
+                  isPositionMode={isPositionMode} setIsPositionMode={setIsPositionMode}
+                  isFlexBigman={isFlexBigman} setIsFlexBigman={setIsFlexBigman}
+                  positions={positions} updatePosition={updatePosition}
+                  totalCount={totalCount} updateTotalCount={updateTotalCount}
+              />
+            </div>
 
             {/* SECTION 3: Match Specs */}
-            <MatchCreateSpecs 
-                matchType={matchType} setMatchType={setMatchType}
-                gender={gender} setGender={setGender}
-                level={level} setLevel={setLevel}
-                selectedAges={selectedAges} handleAgeSelection={handleAgeSelection}
-                handleAgeRangeUpdate={handleAgeRangeUpdate}
-                hasShoes={hasShoes} setHasShoes={setHasShoes}
-                hasJersey={hasJersey} setHasJersey={setHasJersey}
-            />
+            <div id="section-match-specs">
+              <MatchCreateSpecs
+                  matchType={matchType} setMatchType={setMatchType}
+                  gender={gender} setGender={setGender}
+                  level={level} setLevel={setLevel}
+                  selectedAges={selectedAges} handleAgeSelection={handleAgeSelection}
+                  handleAgeRangeUpdate={handleAgeRangeUpdate}
+                  hasShoes={hasShoes} setHasShoes={setHasShoes}
+                  hasJersey={hasJersey} setHasJersey={setHasJersey}
+              />
+            </div>
 
             {/* SECTION 4: Game Format (Optional) */}
-            <MatchCreateGameFormat 
+            <MatchCreateGameFormat
                 gameFormatType={gameFormatType} setGameFormatType={setGameFormatType}
                 ruleMinutes={ruleMinutes} setRuleMinutes={setRuleMinutes}
                 ruleQuarters={ruleQuarters} setRuleQuarters={setRuleQuarters}
@@ -787,6 +886,18 @@ export function MatchCreateView() {
             </div>
 
         </form>
+
+        {/* Recent Matches Dialog */}
+        <RecentMatchesDialog
+          open={showRecentMatchesDialog}
+          onOpenChange={setShowRecentMatchesDialog}
+          matches={(recentMatches as MatchWithRelations[]) || []}
+          isLoading={isLoadingRecentMatches}
+          onSelect={(match) => {
+            fillFromRecentMatch(match);
+            setShowRecentMatchesDialog(false);
+          }}
+        />
 
         </div>
     </FormProvider>

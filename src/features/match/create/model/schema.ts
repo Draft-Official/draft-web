@@ -1,12 +1,12 @@
 import { z } from 'zod';
 
-// Location schema - Phase 2 compatible (with kakaoPlaceId for Gym Upsert)
+// Location schema - Kakao API를 통해 선택된 장소 (모든 필드 필수)
 export const locationSchema = z.object({
   name: z.string().min(1, '장소명을 입력하세요'),
   address: z.string().min(1, '주소를 입력하세요'),
   latitude: z.number(),
   longitude: z.number(),
-  kakaoPlaceId: z.string().optional(), // 카카오맵 place_id (Gym 중복 방지)
+  kakaoPlaceId: z.string().min(1, '장소를 선택하세요'), // 카카오맵 place_id (필수)
 });
 
 // Position recruitment schema
@@ -117,7 +117,7 @@ export const matchCreateSchema = z.object({
   costInputType: z.enum(['money', 'beverage']).default('money'),
 
   // 연락처 타입 및 내용
-  contactType: z.enum(['PHONE', 'KAKAO_OPEN']).default('KAKAO_OPEN'),
+  contactType: z.enum(['PHONE', 'KAKAO_OPEN_CHAT']).default('KAKAO_OPEN_CHAT'),
   contactContent: z.string().optional(),
 
   // Admin Info

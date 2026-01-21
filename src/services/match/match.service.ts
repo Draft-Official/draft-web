@@ -6,8 +6,11 @@ import {
 } from './match.mapper';
 import { MatchCreateFormData } from '@/features/match/create/model/schema';
 import { createGymService } from '../gym/gym.service';
+import { logRequest, logResponse, logSupabaseQuery, logSupabaseResult } from '@/shared/lib/logger';
 
 export class MatchService {
+  private readonly SERVICE_NAME = 'MatchService';
+
   constructor(private supabase: SupabaseClient<Database>) {}
 
   /**
@@ -20,64 +23,71 @@ export class MatchService {
    * 4. Insert Match
    */
   async createMatchV3(hostId: string, form: MatchCreateFormData) {
-    console.log('[createMatchV3] Starting with hostId:', hostId);
+    logRequest(this.SERVICE_NAME, 'createMatchV3', { hostId, form });
 
-    // 1. Gym 처리
-    const gymService = createGymService(this.supabase);
-    const gymData = extractGymDataV3(form);
-    console.log('[createMatchV3] gymData:', gymData);
+    try {
+      // 1. Gym 처리
+      const gymService = createGymService(this.supabase);
+      const gymData = extractGymDataV3(form);
 
-    // Gym 생성 또는 조회 (Upsert + Latest Wins)
-    console.log('[createMatchV3] Calling upsertGym...');
-    const gymId = await gymService.upsertGym(gymData);
-    console.log('[createMatchV3] gymId:', gymId);
+      // Gym 생성 또는 조회 (Upsert + Latest Wins)
+      const gymId = await gymService.upsertGym(gymData);
 
-    // 2. Match Data 매핑 (gymId 전달)
-    const matchInsertData = toMatchInsertDataV3(hostId, form, gymId);
-    console.log('[createMatchV3] matchInsertData:', matchInsertData);
+      // 2. Match Data 매핑 (gymId 전달)
+      const matchInsertData = toMatchInsertDataV3(hostId, form, gymId);
 
-    // 3. Team Name 보정 (Manual Team Name)
-    if (matchInsertData.manual_team_name === '' && matchInsertData.team_id) {
-       // 팀 ID가 있는데 이름이 비어있다면, 팀 테이블에서 이름 조회
-       const { data: team } = await this.supabase
-         .from('teams')
-         .select('name')
-         .eq('id', matchInsertData.team_id)
-         .single();
+      // 3. Team Name 보정 (Manual Team Name)
+      if (matchInsertData.manual_team_name === '' && matchInsertData.team_id) {
+        logSupabaseQuery('teams', 'SELECT', undefined, { id: matchInsertData.team_id });
 
-       if (team) {
-         matchInsertData.manual_team_name = team.name;
-       } else {
-         matchInsertData.manual_team_name = 'Unknown Team';
-       }
-    } else if (matchInsertData.manual_team_name === '') {
+        const { data: team, error: teamError } = await this.supabase
+          .from('teams')
+          .select('name')
+          .eq('id', matchInsertData.team_id)
+          .single();
+
+        logSupabaseResult('teams', 'SELECT', team, teamError);
+
+        if (team) {
+          matchInsertData.manual_team_name = team.name;
+        } else {
+          matchInsertData.manual_team_name = 'Unknown Team';
+        }
+      } else if (matchInsertData.manual_team_name === '') {
         matchInsertData.manual_team_name = '개인 주최';
-    }
+      }
 
-    // 4. Match Insert
-    console.log('[createMatchV3] Inserting match...');
-    const { data: match, error } = await this.supabase
-      .from('matches')
-      .insert(matchInsertData)
-      .select()
-      .single();
+      // 4. Match Insert
+      logSupabaseQuery('matches', 'INSERT', matchInsertData);
 
-    console.log('[createMatchV3] Insert result - data:', match, 'error:', error);
+      const { data: match, error } = await this.supabase
+        .from('matches')
+        .insert(matchInsertData)
+        .select()
+        .single();
 
-    if (error) {
-      console.error('Match insert error:', error);
+      logSupabaseResult('matches', 'INSERT', match, error);
+
+      if (error) {
+        throw error;
+      }
+
+      logResponse(this.SERVICE_NAME, 'createMatchV3', { matchId: match.id, gymId });
+      return match;
+
+    } catch (error) {
+      logResponse(this.SERVICE_NAME, 'createMatchV3', undefined, error);
       throw error;
     }
-
-    return match;
   }
 
-  // Existing methods...
-  // (Assuming we are keeping existing methods for backward compatibility or reference for now,
-  // actually the user replaced the schema entirely so old methods might break.
-  // I will comment them out or leave them if they don't conflict typings too much.)
-
+  /**
+   * 모집 중인 경기 목록 조회
+   */
   async getRecruitingMatches() {
+    logRequest(this.SERVICE_NAME, 'getRecruitingMatches');
+    logSupabaseQuery('matches', 'SELECT', undefined, { status: 'RECRUITING' });
+
     const { data, error } = await this.supabase
       .from('matches')
       .select(`
@@ -89,10 +99,14 @@ export class MatchService {
       .eq('status', 'RECRUITING')
       .order('start_time', { ascending: true });
 
+    logSupabaseResult('matches', 'SELECT', { count: data?.length ?? 0 }, error);
+
     if (error) {
+      logResponse(this.SERVICE_NAME, 'getRecruitingMatches', undefined, error);
       throw error;
     }
 
+    logResponse(this.SERVICE_NAME, 'getRecruitingMatches', { count: data?.length ?? 0 });
     return data ?? [];
   }
 
@@ -100,6 +114,9 @@ export class MatchService {
    * 경기 상세 조회
    */
   async getMatchDetail(id: string) {
+    logRequest(this.SERVICE_NAME, 'getMatchDetail', { id });
+    logSupabaseQuery('matches', 'SELECT', undefined, { id });
+
     const { data, error } = await this.supabase
       .from('matches')
       .select(`
@@ -111,21 +128,45 @@ export class MatchService {
       .eq('id', id)
       .single();
 
-    if (error) throw error;
+    logSupabaseResult('matches', 'SELECT', data, error);
+
+    if (error) {
+      logResponse(this.SERVICE_NAME, 'getMatchDetail', undefined, error);
+      throw error;
+    }
+
+    logResponse(this.SERVICE_NAME, 'getMatchDetail', data);
     return data;
   }
 
   /**
-   * 내가 주최한 경기 목록
+   * 내가 주최한 경기 목록 (gym, team 정보 포함)
+   * @param userId 사용자 ID
+   * @param limit 최대 조회 개수 (기본 5개)
    */
-  async getMyHostedMatches(userId: string) {
+  async getMyHostedMatches(userId: string, limit: number = 5) {
+    logRequest(this.SERVICE_NAME, 'getMyHostedMatches', { userId, limit });
+    logSupabaseQuery('matches', 'SELECT', undefined, { host_id: userId });
+
     const { data, error } = await this.supabase
       .from('matches')
-      .select('*')
+      .select(`
+        *,
+        gym:gyms!gym_id (*),
+        team:teams!team_id (name)
+      `)
       .eq('host_id', userId)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(limit);
 
-    if (error) throw error;
+    logSupabaseResult('matches', 'SELECT', { count: data?.length ?? 0 }, error);
+
+    if (error) {
+      logResponse(this.SERVICE_NAME, 'getMyHostedMatches', undefined, error);
+      throw error;
+    }
+
+    logResponse(this.SERVICE_NAME, 'getMyHostedMatches', { count: data?.length ?? 0 });
     return data;
   }
 }

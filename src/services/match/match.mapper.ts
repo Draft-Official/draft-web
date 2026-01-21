@@ -1,6 +1,5 @@
 import {
   MatchInsert,
-  GymInsert,
   GymFacilities,
   MatchOptions,
   RecruitmentSetup,
@@ -10,13 +9,14 @@ import {
   CostType,
   Position,
 } from '@/shared/types/match';
+import { GymData } from '@/services/gym/gym.service';
 
 import { MatchCreateFormData } from '@/features/match/create/model/schema';
 
 // ==============================================
 // 1. Gym Data Extraction
 // ==============================================
-export function extractGymDataV3(form: MatchCreateFormData): GymInsert {
+export function extractGymDataV3(form: MatchCreateFormData): GymData {
   const formFacilities = form.facilities;
 
   // 빈 값이면 필드 자체를 제외 (undefined)
@@ -60,7 +60,7 @@ export function extractGymDataV3(form: MatchCreateFormData): GymInsert {
     address: form.location.address,
     latitude: form.location.latitude,
     longitude: form.location.longitude,
-    kakao_place_id: form.location.kakaoPlaceId || null,
+    kakaoPlaceId: form.location.kakaoPlaceId,
     facilities,
   };
 }
@@ -188,11 +188,11 @@ export function toMatchInsertDataV3(
   // It only has `accountHolder`, `accountNumber` etc.
   // Wait, did I miss it? 
   // The schema defines "Admin Info" but no phone/kakao contact field.
-  // I will default to KAKAO_OPEN and use empty content or notice? 
+  // I will default to KAKAO_OPEN_CHAT and use empty content or notice? 
   // Maybe the form assumes User Profile contact? 
   // I'll set a default "PROFILE" or similar if DB allows? 
-  // DB: contact_type 'PHONE' | 'KAKAO_OPEN'.
-  // I'll default to KAKAO_OPEN with empty string if not in form.
+  // DB: contact_type 'PHONE' | 'KAKAO_OPEN_CHAT'.
+  // I'll default to KAKAO_OPEN_CHAT with empty string if not in form.
   
   // Validating what's in schema: `refundPolicy`, `notice`.
   // `bindName`? No.
@@ -204,7 +204,7 @@ export function toMatchInsertDataV3(
     
     manual_team_name: manualTeamName,
     
-    contact_type: form.contactType || 'KAKAO_OPEN',
+    contact_type: form.contactType || 'KAKAO_OPEN_CHAT',
     contact_content: form.contactContent || '',
     
     host_notice: form.notice || '', 

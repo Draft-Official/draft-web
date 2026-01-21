@@ -1,115 +1,82 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { Database, GymInsert, GymFacilities, Gym } from '@/shared/types/database.types';
+import { logRequest, logResponse, logSupabaseQuery, logSupabaseResult } from '@/shared/lib/logger';
 
 /**
  * Gym 데이터 입력 인터페이스
  */
 export interface GymData {
   name: string;
-  address: string; // Required in Schema V3
-  latitude?: number | null;
-  longitude?: number | null;
-  kakaoPlaceId?: string | null;
+  address: string;
+  latitude: number;
+  longitude: number;
+  kakaoPlaceId: string;
   facilities?: GymFacilities;
 }
 
 /**
  * GymService - 체육관 정보 관리
  *
- * Upsert 전략:
- * 1. 카카오 place_id로 먼저 검색 (가장 정확)
- * 2. 이름 + 주소로 검색 (fallback)
- * 3. 없으면 새로 생성
+ * Upsert 전략 (kakao_place_id 기준):
+ * 1. kakao_place_id로 검색
+ * 2. 있으면: facilities 병합 업데이트 (Latest Wins)
+ * 3. 없으면: 신규 생성
  */
 export class GymService {
+  private readonly SERVICE_NAME = 'GymService';
+
   constructor(private supabase: SupabaseClient<Database>) {}
 
   /**
-   * 체육관 찾기 또는 생성 (Upsert)
+   * 체육관 Upsert (kakao_place_id 기준)
    *
-   * @param gymData - 체육관 정보
-   * @returns gym_id
-   */
-  /**
-   * 체육관 Upsert (Latest Wins Strategy)
-   * 
    * 1. kakao_place_id로 검색
    * 2. 있으면: facilities 병합 업데이트 (Latest Wins)
-   * 3. 없으면: name + address로 검색 (fallback)
-   * 4. 있으면: facilities 병합 업데이트 & kakao_place_id 업데이트
-   * 5. 없으면: 신규 생성
+   * 3. 없으면: 신규 생성
    */
   async upsertGym(gymData: GymData): Promise<string> {
-    console.log('[GymService.upsertGym] Starting with:', gymData);
+    logRequest(this.SERVICE_NAME, 'upsertGym', gymData);
 
     try {
-      // 1. kakao_place_id로 검색
-      if (gymData.kakaoPlaceId) {
-        const { data: existingGym, error: lookupError } = await this.supabase
-          .from('gyms')
-          .select('id, facilities')
-          .eq('kakao_place_id', gymData.kakaoPlaceId)
-          .single();
+      // 1. kakao_place_id로 검색 (Primary Key)
+      logSupabaseQuery('gyms', 'SELECT', undefined, { kakao_place_id: gymData.kakaoPlaceId });
 
-        if (!lookupError && existingGym) {
-          console.log('[GymService] Found existing gym:', existingGym.id);
-
-          // Latest Wins: facilities 병합 (빈 필드는 기존 값 유지)
-          if (gymData.facilities && Object.keys(gymData.facilities).length > 0) {
-            const mergedFacilities = {
-              ...(existingGym.facilities as any || {}),
-              ...gymData.facilities,
-            };
-
-            await this.supabase
-              .from('gyms')
-              .update({
-                facilities: mergedFacilities,
-                updated_at: new Date().toISOString()
-              })
-              .eq('id', existingGym.id);
-
-            console.log('[GymService] Facilities updated');
-          }
-
-          return existingGym.id;
-        }
-      }
-
-      // 2. name + address fallback
-      const { data: existingByName } = await this.supabase
+      const { data: existingGym, error: lookupError } = await this.supabase
         .from('gyms')
         .select('id, facilities')
-        .eq('name', gymData.name)
-        .eq('address', gymData.address)
-        .maybeSingle();
+        .eq('kakao_place_id', gymData.kakaoPlaceId)
+        .single();
 
-      if (existingByName) {
-        console.log('[GymService] Found by name+address:', existingByName.id);
+      logSupabaseResult('gyms', 'SELECT', existingGym, lookupError);
 
-        const updateData: any = { updated_at: new Date().toISOString() };
-
+      if (!lookupError && existingGym) {
+        // 기존 gym 발견: facilities 병합 업데이트 (Latest Wins)
         if (gymData.facilities && Object.keys(gymData.facilities).length > 0) {
-          updateData.facilities = {
-            ...(existingByName.facilities as any || {}),
+          const mergedFacilities = {
+            ...(existingGym.facilities as any || {}),
             ...gymData.facilities,
           };
+
+          const updatePayload = {
+            facilities: mergedFacilities,
+            updated_at: new Date().toISOString()
+          };
+
+          logSupabaseQuery('gyms', 'UPDATE', updatePayload, { id: existingGym.id });
+
+          const { error: updateError } = await this.supabase
+            .from('gyms')
+            .update(updatePayload)
+            .eq('id', existingGym.id);
+
+          logSupabaseResult('gyms', 'UPDATE', { id: existingGym.id }, updateError);
         }
 
-        if (gymData.kakaoPlaceId) {
-          updateData.kakao_place_id = gymData.kakaoPlaceId;
-        }
-
-        await this.supabase
-          .from('gyms')
-          .update(updateData)
-          .eq('id', existingByName.id);
-
-        return existingByName.id;
+        logResponse(this.SERVICE_NAME, 'upsertGym', { gymId: existingGym.id, source: 'kakao_place_id' });
+        return existingGym.id;
       }
 
-      // 3. INSERT
-      console.log('[GymService] Creating new gym...');
+      // 2. 신규 INSERT
       const insertData: GymInsert = {
         name: gymData.name,
         address: gymData.address,
@@ -119,19 +86,23 @@ export class GymService {
         facilities: gymData.facilities || {},
       };
 
+      logSupabaseQuery('gyms', 'INSERT', insertData);
+
       const { data: newGym, error: insertError } = await this.supabase
         .from('gyms')
         .insert(insertData)
         .select('id')
         .single();
 
+      logSupabaseResult('gyms', 'INSERT', newGym, insertError);
+
       if (insertError) throw insertError;
 
-      console.log('[GymService] Created new gym:', newGym.id);
+      logResponse(this.SERVICE_NAME, 'upsertGym', { gymId: newGym.id, source: 'new' });
       return newGym.id;
 
     } catch (error) {
-      console.error('[GymService] Error:', error);
+      logResponse(this.SERVICE_NAME, 'upsertGym', undefined, error);
       throw error;
     }
   }
@@ -140,17 +111,23 @@ export class GymService {
    * 체육관 정보 조회
    */
   async getGym(gymId: string): Promise<Gym | null> {
+    logRequest(this.SERVICE_NAME, 'getGym', { gymId });
+    logSupabaseQuery('gyms', 'SELECT', undefined, { id: gymId });
+
     const { data, error } = await this.supabase
       .from('gyms')
       .select('*')
       .eq('id', gymId)
       .single();
 
+    logSupabaseResult('gyms', 'SELECT', data, error);
+
     if (error) {
-      console.error('[GymService] Get gym error:', error);
+      logResponse(this.SERVICE_NAME, 'getGym', undefined, error);
       return null;
     }
 
+    logResponse(this.SERVICE_NAME, 'getGym', data);
     return data;
   }
 
@@ -158,6 +135,9 @@ export class GymService {
    * 체육관 시설 정보 업데이트
    */
   async updateFacilities(gymId: string, facilities: GymFacilities): Promise<Gym | null> {
+    logRequest(this.SERVICE_NAME, 'updateFacilities', { gymId, facilities });
+    logSupabaseQuery('gyms', 'UPDATE', { facilities }, { id: gymId });
+
     const { data, error } = await this.supabase
       .from('gyms')
       .update({ facilities })
@@ -165,11 +145,14 @@ export class GymService {
       .select()
       .single();
 
+    logSupabaseResult('gyms', 'UPDATE', data, error);
+
     if (error) {
-      console.error('[GymService] Update facilities error:', error);
+      logResponse(this.SERVICE_NAME, 'updateFacilities', undefined, error);
       return null;
     }
 
+    logResponse(this.SERVICE_NAME, 'updateFacilities', data);
     return data;
   }
 
@@ -177,17 +160,23 @@ export class GymService {
    * 이름으로 체육관 검색 (자동완성용)
    */
   async searchByName(query: string, limit: number = 10): Promise<Gym[]> {
+    logRequest(this.SERVICE_NAME, 'searchByName', { query, limit });
+    logSupabaseQuery('gyms', 'SELECT', undefined, { name: `%${query}%` });
+
     const { data, error } = await this.supabase
       .from('gyms')
       .select('*')
       .ilike('name', `%${query}%`)
       .limit(limit);
 
+    logSupabaseResult('gyms', 'SELECT', data, error);
+
     if (error) {
-      console.error('[GymService] Search error:', error);
+      logResponse(this.SERVICE_NAME, 'searchByName', undefined, error);
       return [];
     }
 
+    logResponse(this.SERVICE_NAME, 'searchByName', { count: data?.length ?? 0 });
     return data || [];
   }
 }

@@ -133,7 +133,7 @@ export function MatchCreateFacilities({
 
         {/* Dialog: Parking */}
       <Dialog open={showParkingDialog} onOpenChange={setShowParkingDialog}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="w-[90%] max-w-[480px] rounded-2xl">
           <DialogHeader>
             <DialogTitle>주차 정보</DialogTitle>
           </DialogHeader>
@@ -179,7 +179,7 @@ export function MatchCreateFacilities({
 
       {/* Dialog: Court Size */}
       <Dialog open={showCourtSizeDialog} onOpenChange={setShowCourtSizeDialog}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="w-[90%] max-w-[480px] rounded-2xl">
           <DialogHeader>
             <DialogTitle>코트 크기</DialogTitle>
           </DialogHeader>

@@ -47,7 +47,7 @@ export enum ApplicantStatus {
 export enum CostType {
   MONEY = 'MONEY', // 일반 참가비 (원)
   FREE = 'FREE', // 무료
-  BEVERAGE = 'BEVERAGE', // 음료 내기 (병 수)
+  BEVERAGE = 'BEVERAGE', // 음료로 참가비 내기 (병 수)
 }
 
 /**
