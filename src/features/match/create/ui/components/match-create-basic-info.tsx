@@ -1,5 +1,6 @@
 'use client';
 
+import { useRef } from 'react';
 import { useFormContext, Controller } from 'react-hook-form';
 import {
   MapPin,
@@ -79,7 +80,12 @@ export function MatchCreateBasicInfo({
   isExistingGym = false,
   onClearLocation
 }: MatchCreateBasicInfoProps) {
-  const { register, control, setValue } = useFormContext();
+  const { register, control, setValue, getValues } = useFormContext();
+  const methods = { getValues }; // Helper to match prev code
+
+  // Fee Persistence
+  const lastCostRef = useRef<string>("10000");
+  const lastBeverageRef = useRef<string>("1");
 
   return (
     <section className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-6">
@@ -225,7 +231,7 @@ export function MatchCreateBasicInfo({
 
         {children}
 
-        {/* Fee */}
+            {/* Fee */}
         <div className="space-y-2 pt-6 border-t border-slate-100">
             <div className="flex items-center justify-between">
                 <Label className="text-sm font-bold text-slate-600">참가비 (1인)</Label>
@@ -235,8 +241,22 @@ export function MatchCreateBasicInfo({
                         checked={feeType === 'beverage'}
                         onCheckedChange={(c) => {
                             const newType = c ? 'beverage' : 'cost';
+                            // Save current value
+                            const currentVal = methods.getValues('fee');
+                            if (feeType === 'cost') {
+                                lastCostRef.current = currentVal;
+                            } else {
+                                lastBeverageRef.current = currentVal;
+                            }
+
                             setFeeType(newType);
-                            setValue('fee', newType === 'beverage' ? '1' : '10000');
+                            
+                            // Restore or Default
+                            if (newType === 'beverage') {
+                                setValue('fee', lastBeverageRef.current || '1');
+                            } else {
+                                setValue('fee', lastCostRef.current || '10000');
+                            }
                         }}
                         className="data-[state=checked]:bg-[#FF6600] data-[state=unchecked]:bg-slate-200" 
                     />

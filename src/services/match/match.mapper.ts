@@ -166,17 +166,28 @@ export function toMatchInsertDataV3(
     pro: 'PRO',
   };
 
-  const matchOptions: MatchOptions = {
-    play_style: form.gameFormat ? gameFormatMap[form.gameFormat] : undefined,
-    quarter_rule: {
-      minutes_per_quarter: rules.quarterTime || 10,
-      quarter_count: rules.quarterCount || 4,
-      game_count: rules.fullGames || 1, // field usage?
-    },
-    guaranteed_quarters: rules.guaranteedQuarters,
-    referee_type: rules.referee ? refereeMap[rules.referee] : undefined,
-    supplies: undefined, // form doesn't seem to have supplies text field distinct from facilities?
-  };
+  // 24.01.21 Update: Only populate matchOptions if there is actual data
+  let matchOptions: MatchOptions | undefined;
+
+  // Check if quarter rules exist (avoid default 10/4/1 if no input)
+  const hasQuarterRules = rules.quarterTime || rules.quarterCount || rules.fullGames;
+  
+  // Check if any match option data exists
+  const hasMatchOptions = form.gameFormat || hasQuarterRules || rules.guaranteedQuarters || rules.referee;
+
+  if (hasMatchOptions) {
+    matchOptions = {
+      play_style: form.gameFormat ? gameFormatMap[form.gameFormat] : undefined,
+      quarter_rule: hasQuarterRules ? {
+        minutes_per_quarter: rules.quarterTime || 8,
+        quarter_count: rules.quarterCount || 4,
+        game_count: rules.fullGames || 2,
+      } : undefined,
+      guaranteed_quarters: rules.guaranteedQuarters,
+      referee_type: rules.referee ? refereeMap[rules.referee] : undefined,
+      supplies: undefined,
+    };
+  }
 
   // F. Team & Host
   const manualTeamName = form.selectedTeamId

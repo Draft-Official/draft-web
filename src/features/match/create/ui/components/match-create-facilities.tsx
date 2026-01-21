@@ -1,4 +1,4 @@
-'use client';
+import { useRef } from 'react';
 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -47,8 +47,13 @@ export function MatchCreateFacilities({
   isExistingGym = false
 }: MatchCreateFacilitiesProps) {
 
-    // Helper to get labels
-    const getCourtSizeLabel = () => COURT_SIZE_OPTIONS.find(o => o.value === courtSize)?.label;
+  // Persistence Refs
+  const lastParkingCost = useRef<string>("");
+  const lastParkingDetail = useRef<string>("");
+  const lastCourtSize = useRef<string>("");
+
+  // Helper to get labels
+  const getCourtSizeLabel = () => COURT_SIZE_OPTIONS.find(o => o.value === courtSize)?.label;
 
   return (
     <>
@@ -105,12 +110,12 @@ export function MatchCreateFacilities({
                     checkIconPosition="right"
                     valueLabel={parkingCost === "0" ? "0원 (무료)" : (parkingCost ? `${Number(parkingCost).toLocaleString()}원/시간` : undefined)}
                     onClick={() => {
-                        if (parkingCost !== "") {
-                            setParkingCost("");
-                            setParkingDetail("");
-                        } else {
-                            setShowParkingDialog(true);
+                        // Always open dialog. If previously cleared, restore from ref.
+                        if (parkingCost === "" && lastParkingCost.current !== "") {
+                             setParkingCost(lastParkingCost.current);
+                             setParkingDetail(lastParkingDetail.current);
                         }
+                        setShowParkingDialog(true);
                     }}
                 />
 
@@ -121,11 +126,11 @@ export function MatchCreateFacilities({
                     checkIconPosition="right"
                     valueLabel={getCourtSizeLabel()}
                     onClick={() => {
-                        if (courtSize !== "") {
-                            setCourtSize("");
-                        } else {
-                            setShowCourtSizeDialog(true);
+                        // Always open dialog. If previously cleared, restore from ref.
+                        if (courtSize === "" && lastCourtSize.current !== "") {
+                            setCourtSize(lastCourtSize.current);
                         }
+                        setShowCourtSizeDialog(true);
                     }}
                 />
             </div>
@@ -167,12 +172,28 @@ export function MatchCreateFacilities({
                 />
             </div>
 
-            <Button
-              onClick={() => setShowParkingDialog(false)}
-              className="w-full h-12 bg-[#FF6600] hover:bg-[#FF6600]/90 text-white font-bold rounded-xl"
-            >
-              확인
-            </Button>
+            <div className="flex gap-2">
+                <Button
+                    onClick={() => setShowParkingDialog(false)}
+                    className="flex-[2] h-12 bg-[#FF6600] hover:bg-[#FF6600]/90 text-white font-bold rounded-xl"
+                >
+                    확인
+                </Button>
+                <Button
+                    variant="outline"
+                    onClick={() => {
+                        // Remove/Clear Logic
+                        lastParkingCost.current = parkingCost; // Save before clear
+                        lastParkingDetail.current = parkingDetail;
+                        setParkingCost("");
+                        setParkingDetail("");
+                        setShowParkingDialog(false);
+                    }}
+                    className="flex-1 h-12 border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50"
+                >
+                    삭제
+                </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
@@ -208,12 +229,26 @@ export function MatchCreateFacilities({
                 ))}
               </div>
             </div>
-            <Button
-              onClick={() => setShowCourtSizeDialog(false)}
-              className="w-full h-12 bg-[#FF6600] hover:bg-[#FF6600]/90 text-white font-bold rounded-xl"
-            >
-              확인
-            </Button>
+             <div className="flex gap-2">
+                <Button
+                    onClick={() => setShowCourtSizeDialog(false)}
+                    className="flex-[2] h-12 bg-[#FF6600] hover:bg-[#FF6600]/90 text-white font-bold rounded-xl"
+                >
+                    확인
+                </Button>
+                <Button
+                    variant="outline"
+                    onClick={() => {
+                         // Remove/Clear Logic
+                        lastCourtSize.current = courtSize;
+                        setCourtSize("");
+                        setShowCourtSizeDialog(false);
+                    }}
+                    className="flex-1 h-12 border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50"
+                >
+                    삭제
+                </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

@@ -449,7 +449,26 @@ export function MatchCreateView() {
     if (match.account_holder) setValue('accountHolder', match.account_holder);
 
     // 6. 연락처 정보
-    if (match.contact_content) setValue('kakaoLink', match.contact_content);
+    if (match.contact_type) {
+      setValue('operations.contactType', match.contact_type);
+      if (match.contact_type === 'PHONE') {
+        setValue('phoneNumber', match.contact_content || '');
+      } else {
+        setValue('kakaoLink', match.contact_content || '');
+      }
+    }
+
+    // 6.1 주최자 정보 (Team ID가 있으면 Team, 없으면 'me')
+    // Important: UI needs to know which host is selected to toggle defaults logic in the component
+    // If team_id is present, select that team. If not, select 'me' (Individual)
+    // BUT user wanted "Recents" to NOT override if they selected something?
+    // User request: "최근경기 불러오기 기능을 사용하면 주최정보가 안바뀌고 계좌정보가 안바뀌거든." -> This meant it WASN'T updating.
+    // So we MUST update it.
+    if (match.team_id) {
+        setValue('operations.selectedHost', match.team_id);
+    } else {
+        setValue('operations.selectedHost', 'me');
+    }
 
     // 7. 공지사항
     if (match.host_notice) setValue('description', match.host_notice);
@@ -571,6 +590,32 @@ export function MatchCreateView() {
       }
     }
 
+    // 주최 정보 검증 (필수)
+    // Refactored to use form data directly instead of synced state
+    const opsHost = data.operations?.selectedHost;
+    if (!opsHost) {
+        toast.error("⚠️ 운영 정보를 확인해주세요: 주최자를 선택해주세요.");
+        scrollToSection('section-operations'); 
+        return;
+    }
+
+    // 계좌/연락처 정보 검증 (필수)
+    if (!data.bankName || !data.accountNumber || !data.accountHolder) {
+        toast.error("⚠️ 운영 정보를 확인해주세요: 계좌 정보를 모두 입력해주세요.");
+        scrollToSection('section-operations');
+        return;
+    }
+
+    const opsContactType = data.operations?.contactType; // PHONE or KAKAO_OPEN_CHAT
+    const opsContactContent = opsContactType === 'PHONE' ? data.phoneNumber : data.kakaoLink;
+
+
+    if (!opsContactContent) {
+        toast.error("⚠️ 운영 정보를 확인해주세요: 연락처를 입력해주세요.");
+        scrollToSection('section-operations');
+        return;
+    }
+
     // Calculate endTime from startTime + duration
     const startTime = data.startTime || '19:00';
     const duration = parseFloat(data.duration || '2');
@@ -653,16 +698,21 @@ export function MatchCreateView() {
         costInputType: feeType === 'cost' ? 'money' : 'beverage',
 
         // 연락처 (operationsData에서 가져옴)
-        contactType: operationsData?.contactInfo.type === 'KAKAO_OPEN_CHAT' ? 'KAKAO_OPEN_CHAT' : 'PHONE',
-        contactContent: operationsData?.contactInfo.content || '',
+        // 연락처 (Form Data에서 가져옴)
+        contactType: opsContactType === 'KAKAO_OPEN_CHAT' ? 'KAKAO_OPEN_CHAT' : 'PHONE',
+        contactContent: opsContactContent || '',
 
         // Admin Info
         price: Number(data.fee || 0),
         bank: data.bankName,
-        accountNumber: data.accountNumber,
-        accountHolder: "예금주", // Missing in form input? Assuming data has it or default
-        refundPolicy: "환불 규정...", // Default or from form
+        accountNumber: data.accountNumber, // Note: In schema it's string
+        accountHolder: data.accountHolder || "예금주", 
+        refundPolicy: "환불 규정...", 
         notice: data.description,
+
+        // Team Info (Host) - Critical Fix
+        selectedTeamId: opsHost === 'me' ? null : opsHost,
+        manualTeamName: undefined, // 팀 선택 시 자동 처리, 개인 시 필요없음
     };
     
     // Add missing fields if they exist in data but not in payload
@@ -868,11 +918,13 @@ export function MatchCreateView() {
             />
 
             {/* SECTION 5: Operations Info */}
+            <div id="section-operations">
             <MatchCreateOperations
                 user={currentUser}
                 teams={myTeams}
                 onDataChange={setOperationsData}
             />
+            </div>
 
             {/* Submit Button - inside form */}
             <div className="pt-4">

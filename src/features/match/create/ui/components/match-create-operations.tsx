@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { Team, User } from '@/shared/types/database.types';
 import { Input } from '@/components/ui/input';
@@ -30,53 +30,44 @@ interface MatchCreateOperationsProps {
   user: User | null;
   teams: Team[];
   onDataChange: (data: OperationsData) => void;
-  initialData?: Partial<OperationsData>;
+  // initialData removed as we rely on form context now
 }
 
 export function MatchCreateOperations({
   user,
   teams,
   onDataChange,
-  initialData,
 }: MatchCreateOperationsProps) {
-  const { setValue } = useFormContext();
+  const { register, watch, setValue, getValues } = useFormContext();
   
-  // 기본값을 빈 문자열로 설정 (선택하기 상태)
-  const [selectedHost, setSelectedHost] = useState<'me' | string>('');
-  const [accountBank, setAccountBank] = useState('');
-  const [accountNumber, setAccountNumber] = useState('');
-  const [accountHolder, setAccountHolder] = useState('');
-  const [contactType, setContactType] = useState<'PHONE' | 'KAKAO_OPEN_CHAT'>('PHONE');
-  const [contactContent, setContactContent] = useState('');
-  const [hostNotice, setHostNotice] = useState('');
-  const [saveAsDefault, setSaveAsDefault] = useState(false);
+  // Watch form values for UI updates and data sync
+  // Note: We use register to bind inputs, but we watch them for the onDataChange effect
+  const selectedHost = watch('operations.selectedHost') || '';
+  const bankName = watch('bankName') || '';
+  const accountNumber = watch('accountNumber') || '';
+  const accountHolder = watch('accountHolder') || '';
+  const description = watch('description') || '';
+  const contactType = watch('operations.contactType') || 'PHONE';
+  const kakaoLink = watch('kakaoLink') || '';
+  const phoneNumber = watch('phoneNumber') || '';
+  const saveAsDefault = watch('operations.saveAsDefault') || false;
+
+  // Initial setup for defaults - run once when user/teams load if needed, or rely on manual selection
+  // Refactored: No auto-selection of 'me'. User must select.
 
   // Check if user has existing info (계좌정보, 오픈채팅, 공지 중 하나라도 있으면 true)
-  const hasAccountInfo = Boolean(
+  const hasExistingInfo = Boolean(
     user?.default_account_bank &&
     user?.default_account_number &&
     user?.default_account_holder
-  );
-  const hasExistingInfo = Boolean(
-    hasAccountInfo ||
+  ) || Boolean(
     user?.kakao_open_chat_url ||
     user?.default_host_notice
   );
 
-  // Check if any team has existing info
-  const hasTeamInfo = teams.some(team => 
-    team.account_bank ||
-    team.account_number ||
-    team.account_holder ||
-    team.host_notice
-  );
-
-  // 선택했을 때만 정보 로드 (mount 시 자동 로드 안함)
-  // useEffect for initialization removed - now handled by handleHostChange
-
   // Handle host selection change
   const handleHostChange = (value: 'me' | string) => {
-    setSelectedHost(value);
+    setValue('operations.selectedHost', value);
 
     if (value === 'me' && user) {
       // Reset to user defaults
@@ -89,18 +80,19 @@ export function MatchCreateOperations({
         ? user.phone || ''
         : user.kakao_open_chat_url || '';
 
-      setAccountBank(bank);
-      setAccountNumber(number);
-      setAccountHolder(holder);
-      setHostNotice(notice);
-      setContactType(contact);
-      setContactContent(contactVal);
-
       setValue('bankName', bank);
       setValue('accountNumber', number);
       setValue('accountHolder', holder);
       setValue('description', notice);
-      setValue('kakaoLink', contactVal);
+       setValue('description', notice);
+      // Contact type logic
+      setValue('operations.contactType', contact);
+      
+      if (contact === 'PHONE') {
+        setValue('phoneNumber', contactVal);
+      } else {
+        setValue('kakaoLink', contactVal);
+      }
 
       if (hasExistingInfo) {
         toast.success('개인 기본값을 불러왔습니다.');
@@ -114,25 +106,21 @@ export function MatchCreateOperations({
         const holder = team.account_holder || '';
         const notice = team.host_notice || '';
 
-        setAccountBank(bank);
-        setAccountNumber(number);
-        setAccountHolder(holder);
-        setHostNotice(notice);
-
         setValue('bankName', bank);
         setValue('accountNumber', number);
         setValue('accountHolder', holder);
         setValue('description', notice);
 
-        // Contact info from user (always)
+        // Contact info from user (always defaults to user's contact initially)
         if (user) {
           const contact = user.default_contact_type || 'PHONE';
-          const contactVal = contact === 'PHONE'
-            ? user.phone || ''
-            : user.kakao_open_chat_url || '';
-          setContactType(contact);
-          setContactContent(contactVal);
-          setValue('kakaoLink', contactVal);
+          setValue('operations.contactType', contact);
+          
+          if (contact === 'PHONE') {
+            setValue('phoneNumber', user.phone || '');
+          } else {
+            setValue('kakaoLink', user.kakao_open_chat_url || '');
+          }
         }
 
         toast.success(`${team.name} 정보를 불러왔습니다.`);
@@ -140,30 +128,30 @@ export function MatchCreateOperations({
     }
   };
 
-  // Notify parent component of data changes
+  // Sync data to parent via onDataChange
   useEffect(() => {
     onDataChange({
       selectedHost,
       accountInfo: {
-        bank: accountBank,
+        bank: bankName,
         number: accountNumber,
         holder: accountHolder,
       },
       contactInfo: {
         type: contactType,
-        content: contactContent,
+        content: kakaoLink,
       },
-      hostNotice,
+      hostNotice: description,
       saveAsDefault,
     });
   }, [
     selectedHost,
-    accountBank,
+    bankName,
     accountNumber,
     accountHolder,
     contactType,
-    contactContent,
-    hostNotice,
+    kakaoLink,
+    description,
     saveAsDefault,
     onDataChange,
   ]);
@@ -199,8 +187,14 @@ export function MatchCreateOperations({
 
       {/* Host Selection */}
       <div className="space-y-2">
-        <Label className="text-sm font-bold text-slate-600">주최 정보</Label>
-        <Select value={selectedHost} onValueChange={handleHostChange}>
+        <div className="flex items-center gap-1">
+          <Label className="text-sm font-bold text-slate-600">주최 정보</Label>
+          <span className="text-red-500 text-xs">*</span>
+        </div>
+        <Select 
+          value={selectedHost} 
+          onValueChange={handleHostChange}
+        >
           <SelectTrigger className="h-12 bg-white border-slate-200">
             <SelectValue placeholder="주최자를 선택해주세요" />
           </SelectTrigger>
@@ -221,32 +215,23 @@ export function MatchCreateOperations({
       <div className="space-y-4">
         {/* Account Info - Reordered: 예금주 → 은행명 → 계좌번호 */}
         <div className="space-y-2">
-          <Label className="text-sm font-bold text-slate-600">계좌 정보</Label>
+          <div className="flex items-center gap-1">
+            <Label className="text-sm font-bold text-slate-600">계좌 정보</Label>
+            <span className="text-red-500 text-xs">*</span>
+          </div>
           <div className="flex gap-2">
             <Input
-              value={accountHolder}
-              onChange={(e) => {
-                setAccountHolder(e.target.value);
-                setValue('accountHolder', e.target.value);
-              }}
+              {...register('accountHolder')}
               placeholder="예금주"
               className="w-[90px] h-11 bg-white border-slate-200"
             />
             <Input
-              value={accountBank}
-              onChange={(e) => {
-                setAccountBank(e.target.value);
-                setValue('bankName', e.target.value);
-              }}
+              {...register('bankName')}
               placeholder="은행명"
               className="w-[90px] h-11 bg-white border-slate-200"
             />
             <Input
-              value={accountNumber}
-              onChange={(e) => {
-                setAccountNumber(e.target.value);
-                setValue('accountNumber', e.target.value);
-              }}
+              {...register('accountNumber')}
               placeholder="계좌번호 (- 없이)"
               className="flex-1 h-11 bg-white border-slate-200"
             />
@@ -256,9 +241,12 @@ export function MatchCreateOperations({
         {/* Contact Info - Toggle style */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label className="text-sm font-bold text-slate-600">
-              문의하기 (연락처)
-            </Label>
+            <div className="flex items-center gap-1">
+              <Label className="text-sm font-bold text-slate-600">
+                문의하기 (연락처)
+              </Label>
+              <span className="text-red-500 text-xs">*</span>
+            </div>
             {/* Toggle: 전화번호 / 오픈채팅 */}
             <div className="flex items-center gap-2">
               <span className={`text-xs ${contactType === 'PHONE' ? 'text-orange-600 font-medium' : 'text-slate-400'}`}>
@@ -268,8 +256,8 @@ export function MatchCreateOperations({
               <Switch
                 checked={contactType === 'KAKAO_OPEN_CHAT'}
                 onCheckedChange={(checked) => {
-                  setContactType(checked ? 'KAKAO_OPEN_CHAT' : 'PHONE');
-                  setContactContent('');
+                  setValue('operations.contactType', checked ? 'KAKAO_OPEN_CHAT' : 'PHONE');
+                  // Value persistence: Do not reset content
                 }}
                 className="data-[state=checked]:bg-yellow-400 data-[state=unchecked]:bg-orange-400"
               />
@@ -286,19 +274,19 @@ export function MatchCreateOperations({
             ) : (
               <MessageCircle className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
             )}
-            <Input
-              value={contactContent}
-              onChange={(e) => {
-                setContactContent(e.target.value);
-                setValue('kakaoLink', e.target.value);
-              }}
-              placeholder={
-                contactType === 'PHONE'
-                  ? '010-1234-5678'
-                  : '오픈채팅 링크'
-              }
-              className="pl-9 h-11 bg-white border-slate-200 text-sm"
-            />
+            {contactType === 'PHONE' ? (
+              <Input
+                {...register('phoneNumber')}
+                placeholder="010-1234-5678"
+                className="pl-9 h-11 bg-white border-slate-200 text-sm focus-visible:ring-1 focus-visible:ring-[#FF6600] focus-visible:border-[#FF6600]"
+              />
+            ) : (
+              <Input
+                {...register('kakaoLink')}
+                placeholder="오픈채팅 링크"
+                className="pl-9 h-11 bg-white border-slate-200 text-sm focus-visible:ring-1 focus-visible:ring-[#FF6600] focus-visible:border-[#FF6600]"
+              />
+            )}
           </div>
           <p className="text-xs text-slate-400">
             * 승인된 게스트에게만 공개됩니다.
@@ -307,13 +295,11 @@ export function MatchCreateOperations({
 
         {/* Host Notice */}
         <div className="space-y-2">
-          <Label className="text-sm font-bold text-slate-600">공지 내용</Label>
+          <Label className="text-sm font-bold text-slate-600">
+            공지 내용 <span className="text-slate-400 font-normal">(선택)</span>
+          </Label>
           <Textarea
-            value={hostNotice}
-            onChange={(e) => {
-              setHostNotice(e.target.value);
-              setValue('description', e.target.value);
-            }}
+            {...register('description')}
             placeholder="기타 규칙이나 알림이 있다면 자유롭게 적어주세요."
             className="min-h-[100px] bg-white border-slate-200 resize-none text-base"
           />
@@ -325,8 +311,7 @@ export function MatchCreateOperations({
         <label className="flex items-center gap-3 cursor-pointer p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
           <input
             type="checkbox"
-            checked={saveAsDefault}
-            onChange={(e) => setSaveAsDefault(e.target.checked)}
+            {...register('operations.saveAsDefault')}
             className="w-5 h-5 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
           />
           <span className="text-sm text-slate-700">
