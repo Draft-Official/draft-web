@@ -64,6 +64,19 @@ export default function MyPage() {
   // DB 프로필을 UI용 ProfileData로 변환
   const profile = useMemo(() => profileToFormData(dbProfile), [dbProfile]);
 
+  // 로딩 중일 때 스켈레톤 UI
+  if (authLoading) {
+    return (
+      <div className="bg-background min-h-full p-4 space-y-6 pb-24">
+        <div className="h-8 w-32 bg-muted animate-pulse rounded" />
+        <div className="h-48 bg-muted animate-pulse rounded-lg" />
+        <div className="space-y-4">
+          <div className="h-6 w-16 bg-muted animate-pulse rounded" />
+          <div className="h-24 bg-muted animate-pulse rounded-lg" />
+        </div>
+      </div>
+    );
+  }
 
   const handleProfileComplete = async (data: ProfileData) => {
     if (!user) {
