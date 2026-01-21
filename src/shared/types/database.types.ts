@@ -437,6 +437,7 @@ export type Database = {
           id: string;
           match_id: string;
           user_id: string;
+          team_id: string | null;
           status: Database['public']['Enums']['application_status'];
           participants_info: ParticipantInfo[];
           created_at: string;
@@ -446,6 +447,7 @@ export type Database = {
           id?: string;
           match_id: string;
           user_id: string;
+          team_id?: string | null;
           status?: Database['public']['Enums']['application_status'];
           participants_info?: ParticipantInfo[];
           created_at?: string;
@@ -455,6 +457,7 @@ export type Database = {
           id?: string;
           match_id?: string;
           user_id?: string;
+          team_id?: string | null;
           status?: Database['public']['Enums']['application_status'];
           participants_info?: ParticipantInfo[];
           created_at?: string;
@@ -473,6 +476,13 @@ export type Database = {
             columns: ['user_id'];
             isOneToOne: false;
             referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'applications_team_id_fkey';
+            columns: ['team_id'];
+            isOneToOne: false;
+            referencedRelation: 'teams';
             referencedColumns: ['id'];
           }
         ];
