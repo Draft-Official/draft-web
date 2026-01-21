@@ -1,25 +1,51 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
+import { persistQueryClient } from '@tanstack/react-query-persist-client';
+import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { getQueryClient } from '@/shared/lib/query-client';
+import { CacheRestoredContext } from '@/shared/lib/cache-restored-context';
 import { MatchProvider } from '../src/entities/match/model/match-context';
 import { AuthProvider } from '@/features/auth/model/auth-context';
 
-
 export function Providers({ children }: { children: React.ReactNode }) {
-  // NOTE: useState로 queryClient를 관리하지 않음
-  // getQueryClient()가 클라이언트에서 싱글톤을 반환하기 때문
-  const queryClient = getQueryClient();
+  const [queryClient] = useState(() => getQueryClient());
+  const [isRestored, setIsRestored] = useState(false);
+
+  useEffect(() => {
+    const persister = createSyncStoragePersister({
+      storage: window.localStorage,
+      key: 'draft-query-cache',
+    });
+
+    const [unsubscribe, promise] = persistQueryClient({
+      queryClient,
+      persister,
+      maxAge: 1000 * 60 * 60 * 24, // 24시간
+      dehydrateOptions: {
+        shouldDehydrateQuery: (query) => {
+          const queryKey = query.queryKey as string[];
+          return queryKey[0] === 'auth' || queryKey[0] === 'profile';
+        },
+      },
+    });
+
+    promise.then(() => setIsRestored(true));
+
+    return () => unsubscribe();
+  }, [queryClient]);
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <MatchProvider>
-          {children}
-        </MatchProvider>
-      </AuthProvider>
+      <CacheRestoredContext.Provider value={isRestored}>
+        <AuthProvider>
+          <MatchProvider>
+            {children}
+          </MatchProvider>
+        </AuthProvider>
+      </CacheRestoredContext.Provider>
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   );
