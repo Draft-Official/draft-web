@@ -2,11 +2,11 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Calendar, X } from "lucide-react";
+import { Calendar, X, Loader2 } from "lucide-react";
 import { FilterDropdown } from "./components/FilterDropdown";
 import { MatchCard } from "./components/MatchCard";
-import { MOCK_MANAGED_MATCHES } from "../model/mock-data";
-import type { MatchType } from "../model/types";
+import { useHostedMatches, useParticipatingMatches } from "../api";
+import type { MatchType, ManagedMatch } from "../model/types";
 import {
   MATCH_TYPE_FILTER_OPTIONS,
   MATCH_STATUS_FILTER_OPTIONS,
@@ -26,22 +26,16 @@ export function MatchManagementView() {
   const [statusFilter, setStatusFilter] = useState<StatusFilterValue[]>([]);
   const [showPastMatches, setShowPastMatches] = useState<"hide" | "show">("hide");
 
+  // Fetch data from Supabase
+  const { data: hostedMatches = [], isLoading: isLoadingHosted } = useHostedMatches();
+  const { data: participatingMatches = [], isLoading: isLoadingParticipating } = useParticipatingMatches();
+
+  const isLoading = viewMode === "host" ? isLoadingHosted : isLoadingParticipating;
+  const allMatches: ManagedMatch[] = viewMode === "host" ? hostedMatches : participatingMatches;
+
   // Filter matches
   const filteredMatches = useMemo(() => {
-    let filtered = [...MOCK_MANAGED_MATCHES];
-
-    // View mode filter
-    if (viewMode === "guest") {
-      // 참여 모드: 게스트로 참여하는 경기 (guest, team, tournament)
-      filtered = filtered.filter(
-        (m) => m.type === "guest" || m.type === "team" || m.type === "tournament"
-      );
-    } else {
-      // 관리 모드: 호스트로 관리하는 경기 (host, team, tournament)
-      filtered = filtered.filter(
-        (m) => m.type === "host" || m.type === "team" || m.type === "tournament"
-      );
-    }
+    let filtered = [...allMatches];
 
     // Type filter (only applicable in guest mode) - Multi-select
     if (viewMode === "guest" && typeFilter.length > 0) {
@@ -75,11 +69,11 @@ export function MatchManagementView() {
     });
 
     return filtered;
-  }, [viewMode, typeFilter, statusFilter, showPastMatches]);
+  }, [allMatches, viewMode, typeFilter, statusFilter, showPastMatches]);
 
   const handleCardClick = (matchId: string) => {
     // Find the match to determine its type
-    const match = MOCK_MANAGED_MATCHES.find((m) => m.id === matchId);
+    const match = allMatches.find((m) => m.id === matchId);
     if (!match) return;
 
     // Navigate based on match type and view mode
@@ -219,13 +213,20 @@ export function MatchManagementView() {
 
       {/* Match List */}
       <section className="px-5 py-4 space-y-3">
-        {filteredMatches.length === 0 ? (
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <Loader2 className="w-8 h-8 text-slate-400 animate-spin mb-4" />
+            <p className="text-slate-500 text-center">
+              경기 목록을 불러오는 중...
+            </p>
+          </div>
+        ) : filteredMatches.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
               <Calendar className="w-8 h-8 text-slate-400" />
             </div>
             <p className="text-slate-500 text-center">
-              참여한 경기가 없습니다.
+              {viewMode === "guest" ? "참여한 경기가 없습니다." : "주최한 경기가 없습니다."}
             </p>
           </div>
         ) : (

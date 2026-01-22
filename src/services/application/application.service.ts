@@ -162,6 +162,25 @@ export class ApplicationService {
   }
 
   /**
+   * 신청 승인 (PENDING 상태 유지, approved_at 설정)
+   * 입금대기 상태로 전환
+   */
+  async approveApplication(applicationId: string): Promise<Application> {
+    const { data, error } = await this.supabase
+      .from('applications')
+      .update({
+        approved_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', applicationId)
+      .select()
+      .single();
+
+    if (error) handleSupabaseError(error, '신청 승인');
+    return data!;
+  }
+
+  /**
    * 신청 확정
    */
   async confirmApplication(applicationId: string) {
@@ -178,12 +197,11 @@ export class ApplicationService {
   /**
    * 신청 취소 (사용자용)
    */
-  async cancelApplication(applicationId: string, reason?: string) {
+  async cancelApplication(applicationId: string, _reason?: string) {
     const { data, error } = await this.supabase
       .from('applications')
       .update({
         status: 'CANCELED',
-        cancellation_reason: reason || null,
         updated_at: new Date().toISOString(),
       })
       .eq('id', applicationId)

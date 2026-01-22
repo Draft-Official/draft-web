@@ -440,6 +440,7 @@ export type Database = {
           team_id: string | null;
           status: Database['public']['Enums']['application_status'];
           participants_info: ParticipantInfo[];
+          approved_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -450,6 +451,7 @@ export type Database = {
           team_id?: string | null;
           status?: Database['public']['Enums']['application_status'];
           participants_info?: ParticipantInfo[];
+          approved_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -460,6 +462,7 @@ export type Database = {
           team_id?: string | null;
           status?: Database['public']['Enums']['application_status'];
           participants_info?: ParticipantInfo[];
+          approved_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };

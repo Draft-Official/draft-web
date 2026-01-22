@@ -96,6 +96,7 @@ export interface HostMatchDetail {
   location: string;
   locationUrl: string;
   teamName: string;
+  status: string; // DB status (RECRUITING, CLOSED, etc.)
   recruitmentMode: RecruitmentMode;
   positionQuotas?: PositionQuota[];
   totalQuota?: {

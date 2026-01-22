@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import {
   ChevronLeft,
   MoreVertical,
@@ -12,6 +12,7 @@ import {
   Users,
   Minus,
   Plus,
+  Loader2,
 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -33,13 +34,19 @@ import { toast } from 'sonner';
 import type {
   Guest,
   GuestStatus,
-  HostMatchDetail,
   RecruitmentMode,
 } from '../../model/types';
 import {
-  MOCK_HOST_MATCH_DETAIL,
-  MOCK_GUESTS,
-} from '../../model/mock-data';
+  useHostMatchDetail,
+  useMatchApplicants,
+  useApproveApplication,
+  useConfirmPayment,
+  useRejectApplication,
+  useCancelParticipation,
+  useUpdateMatchStatus,
+  useUpdateRecruitmentSetup,
+} from '../../api';
+import type { RecruitmentSetup } from '@/shared/types/database.types';
 
 // 탭 설정
 const GUEST_TABS: { status: GuestStatus; label: string }[] = [
@@ -51,17 +58,29 @@ const GUEST_TABS: { status: GuestStatus; label: string }[] = [
 
 export function HostMatchDetailView() {
   const router = useRouter();
+  const params = useParams();
+  const matchId = params.id as string;
 
-  const [match] = useState<HostMatchDetail>(MOCK_HOST_MATCH_DETAIL);
-  const [guests, setGuests] = useState<Guest[]>(MOCK_GUESTS);
+  // React Query hooks
+  const { data: match, isLoading: isLoadingMatch } = useHostMatchDetail(matchId);
+  const { data: guests = [], isLoading: isLoadingGuests } = useMatchApplicants(matchId);
+
+  // Mutations
+  const approveMutation = useApproveApplication();
+  const confirmMutation = useConfirmPayment();
+  const rejectMutation = useRejectApplication();
+  const cancelMutation = useCancelParticipation();
+  const statusMutation = useUpdateMatchStatus();
+  const recruitmentMutation = useUpdateRecruitmentSetup();
+
+  // Local state
   const [selectedTab, setSelectedTab] = useState<GuestStatus>('pending');
   const [selectedGuest, setSelectedGuest] = useState<Guest | null>(null);
   const [isGuestProfileOpen, setIsGuestProfileOpen] = useState(false);
   const [isEditQuotaOpen, setIsEditQuotaOpen] = useState(false);
   const [isCancelConfirmOpen, setIsCancelConfirmOpen] = useState(false);
   const [guestToCancel, setGuestToCancel] = useState<Guest | null>(null);
-  const [isRecruiting, setIsRecruiting] = useState(true);
-  const [editMode, setEditMode] = useState<RecruitmentMode>(match.recruitmentMode);
+  const [editMode, setEditMode] = useState<RecruitmentMode>('position');
   const [isFlexBigman, setIsFlexBigman] = useState(false);
   const [editPositions, setEditPositions] = useState({
     guard: 2,
@@ -70,6 +89,25 @@ export function HostMatchDetailView() {
     bigman: 3,
     total: 5,
   });
+
+  const isLoading = isLoadingMatch || isLoadingGuests;
+
+  // Determine if recruiting from match status
+  const isRecruiting = match?.status === 'RECRUITING';
+
+  // 확정자 수 계산 (포지션별)
+  const confirmedCountByPosition = guests
+    .filter((g) => g.status === 'confirmed')
+    .reduce((acc, guest) => {
+      // 포지션에서 괄호 안의 코드 추출 (예: "가드 (G)" -> "G")
+      const posMatch = guest.position.match(/\(([A-Z]+)\)/);
+      const posCode = posMatch ? posMatch[1] : 'G';
+      acc[posCode] = (acc[posCode] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+  // 전체 확정자 수
+  const totalConfirmedCount = guests.filter((g) => g.status === 'confirmed').length;
 
   // 탭별 게스트 수
   const getTabCount = (status: GuestStatus) => {
@@ -81,46 +119,50 @@ export function HostMatchDetailView() {
 
   // 승인 처리
   const handleApprove = (guest: Guest) => {
-    setGuests((prev) =>
-      prev.map((g) =>
-        g.id === guest.id ? { ...g, status: 'payment_waiting' as GuestStatus } : g
-      )
+    approveMutation.mutate(
+      { applicationId: guest.id, matchId },
+      {
+        onSuccess: () => {
+          setIsGuestProfileOpen(false);
+        },
+      }
     );
-    toast.success(`${guest.name}님을 승인했습니다. 입금 안내가 발송되었습니다.`);
-    setIsGuestProfileOpen(false);
   };
 
   // 입금 확인 처리
   const handleConfirmPayment = (guest: Guest) => {
-    setGuests((prev) =>
-      prev.map((g) =>
-        g.id === guest.id ? { ...g, status: 'confirmed' as GuestStatus } : g
-      )
+    confirmMutation.mutate(
+      { applicationId: guest.id, matchId },
+      {
+        onSuccess: () => {
+          setIsGuestProfileOpen(false);
+        },
+      }
     );
-    toast.success(`${guest.name}님의 참가가 확정되었습니다.`);
-    setIsGuestProfileOpen(false);
   };
 
   // 거절 처리
   const handleReject = (guest: Guest) => {
-    setGuests((prev) =>
-      prev.map((g) =>
-        g.id === guest.id ? { ...g, status: 'rejected' as GuestStatus } : g
-      )
+    rejectMutation.mutate(
+      { applicationId: guest.id, matchId },
+      {
+        onSuccess: () => {
+          setIsGuestProfileOpen(false);
+        },
+      }
     );
-    toast.error(`${guest.name}님을 거절했습니다.`);
-    setIsGuestProfileOpen(false);
   };
 
   // 취소 처리
   const handleCancel = (guest: Guest) => {
-    setGuests((prev) =>
-      prev.map((g) =>
-        g.id === guest.id ? { ...g, status: 'rejected' as GuestStatus } : g
-      )
+    cancelMutation.mutate(
+      { applicationId: guest.id, matchId },
+      {
+        onSuccess: () => {
+          setIsGuestProfileOpen(false);
+        },
+      }
     );
-    toast.error(`${guest.name}님의 참가를 취소했습니다.`);
-    setIsGuestProfileOpen(false);
   };
 
   // 게스트 프로필 열기
@@ -142,9 +184,53 @@ export function HostMatchDetailView() {
 
   // 인원 저장
   const handleSaveQuota = () => {
-    toast.success('모집 인원이 수정되었습니다.');
-    setIsEditQuotaOpen(false);
+    const recruitmentSetup: RecruitmentSetup =
+      editMode === 'total'
+        ? {
+            type: 'ANY',
+            max_count: editPositions.total,
+          }
+        : {
+            type: 'POSITION',
+            positions: isFlexBigman
+              ? {
+                  G: { max: editPositions.guard, current: 0 },
+                  B: { max: editPositions.bigman, current: 0 },
+                }
+              : {
+                  G: { max: editPositions.guard, current: 0 },
+                  F: { max: editPositions.forward, current: 0 },
+                  C: { max: editPositions.center, current: 0 },
+                },
+          };
+
+    recruitmentMutation.mutate(
+      { matchId, recruitmentSetup },
+      {
+        onSuccess: () => {
+          setIsEditQuotaOpen(false);
+        },
+      }
+    );
   };
+
+  // 모집 상태 변경
+  const handleToggleRecruiting = () => {
+    const newStatus = isRecruiting ? 'CLOSED' : 'RECRUITING';
+    statusMutation.mutate({ matchId, status: newStatus as 'RECRUITING' | 'CLOSED' });
+  };
+
+  // Loading state
+  if (isLoading || !match) {
+    return (
+      <div className="bg-slate-50 min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 text-slate-400 animate-spin" />
+          <p className="text-slate-500">경기 정보를 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-slate-50 min-h-screen pb-40">
@@ -229,8 +315,10 @@ export function HostMatchDetailView() {
           {match.recruitmentMode === 'position' && match.positionQuotas && (
             <div className="space-y-3">
               {match.positionQuotas.map((quota, index) => {
-                const isOverQuota = quota.current > quota.max;
-                const progressPercent = Math.min((quota.current / quota.max) * 100, 100);
+                // 해당 포지션의 확정자 수
+                const currentCount = confirmedCountByPosition[quota.position] || 0;
+                const isOverQuota = currentCount > quota.max;
+                const progressPercent = Math.min((currentCount / quota.max) * 100, 100);
 
                 return (
                   <div key={index} className="space-y-1">
@@ -244,7 +332,7 @@ export function HostMatchDetailView() {
                           isOverQuota ? 'text-primary' : 'text-slate-900'
                         )}
                       >
-                        {quota.current}/{quota.max}
+                        {currentCount}/{quota.max}
                       </span>
                     </div>
                     <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -267,12 +355,12 @@ export function HostMatchDetailView() {
                 <span
                   className={cn(
                     'font-bold',
-                    match.totalQuota.current > match.totalQuota.max
+                    totalConfirmedCount > match.totalQuota.max
                       ? 'text-primary'
                       : 'text-slate-900'
                   )}
                 >
-                  {match.totalQuota.current}/{match.totalQuota.max}명
+                  {totalConfirmedCount}/{match.totalQuota.max}명
                 </span>
               </div>
               <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -280,7 +368,7 @@ export function HostMatchDetailView() {
                   className="h-full rounded-full transition-all bg-primary"
                   style={{
                     width: `${Math.min(
-                      (match.totalQuota.current / match.totalQuota.max) * 100,
+                      (totalConfirmedCount / match.totalQuota.max) * 100,
                       100
                     )}%`,
                   }}
@@ -767,16 +855,20 @@ export function HostMatchDetailView() {
       </Dialog>
 
       {/* 하단 고정 버튼 */}
-      <div className="fixed bottom-0 left-0 right-0 md:left-[240px] bg-white border-t border-slate-100 p-4 z-50">
-        <div className="max-w-[760px] mx-auto">
+      <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none md:pl-[240px]">
+        <div className="max-w-[760px] mx-auto bg-white border-t border-slate-100 px-5 pt-4 pb-8 pointer-events-auto shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
           <Button
-            onClick={() => {
-              setIsRecruiting(!isRecruiting);
-              toast.success(isRecruiting ? '모집을 마감했습니다.' : '추가 모집을 시작했습니다.');
-            }}
-            className="w-full bg-primary hover:bg-primary/90 text-white h-14 rounded-xl font-bold"
+            onClick={handleToggleRecruiting}
+            disabled={statusMutation.isPending}
+            className="w-full bg-primary hover:bg-primary/90 text-white h-12 rounded-xl font-bold text-lg"
           >
-            {isRecruiting ? '마감하기' : '추가 모집'}
+            {statusMutation.isPending ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : isRecruiting ? (
+              '마감하기'
+            ) : (
+              '추가 모집'
+            )}
           </Button>
         </div>
       </div>
