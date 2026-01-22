@@ -7,7 +7,7 @@ import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persist
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { getQueryClient } from '@/shared/lib/query-client';
 import { CacheRestoredContext } from '@/shared/lib/cache-restored-context';
-import { MatchProvider } from '../src/entities/match/model/match-context';
+import { MatchProvider } from '../entities/match/model/match-context';
 import { AuthProvider } from '@/features/auth/model/auth-context';
 
 export function Providers({ children }: { children: React.ReactNode }) {
