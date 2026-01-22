@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import {
   ChevronLeft,
   MapPin,
@@ -12,6 +12,7 @@ import {
   MessageCircle,
   Swords,
   Calendar,
+  Loader2,
 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -28,16 +29,83 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { useAuth } from '@/features/auth';
+import { createApplicationService } from '@/services/application/application.service';
+import { matchManagementKeys } from '../../api/keys';
 import type { GuestMatchDetail } from '../../model/types';
 import { MOCK_GUEST_MATCH_DETAIL } from '../../model/mock-data';
 
 export function GuestMatchDetailView() {
   const router = useRouter();
+  const params = useParams();
+  const matchId = params.id as string;
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  // 내 신청 정보 조회
+  const { data: myApplication, isLoading: isLoadingApplication } = useQuery({
+    queryKey: ['my-application', matchId, user?.id],
+    queryFn: async () => {
+      if (!user?.id || !matchId) return null;
+
+      const supabase = getSupabaseBrowserClient();
+      const { data, error } = await supabase
+        .from('applications')
+        .select('*')
+        .eq('match_id', matchId)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id && !!matchId,
+  });
+
+  // 신청 취소 mutation
+  const cancelMutation = useMutation({
+    mutationFn: async () => {
+      if (!myApplication?.id) throw new Error('신청 정보가 없습니다');
+
+      const supabase = getSupabaseBrowserClient();
+      const applicationService = createApplicationService(supabase);
+      return applicationService.cancelApplication(myApplication.id, '사용자 요청');
+    },
+    onSuccess: () => {
+      toast.success('참가 신청이 취소되었습니다.');
+      queryClient.invalidateQueries({ queryKey: ['my-application', matchId] });
+      queryClient.invalidateQueries({ queryKey: matchManagementKeys.participatingMatches(user?.id ?? '') });
+      setIsCancelDialogOpen(false);
+      router.back();
+    },
+    onError: (error: Error) => {
+      toast.error(`취소 실패: ${error.message}`);
+    },
+  });
+
+  // 신청 상태에 따른 텍스트
+  const getStatusText = () => {
+    if (!myApplication) return null;
+    if (myApplication.status === 'CONFIRMED') return '확정';
+    if (myApplication.status === 'REJECTED') return '거절됨';
+    if (myApplication.status === 'CANCELED') return '취소됨';
+    if (myApplication.status === 'PENDING' && myApplication.approved_at) return '입금대기';
+    return '승인대기';
+  };
+
+  // 취소 가능 여부 (CONFIRMED, REJECTED, CANCELED가 아닌 경우)
+  const canCancel = myApplication &&
+    myApplication.status !== 'REJECTED' &&
+    myApplication.status !== 'CANCELED';
 
   const [match] = useState<GuestMatchDetail>(MOCK_GUEST_MATCH_DETAIL);
-  const [applied, setApplied] = useState(false);
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
+
+  // 기존 applied 상태 대신 myApplication 사용
+  const applied = !!myApplication;
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -271,7 +339,11 @@ export function GuestMatchDetailView() {
       {/* Footer Sticky Action */}
       <div className="fixed bottom-0 left-0 right-0 md:left-[240px] bg-white border-t border-slate-100 p-4 z-50">
         <div className="max-w-[760px] mx-auto">
-          {!applied ? (
+          {isLoadingApplication ? (
+            <Button disabled className="w-full h-12 text-lg font-bold rounded-xl">
+              <Loader2 className="w-5 h-5 animate-spin" />
+            </Button>
+          ) : !applied ? (
             <Dialog>
               <DialogTrigger asChild>
                 <Button className="w-full h-12 text-lg font-bold rounded-xl transition-all active:scale-95 bg-primary hover:bg-primary/90 text-white shadow-lg shadow-orange-100">
@@ -341,7 +413,6 @@ export function GuestMatchDetailView() {
                 <DialogFooter>
                   <Button
                     onClick={() => {
-                      setApplied(true);
                       toast.success('신청이 완료되었습니다.');
                     }}
                     className="w-full h-12 text-base font-bold bg-primary hover:bg-primary/90 rounded-xl"
@@ -351,13 +422,24 @@ export function GuestMatchDetailView() {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
+          ) : canCancel ? (
+            <div className="space-y-2">
+              {/* 현재 상태 표시 */}
+              <div className="text-center text-sm text-slate-500">
+                현재 상태: <span className="font-bold text-slate-900">{getStatusText()}</span>
+              </div>
+              <Button
+                onClick={() => setIsCancelDialogOpen(true)}
+                className="w-full h-12 text-lg font-bold rounded-xl transition-all active:scale-95 bg-red-100 hover:bg-red-200 text-red-600 border border-red-200"
+              >
+                취소하기
+              </Button>
+            </div>
           ) : (
-            <Button
-              onClick={() => setIsCancelDialogOpen(true)}
-              className="w-full h-12 text-lg font-bold rounded-xl transition-all active:scale-95 bg-red-100 hover:bg-red-200 text-red-600 border border-red-200"
-            >
-              취소하기
-            </Button>
+            <div className="text-center py-3">
+              <span className="text-slate-500">상태: </span>
+              <span className="font-bold text-slate-900">{getStatusText()}</span>
+            </div>
           )}
         </div>
       </div>
@@ -377,18 +459,20 @@ export function GuestMatchDetailView() {
               onClick={() => setIsCancelDialogOpen(false)}
               variant="outline"
               className="flex-1 h-12 rounded-xl font-bold"
+              disabled={cancelMutation.isPending}
             >
               돌아가기
             </Button>
             <Button
-              onClick={() => {
-                setApplied(false);
-                setIsCancelDialogOpen(false);
-                toast.success('참가 신청이 취소되었습니다.');
-              }}
+              onClick={() => cancelMutation.mutate()}
+              disabled={cancelMutation.isPending}
               className="flex-1 bg-red-100 hover:bg-red-200 text-red-600 border border-red-200 h-12 rounded-xl font-bold"
             >
-              취소하기
+              {cancelMutation.isPending ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                '취소하기'
+              )}
             </Button>
           </div>
         </DialogContent>
