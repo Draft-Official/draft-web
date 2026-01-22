@@ -52,7 +52,7 @@ export function HostDashboardView() {
       {/* 1. Quick Action Menu (Top) */}
       <QuickActionMenu
         onTeamCreate={() => toast.info("팀 생성 페이지로 이동합니다 (준비중)")}
-        onRecruit={() => router.push('/match/create')}
+        onRecruit={() => router.push('/matches/create')}
         onTeamManage={() => toast.info("팀원 관리 모달 오픈")}
         onMatchManage={scrollToMatches}
         hasTeam={hasTeam}

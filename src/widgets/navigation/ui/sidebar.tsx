@@ -12,7 +12,7 @@ export function Sidebar() {
   const NAV_ITEMS = [
     { label: '홈', href: '/', icon: Home },
     { label: '팀', href: '/team', icon: Users },
-    { label: '경기관리', href: '/match/management', icon: Calendar },
+    { label: '경기관리', href: '/schedule', icon: Calendar },
     { label: '마이', href: '/my', icon: User },
   ];
 
@@ -48,7 +48,7 @@ export function Sidebar() {
       {/* Action Button - Only visible on Home Tab (Match List) */}
       {pathname === '/' && (
         <div className="mt-auto pb-6">
-          <Link href="/match/create" className="block w-full">
+          <Link href="/matches/create" className="block w-full">
             <Button 
               className="w-full h-14 rounded-full bg-[#FF6600] hover:bg-[#FF6600]/90 text-white text-lg font-bold shadow-lg shadow-orange-200"
             >

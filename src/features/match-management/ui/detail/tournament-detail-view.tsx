@@ -72,7 +72,7 @@ export function TournamentDetailView() {
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-40">
-            <DropdownMenuItem onClick={() => router.push(`/tournament/edit/${tournament.id}`)}>
+            <DropdownMenuItem onClick={() => router.push(`/tournaments/create?edit=${tournament.id}`)}>
               대회 정보 수정
             </DropdownMenuItem>
             <DropdownMenuItem

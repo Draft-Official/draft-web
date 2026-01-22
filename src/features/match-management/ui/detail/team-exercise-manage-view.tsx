@@ -77,7 +77,7 @@ export function TeamExerciseManageView() {
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-40">
-            <DropdownMenuItem onClick={() => router.push(`/match/team/edit/${exercise.id}`)}>
+            <DropdownMenuItem onClick={() => router.push(`/matches/create?edit=${exercise.id}`)}>
               경기 정보 수정
             </DropdownMenuItem>
             <DropdownMenuItem

@@ -178,6 +178,7 @@ export const MOCK_HOST_MATCH_DETAIL: HostMatchDetail = {
   location: '서초구민체육센터 농구장',
   locationUrl: 'https://map.kakao.com',
   teamName: '서초 호퍼스',
+  status: 'RECRUITING',
   recruitmentMode: 'position',
   positionQuotas: [
     { position: 'G', label: '가드', current: 2, max: 2 },

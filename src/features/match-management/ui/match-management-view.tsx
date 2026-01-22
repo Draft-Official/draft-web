@@ -77,25 +77,20 @@ export function MatchManagementView() {
     if (!match) return;
 
     // Navigate based on match type and view mode
-    if (match.type === "host") {
-      router.push(`/match/host/${matchId}`);
-    } else if (match.type === "team") {
-      // 관리 모드면 관리 페이지로, 참여 모드면 상세 페이지로
+    if (match.type === "tournament") {
+      // 대회는 별도 라우트
       if (viewMode === "host") {
-        router.push(`/match/team/manage/${matchId}`);
+        router.push(`/tournaments/${matchId}/manage`);
       } else {
-        router.push(`/match/team/${matchId}`);
-      }
-    } else if (match.type === "tournament") {
-      // 관리 모드면 관리 페이지로, 참여 모드면 상세 페이지로
-      if (viewMode === "host") {
-        router.push(`/match/tournament/manage/${matchId}`);
-      } else {
-        router.push(`/match/tournament/${matchId}`);
+        router.push(`/tournaments/${matchId}`);
       }
     } else {
-      // guest
-      router.push(`/match/guest/${matchId}`);
+      // host, team, guest 모두 matches로 통합
+      if (viewMode === "host" || match.type === "host") {
+        router.push(`/matches/${matchId}/manage`);
+      } else {
+        router.push(`/matches/${matchId}`);
+      }
     }
   };
 

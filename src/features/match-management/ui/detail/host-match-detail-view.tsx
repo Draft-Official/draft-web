@@ -252,7 +252,7 @@ export function HostMatchDetailView() {
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-40">
-            <DropdownMenuItem onClick={() => router.push(`/match/create?edit=${match.id}`)}>
+            <DropdownMenuItem onClick={() => router.push(`/matches/create?edit=${match.id}`)}>
               경기 수정
             </DropdownMenuItem>
             <DropdownMenuItem

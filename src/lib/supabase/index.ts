@@ -7,6 +7,6 @@
  * - 미들웨어: updateSession()
  */
 
-export { createClient, getSupabaseBrowserClient } from './client';
+export { getSupabaseBrowserClient } from './client';
 export { createServerSupabaseClient } from './server';
 export { updateSession } from './middleware';

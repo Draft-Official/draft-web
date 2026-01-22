@@ -65,7 +65,7 @@ export const MatchListItem = React.memo(function MatchListItem({ match, showDate
   const router = useRouter();
 
   const handleClick = () => {
-    router.push(`/guest/${match.id}`);
+    router.push(`/matches/${match.id}`);
   };
 
   const genderInfo = GENDER_CONFIG[match.gender];
