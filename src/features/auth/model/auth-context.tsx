@@ -3,13 +3,18 @@
 /**
  * Auth Context Provider
  * 전역 인증 상태 관리
+ *
+ * React Query의 persist cache를 활용하여 새로고침 시 프로필 API 호출 최소화
  */
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import type { User } from '@supabase/supabase-js';
+import { useQueryClient } from '@tanstack/react-query';
 import { getSupabaseBrowserClient, getSupabaseAuthClient, isSupabaseConfigured } from '@/lib/supabase/client';
 import { createAuthService } from '@/services/auth';
 import type { Profile } from '@/shared/types/database.types';
 import type { AuthContextValue, AuthStatus } from './types';
+import { authKeys } from '../api/keys';
+import { useCacheRestored } from '@/shared/lib/cache-restored-context';
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
@@ -22,73 +27,93 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [status, setStatus] = useState<AuthStatus>('loading');
   const isSessionFound = React.useRef(false);
+  const queryClient = useQueryClient();
+  const isCacheRestored = useCacheRestored();
 
-  // 프로필 로드
+  // 프로필 로드 (React Query 캐시 활용)
   const loadProfile = useCallback(async (userId: string) => {
-    // Supabase 미설정 시 스킵
     if (!isSupabaseConfigured()) {
       setProfile(null);
       return;
     }
 
     try {
-      const supabase = getSupabaseBrowserClient();
-      const authService = createAuthService(supabase);
-      const profileData = await authService.getProfile(userId);
+      // 캐시 먼저 확인
+      const existingData = queryClient.getQueryData(authKeys.profile(userId));
+      if (existingData) {
+        setProfile(existingData as Profile);
+        return;
+      }
+
+      // 캐시에 없을 때만 fetch
+      const profileData = await queryClient.fetchQuery({
+        queryKey: authKeys.profile(userId),
+        queryFn: async () => {
+          const supabase = getSupabaseBrowserClient();
+          const authService = createAuthService(supabase);
+          return authService.getProfile(userId);
+        },
+        staleTime: 1000 * 60 * 5, // 5분
+      });
       setProfile(profileData);
     } catch (error) {
       console.error('Failed to load profile:', error);
       setProfile(null);
     }
-  }, []);
+  }, [queryClient]);
 
-  // 프로필 새로고침
+  // 프로필 새로고침 (캐시 삭제 후 다시 fetch)
   const refreshProfile = useCallback(async () => {
     if (user) {
+      queryClient.removeQueries({ queryKey: authKeys.profile(user.id) });
       await loadProfile(user.id);
     }
-  }, [user, loadProfile]);
+  }, [user, loadProfile, queryClient]);
 
   // 로그아웃
   const signOut = useCallback(async () => {
-    // Supabase 미설정 시 로컬 상태만 클리어
     if (!isSupabaseConfigured()) {
       setUser(null);
       setProfile(null);
       setStatus('unauthenticated');
+      queryClient.clear();
       return;
     }
 
     try {
-      // 로그아웃도 AuthClient 사용
       const supabase = getSupabaseAuthClient();
       const authService = createAuthService(supabase);
       await authService.signOut();
       setUser(null);
       setProfile(null);
       setStatus('unauthenticated');
+      queryClient.clear();
     } catch (error) {
       console.error('Failed to sign out:', error);
       throw error;
     }
-  }, []);
+  }, [queryClient]);
+
+  // persist 복원 완료 후 프로필 로드
+  useEffect(() => {
+    if (!isCacheRestored) return;
+
+    if (user && !profile) {
+      loadProfile(user.id).catch(console.error);
+    }
+  }, [isCacheRestored, user, profile, loadProfile]);
 
   // 초기 세션 로드 및 인증 상태 변경 리스너
   useEffect(() => {
-    // Supabase 미설정 시 unauthenticated로 설정하고 종료
     if (!isSupabaseConfigured()) {
-      console.warn('[Auth] Supabase가 설정되지 않았습니다. 인증 기능이 비활성화됩니다.');
       setStatus('unauthenticated');
       return;
     }
 
-    // 인증 상태는 AuthClient (PKCE) 사용
     const supabase = getSupabaseAuthClient();
 
-    // 현재 세션 확인 (타임아웃 포함)
     const initAuth = async () => {
       try {
-        // 5초 타임아웃 설정
         const timeoutPromise = new Promise((_, reject) =>
           setTimeout(() => reject(new Error('Auth timeout')), 5000)
         );
@@ -104,84 +129,42 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setUser(currentUser);
           setStatus('authenticated');
           isSessionFound.current = true;
-          
-          // Non-blocking profile load
-          loadProfile(currentUser.id).catch(err => {
-             console.error('[Auth] Background profile load failed:', err);
-          });
         }
-      } catch (error: any) {
-        console.error('Failed to init auth:', error);
-        
-        // Race condition fix: If onAuthStateChange already set the user, don't overwrite with unauthenticated
-        // We use a functional update or ref check usually, but here checking existing User state inside useEffect closure might differ.
-        // However, we can check supabase.auth.getSession() or similar?
-        // Simpler: If we are already 'authenticated' by event, skip.
-        // But 'status' state variable in catch block is from closure? No, setStatus is stable.
-        
-        // Better: Check the actual current User state via a ref or just don't setUnauthenticated if error is Timeout but we have user?
-        // Let's rely on the fact that if we have a user in the context state, we shouldn't force logout.
-        // Wait, 'user' in the closure is stale (initial null).
-        // We can use a ref to track if we found a user.
-        
-        // Alternative: Just ignore timeout if it's a timeout? 
-        // If timeout happens, we assume we might be offline or slow, but if onAuthStateChange fired, we are good.
-        // Let's check `supabase.auth.getSession()` synchronously? No it's async.
-        
-        // NOTE: If invalid token causing timeout, we might want to logout.
-        // But here we have a valid User ID shown in UI.
-        
-        if (error.message === 'Auth timeout') {
-            console.warn('[Auth] Timeout ignored because we might have processed session via event listener.');
-            
-            // If we already have a session from event listener, DO NOT overwrite
-            if (isSessionFound.current) {
-                console.log('[Auth] Keeping authenticated state from event listener');
-                return;
-            }
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : '';
 
-            // Double check session
-            const { data } = await supabase.auth.getSession();
-            if (data.session?.user) {
-                console.log('[Auth] Recovered from timeout using session check');
-                setUser(data.session.user);
-                setStatus('authenticated');
-                isSessionFound.current = true;
-                return;
-            }
+        if (errorMessage === 'Auth timeout') {
+          if (isSessionFound.current) return;
+
+          const { data } = await supabase.auth.getSession();
+          if (data.session?.user) {
+            setUser(data.session.user);
+            setStatus('authenticated');
+            isSessionFound.current = true;
+            return;
+          }
         }
-        
+
         if (!isSessionFound.current) {
-           setStatus('unauthenticated');
+          setStatus('unauthenticated');
         }
-
 
         // Auto-recovery for stuck state
-        if (error.message === 'Auth timeout') {
+        if (errorMessage === 'Auth timeout') {
           const retryKey = 'auth_timeout_retry';
           const retries = parseInt(sessionStorage.getItem(retryKey) || '0', 10);
 
           if (retries < 2) {
-            console.warn('[Auth] Timeout detected. Attempting auto-recovery...');
             sessionStorage.setItem(retryKey, (retries + 1).toString());
-
-            // 1. Try generic sign out
             try { await supabase.auth.signOut(); } catch { /* ignore */ }
-
-            // 2. Clear known persistence
-            localStorage.clear(); // Clear all execution context
-            
-            // 3. Clear visible cookies
-            document.cookie.split(";").forEach(function(c) { 
-              document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+            localStorage.clear();
+            document.cookie.split(';').forEach((c) => {
+              document.cookie = c.replace(/^ +/, '').replace(/=.*/, '=;expires=' + new Date().toUTCString() + ';path=/');
             });
-
-            // 4. Force Reload
             window.location.reload();
             return;
           } else {
-             console.error('[Auth] Auto-recovery failed. Manual clearance required.');
-             sessionStorage.removeItem(retryKey); // Reset for next manual attempt
+            sessionStorage.removeItem(retryKey);
           }
         }
       }
@@ -189,14 +172,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     initAuth();
 
-    // 인증 상태 변경 리스너
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === 'SIGNED_IN' && session?.user) {
           setUser(session.user);
           setStatus('authenticated');
           isSessionFound.current = true;
-          loadProfile(session.user.id).catch(console.error);
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
           setProfile(null);
@@ -207,9 +188,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
     );
 
-    // auth:error 이벤트 리스너 (React Query에서 발생)
     const handleAuthError = () => {
-      // 인증 에러 발생 시 처리 (예: 로그인 페이지로 리다이렉트)
       console.warn('Auth error detected');
     };
 
@@ -219,7 +198,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       subscription.unsubscribe();
       window.removeEventListener('auth:error', handleAuthError);
     };
-  }, [loadProfile]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const value: AuthContextValue = {
     user,
@@ -238,9 +218,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   );
 }
 
-/**
- * Auth Context 훅
- */
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
