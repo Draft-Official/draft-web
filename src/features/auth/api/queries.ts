@@ -3,7 +3,7 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
-import { createAuthService } from '@/services/auth';
+import { createAuthService } from '@/features/auth/api/auth-api';
 import { authKeys } from './keys';
 
 /**

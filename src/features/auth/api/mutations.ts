@@ -4,7 +4,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
-import { createAuthService } from '@/services/auth';
+import { createAuthService } from '@/features/auth/api/auth-api';
 import type { ProfileUpdate } from '@/shared/types/database.types';
 import { authKeys } from './keys';
 

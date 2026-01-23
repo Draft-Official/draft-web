@@ -4,8 +4,8 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
-import { createMatchService } from '@/services/match/match.service';
-import { createApplicationService } from '@/services/application/application.service';
+import { createMatchService } from '@/features/match/api/match-api';
+import { createApplicationService } from '@/features/application/api/application-api';
 import { useAuth } from '@/features/auth';
 import { matchManagementKeys } from './keys';
 import {

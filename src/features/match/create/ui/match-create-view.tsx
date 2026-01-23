@@ -25,8 +25,8 @@ import { useCreateMatch } from '@/features/match/api/mutations';
 import { useMyRecentMatches } from '@/features/match/api/queries';
 import { MatchCreateFormData } from '@/features/match/create/model/schema';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
-import { createAuthService } from '@/services/auth';
-import { createTeamService } from '@/services/team';
+import { createAuthService } from '@/features/auth/api/auth-api';
+import { createTeamService } from '@/features/team/api/team-api';
 
 // Location data type
 interface LocationData {

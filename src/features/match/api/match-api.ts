@@ -3,9 +3,9 @@ import { Database } from '@/shared/types/database.types';
 import {
   toMatchInsertDataV3,
   extractGymDataV3,
-} from './match.mapper';
+} from './match-mapper';
 import { MatchCreateFormData } from '@/features/match/create/model/schema';
-import { createGymService } from '../gym/gym.service';
+import { createGymService } from '@/shared/api/gym-api';
 import { logRequest, logResponse, logSupabaseQuery, logSupabaseResult } from '@/shared/lib/logger';
 
 export class MatchService {

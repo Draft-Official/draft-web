@@ -10,7 +10,7 @@ import {
   Position,
   MatchOptionsUI,
 } from '@/shared/types/match';
-import { GymData } from '@/services/gym/gym.service';
+import { GymData } from '@/shared/api/gym-api';
 
 import { MatchCreateFormData } from '@/features/match/create/model/schema';
 

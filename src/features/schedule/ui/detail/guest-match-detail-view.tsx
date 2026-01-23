@@ -32,7 +32,7 @@ import { toast } from 'sonner';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { useAuth } from '@/features/auth';
-import { createApplicationService } from '@/services/application/application.service';
+import { createApplicationService } from '@/features/application/api/application-api';
 import { matchManagementKeys } from '../../api/keys';
 import type { GuestMatchDetail } from '../../model/types';
 import { MOCK_GUEST_MATCH_DETAIL } from '../../model/mock-data';
