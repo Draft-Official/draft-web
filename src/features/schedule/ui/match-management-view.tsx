@@ -89,7 +89,8 @@ export function MatchManagementView() {
       if (viewMode === "host" || match.type === "host") {
         router.push(`/matches/${matchId}/manage`);
       } else {
-        router.push(`/matches/${matchId}`);
+        // 참여 탭에서 들어가는 경우 from=schedule 파라미터 추가
+        router.push(`/matches/${matchId}?from=schedule`);
       }
     }
   };
