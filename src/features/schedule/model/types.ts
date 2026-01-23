@@ -31,6 +31,11 @@ export interface ManagedMatch {
   // Guest specific
   approvalStatus?: string;
   amount?: number;
+  bankInfo?: {
+    bank: string;
+    account: string;
+    holder: string;
+  };
 
   // Host specific
   applicants?: number;

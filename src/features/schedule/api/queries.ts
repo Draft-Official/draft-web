@@ -67,6 +67,9 @@ export function useParticipatingMatches() {
             cost_amount,
             status,
             gym_address,
+            account_bank,
+            account_number,
+            account_holder,
             gym:gyms!gym_id (name, kakao_place_id)
           )
         `)
@@ -88,6 +91,9 @@ export function useParticipatingMatches() {
             cost_amount: number;
             status: string;
             gym_address: string | null;
+            account_bank: string | null;
+            account_number: string | null;
+            account_holder: string | null;
             gym: { name: string; kakao_place_id: string | null } | null;
           };
 
@@ -115,6 +121,13 @@ export function useParticipatingMatches() {
             locationUrl: match.gym?.kakao_place_id ? `https://map.kakao.com/link/map/${match.gym.kakao_place_id}` : undefined,
             approvalStatus: approvalStatusText,
             amount: match.cost_amount,
+            bankInfo: match.account_bank && match.account_number && match.account_holder
+              ? {
+                  bank: match.account_bank,
+                  account: match.account_number,
+                  holder: match.account_holder,
+                }
+              : undefined,
           } as ManagedMatch;
         });
     },
