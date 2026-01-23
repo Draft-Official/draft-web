@@ -3,7 +3,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { MapPin } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/shared/ui/base/button';
 import { cn } from '@/shared/lib/utils';
 
 interface Match {
@@ -65,7 +65,7 @@ export const MatchListItem = React.memo(function MatchListItem({ match, showDate
   const router = useRouter();
 
   const handleClick = () => {
-    router.push(`/guest/${match.id}`);
+    router.push(`/matches/${match.id}`);
   };
 
   const genderInfo = GENDER_CONFIG[match.gender];

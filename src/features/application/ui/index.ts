@@ -1,1 +1,1 @@
-export { ApplyModal } from './ApplyModal';
+export { ApplyModal } from './apply-modal';

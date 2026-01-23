@@ -2,7 +2,7 @@
 
 > 1인 개발자를 위한 확장 가능한 농구 용병 모집 플랫폼
 
-**최종 업데이트**: 2026-01-15
+**최종 업데이트**: 2026-01-23
 
 ---
 
@@ -10,145 +10,258 @@
 
 ```
 draft-web/
-├── app/                              # Next.js App Router (라우팅만)
-│   ├── page.tsx                      # 경기 목록
-│   ├── layout.tsx                    # 루트 레이아웃
-│   ├── providers.tsx                 # Providers (React Query, Auth)
-│   ├── middleware.ts                 # 인증 미들웨어
-│   ├── match/
-│   │   ├── create/page.tsx           # 경기 생성
-│   │   └── management/page.tsx       # 경기 관리
-│   ├── guest/[id]/page.tsx           # 게스트 상세
-│   ├── my/page.tsx                   # 마이페이지
-│   ├── auth/
-│   │   └── callback/route.ts         # OAuth 콜백
-│   └── api/
-│       └── search-places/route.ts    # 카카오맵 API 프록시
-│
-├── src/                              # 소스 코드 (비즈니스 로직)
-│   ├── lib/                          # 🆕 인프라 레이어
-│   │   └── supabase/
-│   │       ├── client.ts             # 브라우저 클라이언트
-│   │       ├── server.ts             # 서버 클라이언트 (RSC/API)
-│   │       ├── middleware.ts         # 미들웨어 클라이언트
-│   │       └── index.ts
-│   │
-│   ├── services/                     # 🆕 서비스 레이어 (Data Access)
-│   │   ├── match/
-│   │   │   ├── match.service.ts      # Match DB 접근
-│   │   │   ├── match.mapper.ts       # DB ↔ Client 타입 변환
-│   │   │   └── index.ts
+├── src/
+│   ├── app/                              # Next.js App Router (라우팅만)
+│   │   ├── page.tsx                      # 경기 목록
+│   │   ├── layout.tsx                    # 루트 레이아웃
+│   │   ├── providers.tsx                 # Providers (React Query, Auth)
+│   │   ├── matches/
+│   │   │   ├── [id]/page.tsx             # 경기 상세
+│   │   │   ├── [id]/manage/page.tsx      # 경기 관리 (호스트)
+│   │   │   └── create/page.tsx           # 경기 생성
+│   │   ├── tournaments/
+│   │   │   ├── [id]/page.tsx             # 대회 상세
+│   │   │   ├── [id]/manage/page.tsx      # 대회 관리
+│   │   │   └── create/page.tsx           # 대회 생성
+│   │   ├── schedule/page.tsx             # 경기 일정 관리
+│   │   ├── team/
+│   │   │   ├── page.tsx                  # 팀 대시보드
+│   │   │   ├── [id]/page.tsx             # 팀 상세
+│   │   │   └── [id]/manage/page.tsx      # 팀 관리
+│   │   ├── my/page.tsx                   # 마이페이지
 │   │   ├── auth/
-│   │   │   ├── auth.service.ts       # Auth 관련 함수
-│   │   │   └── index.ts
-│   │   ├── application/
-│   │   │   ├── application.service.ts
-│   │   │   └── index.ts
-│   │   └── index.ts
+│   │   │   ├── callback/route.ts         # OAuth 콜백
+│   │   │   └── auth-code-error/page.tsx
+│   │   ├── login/page.tsx
+│   │   └── api/
+│   │       ├── gyms/route.ts             # 체육관 검색
+│   │       └── search-places/route.ts    # 카카오맵 API 프록시
 │   │
-│   ├── features/                     # 기능별 모듈 (Feature-Sliced Design)
-│   │   ├── match/
-│   │   │   ├── ui/                   # UI 컴포넌트
-│   │   │   ├── api/                  # 🆕 React Query hooks
-│   │   │   │   ├── keys.ts           # Query key 관리
-│   │   │   │   ├── queries.ts        # GET hooks
-│   │   │   │   ├── mutations.ts      # POST/PUT/DELETE hooks
+│   ├── features/                         # 기능별 모듈 (Feature-Based Architecture)
+│   │   ├── auth/                         # 인증 기능
+│   │   │   ├── api/                      # React Query hooks + API 클라이언트
+│   │   │   │   ├── auth-api.ts           # Supabase Auth 접근
+│   │   │   │   ├── keys.ts               # Query keys
+│   │   │   │   ├── queries.ts            # GET hooks
+│   │   │   │   ├── mutations.ts          # POST/PUT/DELETE hooks
 │   │   │   │   └── index.ts
-│   │   │   ├── model/                # 타입, 스키마
-│   │   │   └── lib/                  # 헬퍼 함수
-│   │   ├── auth/                     # 🆕 인증 기능
+│   │   │   ├── model/                    # 타입, Context
+│   │   │   │   ├── auth-context.tsx      # AuthProvider
+│   │   │   │   ├── types.ts
+│   │   │   │   └── index.ts
+│   │   │   ├── ui/                       # UI 컴포넌트
+│   │   │   │   ├── auth-guard.tsx        # 인증 가드
+│   │   │   │   └── index.ts
+│   │   │   └── index.ts
+│   │   │
+│   │   ├── match/                        # 경기 기능
+│   │   │   ├── api/
+│   │   │   │   ├── match-api.ts          # Match DB 접근
+│   │   │   │   ├── match-mapper.ts       # DB ↔ Client 타입 변환
+│   │   │   │   ├── keys.ts
+│   │   │   │   ├── queries.ts
+│   │   │   │   ├── mutations.ts
+│   │   │   │   └── index.ts
 │   │   │   ├── ui/
-│   │   │   │   └── AuthGuard.tsx     # 인증 필요 컴포넌트 래퍼
+│   │   │   ├── model/
+│   │   │   └── create/                   # 경기 생성 UI
+│   │   │
+│   │   ├── schedule/                     # 경기 일정 관리
 │   │   │   ├── api/
 │   │   │   │   ├── keys.ts
 │   │   │   │   ├── queries.ts
-│   │   │   │   └── mutations.ts
+│   │   │   │   ├── mutations.ts
+│   │   │   │   └── index.ts
+│   │   │   ├── ui/
+│   │   │   │   ├── match-management-view.tsx
+│   │   │   │   ├── components/
+│   │   │   │   │   ├── match-card.tsx
+│   │   │   │   │   └── filter-dropdown.tsx
+│   │   │   │   └── detail/
 │   │   │   ├── model/
-│   │   │   │   ├── auth-context.tsx  # AuthProvider
-│   │   │   │   └── types.ts
+│   │   │   └── config/
+│   │   │
+│   │   ├── application/                  # 신청 기능
+│   │   │   ├── api/
+│   │   │   │   ├── application-api.ts
+│   │   │   │   ├── keys.ts
+│   │   │   │   ├── queries.ts
+│   │   │   │   ├── mutations.ts
+│   │   │   │   └── index.ts
+│   │   │   ├── ui/
+│   │   │   │   ├── apply-modal.tsx
+│   │   │   │   └── index.ts
 │   │   │   └── index.ts
-│   │   └── ... (host, my, match-management)
+│   │   │
+│   │   ├── team/                         # 팀 관리
+│   │   │   ├── api/
+│   │   │   │   ├── team-api.ts
+│   │   │   │   └── index.ts
+│   │   │   ├── model/
+│   │   │   │   ├── types.ts
+│   │   │   │   ├── mock-data.ts
+│   │   │   │   └── index.ts
+│   │   │   ├── ui/
+│   │   │   │   ├── host-dashboard-view.tsx
+│   │   │   │   └── index.ts
+│   │   │   └── index.ts
+│   │   │
+│   │   └── my/                           # 마이페이지
+│   │       ├── model/
+│   │       │   └── types.ts
+│   │       ├── ui/
+│   │       │   ├── profile-card.tsx
+│   │       │   ├── profile-setup-modal.tsx
+│   │       │   ├── skill-slider.tsx
+│   │       │   └── index.ts
+│   │       └── index.ts
 │   │
-│   ├── shared/                       # 전역 공유 자원
-│   │   ├── lib/
+│   ├── shared/                           # 전역 공유 자원
+│   │   ├── api/                          # 🆕 공통 API + Infrastructure
+│   │   │   ├── supabase/                 # Supabase 클라이언트
+│   │   │   │   ├── client.ts             # 브라우저 클라이언트
+│   │   │   │   ├── server.ts             # 서버 클라이언트 (RSC/API)
+│   │   │   │   ├── middleware.ts         # 미들웨어 클라이언트
+│   │   │   │   └── index.ts
+│   │   │   ├── query-client.ts           # React Query 설정
+│   │   │   ├── gym-api.ts                # 체육관 API
+│   │   │   ├── gym.ts                    # 체육관 타입
+│   │   │   ├── kakao-map.ts              # 카카오맵 API
+│   │   │   └── index.ts
+│   │   │
+│   │   ├── ui/                           # 공통 UI 컴포넌트
+│   │   │   ├── base/                     # Atomic UI (shadcn/ui)
+│   │   │   │   ├── button.tsx
+│   │   │   │   ├── card.tsx
+│   │   │   │   ├── dialog.tsx
+│   │   │   │   ├── input.tsx
+│   │   │   │   ├── ... (20개 컴포넌트)
+│   │   │   │   └── index.ts
+│   │   │   └── layout/                   # 레이아웃 컴포넌트
+│   │   │       ├── header.tsx
+│   │   │       ├── sidebar.tsx
+│   │   │       ├── bottom-nav.tsx
+│   │   │       └── index.ts
+│   │   │
+│   │   ├── lib/                          # 유틸리티
 │   │   │   ├── utils.ts
-│   │   │   ├── query-client.ts       # 🆕 React Query 설정
-│   │   │   └── errors.ts             # 🆕 에러 타입 정의
-│   │   ├── config/
-│   │   ├── api/
-│   │   │   └── kakao-map.ts
-│   │   └── types/
-│   │       ├── match.ts              # 클라이언트 타입
-│   │       └── database.types.ts     # 🆕 Supabase 타입 (자동생성)
+│   │   │   └── errors.ts
+│   │   │
+│   │   ├── config/                       # 전역 설정
+│   │   │   └── skill-constants.ts
+│   │   │
+│   │   └── types/                        # 전역 타입
+│   │       ├── match.ts
+│   │       └── database.types.ts         # Supabase 타입 (자동생성)
 │   │
-│   ├── entities/                     # 엔티티 (Context)
-│   │   └── match/model/match-context.tsx
-│   │
-│   ├── widgets/                      # 레이아웃 컴포넌트
-│   └── components/ui/                # shadcn/ui
+│   └── middleware.ts                     # 인증 미들웨어
 │
-├── supabase/
-│   └── schema.sql                    # DB 스키마 + RLS 정책
+├── supabase/                             # Supabase 설정
+│   └── schema.sql
+│
+├── openspec/                             # 프로젝트 문서
+│   ├── project.md
+│   └── changes/                          # 변경 제안서
 │
 └── docs/
-    ├── ARCHITECTURE.md               # 이 파일
-    ├── FIGMA_TO_CODE.md
-    ├── project-context.md
-    └── CHANGELOG.md
+    ├── ARCHITECTURE.md                   # 이 파일
+    └── FIGMA_TO_CODE.md
 ```
 
 ---
 
-## 📐 설계 원칙
+## 📐 아키텍처 원칙
 
-### 1. 3계층 아키텍처
+### 1. 3-Folder Architecture
+
+Draft는 **Feature-Based Architecture**를 따르며, 소스 코드를 3개의 최상위 폴더로 구성합니다:
+
+```
+src/
+├── app/       # Routing (Next.js App Router)
+├── features/  # Feature modules (domain logic)
+└── shared/    # Cross-cutting concerns
+```
+
+#### **app/** - 라우팅 전용
+- **역할**: 페이지 라우팅, 메타데이터, providers 설정만 담당
+- **금지사항**: 비즈니스 로직, API 호출 금지
+- **파일**: `page.tsx`, `layout.tsx`, `route.ts`만 포함
+
+```typescript
+// ✅ Good: app/matches/[id]/page.tsx
+export default function MatchDetailPage({ params }: { params: { id: string } }) {
+  return <MatchDetailView matchId={params.id} />;  // UI는 features/에서
+}
+
+// ❌ Bad: 비즈니스 로직 포함
+export default async function MatchDetailPage() {
+  const supabase = createClient();  // ❌
+  const data = await supabase.from('matches').select();  // ❌
+}
+```
+
+#### **features/** - Feature 모듈
+- **역할**: 도메인별 비즈니스 로직, UI, API, 타입 정의
+- **구조**: 각 feature는 `api/`, `ui/`, `model/`, `lib/` 레이어로 구성
+- **격리**: Feature 간 직접 import 최소화
+
+**Feature 내부 구조:**
+```
+features/{feature-name}/
+├── api/          # Data access layer
+│   ├── {name}-api.ts      # Supabase 접근 로직
+│   ├── {name}-mapper.ts   # DB ↔ Client 타입 변환
+│   ├── keys.ts            # React Query keys
+│   ├── queries.ts         # useQuery hooks
+│   ├── mutations.ts       # useMutation hooks
+│   └── index.ts           # Barrel export
+├── ui/           # UI components
+├── model/        # Types, schemas, context
+└── lib/          # Helper functions
+```
+
+#### **shared/** - 공통 리소스
+- **역할**: Feature에 속하지 않는 크로스-도메인 리소스
+- **포함**: API 인프라, UI 디자인 시스템, 유틸리티, 전역 타입
+
+**Shared 구조:**
+```
+shared/
+├── api/          # Infrastructure (Supabase, React Query)
+├── ui/           # Design system (base + layout)
+├── lib/          # Utilities
+├── config/       # Global config
+└── types/        # Global types
+```
+
+---
+
+### 2. API Layer 패턴
+
+모든 데이터 접근은 feature의 `api/` 레이어를 통해 이루어집니다.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  UI Layer (app/, features/*/ui/)                            │
+│  UI Layer (features/*/ui/)                                  │
 │  - React Components                                         │
-│  - React Query hooks 사용                                   │
+│  - useQuery/useMutation hooks 사용                          │
 └─────────────────────────────────────────────────────────────┘
-                              ↓
+                          ↓
 ┌─────────────────────────────────────────────────────────────┐
 │  API Layer (features/*/api/)                                │
 │  - React Query hooks (queries.ts, mutations.ts)             │
+│  - API 클라이언트 ({name}-api.ts)                           │
+│  - Mapper ({name}-mapper.ts)                                │
 │  - Query key 관리 (keys.ts)                                 │
-│  - 캐싱, 로딩 상태, 에러 처리                               │
 └─────────────────────────────────────────────────────────────┘
-                              ↓
+                          ↓
 ┌─────────────────────────────────────────────────────────────┐
-│  Service Layer (services/)                                  │
-│  - Supabase DB 접근 캡슐화                                  │
-│  - 비즈니스 로직                                            │
-│  - 타입 변환 (mapper)                                       │
-└─────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────┐
-│  Infrastructure Layer (lib/)                                │
+│  Infrastructure (shared/api/)                               │
 │  - Supabase 클라이언트                                      │
 │  - React Query 설정                                         │
 └─────────────────────────────────────────────────────────────┘
 ```
-
-### 2. Feature-Sliced Design
-
-**왜 Feature-Sliced?**
-- ✅ 1인 개발에 최적: 기능별 독립 개발
-- ✅ 확장성: 팀 확대 시 충돌 최소화
-- ✅ 유지보수: 기능 단위 수정/삭제 용이
-- ✅ 재사용성: 공통 컴포넌트 자동 분리
-
-**Feature 구조:**
-```
-src/features/{feature-name}/
-├── ui/           # UI 컴포넌트
-├── api/          # React Query hooks
-├── model/        # 타입, 스키마, context
-└── lib/          # 헬퍼 함수
-```
-
-### 3. 서비스 레이어 패턴
 
 **규칙: UI에서 직접 Supabase 호출 금지**
 
@@ -156,96 +269,150 @@ src/features/{feature-name}/
 // ❌ Bad: UI에서 직접 DB 호출
 const { data } = await supabase.from('matches').select();
 
-// ✅ Good: 서비스 레이어 통해 호출
-const matchService = createMatchService(supabase);
-const matches = await matchService.getRecruitingMatches();
+// ✅ Good: API 레이어 통해 호출
+// features/match/api/match-api.ts
+export async function getMatch(supabase: SupabaseClient, matchId: string) {
+  const { data, error } = await supabase
+    .from('matches')
+    .select('*')
+    .eq('id', matchId)
+    .single();
+  
+  if (error) throw new AppError(error.message);
+  return data;
+}
+
+// features/match/api/queries.ts
+export function useMatch(matchId: string) {
+  return useQuery({
+    queryKey: matchKeys.detail(matchId),
+    queryFn: async () => {
+      const supabase = getSupabaseBrowserClient();
+      const row = await getMatch(supabase, matchId);
+      return matchRowToClientMatch(row);  // Mapper
+    },
+  });
+}
+
+// features/match/ui/match-detail-view.tsx
+function MatchDetailView({ matchId }: { matchId: string }) {
+  const { data: match, isLoading } = useMatch(matchId);  // ✅
+}
 ```
 
-**장점:**
-- DB 쿼리 로직 재사용
-- 타입 변환 일관성
-- 테스트 용이성
-- 비즈니스 로직 캡슐화
+---
+
+### 3. Barrel Exports
+
+각 레이어는 `index.ts`를 통해 public API를 노출합니다.
+
+```typescript
+// features/auth/index.ts
+export * from './api';
+export * from './model';
+export * from './ui';
+
+// features/auth/api/index.ts
+export { authKeys } from './keys';
+export { useProfile, useSignOut } from './queries';
+export { useSignInWithKakao } from './mutations';
+
+// shared/ui/base/index.ts
+export * from './button';
+export * from './card';
+export * from './dialog';
+// ... 20개 base UI 컴포넌트
+```
 
 ---
 
 ## 🎯 기술 스택
 
-### 현재 (Phase 2 Ready)
-
 | 카테고리 | 기술 | 용도 |
 |---------|------|------|
-| **Framework** | Next.js 16 (App Router) | SSR, Routing |
+| **Framework** | Next.js 15 (App Router) | SSR, Routing |
 | **Language** | TypeScript | 타입 안정성 |
 | **Styling** | Tailwind CSS 4 | 스타일링 |
 | **UI Library** | shadcn/ui + Radix UI | 컴포넌트 |
-| **State** | React Query | 서버 상태 캐싱 |
+| **State** | TanStack Query (React Query) | 서버 상태 관리 |
 | **Backend** | Supabase | 인증 + DB + Storage |
 | **Form** | React Hook Form + Zod | 폼 검증 |
 
-### 설치된 패키지
+### 핵심 패키지
 
-```bash
-# Supabase
-@supabase/supabase-js  # Supabase 클라이언트
-@supabase/ssr          # SSR 지원 (쿠키 기반 세션)
-
-# React Query
-@tanstack/react-query         # 서버 상태 관리
-@tanstack/react-query-devtools # 개발 도구
+```json
+{
+  "@supabase/supabase-js": "^2.x",
+  "@supabase/ssr": "^0.x",
+  "@tanstack/react-query": "^5.x",
+  "@tanstack/react-query-devtools": "^5.x",
+  "@tanstack/react-query-persist-client": "^5.x"
+}
 ```
 
 ---
 
 ## 🔐 인증 시스템
 
-### 인증 흐름
+### AuthProvider
 
-```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   Client    │────▶│  Middleware │────▶│  Supabase   │
-│  Component  │     │ (세션 갱신)  │     │    Auth     │
-└─────────────┘     └─────────────┘     └─────────────┘
-                           │
-                           ▼
-                    ┌─────────────┐
-                    │ AuthProvider│
-                    │  (Context)  │
-                    └─────────────┘
+전역 인증 상태는 `features/auth/model/auth-context.tsx`의 `AuthProvider`가 관리합니다.
+
+```typescript
+// src/app/providers.tsx
+import { AuthProvider } from '@/features/auth';
+
+export function Providers({ children }: { children: React.ReactNode }) {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        {children}
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+}
+
+// 컴포넌트에서 사용
+import { useAuth } from '@/features/auth';
+
+function MyComponent() {
+  const { user, profile, isAuthenticated, signOut } = useAuth();
+}
 ```
 
 ### 보호된 라우트
 
 ```typescript
-// app/middleware.ts
+// src/middleware.ts
 const PROTECTED_ROUTES = [
-  '/match/create',
-  '/match/management',
+  '/matches/create',
+  '/schedule',
   '/my',
   '/team',
 ];
 ```
 
-### AuthProvider 사용
+### AuthGuard 컴포넌트
 
 ```typescript
-// 컴포넌트에서
-const { user, profile, isAuthenticated, signOut } = useAuth();
+import { AuthGuard } from '@/features/auth';
 
-// 인증 가드
-<AuthGuard fallback={<Spinner />} unauthenticated={<LoginPrompt />}>
+<AuthGuard 
+  fallback={<Spinner />} 
+  unauthenticated={<LoginPrompt />}
+>
   <ProtectedContent />
 </AuthGuard>
 ```
 
 ---
 
-## 📊 React Query 사용법
+## 📊 React Query 패턴
 
 ### Query Keys
 
 ```typescript
-// src/features/match/api/keys.ts
+// features/match/api/keys.ts
 export const matchKeys = {
   all: ['matches'] as const,
   lists: () => [...matchKeys.all, 'list'] as const,
@@ -257,15 +424,19 @@ export const matchKeys = {
 ### Queries (GET)
 
 ```typescript
-// src/features/match/api/queries.ts
+// features/match/api/queries.ts
+import { useQuery } from '@tanstack/react-query';
+import { matchKeys } from './keys';
+import { getRecruitingMatches } from './match-api';
+import { matchRowToClientMatch } from './match-mapper';
+
 export function useRecruitingMatches() {
   return useQuery({
     queryKey: matchKeys.lists(),
     queryFn: async () => {
       const supabase = getSupabaseBrowserClient();
-      const matchService = createMatchService(supabase);
-      const rows = await matchService.getRecruitingMatches();
-      return rows.map(matchRowToGuestListMatch);
+      const rows = await getRecruitingMatches(supabase);
+      return rows.map(matchRowToClientMatch);
     },
   });
 }
@@ -274,42 +445,26 @@ export function useRecruitingMatches() {
 ### Mutations (POST/PUT/DELETE)
 
 ```typescript
-// src/features/match/api/mutations.ts
+// features/match/api/mutations.ts
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+
 export function useCreateMatch() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (input) => {
+    mutationFn: async (input: CreateMatchInput) => {
       const supabase = getSupabaseBrowserClient();
-      const matchService = createMatchService(supabase);
-      return matchService.createMatch(insertData);
+      return createMatch(supabase, input);
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: matchKeys.lists() });
       toast.success('경기가 생성되었습니다');
     },
+    onError: (error) => {
+      toast.error('경기 생성에 실패했습니다');
+    },
   });
-}
-```
-
-### 컴포넌트에서 사용
-
-```typescript
-function MatchList() {
-  const { data: matches, isLoading, error } = useRecruitingMatches();
-  const createMatch = useCreateMatch();
-
-  if (isLoading) return <Spinner />;
-  if (error) return <ErrorMessage error={error} />;
-
-  return (
-    <div>
-      {matches?.map(match => <MatchCard key={match.id} match={match} />)}
-      <Button onClick={() => createMatch.mutate(formData)}>
-        경기 생성
-      </Button>
-    </div>
-  );
 }
 ```
 
@@ -325,21 +480,27 @@ Supabase (DB)                    Client (UI)
 position_type: 'guard'    ────▶  Position: 'G'
 status: 'recruiting'      ────▶  MatchStatus.RECRUITING
 fee: number               ────▶  PriceInfo { base, final }
+match_date: '2026-01-23'  ────▶  date: '2026.01.23 (목)'
 ```
 
-### 타입 변환 (Mapper)
+### Mapper 패턴
 
 ```typescript
-// src/services/match/match.mapper.ts
-export function matchRowToGuestListMatch(row: MatchRow): GuestListMatch {
+// features/match/api/match-mapper.ts
+import type { Database } from '@/shared/types/database.types';
+
+type MatchRow = Database['public']['Tables']['matches']['Row'];
+
+export function matchRowToClientMatch(row: MatchRow): ClientMatch {
   return {
     id: row.id,
     title: row.title,
-    matchType: MatchType.GUEST_RECRUIT,
+    status: mapStatus(row.status),
     location: {
       name: row.location_name,
       address: row.location_address || '',
     },
+    date: formatDate(row.match_date),
     // ... 변환 로직
   };
 }
@@ -358,40 +519,10 @@ npx supabase gen types typescript --project-id YOUR_PROJECT_ID > src/shared/type
 
 | 위치 | 명명 규칙 | 예시 |
 |------|---------|------|
-| `src/features/*/ui/*` | kebab-case or PascalCase | `match-list-item.tsx`, `FilterBar.tsx` |
-| `src/features/*/api/*` | kebab-case | `queries.ts`, `mutations.ts` |
-| `src/services/*` | kebab-case | `match.service.ts`, `match.mapper.ts` |
-| `src/lib/*` | kebab-case | `client.ts`, `server.ts` |
-| `src/shared/types/*` | kebab-case | `database.types.ts`, `match.ts` |
-
----
-
-## 🚀 Supabase 연결하기
-
-### 1. 환경 변수 설정
-
-```bash
-# .env.local
-NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-```
-
-### 2. Supabase 프로젝트에서 스키마 실행
-
-```sql
--- supabase/schema.sql 내용을 SQL Editor에서 실행
-```
-
-### 3. 타입 생성
-
-```bash
-npx supabase login
-npx supabase gen types typescript --project-id YOUR_PROJECT_ID > src/shared/types/database.types.ts
-```
-
-### 4. OAuth 설정 (Kakao, Google)
-
-Supabase Dashboard > Authentication > Providers에서 설정
+| **모든 파일** | **kebab-case** | `match-card.tsx`, `auth-guard.tsx` |
+| API 클라이언트 | `{name}-api.ts` | `match-api.ts`, `auth-api.ts` |
+| Mapper | `{name}-mapper.ts` | `match-mapper.ts` |
+| Barrel export | `index.ts` | 모든 레이어마다 |
 
 ---
 
@@ -399,27 +530,27 @@ Supabase Dashboard > Authentication > Providers에서 설정
 
 ### DO ✅
 
-- ✅ 서비스 레이어를 통해 DB 접근
+- ✅ Features의 `api/` 레이어를 통해 DB 접근
 - ✅ React Query hooks를 통해 데이터 페칭
 - ✅ 타입 변환은 mapper에서
-- ✅ 에러 처리는 서비스 레이어에서
-- ✅ Feature 단위로 개발
+- ✅ 파일명은 모두 kebab-case
+- ✅ Barrel exports 활용
 
 ### DON'T ❌
 
 - ❌ UI 컴포넌트에서 직접 Supabase 호출
+- ❌ `app/` 폴더에 비즈니스 로직 작성
+- ❌ Feature 간 직접 import (shared를 통해)
+- ❌ PascalCase 파일명 (kebab-case만 사용)
 - ❌ `any` 타입 사용
-- ❌ Feature 간 직접 import
-- ❌ App Router에 비즈니스 로직 작성
 
 ---
 
 ## 🔗 참고 문서
 
-- **[CLAUDE.md](../CLAUDE.md)** - Quick reference guide for Claude Code
-- **[FIGMA_TO_CODE.md](FIGMA_TO_CODE.md)** - Figma UI import workflow
-- **[project-context.md](project-context.md)** - Business context and MVP scope
-- **[CHANGELOG.md](CHANGELOG.md)** - Recent changes and milestones
+- **[CLAUDE.md](../CLAUDE.md)** - AI Assistant quick reference
+- **[openspec/project.md](../openspec/project.md)** - 프로젝트 명세
+- **[FIGMA_TO_CODE.md](FIGMA_TO_CODE.md)** - Figma UI 변환 가이드
 
 ### External Resources
 - [Next.js App Router](https://nextjs.org/docs/app)
@@ -429,6 +560,6 @@ Supabase Dashboard > Authentication > Providers에서 설정
 
 ---
 
-**Last Updated**: 2026-01-15
-**Maintainer**: @beom
+**Last Updated**: 2026-01-23  
+**Maintainer**: @beom  
 **Project**: Draft - 농구 용병 모집 플랫폼

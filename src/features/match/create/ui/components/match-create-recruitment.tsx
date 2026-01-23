@@ -1,7 +1,7 @@
 'use client';
 
-import { Checkbox } from '@/components/ui/checkbox';
-import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/shared/ui/base/checkbox';
+import { Switch } from '@/shared/ui/base/switch';
 import { cn } from '@/shared/lib/utils';
 import { Minus, Plus, Users } from 'lucide-react';
 

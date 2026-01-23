@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Match } from '@/features/match/model/mock-data';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/shared/ui/base/button';
 
 import { cn } from '@/shared/lib/utils';
 

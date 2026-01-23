@@ -7,12 +7,12 @@ import {
   ExternalLink,
   Building2
 } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/shared/ui/base/input';
+import { Label } from '@/shared/ui/base/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/base/select';
 import { cn } from '@/shared/lib/utils';
-import { Switch } from '@/components/ui/switch';
-import { TimePickerSelect } from '@/components/ui/time-picker-select';
+import { Switch } from '@/shared/ui/base/switch';
+import { TimePickerSelect } from '@/shared/ui/base/time-picker-select';
 // import ScrollContainer from 'react-indiana-drag-scroll'; // Moved to internal component
 import { DateStrip } from '@/features/match/ui/components/date-strip';
 import { SelectedLocationCard } from './selected-location-card';

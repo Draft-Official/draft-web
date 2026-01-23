@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Search, Bell, RotateCcw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Chip } from '@/components/ui/chip';
+import { Button } from '@/shared/ui/base/button';
+import { Chip } from '@/shared/ui/base/chip';
 import { cn } from '@/shared/lib/utils';
 import { RegionFilterModal } from './region-filter-modal';
 import { DateStrip } from './components/date-strip';
@@ -166,8 +166,8 @@ export function FilterBar({
           게스트 모집
         </h1>
         <div className="flex items-center gap-3">
-          <Link 
-            href="/match/create" 
+          <Link
+            href="/matches/create"
             className="px-3 py-1.5 bg-[#FF6600] text-white text-xs font-bold rounded-full shadow-sm hover:bg-[#FF6600]/90 active:scale-95 transition-all mr-1"
           >
             경기 개설하기

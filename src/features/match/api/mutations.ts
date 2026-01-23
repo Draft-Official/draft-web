@@ -4,10 +4,10 @@
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { getSupabaseBrowserClient } from '@/lib/supabase/client';
-import { createMatchService } from '@/services/match/match.service';
+import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
+import { createMatchService } from './match-api';
 import { matchKeys } from './keys';
-import { MatchCreateFormData } from '../create/model/schema';
+import { MatchCreateFormData } from '@/features/match/create/model/schema';
 import { useAuth } from '@/features/auth/model/auth-context';
 
 /**

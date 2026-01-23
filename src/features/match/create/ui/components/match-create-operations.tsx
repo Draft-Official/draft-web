@@ -3,11 +3,11 @@
 import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { Team, User } from '@/shared/types/database.types';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/shared/ui/base/input';
+import { Label } from '@/shared/ui/base/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/base/select';
+import { Switch } from '@/shared/ui/base/switch';
+import { Textarea } from '@/shared/ui/base/textarea';
 import { FileText, MessageCircle, Phone, UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
 
