@@ -30,7 +30,7 @@ import { Input } from '@/shared/ui/base/input';
 import { Label } from '@/shared/ui/base/label';
 import { toast } from 'sonner';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { useAuth } from '@/features/auth';
 import { createApplicationService } from '@/services/application/application.service';
 import { matchManagementKeys } from '../../api/keys';

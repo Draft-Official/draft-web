@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   description: "농구 용병 모집 플랫폼",
 };
 
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/shared/api/supabase/server";
 
 export default async function RootLayout({
   children,

@@ -3,7 +3,7 @@
  * 인증이 필요한 라우트 보호 및 세션 갱신
  */
 import { type NextRequest, NextResponse } from 'next/server';
-import { updateSession } from '@/lib/supabase/middleware';
+import { updateSession } from '@/shared/api/supabase/middleware';
 
 // 인증이 필요한 라우트
 const PROTECTED_ROUTES = [

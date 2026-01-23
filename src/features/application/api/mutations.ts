@@ -3,7 +3,7 @@
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { createApplicationService } from '@/services/application';
 import type { ParticipantInfo } from '@/shared/types/database.types';
 import { applicationKeys } from './keys';

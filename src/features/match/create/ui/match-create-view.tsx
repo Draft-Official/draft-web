@@ -24,7 +24,7 @@ import { RecentMatchesDialog, MatchWithRelations } from './components/recent-mat
 import { useCreateMatch } from '@/features/match/api/mutations';
 import { useMyRecentMatches } from '@/features/match/api/queries';
 import { MatchCreateFormData } from '@/features/match/create/model/schema';
-import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { createAuthService } from '@/services/auth';
 import { createTeamService } from '@/services/team';
 

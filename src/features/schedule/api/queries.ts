@@ -3,7 +3,7 @@
  * 경기 관리 데이터 조회용 React Query hooks
  */
 import { useQuery } from '@tanstack/react-query';
-import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { createMatchService } from '@/services/match/match.service';
 import { createApplicationService } from '@/services/application/application.service';
 import { useAuth } from '@/features/auth';

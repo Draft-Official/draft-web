@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { createServerSupabaseClient } from '@/shared/api/supabase/server';
 
 /**
  * GET /api/gyms?kakaoPlaceId=xxx

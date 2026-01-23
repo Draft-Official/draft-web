@@ -9,7 +9,7 @@
  */
 import { QueryClient, QueryCache, MutationCache } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { AuthError, AppError, NotFoundError } from './errors';
+import { AuthError, AppError, NotFoundError } from '@/shared/lib/errors';
 
 function makeQueryClient() {
   return new QueryClient({

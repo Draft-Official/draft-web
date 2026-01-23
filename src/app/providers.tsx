@@ -5,7 +5,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { persistQueryClient } from '@tanstack/react-query-persist-client';
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { getQueryClient } from '@/shared/lib/query-client';
+import { getQueryClient } from '@/shared/api/query-client';
 import { CacheRestoredContext } from '@/shared/lib/cache-restored-context';
 import { AuthProvider } from '@/features/auth/model/auth-context';
 

@@ -9,7 +9,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { useQueryClient } from '@tanstack/react-query';
-import { getSupabaseBrowserClient, getSupabaseAuthClient, isSupabaseConfigured } from '@/lib/supabase/client';
+import { getSupabaseBrowserClient, getSupabaseAuthClient, isSupabaseConfigured } from '@/shared/api/supabase/client';
 import { createAuthService } from '@/services/auth';
 import type { Profile } from '@/shared/types/database.types';
 import type { AuthContextValue, AuthStatus } from './types';

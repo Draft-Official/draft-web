@@ -2,7 +2,7 @@
  * Auth Query Hooks
  */
 import { useQuery } from '@tanstack/react-query';
-import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { createAuthService } from '@/services/auth';
 import { authKeys } from './keys';
 

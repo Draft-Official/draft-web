@@ -3,7 +3,7 @@
  * 매치 데이터 조회용 React Query hooks
  */
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { createMatchService } from '@/services/match/match.service';
 import { matchRowToGuestListMatch } from '@/services/match/match.mapper';
 import { matchKeys } from './keys';
