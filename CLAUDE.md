@@ -23,12 +23,12 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 ## Project Overview
 
-**DRAFT** is a basketball guest recruiting platform for Korean amateur basketball players. It's a mobile-first adaptive web app (max-width: 430px) built with Next.js 15.5.9 that aims to provide a native app-like experience.
+**DRAFT** is a basketball guest recruiting platform for Korean amateur basketball players. It's a mobile-first adaptive web app (max-width: 430px) built with Next.js 15 that aims to provide a native app-like experience.
 
-**Target Users**: Basketball enthusiasts (Guests) and team organizers (Hosts)
+**Target Users**: Basketball enthusiasts (Guests) and team organizers (Hosts)  
 **Core Values**: Speed, Trust, Convenience
 
-→ **For detailed business context**: See [project-context.md](docs/project-context.md)
+→ **For detailed business context**: See [docs/project-context.md](docs/project-context.md)
 
 ## Development Commands
 
@@ -46,47 +46,102 @@ npm run lint        # Run ESLint
 
 ## Architecture (Quick Reference)
 
-This project uses **simplified Feature-Sliced Design**:
+This project uses **Feature-Based Architecture** with a 3-folder structure:
 
 ```
-app/                    # Next.js App Router (routing only)
 src/
-├── features/          # Feature modules (match, auth, user)
-│   └── {feature}/
-│       ├── ui/        # UI components
-│       ├── api/       # API functions (Phase 2)
-│       ├── model/     # Types & schemas
-│       └── lib/       # Helper functions
-├── shared/            # Global resources
-├── widgets/           # Layout components (Header, BottomNav)
-└── components/
-    ├── ui/            # shadcn/ui components
-    └── registry/      # Figma-imported components
+├── app/                    # Next.js App Router (routing only)
+│   ├── page.tsx
+│   ├── layout.tsx
+│   ├── providers.tsx
+│   ├── matches/
+│   ├── tournaments/
+│   ├── schedule/
+│   ├── team/
+│   ├── my/
+│   └── api/
+│
+├── features/               # Feature modules (domain logic)
+│   ├── auth/               # Authentication
+│   │   ├── api/            # API layer (Supabase, React Query)
+│   │   ├── model/          # Types, Context
+│   │   ├── ui/             # UI components
+│   │   └── index.ts        # Barrel export
+│   ├── match/              # Match management
+│   ├── schedule/           # Schedule management
+│   ├── application/        # Application submissions
+│   ├── team/               # Team management
+│   └── my/                 # User profile
+│
+└── shared/                 # Cross-cutting resources
+    ├── api/                # Infrastructure (Supabase, React Query)
+    ├── ui/
+    │   ├── base/           # shadcn/ui components
+    │   └── layout/         # Layout components
+    ├── lib/                # Utilities
+    ├── config/             # Global config
+    └── types/              # Global types
 ```
 
-→ **For detailed architecture**: See [ARCHITECTURE.md](docs/ARCHITECTURE.md)
+→ **For detailed architecture**: See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
 ### Import Path Aliases
 
 Always use these TypeScript path aliases:
 
 ```typescript
-@/*                    # Root directory
-@/components/*         # src/components/*
+@/*                    # Root directory (./src/)
 @/features/*           # src/features/*
 @/shared/*             # src/shared/*
-@/widgets/*            # src/widgets/*
 ```
 
 ### Layer Dependency Rules
 
 ```
-Features → Shared
-App → Features/Widgets/Components
-Widgets → Features/Shared/Components
+app/ → features/ + shared/
+features/ → shared/
+Features DO NOT import from other features
 ```
 
 **Important**: Features should NOT import from other features. Extract shared logic to `src/shared/`.
+
+---
+
+## File Structure Rules
+
+### 3-Folder Architecture
+
+**app/** - Routing only
+- ✅ Page shells, layouts, metadata
+- ❌ Business logic, API calls, UI components
+
+**features/** - Domain logic
+- Each feature has: `api/`, `ui/`, `model/`, `lib/`
+- API layer: `{name}-api.ts`, `{name}-mapper.ts`, `keys.ts`, `queries.ts`, `mutations.ts`
+- All features export via `index.ts`
+
+**shared/** - Cross-domain resources
+- `api/`: Supabase clients, React Query config
+- `ui/base/`: shadcn/ui atomic components
+- `ui/layout/`: Header, Sidebar, BottomNav
+- `lib/`, `config/`, `types/`
+
+### File Naming Convention
+
+**ALL FILES MUST USE kebab-case:**
+
+```
+✅ match-card.tsx
+✅ auth-guard.tsx
+✅ match-api.ts
+✅ profile-setup-modal.tsx
+
+❌ MatchCard.tsx
+❌ AuthGuard.tsx
+❌ ProfileSetupModal.tsx
+```
+
+---
 
 ## Design System
 
@@ -104,68 +159,122 @@ Widgets → Features/Shared/Components
 ### Typography
 Use Pretendard font (imported in globals.css)
 
-### Component Conventions
-- shadcn/ui components: kebab-case filenames (`button.tsx`)
-- Feature UI components: PascalCase filenames (`MatchListItem.tsx`)
-- Registry components: kebab-case folders (`match-create-form/`)
+---
 
-## Figma Design Implementation
+## React Query Patterns
 
-### Pixel-Perfect Implementation Rules
+### API Layer Structure
 
-When implementing from Figma designs:
+```typescript
+// features/{feature}/api/keys.ts
+export const matchKeys = {
+  all: ['matches'] as const,
+  detail: (id: string) => [...matchKeys.all, 'detail', id] as const,
+};
 
-1. **Prioritize Figma over GitHub code** - Always reference the actual Figma design
-2. **Match exact component order** - Follow Figma's top-to-bottom layout structure
-3. **Symmetric spacing** - Dividers must have equal spacing above and below (use `my-X` not `mb-X`)
-4. **Precise sizing** - Adjust text sizes in 1px increments (e.g., `text-[21px]`)
-5. **Tight spacing control** - Card padding, gaps, and margins should match Figma exactly
-6. **Visual hierarchy** - Font weights, colors, and sizes must match design specs
+// features/{feature}/api/queries.ts
+export function useMatch(id: string) {
+  return useQuery({
+    queryKey: matchKeys.detail(id),
+    queryFn: async () => {
+      const supabase = getSupabaseBrowserClient();
+      const row = await getMatch(supabase, id);
+      return matchRowToClientMatch(row);
+    },
+  });
+}
 
-### Common Figma-to-Code Patterns
+// features/{feature}/api/mutations.ts
+export function useCreateMatch() {
+  return useMutation({
+    mutationFn: async (input) => {
+      const supabase = getSupabaseBrowserClient();
+      return createMatch(supabase, input);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: matchKeys.lists() });
+    },
+  });
+}
+```
+
+### API Client Pattern
+
+```typescript
+// features/{feature}/api/{name}-api.ts
+export async function getMatch(supabase: SupabaseClient, id: string) {
+  const { data, error } = await supabase
+    .from('matches')
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (error) throw new AppError(error.message);
+  return data;
+}
+```
+
+### Mapper Pattern
+
+```typescript
+// features/{feature}/api/{name}-mapper.ts
+export function matchRowToClientMatch(row: MatchRow): ClientMatch {
+  return {
+    id: row.id,
+    title: row.title,
+    // ... type conversion
+  };
+}
+```
+
+---
+
+## Key Technical Patterns
+
+### Sticky Positioning Hierarchy
+The app uses multiple sticky layers. When adding sticky elements, calculate `top` based on:
+- Header: 56px (h-14)
+- FilterBar: ~139px (varies with content)
+- Always test scroll behavior
+
+### State Management
+- **Local state**: React hooks (useState, useReducer)
+- **Server state**: TanStack Query (React Query) with Supabase
+- **Form state**: React Hook Form + Zod validation
+
+### Responsive Behavior
+Desktop: Centered column (max-w-[430px]) with dark background  
+Mobile: Full-width app-like experience
 
 ```tsx
-// Dividers with symmetric spacing
-<div className="h-px bg-slate-100 my-4" />  // ✅ Equal top/bottom
-
-// Precise text sizing
-<h1 className="text-[21px]">  // ✅ Exact 21px
-
-// Color opacity matching
-<div className="bg-orange-50/30">  // ✅ Exact opacity
+// Layout wrapper in app/layout.tsx
+<div className="w-full max-w-[430px] mx-auto min-h-screen bg-white shadow-2xl">
 ```
 
-### Figma UI Import Workflow
+---
 
-→ **For complete workflow**: See [FIGMA_TO_CODE.md](docs/FIGMA_TO_CODE.md)
+## Critical Rules
 
-**Quick command**:
-```
-"Figma Make 코드를 Draft로 import 해줘"
-```
+### DO ✅
+- Use 3-folder architecture (`app/`, `features/`, `shared/`)
+- Keep routing logic in `app/` directory only
+- Use TypeScript path aliases (`@/features/*`, `@/shared/*`)
+- ALL filenames in kebab-case
+- Access DB through feature API layers
+- Use React Query for all data fetching
+- Follow mobile-first design (max-w-[430px])
+- Use Primary color `#FF6600` for brand elements
 
-## Feature Development Workflow
+### DON'T ❌
+- Put business logic in `app/` directory
+- Import features from other features
+- Use PascalCase for filenames
+- Access Supabase directly from UI components
+- Use relative imports when aliases exist
+- Create components wider than 430px
+- Change sticky `top` values without testing scroll
 
-### Adding a New Feature
-
-1. **Create feature structure**:
-   ```bash
-   mkdir -p src/features/{feature-name}/{ui,api,model,lib}
-   ```
-
-2. **Define types** in `model/types.ts`
-
-3. **Create UI components** in `ui/`
-
-4. **Add API functions** (Phase 2) in `api/`
-
-5. **Connect to App Router**:
-   ```tsx
-
-### Workflow Rules (Mandatory)
-1. **Read Documentation First**: Before starting any task, ALWAYS read relevant `.md` files (CLAUDE.md, docs/*) to align with architectural and design guidelines.
-2. **Commit by Feature**: When finishing work, group commits by feature (e.g., `feat(match)`, `ui(filter-bar)`). Do NOT squash unrelated changes into one commit.
-
+---
 
 ## Git Commit Guidelines
 
@@ -185,97 +294,19 @@ EOF
 )"
 ```
 
-## Key Technical Patterns
-
-### Sticky Positioning Hierarchy
-The app uses multiple sticky layers. When adding sticky elements, calculate `top` based on:
-- Header: 56px (h-14)
-- FilterBar: ~139px (varies with content)
-- Always test scroll behavior
-
-### State Management
-- **Local state**: React hooks (useState, useReducer)
-- **Server state** (Phase 2): React Query with Supabase
-- **Form state**: React Hook Form + Zod validation
-
-### Responsive Behavior
-Desktop: Centered column (max-w-[430px]) with dark background
-Mobile: Full-width app-like experience
-
-```tsx
-// Layout wrapper in app/layout.tsx
-<div className="w-full max-w-[430px] mx-auto min-h-screen bg-white shadow-2xl">
-```
-
-## Key Files Reference
-
-**Types**:
-- Common types: `src/shared/types/match.ts`
-- Feature types: `src/features/{feature}/model/types.ts`
-
-**Validation**:
-- Match Create: `src/features/match/create/model/schema.ts`
-
-**API** (Phase 2):
-- Kakao Maps: `app/api/search-places/route.ts`, `src/shared/api/kakao-map.ts`
-
-**Mock Data**:
-- Host Dashboard: `src/features/host/model/mock-data.ts`
-- Match List: `src/features/match/model/mock-data.ts`
-
-## Supabase 개발 설정 (⚠️ 임시)
-
-### RLS 정책 변경 사항
-개발 테스트를 위해 다음 RLS 정책이 임시로 변경됨:
-
-```sql
--- ❌ 비활성화된 프로덕션 정책:
--- create policy "Users can create matches" on matches for insert with check (auth.uid() = host_id);
-
--- ✅ 현재 활성화된 개발용 정책:
-create policy "Anyone can create matches (DEV ONLY)" on matches for insert with check (true);
-```
-
-**복구 방법** (OAuth 설정 완료 후):
-```sql
-DROP POLICY IF EXISTS "Anyone can create matches (DEV ONLY)" ON matches;
-CREATE POLICY "Users can create matches" ON matches FOR INSERT WITH CHECK (auth.uid() = host_id);
-```
-
-### 테스트 유저
-- Email: `test@naver.com`
-- UUID: `d1011295-3375-41f4-83c7-9663dc00becf`
-- mutations.ts에서 임시 하드코딩됨 (OAuth 설정 후 제거 필요)
-
-## Critical Rules
-
-### DO ✅
-- Use Feature-Sliced Design structure
-- Keep routing logic in `app/` directory only
-- Use TypeScript path aliases
-- Follow mobile-first design (max-w-[430px])
-- Use Primary color `#FF6600` for brand elements
-- Test sticky positioning when modifying layout
-
-### DON'T ❌
-- Put business logic in `app/` directory
-- Import features from other features
-- Modify `src/components/registry/` files manually
-- Use relative imports when aliases exist
-- Create components wider than 430px
-- Change sticky `top` values without testing scroll
+---
 
 ## Reference Documents
 
 For deeper context, refer to:
 
-- **[project-context.md](docs/project-context.md)** - Project vision, MVP scope, target audience
-- **[ARCHITECTURE.md](docs/ARCHITECTURE.md)** - Detailed architecture, tech stack phases, expansion roadmap
-- **[FIGMA_TO_CODE.md](docs/FIGMA_TO_CODE.md)** - Figma → Draft conversion workflow
-- **[CHANGELOG.md](docs/CHANGELOG.md)** - Recent changes and milestones
+- **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** - Detailed architecture, patterns, examples
+- **[docs/project-context.md](docs/project-context.md)** - Project vision, MVP scope, target audience
+- **[docs/FIGMA_TO_CODE.md](docs/FIGMA_TO_CODE.md)** - Figma → Draft conversion workflow
+- **[openspec/project.md](openspec/project.md)** - Project specifications
 
 ---
 
-**Last Updated**: 2026-01-14
-**Maintainer**: @beom
+**Last Updated**: 2026-01-23  
+**Maintainer**: @beom  
 **Project**: Draft - 농구 용병 모집 플랫폼

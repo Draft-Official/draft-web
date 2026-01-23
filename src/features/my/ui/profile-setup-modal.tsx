@@ -20,7 +20,7 @@ import {
 } from '@/shared/ui/base/select';
 import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/base/avatar';
 import { cn } from '@/shared/lib/utils';
-import { SkillSlider } from './SkillSlider';
+import { SkillSlider } from './skill-slider';
 import { ProfileData, POSITIONS } from '../model/types';
 
 interface ProfileSetupModalProps {

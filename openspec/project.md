@@ -42,58 +42,57 @@
 ### Code Style
 
 #### File Naming
+**ALL FILES MUST USE kebab-case:**
+
 | Location | Convention | Example |
 |----------|-----------|---------|
-| `src/features/*/ui/` | PascalCase | `MatchListItem.tsx` |
-| `src/features/*/api/` | kebab-case | `queries.ts`, `mutations.ts` |
-| `src/services/*` | kebab-case | `match.service.ts` |
-| `src/components/ui/` | kebab-case | `button.tsx` (shadcn) |
+| **All files** | **kebab-case** | `match-card.tsx`, `auth-guard.tsx` |
+| API clients | `{name}-api.ts` | `match-api.ts`, `auth-api.ts` |
+| Mappers | `{name}-mapper.ts` | `match-mapper.ts` |
+| Barrel exports | `index.ts` | All layers |
 
 #### Import Aliases
 Always use TypeScript path aliases:
 ```typescript
-@/*           // Root directory
-@/components  // src/components
+@/*           // Root directory (./src/)
 @/features    // src/features
 @/shared      // src/shared
-@/widgets     // src/widgets
 ```
 
 ### Architecture Patterns
 
-#### Simplified Feature-Sliced Design
+#### 3-Folder Architecture
 ```
-app/                    # Next.js App Router (routing only)
 src/
-├── features/           # Feature modules (match, auth, user)
+├── app/                    # Next.js App Router (routing only)
+├── features/               # Feature modules (domain logic)
 │   └── {feature}/
-│       ├── ui/         # UI components
-│       ├── api/        # React Query hooks
-│       ├── model/      # Types & schemas
-│       └── lib/        # Helper functions
-├── services/           # Data access layer (Supabase)
-├── lib/                # Infrastructure (Supabase clients)
-├── shared/             # Global resources
-├── widgets/            # Layout components (Header, BottomNav)
-└── components/ui/      # shadcn/ui components
+│       ├── api/            # Data access (Supabase + React Query)
+│       ├── ui/             # UI components
+│       ├── model/          # Types & schemas
+│       └── lib/            # Helper functions
+└── shared/                 # Cross-cutting concerns
+    ├── api/                # Infrastructure (Supabase, React Query)
+    ├── ui/                 # Design system (base + layout)
+    ├── lib/                # Utilities
+    ├── config/             # Global config
+    └── types/              # Global types
 ```
 
 #### 3-Tier Architecture
 ```
 UI Layer (features/*/ui/)
     ↓
-API Layer (features/*/api/) — React Query hooks
+API Layer (features/*/api/) — React Query hooks + API clients
     ↓
-Service Layer (services/) — Supabase DB access
-    ↓
-Infrastructure (lib/) — Supabase clients
+Infrastructure (shared/api/) — Supabase clients
 ```
 
 #### Layer Dependencies
-- Features → Shared (allowed)
-- Features → Features (NOT allowed)
-- App → Features/Widgets/Components (allowed)
-- UI → Supabase directly (NOT allowed, use services)
+- app/ → features/ + shared/ (allowed)
+- features/ → shared/ (allowed)
+- features/ → features/ (NOT allowed)
+- UI → Supabase directly (NOT allowed, use API layer)
 
 ### Testing Strategy
 - Currently no automated tests (MVP phase)
@@ -154,10 +153,11 @@ Commit types: `feat`, `fix`, `refactor`, `ui`, `docs`, `chore`
   - Date sections: `top-[195px]`
 
 ### Technical Constraints
-- No business logic in `app/` directory (routing only)
-- Never import features from other features
-- Never modify `src/components/registry/` files (Figma imports)
-- All component widths must fit within 430px
+- **No business logic in `app/`**: Routing only
+- **Never import features from other features**: Use `shared/` for cross-feature code
+- **All filenames in kebab-case**: No PascalCase files
+- **All component widths**: Must fit within 430px
+- **Access DB via API layer**: Never call Supabase directly from UI
 
 ### Development Phase
 - Currently in **MVP Phase 2** (Supabase integration)

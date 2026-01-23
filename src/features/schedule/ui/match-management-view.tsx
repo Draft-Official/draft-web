@@ -3,8 +3,8 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Calendar, X, Loader2 } from "lucide-react";
-import { FilterDropdown } from "./components/FilterDropdown";
-import { MatchCard } from "./components/MatchCard";
+import { FilterDropdown } from "./components/filter-dropdown";
+import { MatchCard } from "./components/match-card";
 import { useHostedMatches, useParticipatingMatches } from "../api";
 import type { MatchType, ManagedMatch } from "../model/types";
 import {
