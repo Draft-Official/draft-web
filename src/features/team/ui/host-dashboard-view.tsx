@@ -18,13 +18,13 @@ import {
   ThumbsUp,
 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/shared/ui/base/button';
+import { Badge } from '@/shared/ui/base/badge';
+import { Card } from '@/shared/ui/base/card';
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '@/shared/ui/base/dialog';
+import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/base/avatar';
+import { Switch } from '@/shared/ui/base/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/base/tabs';
 import { toast } from 'sonner';
 
 // Types & Mock Data

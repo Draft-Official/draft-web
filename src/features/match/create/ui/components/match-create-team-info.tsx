@@ -1,11 +1,11 @@
 'use client';
 
 import { useFormContext } from 'react-hook-form';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/shared/ui/base/input';
+import { Label } from '@/shared/ui/base/label';
+import { Button } from '@/shared/ui/base/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/base/select';
+import { Textarea } from '@/shared/ui/base/textarea';
 import { toast } from "sonner";
 import { X, FileText, MessageCircle } from 'lucide-react';
 

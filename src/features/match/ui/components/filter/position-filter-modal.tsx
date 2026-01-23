@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from '@/shared/ui/base/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/base/dialog";
 import { cn } from '@/shared/lib/utils';
 
 interface PositionFilterModalProps {

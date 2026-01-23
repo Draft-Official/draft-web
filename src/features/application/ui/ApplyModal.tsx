@@ -7,17 +7,17 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from '@/shared/ui/base/dialog';
+import { Button } from '@/shared/ui/base/button';
+import { Input } from '@/shared/ui/base/input';
+import { Label } from '@/shared/ui/base/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/shared/ui/base/select';
 import { cn } from '@/shared/lib/utils';
 import { useAuth } from '@/features/auth/model/auth-context';
 import { useUpdateProfile } from '@/features/auth/api/mutations';

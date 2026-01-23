@@ -11,20 +11,20 @@ import {
   Shield,
   Users,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/shared/ui/base/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from '@/shared/ui/base/dropdown-menu';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/components/ui/dialog';
+} from '@/shared/ui/base/dialog';
 import { toast } from 'sonner';
 import type { Participant, TeamExerciseDetail } from '../../model/types';
 import { MOCK_TEAM_EXERCISE_DETAIL } from '../../model/mock-data';

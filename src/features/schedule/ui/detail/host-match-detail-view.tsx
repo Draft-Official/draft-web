@@ -15,21 +15,21 @@ import {
   Loader2,
 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/shared/ui/base/button';
+import { Checkbox } from '@/shared/ui/base/checkbox';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from '@/shared/ui/base/dropdown-menu';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/components/ui/dialog';
+} from '@/shared/ui/base/dialog';
 import { toast } from 'sonner';
 import type {
   Guest,

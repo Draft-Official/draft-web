@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Clock, ChevronLeft } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/base/popover';
 import { cn } from '@/shared/lib/utils';
 
 interface TimeOption {

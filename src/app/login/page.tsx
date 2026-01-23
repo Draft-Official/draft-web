@@ -3,8 +3,8 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getSupabaseBrowserClient, getSupabaseAuthClient } from '@/lib/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from '@/shared/ui/base/button';
+import { Input } from '@/shared/ui/base/input';
 import { toast } from 'sonner';
 
 export default function LoginPage() {

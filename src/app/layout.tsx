@@ -3,9 +3,9 @@ import "./globals.css";
 
 import { Providers } from "./providers";
 import { Toaster } from "sonner";
-import { Sidebar } from "@/widgets/navigation/ui/sidebar";
-import { BottomNav } from "@/widgets/navigation/ui/bottom-nav";
-import { Header as LayoutHeader } from "@/widgets/header";
+import { Sidebar } from "@/shared/ui/layout/sidebar";
+import { BottomNav } from "@/shared/ui/layout/bottom-nav";
+import { Header as LayoutHeader } from "@/shared/ui/layout/header";
 
 
 export const metadata: Metadata = {

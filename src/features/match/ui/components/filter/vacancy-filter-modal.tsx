@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { Minus, Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from '@/shared/ui/base/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/base/dialog";
 
 interface VacancyFilterModalProps {
   open: boolean;

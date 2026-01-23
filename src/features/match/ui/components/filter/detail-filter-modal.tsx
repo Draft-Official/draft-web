@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { User } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Chip } from '@/components/ui/chip';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from '@/shared/ui/base/button';
+import { Chip } from '@/shared/ui/base/chip';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/base/dialog";
+import { ScrollArea } from "@/shared/ui/base/scroll-area";
 import { cn } from '@/shared/lib/utils';
 import { GENDER_OPTIONS } from '@/features/match/create/config/constants';
 

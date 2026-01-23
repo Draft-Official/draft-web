@@ -1,6 +1,6 @@
 'use client';
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/shared/ui/base/dialog';
 import { X, MapPin, Loader2 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 

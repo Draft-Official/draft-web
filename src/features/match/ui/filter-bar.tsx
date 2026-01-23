@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Search, Bell, RotateCcw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Chip } from '@/components/ui/chip';
+import { Button } from '@/shared/ui/base/button';
+import { Chip } from '@/shared/ui/base/chip';
 import { cn } from '@/shared/lib/utils';
 import { RegionFilterModal } from './region-filter-modal';
 import { DateStrip } from './components/date-strip';

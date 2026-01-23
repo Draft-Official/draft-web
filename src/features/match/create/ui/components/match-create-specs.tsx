@@ -1,5 +1,5 @@
-import { Label } from '@/components/ui/label';
-import { Chip } from '@/components/ui/chip';
+import { Label } from '@/shared/ui/base/label';
+import { Chip } from '@/shared/ui/base/chip';
 import { cn } from '@/shared/lib/utils';
 import { Settings } from 'lucide-react';
 import {
@@ -7,7 +7,7 @@ import {
   GENDER_OPTIONS
 } from '@/features/match/create/config/constants';
 import { AgeSelector } from './age-selector';
-import { SkillSlider } from '@/components/ui/skill-slider';
+import { SkillSlider } from '@/shared/ui/base/skill-slider';
 
 interface MatchCreateSpecsProps {
   matchType: string;

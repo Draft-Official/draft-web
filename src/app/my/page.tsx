@@ -2,8 +2,8 @@
 
 import { useState, useMemo } from 'react';
 import { CreditCard, LogOut, Settings } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Button } from '@/shared/ui/base/button';
+import { Card } from '@/shared/ui/base/card';
 import { ProfileCard } from '@/features/my/ui/ProfileCard';
 import { ProfileSetupModal } from '@/features/my/ui/ProfileSetupModal';
 import { ProfileData } from '@/features/my/model/types';

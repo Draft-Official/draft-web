@@ -7,18 +7,18 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from '@/shared/ui/base/dialog';
+import { Button } from '@/shared/ui/base/button';
+import { Input } from '@/shared/ui/base/input';
+import { Label } from '@/shared/ui/base/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+} from '@/shared/ui/base/select';
+import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/base/avatar';
 import { cn } from '@/shared/lib/utils';
 import { SkillSlider } from './SkillSlider';
 import { ProfileData, POSITIONS } from '../model/types';

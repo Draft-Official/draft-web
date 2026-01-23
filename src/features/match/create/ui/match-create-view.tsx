@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { useEffect } from 'react';
 
-import { Button } from '@/components/ui/button';
+import { Button } from '@/shared/ui/base/button';
 import { toast } from "sonner";
 
 import { MatchCreateBasicInfo } from './components/match-create-basic-info';

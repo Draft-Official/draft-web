@@ -1,7 +1,7 @@
 'use client';
 
 import { Calendar, Clock, MapPin, Navigation, Users, Shield, Trophy } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/shared/ui/base/badge';
 import { cn } from '@/shared/lib/utils';
 import type { ManagedMatch } from '../../model/types';
 import {

@@ -15,9 +15,9 @@ import {
   Loader2,
 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/shared/ui/base/button';
+import { Badge } from '@/shared/ui/base/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/base/avatar';
 import {
   Dialog,
   DialogContent,
@@ -25,9 +25,9 @@ import {
   DialogTitle,
   DialogFooter,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from '@/shared/ui/base/dialog';
+import { Input } from '@/shared/ui/base/input';
+import { Label } from '@/shared/ui/base/label';
 import { toast } from 'sonner';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';

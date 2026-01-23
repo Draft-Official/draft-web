@@ -2,8 +2,8 @@
 
 import React from 'react';
 import { Match } from '@/features/match/model/mock-data';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/base/avatar';
+import { Button } from '@/shared/ui/base/button';
 import { MessageCircle } from 'lucide-react';
 
 interface HostSectionProps {
