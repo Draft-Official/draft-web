@@ -12,12 +12,12 @@ export const MATCH_TYPE_FILTER_OPTIONS: FilterOption<Exclude<MatchType, 'host'>>
   { value: 'tournament', label: '대회' },
 ];
 
-// 경기 상태 필터 옵션 (기본 4가지만 표시, 중복선택용)
-export const MATCH_STATUS_FILTER_OPTIONS: FilterOption<'scheduled' | 'ongoing' | 'ended' | 'cancelled'>[] = [
-  { value: 'scheduled', label: '예정' },
-  { value: 'ongoing', label: '진행중' },
-  { value: 'ended', label: '종료' },
-  { value: 'cancelled', label: '취소' },
+// 경기 상태 필터 옵션 (중복선택용)
+export const MATCH_STATUS_FILTER_OPTIONS: FilterOption<'waiting' | 'confirmed' | 'ongoing' | 'ended'>[] = [
+  { value: 'waiting', label: '대기 중' },
+  { value: 'confirmed', label: '경기 확정' },
+  { value: 'ongoing', label: '경기 중' },
+  { value: 'ended', label: '종료/취소' },
 ];
 
 // 지난 경기 필터 옵션
@@ -44,26 +44,34 @@ export const MATCH_TYPE_COLORS: Record<MatchType, string> = {
 
 // 경기 상태별 레이블
 export const MATCH_STATUS_LABELS: Record<MatchStatus, string> = {
-  scheduled: '예정',
-  ongoing: '진행중',
-  ended: '종료',
-  cancelled: '취소',
-  pending: '승인대기',
-  confirmed: '확정',
+  waiting: '승인 대기',
+  payment_waiting: '결제 대기',
+  voting: '투표 중',
+  confirmed: '경기 확정',
+  ongoing: '경기 중',
+  ended: '종료/취소',
+  cancelled: '종료/취소',
+  // Legacy
+  scheduled: '경기 확정',
+  pending: '승인 대기',
   closed: '마감',
-  rejected: '승인거부',
+  rejected: '종료/취소',
 };
 
 // 경기 상태별 색상 (Tailwind classes)
 export const MATCH_STATUS_COLORS: Record<MatchStatus, string> = {
-  scheduled: 'bg-slate-100 text-slate-700 border-slate-200',
-  ongoing: 'bg-green-100 text-green-700 border-green-200',
-  ended: 'bg-gray-100 text-gray-500 border-gray-200',
-  cancelled: 'bg-red-100 text-red-700 border-red-200',
-  pending: 'bg-yellow-100 text-yellow-700 border-yellow-200',
+  waiting: 'bg-yellow-100 text-yellow-700 border-yellow-200',
+  payment_waiting: 'bg-orange-100 text-orange-700 border-orange-200',
+  voting: 'bg-blue-100 text-blue-700 border-blue-200',
   confirmed: 'bg-green-100 text-green-700 border-green-200',
+  ongoing: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+  ended: 'bg-gray-100 text-gray-500 border-gray-200',
+  cancelled: 'bg-gray-100 text-gray-500 border-gray-200',
+  // Legacy
+  scheduled: 'bg-slate-100 text-slate-700 border-slate-200',
+  pending: 'bg-yellow-100 text-yellow-700 border-yellow-200',
   closed: 'bg-purple-100 text-purple-700 border-purple-200',
-  rejected: 'bg-red-100 text-red-700 border-red-200',
+  rejected: 'bg-gray-100 text-gray-500 border-gray-200',
 };
 
 // 지난 경기로 간주되는 상태
