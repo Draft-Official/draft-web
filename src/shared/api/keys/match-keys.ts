@@ -1,6 +1,8 @@
 /**
  * Match Query Keys
  * React Query 캐시 키 관리
+ *
+ * match, match-create 등 여러 feature에서 공유
  */
 
 export const matchKeys = {

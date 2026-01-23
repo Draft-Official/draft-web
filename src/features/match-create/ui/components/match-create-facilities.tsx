@@ -6,7 +6,7 @@ import { Button } from '@/shared/ui/base/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/shared/ui/base/dialog';
 import { Chip } from '@/shared/ui/base/chip';
 import { cn } from '@/shared/lib/utils';
-import { COURT_SIZE_OPTIONS } from '@/features/match/create/config/constants';
+import { COURT_SIZE_OPTIONS } from '@/shared/config/match-constants';
 import { X } from 'lucide-react';
 
 interface MatchCreateFacilitiesProps {

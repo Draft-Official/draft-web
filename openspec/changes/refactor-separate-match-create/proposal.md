@@ -9,6 +9,7 @@
 - `src/features/match/create/` → `src/features/match-create/`로 분리
 - `match-create` feature에 독립적인 `api/`, `ui/`, `model/`, `config/` 레이어 구성
 - `match` feature에서 create 관련 API 함수 및 쿼리를 `match-create`로 이동
+- **`matchKeys`를 `@/shared/api/keys/match-keys.ts`로 이동** (두 feature 모두 사용)
 - Import 경로 업데이트
 
 ## Impact
@@ -18,4 +19,5 @@
   - `src/features/match/create/**/*` (이동)
   - `src/features/match/api/mutations.ts` (분리)
   - `src/features/match/api/queries.ts` (일부 분리 - `useMyRecentMatches`)
+  - `src/features/match/api/keys.ts` → `src/shared/api/keys/match-keys.ts` (이동)
   - `src/app/matches/create/page.tsx` (import 변경)

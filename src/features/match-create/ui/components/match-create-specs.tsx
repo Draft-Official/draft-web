@@ -5,7 +5,7 @@ import { Settings } from 'lucide-react';
 import {
   MATCH_TYPE_OPTIONS,
   GENDER_OPTIONS
-} from '@/features/match/create/config/constants';
+} from '@/shared/config/match-constants';
 import { AgeSelector } from './age-selector';
 import { SkillSlider } from '@/shared/ui/base/skill-slider';
 

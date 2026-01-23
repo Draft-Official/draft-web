@@ -21,9 +21,9 @@ import { MatchCreateSpecs } from './components/match-create-specs';
 import { MatchCreateGameFormat } from './components/match-create-game-format';
 import { MatchCreateOperations, OperationsData } from './components/match-create-operations';
 import { RecentMatchesDialog, MatchWithRelations } from './components/recent-matches-dialog';
-import { useCreateMatch } from '@/features/match/api/mutations';
-import { useMyRecentMatches } from '@/features/match/api/queries';
-import { MatchCreateFormData } from '@/features/match/create/model/schema';
+import { useCreateMatch } from '@/features/match-create/api/mutations';
+import { useMyRecentMatches } from '@/features/match-create/api/queries';
+import { MatchCreateFormData } from '@/features/match-create/model/schema';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { createAuthService } from '@/features/auth/api/auth-api';
 import { createTeamService } from '@/features/team/api/team-api';
@@ -40,7 +40,7 @@ interface LocationData {
 }
 
 // --- Helpers ---
-import { getNext14Days } from '../../lib/utils';
+import { getNext14Days } from '@/features/match-create/lib/utils';
 
 export function MatchCreateView() {
   const router = useRouter();

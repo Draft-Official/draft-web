@@ -2,7 +2,7 @@ import { Input } from '@/shared/ui/base/input';
 import { Label } from '@/shared/ui/base/label';
 import { Chip } from '@/shared/ui/base/chip';
 import { Info, Plus, Minus } from 'lucide-react';
-import { GAME_FORMAT_OPTIONS, REFEREE_OPTIONS } from '@/features/match/create/config/constants';
+import { GAME_FORMAT_OPTIONS, REFEREE_OPTIONS } from '@/shared/config/match-constants';
 
 interface MatchCreateGameFormatProps {
   gameFormatType: string;

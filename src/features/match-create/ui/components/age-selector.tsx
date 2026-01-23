@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Chip } from '@/shared/ui/base/chip';
-import { AGE_OPTIONS } from '@/features/match/create/config/constants';
+import { AGE_OPTIONS } from '@/shared/config/match-constants';
 
 interface AgeSelectorProps {
   selectedAges: string[];

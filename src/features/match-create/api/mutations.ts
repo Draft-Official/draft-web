@@ -1,13 +1,13 @@
 /**
- * Match Mutation Hooks
- * 매치 생성/수정/삭제용 React Query hooks
+ * Match Create Mutation Hooks
+ * 매치 생성용 React Query hooks
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
-import { createMatchService } from './match-api';
-import { matchKeys } from './keys';
-import { MatchCreateFormData } from '@/features/match/create/model/schema';
+import { createMatchCreateService } from './match-create-api';
+import { matchKeys } from '@/shared/api/keys';
+import { MatchCreateFormData } from '@/features/match-create/model/schema';
 import { useAuth } from '@/features/auth/model/auth-context';
 
 /**
@@ -30,15 +30,15 @@ export function useCreateMatch() {
       const supabase = getSupabaseBrowserClient();
       console.log('[useCreateMatch] supabase client created');
 
-      const matchService = createMatchService(supabase);
-      console.log('[useCreateMatch] matchService created, calling createMatchV3...');
+      const matchCreateService = createMatchCreateService(supabase);
+      console.log('[useCreateMatch] matchCreateService created, calling createMatch...');
 
       try {
-        const result = await matchService.createMatchV3(hostId, input);
-        console.log('[useCreateMatch] createMatchV3 result:', result);
+        const result = await matchCreateService.createMatch(hostId, input);
+        console.log('[useCreateMatch] createMatch result:', result);
         return result;
       } catch (err) {
-        console.error('[useCreateMatch] createMatchV3 error:', err);
+        console.error('[useCreateMatch] createMatch error:', err);
         throw err;
       }
     },

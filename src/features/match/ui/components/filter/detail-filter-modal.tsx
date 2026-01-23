@@ -7,7 +7,7 @@ import { Chip } from '@/shared/ui/base/chip';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/base/dialog";
 import { ScrollArea } from "@/shared/ui/base/scroll-area";
 import { cn } from '@/shared/lib/utils';
-import { GENDER_OPTIONS } from '@/features/match/create/config/constants';
+import { GENDER_OPTIONS } from '@/shared/config/match-constants';
 
 interface DetailedFilterModalProps {
   open: boolean;
