@@ -1,6 +1,6 @@
 'use client';
 
-import { TournamentManageView } from '@/features/match-management/ui/detail';
+import { TournamentManageView } from '@/features/schedule/ui/detail';
 
 export default function TournamentManagePage() {
   return <TournamentManageView />;

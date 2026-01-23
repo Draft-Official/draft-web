@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { useMatch } from '@/features/match/api/queries';
-import { HostMatchDetailView, TeamExerciseManageView } from '@/features/match-management/ui/detail';
+import { HostMatchDetailView, TeamExerciseManageView } from '@/features/schedule/ui/detail';
 import { Loader2 } from 'lucide-react';
 
 // TODO: DB에 match_type 컬럼 추가 후 실제 타입 분기 구현

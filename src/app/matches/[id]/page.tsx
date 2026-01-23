@@ -3,7 +3,7 @@
 import { useParams } from 'next/navigation';
 import { useMatch } from '@/features/match/api/queries';
 import { MatchDetailView } from '@/features/match/ui/match-detail-view';
-import { TeamExerciseDetailView } from '@/features/match-management/ui/detail';
+import { TeamExerciseDetailView } from '@/features/schedule/ui/detail';
 import { Match } from '@/features/match/model/mock-data';
 import { GuestListMatch, CostType } from '@/shared/types/match';
 import { Loader2 } from 'lucide-react';

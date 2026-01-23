@@ -4,7 +4,7 @@
  */
 
 export const matchManagementKeys = {
-  all: ['match-management'] as const,
+  all: ['schedule'] as const,
 
   // 내가 주최한 경기 목록
   hostedMatches: (userId: string) =>
