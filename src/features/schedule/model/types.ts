@@ -8,14 +8,18 @@ export type MatchType = 'guest' | 'host' | 'team' | 'tournament';
 
 // 경기 상태
 export type MatchStatus =
-  | 'scheduled'   // 예정
-  | 'ongoing'     // 진행중
-  | 'ended'       // 종료
-  | 'cancelled'   // 취소
-  | 'pending'     // 승인대기
-  | 'confirmed'   // 확정
-  | 'closed'      // 마감
-  | 'rejected';   // 승인거부
+  | 'waiting'         // 대기 중 (승인대기, 결제 대기, 투표 중)
+  | 'payment_waiting' // 결제 대기
+  | 'voting'          // 투표 중
+  | 'confirmed'       // 경기 확정
+  | 'ongoing'         // 경기 중
+  | 'ended'           // 종료
+  | 'cancelled'       // 취소/거절
+  // Legacy (기존 호환용)
+  | 'scheduled'
+  | 'pending'
+  | 'closed'
+  | 'rejected';
 
 // 경기 관리 아이템 인터페이스
 export interface ManagedMatch {
@@ -31,6 +35,11 @@ export interface ManagedMatch {
   // Guest specific
   approvalStatus?: string;
   amount?: number;
+  bankInfo?: {
+    bank: string;
+    account: string;
+    holder: string;
+  };
 
   // Host specific
   applicants?: number;

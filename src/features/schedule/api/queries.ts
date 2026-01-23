@@ -67,6 +67,9 @@ export function useParticipatingMatches() {
             cost_amount,
             status,
             gym_address,
+            account_bank,
+            account_number,
+            account_holder,
             gym:gyms!gym_id (name, kakao_place_id)
           )
         `)
@@ -88,21 +91,24 @@ export function useParticipatingMatches() {
             cost_amount: number;
             status: string;
             gym_address: string | null;
+            account_bank: string | null;
+            account_number: string | null;
+            account_holder: string | null;
             gym: { name: string; kakao_place_id: string | null } | null;
           };
 
           // Application status를 UI status로 매핑
           const status = app.status === 'CONFIRMED' ? 'confirmed' :
-                        app.status === 'REJECTED' ? 'rejected' :
+                        app.status === 'REJECTED' ? 'cancelled' :
                         app.status === 'CANCELED' ? 'cancelled' :
-                        app.status === 'PENDING' && app.approved_at ? 'pending' : // payment_waiting은 'pending'으로 표시
-                        'pending';
+                        app.status === 'PENDING' && app.approved_at ? 'payment_waiting' :
+                        'waiting';
 
-          const approvalStatusText = app.status === 'CONFIRMED' ? '확정' :
-                                    app.status === 'REJECTED' ? '승인거부' :
-                                    app.status === 'CANCELED' ? '취소됨' :
-                                    app.status === 'PENDING' && app.approved_at ? '입금대기' :
-                                    '승인대기';
+          const approvalStatusText = app.status === 'CONFIRMED' ? '경기 확정' :
+                                    app.status === 'REJECTED' ? '종료/취소' :
+                                    app.status === 'CANCELED' ? '종료/취소' :
+                                    app.status === 'PENDING' && app.approved_at ? '결제 대기' :
+                                    '승인 대기';
 
           return {
             id: match.id,
@@ -115,6 +121,13 @@ export function useParticipatingMatches() {
             locationUrl: match.gym?.kakao_place_id ? `https://map.kakao.com/link/map/${match.gym.kakao_place_id}` : undefined,
             approvalStatus: approvalStatusText,
             amount: match.cost_amount,
+            bankInfo: match.account_bank && match.account_number && match.account_holder
+              ? {
+                  bank: match.account_bank,
+                  account: match.account_number,
+                  holder: match.account_holder,
+                }
+              : undefined,
           } as ManagedMatch;
         });
     },

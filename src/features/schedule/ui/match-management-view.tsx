@@ -17,7 +17,7 @@ import { cn } from "@/shared/lib/utils";
 
 type ViewMode = "guest" | "host";
 type TypeFilterValue = Exclude<MatchType, "host">;
-type StatusFilterValue = "scheduled" | "ongoing" | "ended" | "cancelled";
+type StatusFilterValue = "waiting" | "confirmed" | "ongoing" | "ended";
 
 export function MatchManagementView() {
   const router = useRouter();
@@ -42,17 +42,26 @@ export function MatchManagementView() {
       filtered = filtered.filter((m) => typeFilter.includes(m.type as TypeFilterValue));
     }
 
-    // Status filter with pending/rejected mapping - Multi-select
+    // Status filter - Multi-select
     if (statusFilter.length > 0) {
       filtered = filtered.filter((m) => {
-        // Map pending to scheduled, rejected to cancelled
-        if (statusFilter.includes("scheduled") && (m.status === "scheduled" || m.status === "pending" || m.status === "confirmed")) {
+        // 대기 중: waiting, payment_waiting, voting, pending
+        if (statusFilter.includes("waiting") && (m.status === "waiting" || m.status === "payment_waiting" || m.status === "voting" || m.status === "pending")) {
           return true;
         }
-        if (statusFilter.includes("cancelled") && (m.status === "cancelled" || m.status === "rejected")) {
+        // 경기 확정: confirmed
+        if (statusFilter.includes("confirmed") && m.status === "confirmed") {
           return true;
         }
-        return statusFilter.includes(m.status as StatusFilterValue);
+        // 경기 중: ongoing
+        if (statusFilter.includes("ongoing") && m.status === "ongoing") {
+          return true;
+        }
+        // 종료/취소: ended, cancelled, rejected
+        if (statusFilter.includes("ended") && (m.status === "ended" || m.status === "cancelled" || m.status === "rejected")) {
+          return true;
+        }
+        return false;
       });
     }
 
@@ -89,7 +98,8 @@ export function MatchManagementView() {
       if (viewMode === "host" || match.type === "host") {
         router.push(`/matches/${matchId}/manage`);
       } else {
-        router.push(`/matches/${matchId}`);
+        // 참여 탭에서 들어가는 경우 from=schedule 파라미터 추가
+        router.push(`/matches/${matchId}?from=schedule`);
       }
     }
   };
