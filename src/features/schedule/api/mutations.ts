@@ -159,7 +159,8 @@ export function useCancelParticipation() {
 }
 
 /**
- * 모집 상태 변경 (RECRUITING ↔ CLOSED)
+ * 경기 상태 변경
+ * RECRUITING (모집 중) → CLOSED (모집 마감) → CONFIRMED (경기 확정)
  */
 export function useUpdateMatchStatus() {
   const queryClient = useQueryClient();
@@ -171,7 +172,7 @@ export function useUpdateMatchStatus() {
       status,
     }: {
       matchId: string;
-      status: 'RECRUITING' | 'CLOSED';
+      status: 'RECRUITING' | 'CLOSED' | 'CONFIRMED';
     }) => {
       const supabase = getSupabaseBrowserClient();
 
@@ -196,9 +197,12 @@ export function useUpdateMatchStatus() {
         queryKey: matchKeys.lists(),
       });
 
-      const message =
-        variables.status === 'CLOSED' ? '모집을 마감했습니다.' : '추가 모집을 시작했습니다.';
-      toast.success(message);
+      const messageMap: Record<string, string> = {
+        CLOSED: '모집을 마감했습니다.',
+        RECRUITING: '추가 모집을 시작했습니다.',
+        CONFIRMED: '경기가 확정되었습니다.',
+      };
+      toast.success(messageMap[variables.status]);
     },
     onError: (error: Error) => {
       console.error('Update match status error:', error);

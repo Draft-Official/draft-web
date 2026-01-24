@@ -8,6 +8,7 @@ export type MatchType = 'guest' | 'host' | 'team' | 'tournament';
 
 // 경기 상태
 export type MatchStatus =
+  | 'recruiting'      // 모집 중 (호스트)
   | 'waiting'         // 대기 중 (승인대기, 결제 대기, 투표 중)
   | 'payment_waiting' // 결제 대기
   | 'voting'          // 투표 중

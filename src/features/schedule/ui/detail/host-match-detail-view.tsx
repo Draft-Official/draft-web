@@ -92,8 +92,11 @@ export function HostMatchDetailView() {
 
   const isLoading = isLoadingMatch || isLoadingGuests;
 
-  // Determine if recruiting from match status
-  const isRecruiting = match?.status === 'RECRUITING';
+  // Match status helpers
+  const matchStatus = match?.status;
+  const isRecruiting = matchStatus === 'RECRUITING';
+  const isClosed = matchStatus === 'CLOSED';
+  const isConfirmed = matchStatus === 'CONFIRMED' || matchStatus === 'ONGOING' || matchStatus === 'FINISHED' || matchStatus === 'CANCELED';
 
   // 확정자 수 계산 (포지션별)
   const confirmedCountByPosition = guests
@@ -214,10 +217,19 @@ export function HostMatchDetailView() {
     );
   };
 
-  // 모집 상태 변경
-  const handleToggleRecruiting = () => {
-    const newStatus = isRecruiting ? 'CLOSED' : 'RECRUITING';
-    statusMutation.mutate({ matchId, status: newStatus as 'RECRUITING' | 'CLOSED' });
+  // 모집 마감 처리 (RECRUITING → CLOSED)
+  const handleCloseRecruiting = () => {
+    statusMutation.mutate({ matchId, status: 'CLOSED' });
+  };
+
+  // 경기 확정 처리 (CLOSED → CONFIRMED)
+  const handleConfirmMatch = () => {
+    statusMutation.mutate({ matchId, status: 'CONFIRMED' });
+  };
+
+  // 추가 모집 처리 (CLOSED → RECRUITING)
+  const handleResumeRecruiting = () => {
+    statusMutation.mutate({ matchId, status: 'RECRUITING' });
   };
 
   // Loading state
@@ -252,6 +264,11 @@ export function HostMatchDetailView() {
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-40">
+            {(isClosed || isConfirmed) && (
+              <DropdownMenuItem onClick={handleResumeRecruiting}>
+                추가 모집하기
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem onClick={() => router.push(`/matches/create?edit=${match.id}`)}>
               경기 수정
             </DropdownMenuItem>
@@ -857,19 +874,45 @@ export function HostMatchDetailView() {
       {/* 하단 고정 버튼 */}
       <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none md:pl-[240px]">
         <div className="max-w-[760px] mx-auto bg-white border-t border-slate-100 px-5 pt-4 pb-8 pointer-events-auto shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-          <Button
-            onClick={handleToggleRecruiting}
-            disabled={statusMutation.isPending}
-            className="w-full bg-primary hover:bg-primary/90 text-white h-12 rounded-xl font-bold text-lg"
-          >
-            {statusMutation.isPending ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : isRecruiting ? (
-              '마감하기'
-            ) : (
-              '추가 모집'
-            )}
-          </Button>
+          {/* 모집 중: 모집 마감하기 */}
+          {isRecruiting && (
+            <Button
+              onClick={handleCloseRecruiting}
+              disabled={statusMutation.isPending}
+              className="w-full bg-primary hover:bg-primary/90 text-white h-12 rounded-xl font-bold text-lg"
+            >
+              {statusMutation.isPending ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                '모집 마감하기'
+              )}
+            </Button>
+          )}
+
+          {/* 모집 마감: 경기 확정하기 */}
+          {isClosed && (
+            <Button
+              onClick={handleConfirmMatch}
+              disabled={statusMutation.isPending}
+              className="w-full bg-primary hover:bg-primary/90 text-white h-12 rounded-xl font-bold text-lg"
+            >
+              {statusMutation.isPending ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                '경기 확정하기'
+              )}
+            </Button>
+          )}
+
+          {/* 경기 확정 이후: 확정 완료 (비활성화) */}
+          {isConfirmed && (
+            <Button
+              disabled
+              className="w-full bg-slate-200 text-slate-500 h-12 rounded-xl font-bold text-lg cursor-not-allowed"
+            >
+              확정 완료
+            </Button>
+          )}
         </div>
       </div>
     </div>
