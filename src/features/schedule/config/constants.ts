@@ -5,9 +5,16 @@
 
 import type { MatchType, MatchStatus, FilterOption } from '../model/types';
 
-// 경기 타입 필터 옵션 (게스트 모드에서만 사용 - host 제외, 중복선택용)
+// 경기 타입 필터 옵션 (참여 모드 - guest 제외, 중복선택용)
 export const MATCH_TYPE_FILTER_OPTIONS: FilterOption<Exclude<MatchType, 'host'>>[] = [
   { value: 'guest', label: '게스트' },
+  { value: 'team', label: '팀운동' },
+  { value: 'tournament', label: '대회' },
+];
+
+// 경기 타입 필터 옵션 (관리 모드 - guest 제외, 중복선택용)
+export const HOST_TYPE_FILTER_OPTIONS: FilterOption<Exclude<MatchType, 'guest'>>[] = [
+  { value: 'host', label: '호스트' },
   { value: 'team', label: '팀운동' },
   { value: 'tournament', label: '대회' },
 ];
@@ -44,6 +51,7 @@ export const MATCH_TYPE_COLORS: Record<MatchType, string> = {
 
 // 경기 상태별 레이블
 export const MATCH_STATUS_LABELS: Record<MatchStatus, string> = {
+  recruiting: '모집 중',
   waiting: '승인 대기',
   payment_waiting: '결제 대기',
   voting: '투표 중',
@@ -54,12 +62,13 @@ export const MATCH_STATUS_LABELS: Record<MatchStatus, string> = {
   // Legacy
   scheduled: '경기 확정',
   pending: '승인 대기',
-  closed: '마감',
+  closed: '모집 마감',
   rejected: '종료/취소',
 };
 
 // 경기 상태별 색상 (Tailwind classes)
 export const MATCH_STATUS_COLORS: Record<MatchStatus, string> = {
+  recruiting: 'bg-blue-100 text-blue-700 border-blue-200',
   waiting: 'bg-yellow-100 text-yellow-700 border-yellow-200',
   payment_waiting: 'bg-orange-100 text-orange-700 border-orange-200',
   voting: 'bg-blue-100 text-blue-700 border-blue-200',

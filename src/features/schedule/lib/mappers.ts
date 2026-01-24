@@ -195,12 +195,15 @@ function getLevelLabel(mannerScore: number): string {
 
 function getMatchStatus(dbStatus: string): MatchStatus {
   const statusMap: Record<string, MatchStatus> = {
-    RECRUITING: 'scheduled',
-    CLOSED: 'closed',
-    COMPLETED: 'ended',
-    CANCELED: 'cancelled',
+    RECRUITING: 'recruiting',   // 모집 중
+    CLOSED: 'closed',           // 모집 마감
+    CONFIRMED: 'confirmed',     // 경기 확정
+    ONGOING: 'ongoing',         // 경기 중
+    FINISHED: 'ended',          // 종료
+    COMPLETED: 'ended',         // 종료 (legacy)
+    CANCELED: 'cancelled',      // 취소
   };
-  return statusMap[dbStatus] || 'scheduled';
+  return statusMap[dbStatus] || 'recruiting';
 }
 
 function calculateRecruitmentStats(setup?: RecruitmentSetup): {
