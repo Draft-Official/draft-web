@@ -1,4 +1,4 @@
-import { Match } from '../model/mock-data';
+import { Match } from '../model/types';
 
 // --- Date Utils ---
 

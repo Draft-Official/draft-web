@@ -10,7 +10,7 @@ import { MatchRuleSection } from './components/detail/match-rule-section';
 import { FacilitySection } from './components/detail/facility-section';
 import { HostSection } from './components/detail/host-section';
 import { MatchDetailBottomBar } from './components/detail/bottom-bar';
-import { Match } from '@/features/match/model/mock-data';
+import { Match } from '@/features/match/model/types';
 import { ApplyModal } from '@/features/application/ui/apply-modal';
 import { useAuth } from '@/features/auth/model/auth-context';
 

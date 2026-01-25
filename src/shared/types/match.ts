@@ -41,25 +41,22 @@ export enum ApplicantStatus {
   rejected = 'rejected',
 }
 
-/**
- * 참가비 타입
- */
-export enum CostType {
-  MONEY = 'MONEY', // 일반 참가비 (원)
-  FREE = 'FREE', // 무료
-  BEVERAGE = 'BEVERAGE', // 음료로 참가비 내기 (병 수)
-}
+// ============================================
+// Re-export from constants (Single Source of Truth)
+// ============================================
+import {
+  CostType as CostTypeConst,
+  type CostTypeValue,
+  type GenderValue,
+  type PositionValue,
+  type RecruitmentTypeValue,
+} from '@/shared/config/match-constants';
 
-/**
- * 성별 규칙 (DB는 대문자, UI는 소문자 모두 지원)
- */
-export type GenderRule = 'MALE' | 'MIXED' | 'FEMALE' | 'men' | 'women' | 'mixed';
-
-/**
- * 포지션 타입 (DB Enum과 동일)
- * B: 빅맨 (F/C 통합 포지션)
- */
-export type Position = 'G' | 'F' | 'C' | 'B';
+// Re-export with original names for compatibility
+export const CostType = CostTypeConst;
+export type { CostTypeValue, RecruitmentTypeValue };
+export type GenderRule = GenderValue;
+export type Position = PositionValue;
 
 // ============================================
 // Core Interfaces
@@ -80,7 +77,7 @@ export interface Location {
  * 가격 정보 (새 스키마)
  */
 export interface PriceInfo {
-  type: CostType;
+  type: CostTypeValue;
   amount: number; // 금액(원) 또는 음료 개수(병)
   providesBeverage?: boolean; // 음료 제공 여부 (뱃지용)
   /** @deprecated Use amount instead - 하위 호환성용 */

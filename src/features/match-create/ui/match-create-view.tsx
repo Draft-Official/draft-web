@@ -493,10 +493,8 @@ export function MatchCreateView() {
     // 9. 경기 스펙
     setMatchType(match.match_type || '5vs5');
 
-    const genderMap: Record<string, string> = {
-      MALE: 'men', FEMALE: 'women', MIXED: 'mixed'
-    };
-    setGender(genderMap[match.gender_rule] || 'men');
+    // gender_rule은 이미 대문자: 'MALE' | 'FEMALE' | 'MIXED'
+    setGender(match.gender_rule || 'MALE');
 
     setLevel(Number(match.level_limit) || 4);
 

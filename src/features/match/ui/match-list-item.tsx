@@ -18,7 +18,7 @@ interface Match {
   teamLogo?: string;
   isPersonalHost?: boolean; // 개인 주최 여부
   location: string;
-  gender: 'men' | 'women' | 'mixed';
+  gender: 'MALE' | 'FEMALE' | 'MIXED';
   gameFormat: string; // e.g. "5vs5"
   isClosed?: boolean;
   positions: {
@@ -35,11 +35,11 @@ interface MatchListItemProps {
   getShortDayLabel?: (iso: string) => string;
 }
 
-// --- Constants ---
+// --- Constants (대문자 키 사용 - DB와 동일) ---
 const GENDER_CONFIG: Record<string, { label: string; className: string }> = {
-  men: { label: '남성', className: 'text-blue-600 bg-blue-50 border-blue-200' },
-  women: { label: '여성', className: 'text-pink-600 bg-pink-50 border-pink-200' },
-  mixed: { label: '성별 무관', className: 'text-purple-600 bg-purple-50 border-purple-200' },
+  MALE: { label: '남성', className: 'text-blue-600 bg-blue-50 border-blue-200' },
+  FEMALE: { label: '여성', className: 'text-pink-600 bg-pink-50 border-pink-200' },
+  MIXED: { label: '성별 무관', className: 'text-purple-600 bg-purple-50 border-purple-200' },
 };
 
 // --- Position Chip Component ---

@@ -4,7 +4,7 @@ import { useParams } from 'next/navigation';
 import { useMatch } from '@/features/match/api/queries';
 import { MatchDetailView } from '@/features/match/ui/match-detail-view';
 import { TeamExerciseDetailView } from '@/features/schedule/ui/detail';
-import { Match } from '@/features/match/model/mock-data';
+import { Match } from '@/features/match/model/types';
 import { GuestListMatch, CostType } from '@/shared/types/match';
 import { Loader2 } from 'lucide-react';
 
@@ -41,7 +41,7 @@ function adaptToDetailMatch(data: GuestListMatch): Match {
     address: data.location.fullAddress || data.location.address,
     price: getPriceDisplay(),
     priceNum: priceAmount,
-    gender: data.gender as 'men' | 'women' | 'mixed',
+    gender: data.gender as 'MALE' | 'FEMALE' | 'MIXED',
     gameFormat: data.gameFormat ?? '',
     courtType: (data.courtType ?? 'indoor') as 'indoor' | 'outdoor',
     ageRange: data.ageMin && data.ageMax ? `${data.ageMin}대 ~ ${data.ageMax}대` : undefined,

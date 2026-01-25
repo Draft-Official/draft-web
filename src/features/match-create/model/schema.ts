@@ -86,7 +86,7 @@ export const matchCreateSchema = z.object({
 
   ageRange: ageRangeSchema.optional(),
 
-  gender: z.enum(['men', 'women', 'mixed'], {
+  gender: z.enum(['MALE', 'FEMALE', 'MIXED'], {
     message: '성별을 선택하세요',
   }),
 

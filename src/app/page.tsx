@@ -11,11 +11,7 @@ import { cn } from '@/shared/lib/utils';
 import { useLocalStorage } from '@/shared/lib/hooks/use-local-storage';
 import { GuestListMatch } from '@/shared/types/match';
 
-// DB 대문자 → UI 소문자 변환
-const genderMap: Record<string, 'men' | 'women' | 'mixed'> = {
-  MALE: 'men', FEMALE: 'women', MIXED: 'mixed',
-  men: 'men', women: 'women', mixed: 'mixed',
-};
+// Gender는 DB와 동일하게 대문자 사용 (MALE, FEMALE, MIXED)
 
 // Adapter to convert GuestListMatch to MatchListItem props
 function adaptMatch(match: GuestListMatch) {
@@ -39,7 +35,7 @@ function adaptMatch(match: GuestListMatch) {
     title: match.title,
     location: match.location.address, // 시/구 주소 표시
     address: match.location.address,
-    gender: genderMap[match.gender] || 'mixed',
+    gender: match.gender, // 대문자 그대로 사용: 'MALE' | 'FEMALE' | 'MIXED'
     gameFormat: match.gameFormat ?? '',
     ageRange: match.ageMin && match.ageMax ? `${match.ageMin}대 ~ ${match.ageMax}대` : undefined,
     // 팀/호스트 정보

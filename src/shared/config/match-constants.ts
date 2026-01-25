@@ -1,74 +1,150 @@
 /**
  * 매치 관련 상수 및 UI 라벨 매핑
+ *
+ * 규칙:
+ * - 서버(DB)와 클라이언트 값은 동일하게 대문자(UPPER_SNAKE_CASE) 사용
+ * - 모든 매핑은 이 파일에서 단일 관리 (Single Source of Truth)
+ * - UI 컴포넌트는 이 파일의 LABELS/STYLES를 import하여 사용
  */
 
 // ============================================
-// 준비물 (Requirements)
+// Gender (성별)
 // ============================================
 
-export const REQUIREMENTS_MAP: Record<string, string> = {
-  INDOOR_SHOES: '실내 농구화',
-  WHITE_BLACK_JERSEY: '흰색/검은색 상의',
-  TOWEL: '개인 수건',
-  WATER_BOTTLE: '개인 물병',
+export const GENDER_VALUES = ['MALE', 'FEMALE', 'MIXED'] as const;
+export type GenderValue = typeof GENDER_VALUES[number];
+
+export const GENDER_LABELS: Record<GenderValue, string> = {
+  MALE: '남성',
+  FEMALE: '여성',
+  MIXED: '성별 무관',
 };
 
-/**
- * 준비물 코드를 UI 텍스트로 변환
- */
-export function getRequirementLabel(code: string): string {
-  return REQUIREMENTS_MAP[code] || code;
-}
+export const GENDER_STYLES: Record<GenderValue, { color: string; bgColor: string }> = {
+  MALE: { color: 'text-blue-600', bgColor: 'bg-blue-50' },
+  FEMALE: { color: 'text-pink-600', bgColor: 'bg-pink-50' },
+  MIXED: { color: 'text-purple-600', bgColor: 'bg-purple-50' },
+};
 
-/**
- * 준비물 배열을 UI 텍스트 배열로 변환
- */
-export function getRequirementLabels(codes: string[]): string[] {
-  return codes.map(getRequirementLabel);
+export const GENDER_OPTIONS = GENDER_VALUES.map(value => ({
+  value,
+  label: GENDER_LABELS[value],
+}));
+
+export function getGenderLabel(value: string): string {
+  return GENDER_LABELS[value as GenderValue] || value;
 }
 
 // ============================================
-// 경기 형태 (Play Style)
+// Position (포지션)
 // ============================================
 
-export const PLAY_STYLE_MAP: Record<string, string> = {
+export const POSITION_VALUES = ['G', 'F', 'C', 'B'] as const;
+export type PositionValue = typeof POSITION_VALUES[number];
+
+export const POSITION_LABELS: Record<PositionValue, { short: string; full: string }> = {
+  G: { short: 'G', full: '가드' },
+  F: { short: 'F', full: '포워드' },
+  C: { short: 'C', full: '센터' },
+  B: { short: 'F/C', full: '포워드/센터' },
+};
+
+export const POSITION_OPTIONS = POSITION_VALUES.map(value => ({
+  value,
+  label: POSITION_LABELS[value].full,
+  shortLabel: POSITION_LABELS[value].short,
+}));
+
+export function getPositionLabel(value: string, type: 'short' | 'full' = 'full'): string {
+  const labels = POSITION_LABELS[value as PositionValue];
+  return labels ? labels[type] : value;
+}
+
+// ============================================
+// Recruitment Type (모집 방식)
+// ============================================
+
+export const RECRUITMENT_TYPE_VALUES = ['ANY', 'POSITION'] as const;
+export type RecruitmentTypeValue = typeof RECRUITMENT_TYPE_VALUES[number];
+
+export const RECRUITMENT_TYPE_LABELS: Record<RecruitmentTypeValue, string> = {
+  ANY: '포지션 무관',
+  POSITION: '포지션별 모집',
+};
+
+// ============================================
+// Cost Type (참가비 유형)
+// ============================================
+
+export const CostType = {
+  MONEY: 'MONEY',
+  FREE: 'FREE',
+  BEVERAGE: 'BEVERAGE',
+} as const;
+export type CostTypeValue = typeof CostType[keyof typeof CostType];
+
+export const COST_TYPE_LABELS: Record<CostTypeValue, string> = {
+  MONEY: '유료',
+  FREE: '무료',
+  BEVERAGE: '음료수',
+};
+
+export function getCostTypeLabel(value: string): string {
+  return COST_TYPE_LABELS[value as CostTypeValue] || value;
+}
+
+// ============================================
+// Play Style (경기 형태)
+// ============================================
+
+export const PLAY_STYLE_VALUES = ['INTERNAL_2WAY', 'INTERNAL_3WAY', 'EXCHANGE'] as const;
+export type PlayStyleValue = typeof PLAY_STYLE_VALUES[number];
+
+export const PLAY_STYLE_LABELS: Record<PlayStyleValue, string> = {
   INTERNAL_2WAY: '자체전 (2파전)',
   INTERNAL_3WAY: '자체전 (3파전)',
   EXCHANGE: '팀 교류전',
-  PRACTICE: '연습/레슨',
 };
 
-/**
- * 경기 형태 코드를 UI 텍스트로 변환
- */
+export const PLAY_STYLE_OPTIONS = PLAY_STYLE_VALUES.map(value => ({
+  value,
+  label: PLAY_STYLE_LABELS[value],
+}));
+
 export function getPlayStyleLabel(code: string): string {
-  return PLAY_STYLE_MAP[code] || code;
+  return PLAY_STYLE_LABELS[code as PlayStyleValue] || code;
 }
 
 // ============================================
-// 심판 방식 (Referee Type)
+// Referee Type (심판 방식)
 // ============================================
 
-export const REFEREE_TYPE_MAP: Record<string, string> = {
+export const REFEREE_TYPE_VALUES = ['SELF', 'STAFF', 'PRO'] as const;
+export type RefereeTypeValue = typeof REFEREE_TYPE_VALUES[number];
+
+export const REFEREE_TYPE_LABELS: Record<RefereeTypeValue, string> = {
   SELF: '자체콜',
   STAFF: '게스트/팀원',
   PRO: '전문 심판',
 };
 
-/**
- * 심판 방식 코드를 UI 텍스트로 변환
- */
+export const REFEREE_TYPE_OPTIONS = REFEREE_TYPE_VALUES.map(value => ({
+  value,
+  label: REFEREE_TYPE_LABELS[value],
+}));
+
 export function getRefereeTypeLabel(code: string): string {
-  return REFEREE_TYPE_MAP[code] || code;
+  return REFEREE_TYPE_LABELS[code as RefereeTypeValue] || code;
 }
 
 // ============================================
-// 레벨 (Skill Level)
+// Level (레벨)
 // ============================================
 
-// skill-constants.ts의 SKILL_LEVEL_NAMES 재사용
-// 또는 직접 매핑
-export const LEVEL_MAP: Record<string, string> = {
+export const LEVEL_VALUES = ['1', '2', '3', '4', '5', '6', '7'] as const;
+export type LevelValue = typeof LEVEL_VALUES[number];
+
+export const LEVEL_LABELS: Record<LevelValue, string> = {
   '1': '초보1',
   '2': '초보2',
   '3': '중급1',
@@ -78,61 +154,79 @@ export const LEVEL_MAP: Record<string, string> = {
   '7': '선출',
 };
 
-/**
- * 레벨 코드를 UI 텍스트로 변환
- * @param code 레벨 코드 (예: "3", "중급1")
- * @param suffix 접미사 추가 여부 (예: "이상")
- */
+export const LEVEL_STYLES: Record<string, { label: string; color: string }> = {
+  low: { label: '초보', color: '#22C55E' },
+  middle: { label: '중급', color: '#EAB308' },
+  high: { label: '상급', color: '#FF6600' },
+  pro: { label: '프로', color: '#EF4444' },
+};
+
 export function getLevelLabel(code: string, suffix: string = '이상'): string {
-  const label = LEVEL_MAP[code] || code;
+  const label = LEVEL_LABELS[code as LevelValue] || code;
   return suffix ? `${label} ${suffix}` : label;
 }
 
 // ============================================
-// Form/Filter Options (for UI selects)
+// Requirements (준비물)
 // ============================================
 
-export const MATCH_TYPE_OPTIONS = [
-  { value: '5vs5', label: '5vs5' },
-  { value: '3vs3', label: '3vs3' }
-] as const;
+export const REQUIREMENTS_VALUES = ['INDOOR_SHOES', 'WHITE_BLACK_JERSEY', 'TOWEL', 'WATER_BOTTLE'] as const;
+export type RequirementsValue = typeof REQUIREMENTS_VALUES[number];
 
-export const GENDER_OPTIONS = [
-  { value: 'men', label: '남성' },
-  { value: 'women', label: '여성' },
-  { value: 'mixed', label: '성별 무관' }
-] as const;
+export const REQUIREMENTS_LABELS: Record<RequirementsValue, string> = {
+  INDOOR_SHOES: '실내 농구화',
+  WHITE_BLACK_JERSEY: '흰색/검은색 상의',
+  TOWEL: '개인 수건',
+  WATER_BOTTLE: '개인 물병',
+};
 
-export const LEVEL_OPTIONS = [
-  { value: 'low', label: '초보', color: '#22C55E' },
-  { value: 'middle', label: '중급', color: '#EAB308' },
-  { value: 'high', label: '상급', color: '#FF6600' },
-  { value: 'pro', label: '프로', color: '#EF4444' }
-] as const;
+export function getRequirementLabel(code: string): string {
+  return REQUIREMENTS_LABELS[code as RequirementsValue] || code;
+}
 
-export const AGE_OPTIONS = [
-  { value: '20', label: '20대' },
-  { value: '30', label: '30대' },
-  { value: '40', label: '40대' },
-  { value: '50', label: '50대' },
-  { value: '60', label: '60대' },
-  { value: '70', label: '70대' }
-] as const;
+export function getRequirementLabels(codes: string[]): string[] {
+  return codes.map(getRequirementLabel);
+}
 
-export const GAME_FORMAT_OPTIONS = [
-  { value: 'internal_2', label: '자체전(2파전)' },
-  { value: 'internal_3', label: '자체전(3파전)' },
-  { value: 'exchange', label: '팀 교류전' }
-] as const;
+// ============================================
+// Court Size (코트 크기)
+// ============================================
 
-export const REFEREE_OPTIONS = [
-  { value: 'self', label: '자체콜' },
-  { value: 'member', label: '게스트/팀원' },
-  { value: 'pro', label: '전문 심판' }
-] as const;
+export const COURT_SIZE_VALUES = ['REGULAR', 'SHORT', 'NARROW'] as const;
+export type CourtSizeValue = typeof COURT_SIZE_VALUES[number];
 
-export const COURT_SIZE_OPTIONS = [
-  { value: 'regular', label: '정규 사이즈', description: '표준 코트입니다' },
-  { value: 'short', label: '세로가 좀 짧아요', description: '정규보다 짧습니다' },
-  { value: 'narrow', label: '가로가 좀 좁아요', description: '정규보다 좁습니다' }
-] as const;
+export const COURT_SIZE_LABELS: Record<CourtSizeValue, { label: string; description: string }> = {
+  REGULAR: { label: '정규 사이즈', description: '표준 코트입니다' },
+  SHORT: { label: '세로가 좀 짧아요', description: '정규보다 짧습니다' },
+  NARROW: { label: '가로가 좀 좁아요', description: '정규보다 좁습니다' },
+};
+
+export const COURT_SIZE_OPTIONS = COURT_SIZE_VALUES.map(value => ({
+  value,
+  label: COURT_SIZE_LABELS[value].label,
+  description: COURT_SIZE_LABELS[value].description,
+}));
+
+// ============================================
+// Match Type (경기 인원)
+// ============================================
+
+export const MATCH_TYPE_VALUES = ['5vs5', '3vs3'] as const;
+export type MatchTypeValue = typeof MATCH_TYPE_VALUES[number];
+
+export const MATCH_TYPE_OPTIONS = MATCH_TYPE_VALUES.map(value => ({
+  value,
+  label: value,
+}));
+
+// ============================================
+// Age (연령대)
+// ============================================
+
+export const AGE_VALUES = ['20', '30', '40', '50', '60', '70'] as const;
+export type AgeValue = typeof AGE_VALUES[number];
+
+export const AGE_OPTIONS = AGE_VALUES.map(value => ({
+  value,
+  label: `${value}대`,
+}));

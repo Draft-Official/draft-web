@@ -98,8 +98,7 @@ draft-web/
 │   │   │   │   ├── team-api.ts
 │   │   │   │   └── index.ts
 │   │   │   ├── model/
-│   │   │   │   ├── types.ts
-│   │   │   │   ├── mock-data.ts
+│   │   │   │   ├── types.ts              # Match UI 타입 정의
 │   │   │   │   └── index.ts
 │   │   │   ├── ui/
 │   │   │   │   ├── host-dashboard-view.tsx
@@ -148,6 +147,7 @@ draft-web/
 │   │   │   └── errors.ts
 │   │   │
 │   │   ├── config/                       # 전역 설정
+│   │   │   ├── match-constants.ts        # Match 관련 enum/라벨 매핑
 │   │   │   └── skill-constants.ts
 │   │   │
 │   │   └── types/                        # 전역 타입
@@ -322,6 +322,59 @@ export * from './button';
 export * from './card';
 export * from './dialog';
 // ... 20개 base UI 컴포넌트
+```
+
+---
+
+### 4. Enum & Constants Pattern
+
+도메인 값(Gender, Position 등)의 매핑은 `shared/config/match-constants.ts`에서 단일 관리합니다.
+
+**핵심 규칙:**
+- DB 값과 클라이언트 값을 동일하게 사용 (대문자 UPPER_SNAKE_CASE)
+- Mapper는 값 변환 없이 타입 변환만 수행
+- UI 컴포넌트 내부에 매핑 정의 금지
+
+```typescript
+// shared/config/match-constants.ts (Single Source of Truth)
+export const GENDER_VALUES = ['MALE', 'FEMALE', 'MIXED'] as const;
+export type GenderValue = typeof GENDER_VALUES[number];
+
+export const GENDER_LABELS: Record<GenderValue, string> = {
+  MALE: '남성',
+  FEMALE: '여성',
+  MIXED: '성별 무관',
+};
+
+export const GENDER_STYLES: Record<GenderValue, { color: string }> = {
+  MALE: { color: 'text-blue-600' },
+  FEMALE: { color: 'text-pink-600' },
+  MIXED: { color: 'text-purple-600' },
+};
+```
+
+**사용 패턴:**
+
+```typescript
+// ❌ 잘못된 패턴 - 컴포넌트 내 매핑 정의
+const GENDER_CONFIG = { men: { label: '남성' } };
+<span>{GENDER_CONFIG[gender].label}</span>
+
+// ✅ 올바른 패턴 - constants import
+import { GENDER_LABELS, GENDER_STYLES } from '@/shared/config/match-constants';
+<span className={GENDER_STYLES[gender].color}>
+  {GENDER_LABELS[gender]}
+</span>
+```
+
+**Mapper에서의 사용:**
+
+```typescript
+// features/match/api/match-mapper.ts
+// 값 변환 없이 그대로 전달
+return {
+  gender: row.gender_rule,  // DB: 'MALE' → Client: 'MALE'
+};
 ```
 
 ---

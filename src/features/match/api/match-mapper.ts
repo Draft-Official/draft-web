@@ -4,7 +4,7 @@ import {
 } from '@/shared/types/database.types';
 import {
   GuestListMatch,
-  CostType,
+  CostTypeValue,
   Position,
   MatchOptionsUI,
 } from '@/shared/types/match';
@@ -92,20 +92,8 @@ export function matchRowToGuestListMatch(row: any): GuestListMatch {
     };
   }
 
-  const costTypeMap: Record<string, CostType> = {
-    MONEY: CostType.MONEY,
-    FREE: CostType.FREE,
-    BEVERAGE: CostType.BEVERAGE,
-  };
-
-  const genderMap: Record<string, 'men' | 'women' | 'mixed'> = {
-    MALE: 'men',
-    FEMALE: 'women',
-    MIXED: 'mixed',
-  };
-
-  // 가격 정보 처리
-  const costType = row.cost_type || 'MONEY';
+  // 가격 정보 처리 (값 변환 없이 그대로 사용)
+  const costType = (row.cost_type || 'MONEY') as CostTypeValue;
   const costAmount = row.cost_amount || 0;
 
   // match_options 변환 (DB -> UI)
@@ -168,7 +156,7 @@ export function matchRowToGuestListMatch(row: any): GuestListMatch {
       : '',
 
     price: {
-      type: costTypeMap[costType] || CostType.MONEY,
+      type: costType,
       amount: costAmount,
       providesBeverage: row.provides_beverage || false,
       base: costAmount,
@@ -179,7 +167,7 @@ export function matchRowToGuestListMatch(row: any): GuestListMatch {
 
     gameFormat: row.match_type || '5vs5', // match_type 사용 (5vs5, 3vs3)
     level: row.level_limit || '',
-    gender: genderMap[row.gender_rule] || 'mixed',
+    gender: (row.gender_rule || 'MIXED') as 'MALE' | 'FEMALE' | 'MIXED',
     courtType: (facilities.court_size_type === 'REGULAR' ? 'indoor' : 'outdoor') as 'indoor' | 'outdoor',
 
     // 팀/호스트 정보: team_id가 없으면 개인 주최

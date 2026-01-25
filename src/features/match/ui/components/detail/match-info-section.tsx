@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Match } from '@/features/match/model/mock-data';
+import { Match } from '@/features/match/model/types';
 import { Trophy, User, Swords, Calendar, Shirt } from 'lucide-react';
 import { getLevelLabel, getRequirementLabels } from '@/shared/config/match-constants';
 
@@ -45,7 +45,7 @@ export function MatchInfoSection({ match }: MatchInfoSectionProps) {
           <div>
             <div className="text-xs font-bold text-slate-400 mb-0.5">성별</div>
             <div className="text-[13px] font-bold text-slate-900">
-              {match.gender === 'mixed' ? '성별 무관' : (match.gender === 'men' ? '남성' : '여성')}
+              {match.gender === 'MIXED' ? '성별 무관' : (match.gender === 'MALE' ? '남성' : '여성')}
             </div>
           </div>
         </div>

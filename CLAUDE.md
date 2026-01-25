@@ -222,9 +222,40 @@ export function matchRowToClientMatch(row: MatchRow): ClientMatch {
   return {
     id: row.id,
     title: row.title,
-    // ... type conversion
+    // ... type conversion (값 변환 X, 타입만 변환)
   };
 }
+```
+
+### Enum & Constants Pattern
+
+**규칙**: DB 값과 클라이언트 값을 동일하게 사용 (대문자 UPPER_SNAKE_CASE)
+
+```typescript
+// ❌ 잘못된 패턴 - 값 변환
+const genderMap = { MALE: 'men', FEMALE: 'women' };
+return { gender: genderMap[row.gender_rule] };  // DB: MALE → Client: men
+
+// ✅ 올바른 패턴 - 값 그대로 사용
+return { gender: row.gender_rule };  // DB: MALE → Client: MALE
+```
+
+**모든 매핑은 `shared/config/match-constants.ts`에서 관리:**
+
+```typescript
+// 값 → 라벨 변환은 constants에서
+import { GENDER_LABELS } from '@/shared/config/match-constants';
+<span>{GENDER_LABELS[match.gender]}</span>  // 'MALE' → '남성'
+```
+
+**컴포넌트 내 매핑 정의 금지:**
+
+```typescript
+// ❌ 컴포넌트 내부에 매핑 정의
+const GENDER_CONFIG = { men: { label: '남성' } };
+
+// ✅ constants에서 import
+import { GENDER_LABELS, GENDER_STYLES } from '@/shared/config/match-constants';
 ```
 
 ---

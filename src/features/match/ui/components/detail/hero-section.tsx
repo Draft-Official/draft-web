@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { cn } from '@/shared/lib/utils';
-import { Match } from '@/features/match/model/mock-data';
+import { Match } from '@/features/match/model/types';
 
 interface HeroSectionProps {
   match: Match;
@@ -10,9 +10,9 @@ interface HeroSectionProps {
 
 export function HeroSection({ match }: HeroSectionProps) {
   const genderLabel = {
-    men: '남성',
-    women: '여성',
-    mixed: '성별 무관'
+    MALE: '남성',
+    FEMALE: '여성',
+    MIXED: '성별 무관'
   }[match.gender] || match.gender;
 
   const isClosed = match.positions.all?.status === 'closed';

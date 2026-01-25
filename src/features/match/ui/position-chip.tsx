@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { cn } from '@/shared/lib/utils';
-import { PositionStatus } from '../model/mock-data';
+import { PositionStatus } from '../model/types';
 
 interface PositionChipProps {
   label: string;

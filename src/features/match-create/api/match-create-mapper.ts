@@ -191,7 +191,7 @@ export function toMatchInsertDataV3(
     end_time: endTimeISO,
 
     match_type: form.matchType,     // 5vs5, 3vs3
-    gender_rule: form.gender === 'men' ? 'MALE' : form.gender === 'women' ? 'FEMALE' : 'MIXED',
+    gender_rule: form.gender, // 이미 대문자: 'MALE' | 'FEMALE' | 'MIXED'
     level_limit: String(form.level),   // number to string
 
     cost_type: costType,
