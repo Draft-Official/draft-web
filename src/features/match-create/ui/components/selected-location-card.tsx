@@ -2,12 +2,7 @@
 
 import { X, MapPinned } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
-
-interface LocationData {
-  address: string;
-  buildingName?: string;
-  placeUrl?: string;
-}
+import type { LocationData } from '@/features/match-create/model/types';
 
 interface SelectedLocationCardProps {
   location: LocationData;

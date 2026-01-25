@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Input } from '@/shared/ui/base/input';
 import { Label } from '@/shared/ui/base/label';
 import { Chip } from '@/shared/ui/base/chip';
@@ -17,15 +18,6 @@ interface MatchCreateGameFormatProps {
   setGuaranteedQuarters: (v: string) => void;
   refereeType: RefereeTypeValue;
   setRefereeType: (v: RefereeTypeValue) => void;
-
-  showGameFormatType: boolean;
-  setShowGameFormatType: (v: boolean) => void;
-  showRules: boolean;
-  setShowRules: (v: boolean) => void;
-  showGuaranteed: boolean;
-  setShowGuaranteed: (v: boolean) => void;
-  showReferee: boolean;
-  setShowReferee: (v: boolean) => void;
 }
 
 // Reusable Section Item Component
@@ -80,12 +72,14 @@ export function MatchCreateGameFormat({
   ruleQuarters, setRuleQuarters,
   ruleGames, setRuleGames,
   guaranteedQuarters, setGuaranteedQuarters,
-  refereeType, setRefereeType,
-  showGameFormatType, setShowGameFormatType,
-  showRules, setShowRules,
-  showGuaranteed, setShowGuaranteed,
-  showReferee, setShowReferee
+  refereeType, setRefereeType
 }: MatchCreateGameFormatProps) {
+  // UI 상태 로컬화
+  const [showGameFormatType, setShowGameFormatType] = useState(false);
+  const [showRules, setShowRules] = useState(false);
+  const [showGuaranteed, setShowGuaranteed] = useState(false);
+  const [showReferee, setShowReferee] = useState(false);
+
   return (
     <section className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-4 relative overflow-hidden">
         <h2 className="font-bold text-slate-900 flex items-center gap-2">

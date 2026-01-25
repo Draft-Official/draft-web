@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useState, useRef } from 'react';
 
 import { Input } from '@/shared/ui/base/input';
 import { Label } from '@/shared/ui/base/label';
@@ -25,11 +25,6 @@ interface MatchCreateFacilitiesProps {
   courtSize: CourtSizeValue | "";
   setCourtSize: (v: CourtSizeValue | "") => void;
 
-  showParkingDialog: boolean;
-  setShowParkingDialog: (v: boolean) => void;
-  showCourtSizeDialog: boolean;
-  setShowCourtSizeDialog: (v: boolean) => void;
-
   isExistingGym?: boolean;
 }
 
@@ -42,10 +37,11 @@ export function MatchCreateFacilities({
   parkingDetail, setParkingDetail,
   hasShower, setHasShower,
   courtSize, setCourtSize,
-  showParkingDialog, setShowParkingDialog,
-  showCourtSizeDialog, setShowCourtSizeDialog,
   isExistingGym = false
 }: MatchCreateFacilitiesProps) {
+  // UI 상태 로컬화
+  const [showParkingDialog, setShowParkingDialog] = useState(false);
+  const [showCourtSizeDialog, setShowCourtSizeDialog] = useState(false);
 
   // Persistence Refs
   const lastParkingCost = useRef<string>("");

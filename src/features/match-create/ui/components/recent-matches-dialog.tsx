@@ -3,42 +3,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/shared/ui/base/dialog';
 import { X, MapPin, Loader2 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
-
-// DB에서 가져온 match row 타입 (gym, team join 포함)
-export interface MatchWithRelations {
-  id: string;
-  team_id: string | null;
-  manual_team_name: string;
-  start_time: string;
-  end_time: string;
-  cost_amount: number;
-  cost_type: string;
-  provides_beverage: boolean;
-  match_type: string;
-  gender_rule: string;
-  level_limit: string;
-  recruitment_setup: any;
-  match_options: any;
-  requirements: string[];
-  account_bank: string;
-  account_number: string;
-  account_holder: string;
-  contact_type: string;
-  contact_content: string;
-  host_notice: string;
-  gym: {
-    id: string;
-    name: string;
-    address: string;
-    latitude: number;
-    longitude: number;
-    kakao_place_id: string;
-    facilities: any;
-  } | null;
-  team: {
-    name: string;
-  } | null;
-}
+import type { MatchWithRelations } from '@/shared/types/database.types';
 
 interface RecentMatchesDialogProps {
   open: boolean;

@@ -16,16 +16,7 @@ import { TimePickerSelect } from '@/shared/ui/base/time-picker-select';
 // import ScrollContainer from 'react-indiana-drag-scroll'; // Moved to internal component
 import { DateStrip } from '@/features/match/ui/components/date-strip';
 import { SelectedLocationCard } from './selected-location-card';
-
-interface LocationData {
-  address: string;
-  buildingName?: string;
-  bname?: string;
-  placeUrl?: string;
-  x?: string;
-  y?: string;
-  kakaoPlaceId?: string;
-}
+import type { LocationData } from '@/features/match-create/model/types';
 
 interface MatchCreateBasicInfoProps {
   selectedDate: string | null;
