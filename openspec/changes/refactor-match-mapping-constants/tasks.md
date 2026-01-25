@@ -48,6 +48,8 @@
 
 ## 후속 작업 (별도 PR)
 
+→ **새 proposal로 이동**: [`unify-form-constants-uppercase`](../unify-form-constants-uppercase/proposal.md)
+
 아래 항목들은 동일한 패턴 적용이 필요하나, 범위가 넓어 별도 작업으로 분리:
 
 - [ ] Position: Form에서 한글(`'가드'`) 대신 대문자(`'G'`) 사용

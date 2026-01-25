@@ -243,9 +243,24 @@ return { gender: row.gender_rule };  // DB: MALE → Client: MALE
 **모든 매핑은 `shared/config/match-constants.ts`에서 관리:**
 
 ```typescript
-// 값 → 라벨 변환은 constants에서
-import { GENDER_LABELS } from '@/shared/config/match-constants';
-<span>{GENDER_LABELS[match.gender]}</span>  // 'MALE' → '남성'
+// Constants 구조
+export const GENDER_VALUES = ['MALE', 'FEMALE', 'MIXED'] as const;
+export type GenderValue = typeof GENDER_VALUES[number];
+export const GENDER_LABELS: Record<GenderValue, string> = { MALE: '남성', ... };
+export const GENDER_STYLES: Record<GenderValue, { color: string }> = { ... };
+export const GENDER_OPTIONS = GENDER_VALUES.map(v => ({ value: v, label: GENDER_LABELS[v] }));
+export const GENDER_DEFAULT: GenderValue = 'MALE';  // Form 초기값
+```
+
+**Form 초기값은 Constants DEFAULT 사용:**
+
+```typescript
+// ❌ 잘못된 패턴 - 하드코딩된 초기값
+const [gender, setGender] = useState("men");
+
+// ✅ 올바른 패턴 - Constants DEFAULT 사용
+import { GENDER_DEFAULT } from '@/shared/config/match-constants';
+const [gender, setGender] = useState(GENDER_DEFAULT);  // 'MALE'
 ```
 
 **컴포넌트 내 매핑 정의 금지:**
@@ -256,6 +271,17 @@ const GENDER_CONFIG = { men: { label: '남성' } };
 
 // ✅ constants에서 import
 import { GENDER_LABELS, GENDER_STYLES } from '@/shared/config/match-constants';
+```
+
+**Schema에서 Constants 참조:**
+
+```typescript
+// ❌ 잘못된 패턴 - 하드코딩된 enum
+gameFormat: z.enum(['internal_2', 'internal_3', 'exchange'])
+
+// ✅ 올바른 패턴 - Constants 참조
+import { PLAY_STYLE_VALUES } from '@/shared/config/match-constants';
+gameFormat: z.enum(PLAY_STYLE_VALUES)  // ['INTERNAL_2WAY', 'INTERNAL_3WAY', 'EXCHANGE']
 ```
 
 ---
@@ -338,6 +364,6 @@ For deeper context, refer to:
 
 ---
 
-**Last Updated**: 2026-01-23  
+**Last Updated**: 2026-01-25  
 **Maintainer**: @beom  
 **Project**: Draft - 농구 용병 모집 플랫폼

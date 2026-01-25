@@ -334,26 +334,66 @@ export * from './dialog';
 - DB 값과 클라이언트 값을 동일하게 사용 (대문자 UPPER_SNAKE_CASE)
 - Mapper는 값 변환 없이 타입 변환만 수행
 - UI 컴포넌트 내부에 매핑 정의 금지
+- Form 초기값은 DEFAULT 상수 참조
+
+**Constants 구조 패턴:**
 
 ```typescript
 // shared/config/match-constants.ts (Single Source of Truth)
+
+// 1. 값 정의 (as const로 타입 추론)
 export const GENDER_VALUES = ['MALE', 'FEMALE', 'MIXED'] as const;
 export type GenderValue = typeof GENDER_VALUES[number];
 
+// 2. 라벨 매핑 (UI 표시용)
 export const GENDER_LABELS: Record<GenderValue, string> = {
   MALE: '남성',
   FEMALE: '여성',
   MIXED: '성별 무관',
 };
 
+// 3. 스타일 매핑 (필요 시)
 export const GENDER_STYLES: Record<GenderValue, { color: string }> = {
   MALE: { color: 'text-blue-600' },
   FEMALE: { color: 'text-pink-600' },
   MIXED: { color: 'text-purple-600' },
 };
+
+// 4. Options 배열 (Select/Chip용)
+export const GENDER_OPTIONS = GENDER_VALUES.map(value => ({
+  value,
+  label: GENDER_LABELS[value],
+}));
+
+// 5. DEFAULT 값 (Form 초기값)
+export const GENDER_DEFAULT: GenderValue = 'MALE';
 ```
 
-**사용 패턴:**
+**Form 초기값 패턴:**
+
+```typescript
+// ❌ 잘못된 패턴 - 하드코딩된 초기값
+const [gender, setGender] = useState("men");
+const [gameFormat, setGameFormat] = useState("internal_2");
+
+// ✅ 올바른 패턴 - Constants DEFAULT 사용
+import { GENDER_DEFAULT, PLAY_STYLE_DEFAULT } from '@/shared/config/match-constants';
+const [gender, setGender] = useState(GENDER_DEFAULT);  // 'MALE'
+const [gameFormat, setGameFormat] = useState(PLAY_STYLE_DEFAULT);  // 'INTERNAL_2WAY'
+```
+
+**Schema에서 Constants 참조:**
+
+```typescript
+// ❌ 잘못된 패턴 - 하드코딩된 enum 값
+gameFormat: z.enum(['internal_2', 'internal_3', 'exchange'])
+
+// ✅ 올바른 패턴 - Constants 참조
+import { PLAY_STYLE_VALUES } from '@/shared/config/match-constants';
+gameFormat: z.enum(PLAY_STYLE_VALUES)  // ['INTERNAL_2WAY', 'INTERNAL_3WAY', 'EXCHANGE']
+```
+
+**UI 컴포넌트 패턴:**
 
 ```typescript
 // ❌ 잘못된 패턴 - 컴포넌트 내 매핑 정의
@@ -375,6 +415,13 @@ import { GENDER_LABELS, GENDER_STYLES } from '@/shared/config/match-constants';
 return {
   gender: row.gender_rule,  // DB: 'MALE' → Client: 'MALE'
 };
+
+// ❌ 잘못된 패턴 - inline 매핑
+const gameFormatMap = { internal_2: 'INTERNAL_2WAY' };
+play_style: gameFormatMap[form.gameFormat]
+
+// ✅ 올바른 패턴 - Form이 이미 대문자를 사용
+play_style: form.gameFormat  // 이미 'INTERNAL_2WAY'
 ```
 
 ---
@@ -613,6 +660,6 @@ npx supabase gen types typescript --project-id YOUR_PROJECT_ID > src/shared/type
 
 ---
 
-**Last Updated**: 2026-01-23  
+**Last Updated**: 2026-01-25  
 **Maintainer**: @beom  
 **Project**: Draft - 농구 용병 모집 플랫폼
