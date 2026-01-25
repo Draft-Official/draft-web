@@ -424,6 +424,28 @@ play_style: gameFormatMap[form.gameFormat]
 play_style: form.gameFormat  // 이미 'INTERNAL_2WAY'
 ```
 
+**Component Prop Types:**
+
+```typescript
+// ❌ 잘못된 패턴 - string 타입 (타입 안전성 부족)
+interface MatchCreateSpecsProps {
+  gender: string;
+  setGender: (v: string) => void;
+  gameFormat: string;
+  setGameFormat: (v: string) => void;
+}
+
+// ✅ 올바른 패턴 - 명시적 타입 (컴파일 타임 에러 검출)
+import { GenderValue, PlayStyleValue } from '@/shared/config/match-constants';
+
+interface MatchCreateSpecsProps {
+  gender: GenderValue;  // 'MALE' | 'FEMALE' | 'MIXED'만 허용
+  setGender: (v: GenderValue) => void;
+  gameFormat: PlayStyleValue;  // 'INTERNAL_2WAY' | 'INTERNAL_3WAY' | 'EXCHANGE'만 허용
+  setGameFormat: (v: PlayStyleValue) => void;
+}
+```
+
 ---
 
 ## 🎯 기술 스택

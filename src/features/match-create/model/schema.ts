@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { PLAY_STYLE_VALUES, REFEREE_TYPE_VALUES, COURT_SIZE_VALUES } from '@/shared/config/match-constants';
 
 // Location schema - Kakao API를 통해 선택된 장소 (모든 필드 필수)
 export const locationSchema = z.object({
@@ -38,7 +39,7 @@ export const facilitiesSchema = z.object({
   water: z.boolean().default(false),    // 정수기
   acHeat: z.boolean().default(false),   // 냉난방
   shower: z.boolean().default(false),     // 샤워실
-  courtSize: z.enum(['regular', 'short', 'narrow']).default('regular'), // UI 값으로 변경
+  courtSize: z.enum(COURT_SIZE_VALUES).default('REGULAR'), // Uppercase constants
   ball: z.boolean().default(false),     // 농구공 제공
   beverage: z.boolean().default(false), // 음료 제공
 });
@@ -91,10 +92,8 @@ export const matchCreateSchema = z.object({
   }),
 
   // Game Format
-  // gameFormat: internal_2, exchange, etc.
-  gameFormat: z.enum(['internal_2', 'internal_3', 'exchange'], {
-    message: '경기 방식을 선택하세요',
-  }).optional(),
+  // gameFormat: INTERNAL_2WAY, EXCHANGE, etc.
+  gameFormat: z.enum(PLAY_STYLE_VALUES).optional(),
 
   // Optional detailed rules (gameFormat은 별도 필드로 관리, rules에 저장 시 포함)
   rules: z.object({
@@ -102,7 +101,7 @@ export const matchCreateSchema = z.object({
     quarterCount: z.number().min(1).max(10).optional(),
     fullGames: z.number().min(0).max(10).optional(),
     guaranteedQuarters: z.number().min(0).max(10).optional(),
-    referee: z.enum(['self', 'member', 'pro']).optional(), // 심판 유형
+    referee: z.enum(REFEREE_TYPE_VALUES).optional(), // 심판 유형
   }).optional(),
 
   // Bigman 옵션 (포지션 모집 시 센터/포워드 유동적 배치)

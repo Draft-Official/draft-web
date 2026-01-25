@@ -4,7 +4,8 @@ import { cn } from '@/shared/lib/utils';
 import { Settings } from 'lucide-react';
 import {
   MATCH_TYPE_OPTIONS,
-  GENDER_OPTIONS
+  GENDER_OPTIONS,
+  GenderValue
 } from '@/shared/config/match-constants';
 import { AgeSelector } from './age-selector';
 import { SkillSlider } from '@/shared/ui/base/skill-slider';
@@ -12,8 +13,8 @@ import { SkillSlider } from '@/shared/ui/base/skill-slider';
 interface MatchCreateSpecsProps {
   matchType: string;
   setMatchType: (v: string) => void;
-  gender: string;
-  setGender: (v: string) => void;
+  gender: GenderValue;
+  setGender: (v: GenderValue) => void;
   level: number;
   setLevel: (v: number) => void;
   selectedAges: string[];

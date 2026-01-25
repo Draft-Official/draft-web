@@ -27,6 +27,16 @@ import { MatchCreateFormData } from '@/features/match-create/model/schema';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { createAuthService } from '@/features/auth/api/auth-api';
 import { createTeamService } from '@/features/team/api/team-api';
+import { 
+  GENDER_DEFAULT, 
+  PLAY_STYLE_DEFAULT, 
+  REFEREE_TYPE_DEFAULT,
+  COURT_SIZE_DEFAULT,
+  GenderValue,
+  PlayStyleValue,
+  RefereeTypeValue,
+  CourtSizeValue
+} from '@/shared/config/match-constants';
 
 // Location data type
 interface LocationData {
@@ -72,23 +82,23 @@ export function MatchCreateView() {
   const [hasBall, setHasBall] = useState(false); // 공 (웜업볼)
   const [hasBeverage, setHasBeverage] = useState(false); // 음료수
   const [hasShower, setHasShower] = useState(false);
-  const [courtSize, setCourtSize] = useState("");
+  const [courtSize, setCourtSize] = useState<CourtSizeValue | "">("");
 
   // Match Specs
   const [matchType, setMatchType] = useState("5vs5");
-  const [gender, setGender] = useState("men");
+  const [gender, setGender] = useState<GenderValue>(GENDER_DEFAULT);
   const [level, setLevel] = useState(4); // 4 = Middle 2 (Default)
   const [selectedAges, setSelectedAges] = useState<string[]>(['any']);
   const [hasShoes, setHasShoes] = useState(true);
   const [hasJersey, setHasJersey] = useState(true);
 
   // Game Format (Optional)
-  const [gameFormatType, setGameFormatType] = useState("internal_2");
+  const [gameFormatType, setGameFormatType] = useState<PlayStyleValue>(PLAY_STYLE_DEFAULT);
   const [ruleMinutes, setRuleMinutes] = useState("8");
   const [ruleQuarters, setRuleQuarters] = useState("4");
   const [ruleGames, setRuleGames] = useState("2");
   const [guaranteedQuarters, setGuaranteedQuarters] = useState("6");
-  const [refereeType, setRefereeType] = useState("self");
+  const [refereeType, setRefereeType] = useState<RefereeTypeValue>(REFEREE_TYPE_DEFAULT);
   
   // ...
 
@@ -246,12 +256,7 @@ export function MatchCreateView() {
 
     // court_size_type 처리
     if (facilities.court_size_type) {
-      const sizeMap: Record<string, string> = {
-        'REGULAR': 'regular',
-        'SHORT': 'short',
-        'NARROW': 'narrow'
-      };
-      setCourtSize(sizeMap[facilities.court_size_type] ?? "");
+      setCourtSize(facilities.court_size_type); // Already uppercase: 'REGULAR', 'SHORT', 'NARROW'
     } else {
       setCourtSize("");
     }
@@ -494,22 +499,16 @@ export function MatchCreateView() {
     setMatchType(match.match_type || '5vs5');
 
     // gender_rule은 이미 대문자: 'MALE' | 'FEMALE' | 'MIXED'
-    setGender(match.gender_rule || 'MALE');
+    setGender((match.gender_rule || 'MALE') as GenderValue);
 
     setLevel(Number(match.level_limit) || 4);
 
     // 10. 경기 형식 (match_options)
     const options = match.match_options;
     if (options) {
-      // play_style
-      const formatMap: Record<string, string> = {
-        INTERNAL_2WAY: 'internal_2',
-        INTERNAL_3WAY: 'internal_3',
-        EXCHANGE: 'exchange',
-        PRACTICE: 'practice',
-      };
+      // play_style - Already uppercase, use directly
       if (options.play_style) {
-        setGameFormatType(formatMap[options.play_style] || 'internal_2');
+        setGameFormatType(options.play_style); // 'INTERNAL_2WAY', etc.
         setShowGameFormatType(true);
       }
 
@@ -527,12 +526,9 @@ export function MatchCreateView() {
         setShowGuaranteed(true);
       }
 
-      // referee_type
-      const refMap: Record<string, string> = {
-        SELF: 'self', STAFF: 'member', PRO: 'pro'
-      };
+      // referee_type - Already uppercase, use directly
       if (options.referee_type) {
-        setRefereeType(refMap[options.referee_type] || 'self');
+        setRefereeType(options.referee_type); // 'SELF', 'STAFF', 'PRO'
         setShowReferee(true);
       }
     }
@@ -669,7 +665,7 @@ export function MatchCreateView() {
             quarterCount: showRules ? Number(ruleQuarters) : undefined,
             fullGames: showRules ? Number(ruleGames) : undefined,
             guaranteedQuarters: showGuaranteed ? Number(guaranteedQuarters) : undefined,
-            referee: showReferee ? (refereeType as 'self' | 'member' | 'pro') : undefined
+            referee: showReferee ? refereeType : undefined
         },
 
         facilities: {
@@ -678,7 +674,7 @@ export function MatchCreateView() {
             water: hasWater,
             acHeat: hasAcHeat,
             shower: hasShower,
-            courtSize: courtSize as 'regular' | 'short' | 'narrow',
+            courtSize: courtSize || COURT_SIZE_DEFAULT,
             ball: hasBall,
             beverage: hasBeverage,
         },

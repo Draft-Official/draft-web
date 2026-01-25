@@ -12,18 +12,6 @@ import { useUpdateProfile } from '@/features/auth/api/mutations';
 import { useRouter } from 'next/navigation';
 import type { Profile, UserUpdate, UserMetadata } from '@/shared/types/database.types';
 
-// 포지션 매핑: UI ↔ DB
-const POSITION_MAP: Record<string, string> = {
-  '가드': 'G',
-  '포워드': 'F',
-  '센터': 'C',
-};
-const POSITION_MAP_REVERSE: Record<string, string> = {
-  'G': '가드',
-  'F': '포워드',
-  'C': '센터',
-};
-
 // DB Profile → UI ProfileData 변환
 function profileToFormData(dbProfile: Profile | null): ProfileData | null {
   if (!dbProfile) return null;
@@ -35,7 +23,7 @@ function profileToFormData(dbProfile: Profile | null): ProfileData | null {
     height: metadata?.height?.toString() || '',
     age: metadata?.age?.toString() || '',
     weight: metadata?.weight?.toString() || '',
-    position: position ? (POSITION_MAP_REVERSE[position] || '') : '',
+    position: (position as ProfileData['position']) || '',  // Already 'G', 'F', 'C'
     skillLevel: metadata?.skill_level || 1,
     team: '', // TODO: 팀 정보는 team_members 테이블에서 가져와야 함
   };
@@ -43,10 +31,8 @@ function profileToFormData(dbProfile: Profile | null): ProfileData | null {
 
 // UI ProfileData → DB UserUpdate 변환
 function formDataToUpdate(formData: ProfileData): UserUpdate {
-  const positionCode = POSITION_MAP[formData.position];
-
   return {
-    positions: positionCode ? [positionCode] : null,
+    positions: formData.position ? [formData.position] : null,  // Already code
     metadata: {
       height: formData.height ? parseInt(formData.height, 10) : undefined,
       age: formData.age ? parseInt(formData.age, 10) : undefined,

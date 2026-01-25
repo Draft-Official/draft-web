@@ -31,6 +31,8 @@ export const GENDER_OPTIONS = GENDER_VALUES.map(value => ({
   label: GENDER_LABELS[value],
 }));
 
+export const GENDER_DEFAULT: GenderValue = 'MALE';
+
 export function getGenderLabel(value: string): string {
   return GENDER_LABELS[value as GenderValue] || value;
 }
@@ -54,6 +56,8 @@ export const POSITION_OPTIONS = POSITION_VALUES.map(value => ({
   label: POSITION_LABELS[value].full,
   shortLabel: POSITION_LABELS[value].short,
 }));
+
+export const POSITION_DEFAULT: PositionValue = 'G';
 
 export function getPositionLabel(value: string, type: 'short' | 'full' = 'full'): string {
   const labels = POSITION_LABELS[value as PositionValue];
@@ -111,6 +115,8 @@ export const PLAY_STYLE_OPTIONS = PLAY_STYLE_VALUES.map(value => ({
   label: PLAY_STYLE_LABELS[value],
 }));
 
+export const PLAY_STYLE_DEFAULT: PlayStyleValue = 'INTERNAL_2WAY';
+
 export function getPlayStyleLabel(code: string): string {
   return PLAY_STYLE_LABELS[code as PlayStyleValue] || code;
 }
@@ -132,6 +138,8 @@ export const REFEREE_TYPE_OPTIONS = REFEREE_TYPE_VALUES.map(value => ({
   value,
   label: REFEREE_TYPE_LABELS[value],
 }));
+
+export const REFEREE_TYPE_DEFAULT: RefereeTypeValue = 'SELF';
 
 export function getRefereeTypeLabel(code: string): string {
   return REFEREE_TYPE_LABELS[code as RefereeTypeValue] || code;
@@ -206,6 +214,8 @@ export const COURT_SIZE_OPTIONS = COURT_SIZE_VALUES.map(value => ({
   label: COURT_SIZE_LABELS[value].label,
   description: COURT_SIZE_LABELS[value].description,
 }));
+
+export const COURT_SIZE_DEFAULT: CourtSizeValue = 'REGULAR';
 
 // ============================================
 // Match Type (경기 인원)

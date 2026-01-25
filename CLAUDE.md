@@ -278,10 +278,31 @@ import { GENDER_LABELS, GENDER_STYLES } from '@/shared/config/match-constants';
 ```typescript
 // ❌ 잘못된 패턴 - 하드코딩된 enum
 gameFormat: z.enum(['internal_2', 'internal_3', 'exchange'])
+courtSize: z.enum(['regular', 'short', 'narrow'])
+referee: z.enum(['self', 'member', 'pro'])
 
 // ✅ 올바른 패턴 - Constants 참조
-import { PLAY_STYLE_VALUES } from '@/shared/config/match-constants';
+import { PLAY_STYLE_VALUES, COURT_SIZE_VALUES, REFEREE_TYPE_VALUES } from '@/shared/config/match-constants';
 gameFormat: z.enum(PLAY_STYLE_VALUES)  // ['INTERNAL_2WAY', 'INTERNAL_3WAY', 'EXCHANGE']
+courtSize: z.enum(COURT_SIZE_VALUES)   // ['REGULAR', 'SHORT', 'NARROW']
+referee: z.enum(REFEREE_TYPE_VALUES)   // ['SELF', 'STAFF', 'PRO']
+```
+
+**Component Prop Types:**
+
+```typescript
+// ❌ 잘못된 패턴 - string 타입
+interface Props {
+  gender: string;
+  setGender: (v: string) => void;
+}
+
+// ✅ 올바른 패턴 - 타입 명시
+import { GenderValue } from '@/shared/config/match-constants';
+interface Props {
+  gender: GenderValue;
+  setGender: (v: GenderValue) => void;
+}
 ```
 
 ---

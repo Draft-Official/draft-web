@@ -6,7 +6,7 @@ import { Button } from '@/shared/ui/base/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/shared/ui/base/dialog';
 import { Chip } from '@/shared/ui/base/chip';
 import { cn } from '@/shared/lib/utils';
-import { COURT_SIZE_OPTIONS } from '@/shared/config/match-constants';
+import { COURT_SIZE_OPTIONS, CourtSizeValue } from '@/shared/config/match-constants';
 import { X } from 'lucide-react';
 
 interface MatchCreateFacilitiesProps {
@@ -22,8 +22,8 @@ interface MatchCreateFacilitiesProps {
   setParkingDetail: (v: string) => void;
   hasShower: boolean;
   setHasShower: (v: boolean) => void;
-  courtSize: string;
-  setCourtSize: (v: string) => void;
+  courtSize: CourtSizeValue | "";
+  setCourtSize: (v: CourtSizeValue | "") => void;
 
   showParkingDialog: boolean;
   setShowParkingDialog: (v: boolean) => void;
@@ -50,7 +50,7 @@ export function MatchCreateFacilities({
   // Persistence Refs
   const lastParkingCost = useRef<string>("");
   const lastParkingDetail = useRef<string>("");
-  const lastCourtSize = useRef<string>("");
+  const lastCourtSize = useRef<CourtSizeValue | "">("");
 
   // Helper to get labels
   const getCourtSizeLabel = () => COURT_SIZE_OPTIONS.find(o => o.value === courtSize)?.label;

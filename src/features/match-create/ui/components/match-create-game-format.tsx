@@ -2,11 +2,11 @@ import { Input } from '@/shared/ui/base/input';
 import { Label } from '@/shared/ui/base/label';
 import { Chip } from '@/shared/ui/base/chip';
 import { Info, Plus, Minus } from 'lucide-react';
-import { PLAY_STYLE_OPTIONS as GAME_FORMAT_OPTIONS, REFEREE_TYPE_OPTIONS as REFEREE_OPTIONS } from '@/shared/config/match-constants';
+import { PLAY_STYLE_OPTIONS as GAME_FORMAT_OPTIONS, REFEREE_TYPE_OPTIONS as REFEREE_OPTIONS, PLAY_STYLE_DEFAULT, REFEREE_TYPE_DEFAULT, PlayStyleValue, RefereeTypeValue } from '@/shared/config/match-constants';
 
 interface MatchCreateGameFormatProps {
-  gameFormatType: string;
-  setGameFormatType: (v: string) => void;
+  gameFormatType: PlayStyleValue;
+  setGameFormatType: (v: PlayStyleValue) => void;
   ruleMinutes: string;
   setRuleMinutes: (v: string) => void;
   ruleQuarters: string;
@@ -15,8 +15,8 @@ interface MatchCreateGameFormatProps {
   setRuleGames: (v: string) => void;
   guaranteedQuarters: string;
   setGuaranteedQuarters: (v: string) => void;
-  refereeType: string;
-  setRefereeType: (v: string) => void;
+  refereeType: RefereeTypeValue;
+  setRefereeType: (v: RefereeTypeValue) => void;
 
   showGameFormatType: boolean;
   setShowGameFormatType: (v: boolean) => void;
@@ -102,7 +102,7 @@ export function MatchCreateGameFormat({
                 onOpen={() => setShowGameFormatType(true)}
                 onClose={() => {
                     setShowGameFormatType(false);
-                    setGameFormatType("internal_2");
+                    setGameFormatType(PLAY_STYLE_DEFAULT);
                 }}
             >
                 <div className="flex flex-wrap gap-2">
@@ -196,7 +196,7 @@ export function MatchCreateGameFormat({
                 onOpen={() => setShowReferee(true)}
                 onClose={() => {
                     setShowReferee(false);
-                    setRefereeType("self");
+                    setRefereeType(REFEREE_TYPE_DEFAULT);
                 }}
             >
                 <div className="flex gap-2">

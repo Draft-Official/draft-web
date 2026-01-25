@@ -39,14 +39,9 @@ export function extractGymDataV3(form: MatchCreateFormData): GymData {
     }
   }
 
-  // court_size_type 처리: 빈 문자열이 아닐 때만
+  // court_size_type 처리: 값이 있을 때만 (빈 문자열은 falsy이므로 자동으로 제외)
   if (formFacilities?.courtSize) {
-    const sizeMap: Record<string, 'REGULAR' | 'SHORT' | 'NARROW'> = {
-      'regular': 'REGULAR',
-      'short': 'SHORT',
-      'narrow': 'NARROW'
-    };
-    facilities.court_size_type = sizeMap[formFacilities.courtSize];
+    facilities.court_size_type = formFacilities.courtSize; // Already uppercase: 'REGULAR', 'SHORT', 'NARROW'
   }
 
   return {
@@ -128,24 +123,7 @@ export function toMatchInsertDataV3(
   }
 
   // E. Match Options
-  // Map GameFormat string -> DB Enum
-  const gameFormatMap: Record<string, 'INTERNAL_2WAY' | 'INTERNAL_3WAY' | 'EXCHANGE' | 'PRACTICE'> = {
-    internal_2: 'INTERNAL_2WAY',
-    internal_3: 'INTERNAL_3WAY',
-    exchange: 'EXCHANGE',
-    practice: 'PRACTICE',
-  };
-
   const rules = form.rules || {};
-
-  // referee: 'self' | 'member' | 'pro' -> map to DB UPPER CASE if needed?
-  // DB Check: referee_type?: 'SELF' | 'STAFF' | 'PRO';
-  // Form: 'self', 'member', 'pro'.
-  const refereeMap: Record<string, 'SELF' | 'STAFF' | 'PRO'> = {
-    self: 'SELF',
-    member: 'STAFF', // member -> staff? usually member ref is "staff" or "participating ref"? let's map to STAFF or leave undefined if mismatch.
-    pro: 'PRO',
-  };
 
   // 24.01.21 Update: Only populate matchOptions if there is actual data
   let matchOptions: MatchOptions | undefined;
@@ -158,14 +136,14 @@ export function toMatchInsertDataV3(
 
   if (hasMatchOptions) {
     matchOptions = {
-      play_style: form.gameFormat ? gameFormatMap[form.gameFormat] : undefined,
+      play_style: form.gameFormat, // Already uppercase: 'INTERNAL_2WAY', 'INTERNAL_3WAY', 'EXCHANGE'
       quarter_rule: hasQuarterRules ? {
         minutes_per_quarter: rules.quarterTime || 8,
         quarter_count: rules.quarterCount || 4,
         game_count: rules.fullGames || 2,
       } : undefined,
       guaranteed_quarters: rules.guaranteedQuarters,
-      referee_type: rules.referee ? refereeMap[rules.referee] : undefined,
+      referee_type: rules.referee, // Already uppercase: 'SELF', 'STAFF', 'PRO'
       supplies: undefined,
     };
   }
