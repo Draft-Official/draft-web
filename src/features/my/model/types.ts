@@ -3,7 +3,7 @@
  * Feature: my (마이페이지)
  */
 
-import { PositionValue } from '@/shared/config/match-constants';
+import { PositionValue } from '@/shared/config/constants';
 
 export interface ProfileData {
   height: string;

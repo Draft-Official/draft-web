@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
-import type { LocationData, GymFacilities } from '@/features/match-create/model/types';
+import type { LocationData } from '@/features/match-create/model/types';
+import type { GymFacilities } from '@/shared/types/database.types';
 
 export interface UseLocationSearchReturn {
   // State

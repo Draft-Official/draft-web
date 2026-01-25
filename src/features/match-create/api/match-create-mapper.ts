@@ -1,8 +1,11 @@
 import {
   MatchInsert,
   GymFacilities,
-  MatchOptions,
+  MatchRule,
   RecruitmentSetup,
+  OperationInfo,
+  AccountInfo,
+  Json,
 } from '@/shared/types/database.types';
 import { GymData } from '@/shared/api/gym-api';
 import { MatchCreateFormData } from '@/features/match-create/model/schema';
@@ -122,20 +125,20 @@ export function toMatchInsertDataV3(
     };
   }
 
-  // E. Match Options
+  // E. Match Rule (기존 Match Options)
   const rules = form.rules || {};
 
-  // 24.01.21 Update: Only populate matchOptions if there is actual data
-  let matchOptions: MatchOptions | undefined;
+  // 24.01.21 Update: Only populate matchRule if there is actual data
+  let matchRule: MatchRule | undefined;
 
   // Check if quarter rules exist (avoid default 10/4/1 if no input)
   const hasQuarterRules = rules.quarterTime || rules.quarterCount || rules.fullGames;
 
   // Check if any match option data exists
-  const hasMatchOptions = form.gameFormat || hasQuarterRules || rules.guaranteedQuarters || rules.referee;
+  const hasMatchRuleData = form.gameFormat || hasQuarterRules || rules.guaranteedQuarters || rules.referee;
 
-  if (hasMatchOptions) {
-    matchOptions = {
+  if (hasMatchRuleData) {
+    matchRule = {
       play_style: form.gameFormat, // Already uppercase: 'INTERNAL_2WAY', 'INTERNAL_3WAY', 'EXCHANGE'
       quarter_rule: hasQuarterRules ? {
         minutes_per_quarter: rules.quarterTime || 8,
@@ -144,11 +147,27 @@ export function toMatchInsertDataV3(
       } : undefined,
       guaranteed_quarters: rules.guaranteedQuarters,
       referee_type: rules.referee, // Already uppercase: 'SELF', 'STAFF', 'PRO'
-      supplies: undefined,
     };
   }
 
-  // F. Team & Host
+  // F. Operation Info (contact + notice)
+  const operationInfo: OperationInfo = {
+    type: form.contactType || 'KAKAO_OPEN_CHAT',
+    url: form.contactContent || undefined,
+    notice: form.notice || undefined,
+  };
+
+  // G. Account Info
+  let accountInfo: AccountInfo | undefined;
+  if (form.bank || form.accountNumber || form.accountHolder) {
+    accountInfo = {
+      bank: form.bank || undefined,
+      number: form.accountNumber || undefined,
+      holder: form.accountHolder || undefined,
+    };
+  }
+
+  // H. Team & Host
   const manualTeamName = form.selectedTeamId
     ? ''
     : (form.manualTeamName || '');
@@ -160,10 +179,8 @@ export function toMatchInsertDataV3(
 
     manual_team_name: manualTeamName,
 
-    contact_type: form.contactType || 'KAKAO_OPEN_CHAT',
-    contact_content: form.contactContent || '',
-
-    host_notice: form.notice || '',
+    operation_info: operationInfo as unknown as Json,
+    account_info: accountInfo ? (accountInfo as unknown as Json) : null,
 
     start_time: startTimeISO,
     end_time: endTimeISO,
@@ -176,12 +193,8 @@ export function toMatchInsertDataV3(
     cost_amount: costAmount,
     provides_beverage: form.facilities?.beverage || false,
 
-    account_bank: form.bank,
-    account_number: form.accountNumber,
-    account_holder: form.accountHolder,
-
-    recruitment_setup: recruitmentSetup,
-    match_options: matchOptions,
+    recruitment_setup: recruitmentSetup as unknown as Json,
+    match_rule: matchRule ? (matchRule as unknown as Json) : null,
 
     // 준비물
     requirements: form.requirements || [],

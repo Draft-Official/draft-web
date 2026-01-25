@@ -240,3 +240,112 @@ export const AGE_OPTIONS = AGE_VALUES.map(value => ({
   value,
   label: `${value}대`,
 }));
+// ============================================
+// Match Category (경기 유형)
+// ============================================
+
+export const MATCH_CATEGORY_VALUES = [
+  'GUEST_RECRUIT',
+  'PICKUP_GAME',
+  'TUTORIAL',
+  'LESSON',
+  'TOURNAMENT',
+] as const;
+export type MatchCategoryValue = (typeof MATCH_CATEGORY_VALUES)[number];
+
+export const MATCH_CATEGORY_LABELS: Record<MatchCategoryValue, string> = {
+  GUEST_RECRUIT: '용병 모집',
+  PICKUP_GAME: '픽업 게임',
+  TUTORIAL: '튜토리얼',
+  LESSON: '레슨',
+  TOURNAMENT: '토너먼트',
+};
+
+// ============================================
+// Match Status (경기 상태)
+// ============================================
+
+export const MATCH_STATUS_VALUES = [
+  'RECRUITING',
+  'CLOSING_SOON',
+  'CLOSED',
+  'FINISHED',
+  'CANCELED',
+] as const;
+export type MatchStatusValue = (typeof MATCH_STATUS_VALUES)[number];
+
+export const MATCH_STATUS_LABELS: Record<MatchStatusValue, string> = {
+  RECRUITING: '모집 중',
+  CLOSING_SOON: '마감 임박',
+  CLOSED: '모집 마감',
+  FINISHED: '경기 종료',
+  CANCELED: '경기 취소',
+};
+
+export const MATCH_STATUS_STYLES: Record<
+  MatchStatusValue,
+  { color: string; bgColor: string }
+> = {
+  RECRUITING: { color: 'text-green-600', bgColor: 'bg-green-50' },
+  CLOSING_SOON: { color: 'text-orange-600', bgColor: 'bg-orange-50' },
+  CLOSED: { color: 'text-gray-600', bgColor: 'bg-gray-100' },
+  FINISHED: { color: 'text-gray-500', bgColor: 'bg-gray-50' },
+  CANCELED: { color: 'text-red-600', bgColor: 'bg-red-50' },
+};
+
+export function getMatchStatusLabel(value: string): string {
+  return MATCH_STATUS_LABELS[value as MatchStatusValue] || value;
+}
+
+// ============================================
+// Application Status (신청 상태)
+// ============================================
+
+export const APPLICATION_STATUS_VALUES = [
+  'PENDING',
+  'PAYMENT_PENDING',
+  'CONFIRMED',
+  'REJECTED',
+  'LATE',
+  'NOT_ATTENDING',
+] as const;
+export type ApplicationStatusValue = (typeof APPLICATION_STATUS_VALUES)[number];
+
+export const APPLICATION_STATUS_LABELS: Record<ApplicationStatusValue, string> = {
+  PENDING: '승인 대기',
+  PAYMENT_PENDING: '입금 대기',
+  CONFIRMED: '참여 확정',
+  REJECTED: '거절됨',
+  LATE: '늦참',
+  NOT_ATTENDING: '불참',
+};
+
+export const APPLICATION_STATUS_STYLES: Record<
+  ApplicationStatusValue,
+  { color: string; bgColor: string }
+> = {
+  PENDING: { color: 'text-yellow-600', bgColor: 'bg-yellow-50' },
+  PAYMENT_PENDING: { color: 'text-blue-600', bgColor: 'bg-blue-50' },
+  CONFIRMED: { color: 'text-green-600', bgColor: 'bg-green-50' },
+  REJECTED: { color: 'text-red-600', bgColor: 'bg-red-50' },
+  LATE: { color: 'text-orange-600', bgColor: 'bg-orange-50' },
+  NOT_ATTENDING: { color: 'text-gray-600', bgColor: 'bg-gray-100' },
+};
+
+export function getApplicationStatusLabel(value: string): string {
+  return APPLICATION_STATUS_LABELS[value as ApplicationStatusValue] || value;
+}
+
+// ============================================
+// Contact Type (연락 방식)
+// ============================================
+
+export const CONTACT_TYPE_VALUES = ['PHONE', 'KAKAO_OPEN_CHAT'] as const;
+export type ContactTypeValue = (typeof CONTACT_TYPE_VALUES)[number];
+
+export const CONTACT_TYPE_LABELS: Record<ContactTypeValue, string> = {
+  PHONE: '전화',
+  KAKAO_OPEN_CHAT: '카카오 오픈채팅',
+};
+
+export const CONTACT_TYPE_DEFAULT: ContactTypeValue = 'PHONE';

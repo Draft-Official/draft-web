@@ -15,17 +15,3 @@ export interface LocationData {
   y?: string; // Latitude (위도)
   kakaoPlaceId?: string; // 카카오 place_id (Gym 중복 방지용)
 }
-
-/**
- * Gym 시설 정보 (DB에서 조회)
- */
-export interface GymFacilities {
-  ball?: boolean;
-  water_purifier?: boolean;
-  air_conditioner?: boolean;
-  shower?: boolean;
-  parking?: boolean;
-  parking_fee?: string;
-  parking_location?: string;
-  court_size_type?: 'REGULAR' | 'SHORT' | 'NARROW';
-}

@@ -70,7 +70,7 @@ export const MOCK_APPLICANTS: Applicant[] = [
     position: 'F',
     level: '고수',
     height: '187cm',
-    status: ApplicantStatus.CHECKING,
+    status: ApplicantStatus.PAYMENT_PENDING,
     mannerTemp: 41.5,
     noshowCount: 0,
     attendanceRate: 100,

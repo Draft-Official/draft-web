@@ -5,7 +5,8 @@ import { useMatch } from '@/features/match/api/queries';
 import { MatchDetailView } from '@/features/match/ui/match-detail-view';
 import { TeamExerciseDetailView } from '@/features/schedule/ui/detail';
 import { Match } from '@/features/match/model/types';
-import { GuestListMatch, CostType } from '@/shared/types/match';
+import { GuestListMatch } from '@/features/match/model/types';
+import { CostType } from '@/shared/config/constants';
 import { Loader2 } from 'lucide-react';
 
 // Adapter: GuestListMatch -> Match (Mock Type)

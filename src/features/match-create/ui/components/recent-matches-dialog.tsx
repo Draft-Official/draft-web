@@ -24,9 +24,10 @@ function formatDate(isoString: string): string {
 }
 
 // 가격 포맷
-function formatPrice(amount: number, costType: string): string {
+function formatPrice(amount: number | null, costType: string): string {
   if (costType === 'FREE') return '무료';
-  if (costType === 'BEVERAGE') return `음료 ${amount}병`;
+  if (costType === 'BEVERAGE' && amount) return `음료 ${amount}병`;
+  if (!amount) return '무료';
   return `${amount.toLocaleString()}원`;
 }
 

@@ -66,8 +66,7 @@ export function useParticipatingMatches() {
             cost_type,
             cost_amount,
             status,
-            gym_address,
-            gym:gyms!gym_id (name, kakao_place_id)
+            gym:gyms!gym_id (name, address, kakao_place_id)
           )
         `)
         .eq('user_id', user.id)
@@ -76,7 +75,7 @@ export function useParticipatingMatches() {
       if (error) throw error;
       if (!applications) return [];
 
-      // DB Application -> UI ManagedMatch 변환
+      // DB Application → UI ManagedMatch 변환
       return applications
         .filter((app) => app.match) // match가 있는 것만
         .map((app) => {
@@ -87,8 +86,7 @@ export function useParticipatingMatches() {
             cost_type: string;
             cost_amount: number;
             status: string;
-            gym_address: string | null;
-            gym: { name: string; kakao_place_id: string | null } | null;
+            gym: { name: string; address: string; kakao_place_id: string | null } | null;
           };
 
           // Application status를 UI status로 매핑
@@ -111,7 +109,7 @@ export function useParticipatingMatches() {
             teamName: match.manual_team_name || '팀명 미정',
             date: formatMatchDate(match.start_time),
             time: formatMatchTime(match.start_time),
-            location: match.gym?.name || match.gym_address || '장소 미정',
+            location: match.gym?.name || match.gym?.address || '장소 미정',
             locationUrl: match.gym?.kakao_place_id ? `https://map.kakao.com/link/map/${match.gym.kakao_place_id}` : undefined,
             approvalStatus: approvalStatusText,
             amount: match.cost_amount,

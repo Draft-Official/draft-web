@@ -23,8 +23,8 @@ import { useAuth } from '@/features/auth/model/auth-context';
 import { useUpdateProfile } from '@/features/auth/api/mutations';
 import { useCreateApplication } from '../api/mutations';
 import { useUserTeams } from '../api/queries';
-import type { ParticipantInfo, Profile, UserMetadata, UserUpdate } from '@/shared/types/database.types';
-import { POSITION_OPTIONS, POSITION_DEFAULT, PositionValue } from '@/shared/config/match-constants';
+import type { ParticipantInfo, Profile, UserMetadata, UserUpdate, Json } from '@/shared/types/database.types';
+import { POSITION_OPTIONS, POSITION_DEFAULT, PositionValue } from '@/shared/config/constants';
 
 interface ApplyFormData {
   height: string;
@@ -80,7 +80,7 @@ function getProfileUpdates(
   }
 
   if (Object.keys(metadataUpdates).length > 0) {
-    updates.metadata = { ...metadata, ...metadataUpdates };
+    updates.metadata = { ...metadata, ...metadataUpdates } as Json;
   }
 
   // positions 업데이트

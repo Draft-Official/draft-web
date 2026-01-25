@@ -3,7 +3,7 @@
 import React from 'react';
 import { Match } from '@/features/match/model/types';
 import { Trophy, User, Swords, Calendar, Shirt } from 'lucide-react';
-import { getLevelLabel, getRequirementLabels } from '@/shared/config/match-constants';
+import { getLevelLabel, getRequirementLabels } from '@/shared/config/constants';
 
 interface MatchInfoSectionProps {
   match: Match;

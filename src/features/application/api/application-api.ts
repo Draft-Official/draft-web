@@ -9,6 +9,7 @@ import type {
   ApplicationStatus,
   PositionType,
   ParticipantInfo,
+  Json,
 } from '@/shared/types/database.types';
 import { handleSupabaseError, NotFoundError, ValidationError } from '@/shared/lib/errors';
 
@@ -126,7 +127,7 @@ export class ApplicationService {
         match_id: matchId,
         user_id: userId,
         team_id: teamId || null,
-        participants_info: participantsInfo,
+        participants_info: participantsInfo as unknown as Json,
         status: 'PENDING',
       })
       .select()

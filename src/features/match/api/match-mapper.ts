@@ -1,13 +1,16 @@
 import {
   RecruitmentSetup,
-  MatchOptions,
+  MatchRule,
+  OperationInfo,
 } from '@/shared/types/database.types';
 import {
   GuestListMatch,
-  CostTypeValue,
-  Position,
   MatchOptionsUI,
-} from '@/shared/types/match';
+} from '@/features/match/model/types';
+import type { CostTypeValue, PositionValue, PlayStyleValue, RefereeTypeValue } from '@/shared/config/constants';
+
+// Alias for backward compatibility
+type Position = PositionValue;
 
 /**
  * 주소에서 시/구까지만 추출
@@ -96,32 +99,32 @@ export function matchRowToGuestListMatch(row: any): GuestListMatch {
   const costType = (row.cost_type || 'MONEY') as CostTypeValue;
   const costAmount = row.cost_amount || 0;
 
-  // match_options 변환 (DB -> UI)
-  const dbMatchOptions: MatchOptions | undefined = row.match_options;
+  // match_rule 변환 (DB -> UI)
+  const dbMatchRule: MatchRule | undefined = row.match_rule as MatchRule;
   let matchOptionsUI: MatchOptionsUI | undefined;
 
-  if (dbMatchOptions) {
+  if (dbMatchRule) {
     const hasAnyOption =
-      dbMatchOptions.play_style ||
-      dbMatchOptions.quarter_rule ||
-      (dbMatchOptions.guaranteed_quarters && dbMatchOptions.guaranteed_quarters > 0) ||
-      dbMatchOptions.referee_type;
+      dbMatchRule.play_style ||
+      dbMatchRule.quarter_rule ||
+      (dbMatchRule.guaranteed_quarters && dbMatchRule.guaranteed_quarters > 0) ||
+      dbMatchRule.referee_type;
 
     if (hasAnyOption) {
       matchOptionsUI = {
-        playStyle: dbMatchOptions.play_style,
-        quarterRule: dbMatchOptions.quarter_rule
+        playStyle: dbMatchRule.play_style as PlayStyleValue | undefined,
+        quarterRule: dbMatchRule.quarter_rule
           ? {
-              minutesPerQuarter: dbMatchOptions.quarter_rule.minutes_per_quarter,
-              quarterCount: dbMatchOptions.quarter_rule.quarter_count,
-              gameCount: dbMatchOptions.quarter_rule.game_count,
+              minutesPerQuarter: dbMatchRule.quarter_rule.minutes_per_quarter,
+              quarterCount: dbMatchRule.quarter_rule.quarter_count,
+              gameCount: dbMatchRule.quarter_rule.game_count,
             }
           : undefined,
         guaranteedQuarters:
-          dbMatchOptions.guaranteed_quarters && dbMatchOptions.guaranteed_quarters > 0
-            ? dbMatchOptions.guaranteed_quarters
+          dbMatchRule.guaranteed_quarters && dbMatchRule.guaranteed_quarters > 0
+            ? dbMatchRule.guaranteed_quarters
             : undefined,
-        refereeType: dbMatchOptions.referee_type,
+        refereeType: dbMatchRule.referee_type as RefereeTypeValue | undefined,
       };
     }
   }
@@ -180,7 +183,7 @@ export function matchRowToGuestListMatch(row: any): GuestListMatch {
     positions,
 
     // 상세 페이지 전용 필드
-    hostNotice: row.host_notice || undefined,
+    hostNotice: (row.operation_info as OperationInfo)?.notice || undefined,
     hostName: row.host?.nickname || undefined,
     requirements: row.requirements?.length > 0 ? row.requirements : undefined,
     matchOptions: matchOptionsUI,

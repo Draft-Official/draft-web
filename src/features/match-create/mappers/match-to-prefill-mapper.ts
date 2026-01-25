@@ -1,4 +1,4 @@
-import type { MatchWithRelations } from '@/shared/types/database.types';
+import type { MatchWithRelations, AccountInfo, OperationInfo, MatchRule } from '@/shared/types/database.types';
 import type { LocationData } from '@/features/match-create/model/types';
 
 /**
@@ -93,10 +93,11 @@ export class MatchToPrefillMapper {
    * 계좌 정보 매핑
    */
   mapAccount() {
+    const accountInfo = this.match.account_info as AccountInfo | null;
     return {
-      bankName: this.match.account_bank || '',
-      accountNumber: this.match.account_number || '',
-      accountHolder: this.match.account_holder || '',
+      bankName: accountInfo?.bank || '',
+      accountNumber: accountInfo?.number || '',
+      accountHolder: accountInfo?.holder || '',
     };
   }
 
@@ -104,12 +105,13 @@ export class MatchToPrefillMapper {
    * 연락처 정보 매핑
    */
   mapContact() {
-    if (!this.match.contact_type) return null;
+    const operationInfo = this.match.operation_info as OperationInfo | null;
+    if (!operationInfo?.type) return null;
 
     return {
-      contactType: this.match.contact_type,
-      phoneNumber: this.match.contact_type === 'PHONE' ? (this.match.contact_content || '') : '',
-      kakaoLink: this.match.contact_type !== 'PHONE' ? (this.match.contact_content || '') : '',
+      contactType: operationInfo.type,
+      phoneNumber: operationInfo.type === 'PHONE' ? (operationInfo.url || '') : '',
+      kakaoLink: operationInfo.type !== 'PHONE' ? (operationInfo.url || '') : '',
     };
   }
 
@@ -126,14 +128,15 @@ export class MatchToPrefillMapper {
    * 공지사항 매핑
    */
   mapNotice() {
-    return this.match.host_notice || '';
+    const operationInfo = this.match.operation_info as OperationInfo | null;
+    return operationInfo?.notice || '';
   }
 
   /**
    * 모집 설정 매핑
    */
   mapRecruitment() {
-    const recruitment = this.match.recruitment_setup;
+    const recruitment = this.match.recruitment_setup as any;
 
     if (recruitment?.type === 'POSITION') {
       const pos = recruitment.positions || {};
@@ -173,17 +176,17 @@ export class MatchToPrefillMapper {
    * 경기 형식 매핑
    */
   mapGameFormat() {
-    const options = this.match.match_options;
+    const matchRule = this.match.match_rule as MatchRule | null;
 
-    if (!options) return null;
+    if (!matchRule) return null;
 
     return {
-      gameFormatType: options.play_style || null,
-      ruleMinutes: options.quarter_rule ? String(options.quarter_rule.minutes_per_quarter || 8) : '',
-      ruleQuarters: options.quarter_rule ? String(options.quarter_rule.quarter_count || 4) : '',
-      ruleGames: options.quarter_rule ? String(options.quarter_rule.game_count || 2) : '',
-      guaranteedQuarters: options.guaranteed_quarters ? String(options.guaranteed_quarters) : '',
-      refereeType: options.referee_type || null,
+      gameFormatType: matchRule.play_style || null,
+      ruleMinutes: matchRule.quarter_rule ? String(matchRule.quarter_rule.minutes_per_quarter || 8) : '',
+      ruleQuarters: matchRule.quarter_rule ? String(matchRule.quarter_rule.quarter_count || 4) : '',
+      ruleGames: matchRule.quarter_rule ? String(matchRule.quarter_rule.game_count || 2) : '',
+      guaranteedQuarters: matchRule.guaranteed_quarters ? String(matchRule.guaranteed_quarters) : '',
+      refereeType: matchRule.referee_type || null,
     };
   }
 

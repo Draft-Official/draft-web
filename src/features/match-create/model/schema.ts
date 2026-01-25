@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { PLAY_STYLE_VALUES, REFEREE_TYPE_VALUES, COURT_SIZE_VALUES } from '@/shared/config/match-constants';
+import { PLAY_STYLE_VALUES, REFEREE_TYPE_VALUES, COURT_SIZE_VALUES } from '@/shared/config/constants';
 
 // Location schema - Kakao API를 통해 선택된 장소 (모든 필드 필수)
 export const locationSchema = z.object({

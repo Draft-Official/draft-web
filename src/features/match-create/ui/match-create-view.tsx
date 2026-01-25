@@ -26,18 +26,18 @@ import { MatchCreateFormData } from '@/features/match-create/model/schema';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { createAuthService } from '@/features/auth/api/auth-api';
 import { createTeamService } from '@/features/team/api/team-api';
-import { 
-  GENDER_DEFAULT, 
-  PLAY_STYLE_DEFAULT, 
+import {
+  GENDER_DEFAULT,
+  PLAY_STYLE_DEFAULT,
   REFEREE_TYPE_DEFAULT,
   COURT_SIZE_DEFAULT,
   GenderValue,
   PlayStyleValue,
   RefereeTypeValue,
   CourtSizeValue
-} from '@/shared/config/match-constants';
-import { useLocationSearch } from '@/features/match-create/hooks/use-location-search';
-import { useRecentMatchPrefill } from '@/features/match-create/hooks/use-recent-match-prefill';
+} from '@/shared/config/constants';
+import { useLocationSearch } from '@/src/features/match-create/lib/hooks/use-location-search';
+import { useRecentMatchPrefill } from '@/src/features/match-create/lib/hooks/use-recent-match-prefill';
 import type { LocationData } from '@/features/match-create/model/types';
 import type { MatchWithRelations } from '@/shared/types/database.types';
 

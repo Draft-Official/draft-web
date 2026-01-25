@@ -9,6 +9,7 @@ import type {
   Gym,
   Team,
   RecruitmentSetup,
+  ParticipantInfo,
 } from '@/shared/types/database.types';
 import type {
   ManagedMatch,
@@ -71,7 +72,8 @@ export function getGuestStatus(application: Application): GuestStatus {
  * DB Application → UI Guest 변환
  */
 export function applicationToGuest(app: ApplicationWithUser): Guest {
-  const position = app.participants_info?.[0]?.position || 'G';
+  const participants = (app.participants_info as ParticipantInfo[] | null) || [];
+  const position = participants[0]?.position || 'G';
   const positionLabel = getPositionLabel(position);
 
   // User metadata에서 height 추출 (있는 경우)
@@ -104,11 +106,11 @@ export function matchToManagedMatch(
   const matchType: MatchType = type === 'host' ? 'host' : 'guest';
 
   // Match status 변환
-  const status = getMatchStatus(match.status);
+  const status = getMatchStatus(match.status || 'RECRUITING');
 
   // 모집 현황 계산
-  const recruitmentSetup = match.recruitment_setup;
-  const { applicants, vacancies } = calculateRecruitmentStats(recruitmentSetup);
+  const recruitmentSetup = match.recruitment_setup as RecruitmentSetup | null;
+  const { applicants, vacancies } = calculateRecruitmentStats(recruitmentSetup ?? undefined);
 
   return {
     id: match.id,
@@ -117,17 +119,17 @@ export function matchToManagedMatch(
     teamName: match.team?.name || match.manual_team_name || '팀명 미정',
     date: formatMatchDate(match.start_time),
     time: formatMatchTime(match.start_time),
-    location: match.gym?.name || match.gym_address || '장소 미정',
+    location: match.gym?.name || '장소 미정',
     locationUrl: match.gym?.kakao_place_id
       ? `https://map.kakao.com/link/map/${match.gym.kakao_place_id}`
       : undefined,
 
     // Host specific
-    applicants: type === 'host' ? match.current_players_count : undefined,
+    applicants: type === 'host' ? (match.current_players_count ?? undefined) : undefined,
     vacancies: type === 'host' ? vacancies : undefined,
 
     // Guest specific
-    amount: type === 'guest' ? match.cost_amount : undefined,
+    amount: type === 'guest' ? (match.cost_amount ?? undefined) : undefined,
   };
 }
 
@@ -139,7 +141,7 @@ export function matchToManagedMatch(
  * DB Match → UI HostMatchDetail 변환
  */
 export function matchToHostMatchDetail(match: MatchWithRelations): HostMatchDetail {
-  const recruitmentSetup = match.recruitment_setup;
+  const recruitmentSetup = match.recruitment_setup as RecruitmentSetup | null;
   const recruitmentMode: RecruitmentMode =
     recruitmentSetup?.type === 'POSITION' ? 'position' : 'total';
 
@@ -147,16 +149,16 @@ export function matchToHostMatchDetail(match: MatchWithRelations): HostMatchDeta
     id: match.id,
     date: formatMatchDate(match.start_time),
     time: formatMatchTime(match.start_time),
-    location: match.gym?.name || match.gym_address || '장소 미정',
+    location: match.gym?.name || '장소 미정',
     locationUrl: match.gym?.kakao_place_id
       ? `https://map.kakao.com/link/map/${match.gym.kakao_place_id}`
       : '#',
     teamName: match.team?.name || match.manual_team_name || '팀명 미정',
-    status: match.status, // DB status (RECRUITING, CLOSED, etc.)
+    status: match.status ?? 'RECRUITING', // DB status (RECRUITING, CLOSED, etc.)
     recruitmentMode,
     positionQuotas:
       recruitmentMode === 'position'
-        ? getPositionQuotas(recruitmentSetup)
+        ? getPositionQuotas(recruitmentSetup ?? undefined)
         : undefined,
     totalQuota:
       recruitmentMode === 'total'

@@ -340,7 +340,7 @@ const ApplicantManagementModal = ({
   const cycleStatus = (id: string, currentStatus: Applicant['status']) => {
     const flow: Applicant['status'][] = [
       ApplicantStatus.PENDING,
-      ApplicantStatus.CHECKING,
+      ApplicantStatus.PAYMENT_PENDING,
       ApplicantStatus.CONFIRMED,
       ApplicantStatus.REJECTED
     ];
@@ -354,7 +354,7 @@ const ApplicantManagementModal = ({
 
   const copyList = () => {
     const text = applicants
-      .filter(a => a.status === 'confirmed')
+      .filter(a => a.status === 'CONFIRMED')
       .map((a, i) => `${i+1}. ${a.nickname} (${a.position})`)
       .join('\n');
     navigator.clipboard.writeText(text);
@@ -441,21 +441,21 @@ const ApplicantManagementModal = ({
                 onClick={() => cycleStatus(app.id, app.status)}
                 className={cn(
                   "h-9 px-3 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm border min-w-[80px] justify-center",
-                  app.status === 'pending' && "bg-white border-slate-200 text-slate-500 hover:bg-slate-50",
-                  app.status === 'checking' && "bg-yellow-50 border-yellow-200 text-yellow-700 hover:bg-yellow-100",
-                  app.status === 'confirmed' && "bg-green-50 border-green-200 text-green-700 hover:bg-green-100",
-                  app.status === 'rejected' && "bg-red-50 border-red-200 text-red-400 hover:bg-red-100"
+                  app.status === 'PENDING' && "bg-white border-slate-200 text-slate-500 hover:bg-slate-50",
+                  app.status === 'PAYMENT_PENDING' && "bg-yellow-50 border-yellow-200 text-yellow-700 hover:bg-yellow-100",
+                  app.status === 'CONFIRMED' && "bg-green-50 border-green-200 text-green-700 hover:bg-green-100",
+                  app.status === 'REJECTED' && "bg-red-50 border-red-200 text-red-400 hover:bg-red-100"
                 )}
               >
-                {app.status === 'pending' && "대기"}
-                {app.status === 'checking' && "입금확인"}
-                {app.status === 'confirmed' && (
+                {app.status === 'PENDING' && "대기"}
+                {app.status === 'PAYMENT_PENDING' && "입금확인"}
+                {app.status === 'CONFIRMED' && (
                   <>
                     <CheckCircle className="w-3.5 h-3.5" />
                     확정
                   </>
                 )}
-                {app.status === 'rejected' && "거절"}
+                {app.status === 'REJECTED' && "거절"}
               </button>
             </div>
           ))}

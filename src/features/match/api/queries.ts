@@ -7,7 +7,7 @@ import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { createMatchService } from '@/features/match/api/match-api';
 import { matchRowToGuestListMatch } from '@/features/match/api/match-mapper';
 import { matchKeys } from '@/shared/api/keys';
-import { GuestListMatch } from '@/shared/types/match';
+import { GuestListMatch } from '@/features/match/model/types';
 
 /**
  * 모집중 매치 목록 조회

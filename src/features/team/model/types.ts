@@ -1,31 +1,57 @@
 /**
- * Host Dashboard 관련 타입 정의
- *
- * 공통 타입은 @/shared/types/match에서 import하여 사용
- * UI 호환성을 위해 일부 view model 타입을 추가로 정의
+ * Team Feature 타입 정의
  */
 
-// 공통 타입 import
-export type {
-  Position,
-  Applicant,
-  Team,
-  HostDashboardMatch,
-} from '@/shared/types/match';
+import type { PositionValue } from '@/shared/config/constants';
 
-// Enum 값 re-export (export type은 값을 export하지 않으므로 별도 필요)
-export { MatchStatus, ApplicantStatus } from '@/shared/types/match';
+// Re-export constants types for convenience
+export type { PositionValue as Position };
 
-// UI용 호환 타입 (화면 표시를 위한 view model)
-// HostDashboardMatch의 location/price를 간단한 문자열로 변환한 형태
+// Re-export from other features
+export type { Applicant } from '@/features/application/model/types';
+export type { HostDashboardMatch } from '@/features/match/model/types';
+
+// Re-export status values as objects for compatibility
+export const MatchStatus = {
+  RECRUITING: 'RECRUITING',
+  CLOSING_SOON: 'CLOSING_SOON',
+  CLOSED: 'CLOSED',
+  FINISHED: 'FINISHED',
+  CANCELED: 'CANCELED',
+} as const;
+
+export const ApplicantStatus = {
+  PENDING: 'PENDING',
+  PAYMENT_PENDING: 'PAYMENT_PENDING',
+  CONFIRMED: 'CONFIRMED',
+  REJECTED: 'REJECTED',
+  LATE: 'LATE',
+  NOT_ATTENDING: 'NOT_ATTENDING',
+} as const;
+
+/**
+ * 팀 정보
+ */
+export interface Team {
+  id: string;
+  name: string;
+  leaderName: string;
+  memberCount: number;
+  avatar?: string;
+}
+
+/**
+ * UI용 호환 타입 (화면 표시를 위한 view model)
+ * HostDashboardMatch의 location/price를 간단한 문자열로 변환한 형태
+ */
 export interface Match {
   id: string;
   title: string;
-  gymName: string;           // location.name에서 변환
-  date: string;              // YYYY. MM. DD (Day) 형식 (표시용)
-  time: string;              // HH:mm (표시용)
+  gymName: string; // location.name에서 변환
+  date: string; // YYYY. MM. DD (Day) 형식 (표시용)
+  time: string; // HH:mm (표시용)
   status: 'recruiting' | 'closing_soon' | 'closed' | 'canceled';
-  type: 'TEAM' | 'SOLO';     // MVP용 간소화된 타입
+  type: 'TEAM' | 'SOLO'; // MVP용 간소화된 타입
   stats: {
     total: number;
     confirmed: number;

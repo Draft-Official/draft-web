@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import type { UseFormReturn } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { MatchWithRelations } from '@/shared/types/database.types';
-import type { GenderValue } from '@/shared/config/match-constants';
+import type { GenderValue } from '@/shared/config/constants';
 import { MatchToPrefillMapper } from '@/features/match-create/mappers/match-to-prefill-mapper';
 
 /**

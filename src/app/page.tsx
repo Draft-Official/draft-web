@@ -9,7 +9,7 @@ import { useRecruitingMatches } from '@/features/match/api/queries';
 import { filterMatches, groupMatchesByDate, getDayLabel } from '@/features/match/lib/utils';
 import { cn } from '@/shared/lib/utils';
 import { useLocalStorage } from '@/shared/lib/hooks/use-local-storage';
-import { GuestListMatch } from '@/shared/types/match';
+import { GuestListMatch } from '@/features/match/model/types';
 
 // Gender는 DB와 동일하게 대문자 사용 (MALE, FEMALE, MIXED)
 
