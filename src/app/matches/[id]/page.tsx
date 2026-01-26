@@ -59,10 +59,10 @@ function adaptToDetailMatch(data: GuestListMatch): Match {
     },
     requirements: data.requirements,
     positions: {
-      g: data.positions.G ? { status: data.positions.G.open > 0 ? 'open' : 'closed', max: (data.positions.G.open + data.positions.G.closed) } : undefined,
-      f: data.positions.F ? { status: data.positions.F.open > 0 ? 'open' : 'closed', max: (data.positions.F.open + data.positions.F.closed) } : undefined,
-      c: data.positions.C ? { status: data.positions.C.open > 0 ? 'open' : 'closed', max: (data.positions.C.open + data.positions.C.closed) } : undefined,
-      bigman: data.positions.B ? { status: data.positions.B.open > 0 ? 'open' : 'closed', max: (data.positions.B.open + data.positions.B.closed) } : undefined,
+      g: data.positions.G ? { status: data.positions.G.open > 0 ? 'open' : 'closed', max: (data.positions.G.open + data.positions.G.closed), current: data.positions.G.closed } : undefined,
+      f: data.positions.F ? { status: data.positions.F.open > 0 ? 'open' : 'closed', max: (data.positions.F.open + data.positions.F.closed), current: data.positions.F.closed } : undefined,
+      c: data.positions.C ? { status: data.positions.C.open > 0 ? 'open' : 'closed', max: (data.positions.C.open + data.positions.C.closed), current: data.positions.C.closed } : undefined,
+      bigman: data.positions.B ? { status: data.positions.B.open > 0 ? 'open' : 'closed', max: (data.positions.B.open + data.positions.B.closed), current: data.positions.B.closed } : undefined,
     },
     rule: matchOptions ? {
       type: matchOptions.playStyle ? playStyleToRuleType[matchOptions.playStyle] : '2team',

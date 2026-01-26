@@ -8,9 +8,10 @@ interface PositionChipProps {
   label: string;
   status: PositionStatusUI['status'];
   max: number;
+  current: number;
 }
 
-export function PositionChip({ label, status, max }: PositionChipProps) {
+export function PositionChip({ label, status, max, current }: PositionChipProps) {
   // Figma Spec:
   // - Font Size: 11px
   // - Padding: vertical 3px, horizontal 6px
@@ -33,8 +34,7 @@ export function PositionChip({ label, status, max }: PositionChipProps) {
       <span>{label}</span>
       {isOpen ? (
         <span className="font-bold text-slate-700">
-           {/* Current count is always 0 for open positions in this mock context unless specified otherwise */}
-           0/{max}
+           {current}/{max}
         </span>
       ) : (
         <span className="font-bold text-slate-400">마감</span>

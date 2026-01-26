@@ -32,6 +32,7 @@ export function useCreateApplication() {
       queryClient.invalidateQueries({ queryKey: applicationKeys.byMatch(data.match_id) });
       queryClient.invalidateQueries({ queryKey: applicationKeys.byUser(data.user_id) });
       queryClient.invalidateQueries({ queryKey: matchKeys.detail(data.match_id) });
+      queryClient.invalidateQueries({ queryKey: matchKeys.lists() }); // 홈탭 경기 목록 갱신
       toast.success('경기 신청이 완료되었습니다');
     },
     // onError는 글로벌 mutationCache에서 처리

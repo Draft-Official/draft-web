@@ -23,10 +23,10 @@ interface Match {
   matchFormat: MatchFormatValue; // e.g. "FIVE_ON_FIVE"
   isClosed?: boolean;
   positions: {
-    all?: { status: 'open' | 'closed'; max: number };
-    g?: { status: 'open' | 'closed'; max: number };
-    f?: { status: 'open' | 'closed'; max: number };
-    c?: { status: 'open' | 'closed'; max: number };
+    all?: { status: 'open' | 'closed'; max: number; current: number };
+    g?: { status: 'open' | 'closed'; max: number; current: number };
+    f?: { status: 'open' | 'closed'; max: number; current: number };
+    c?: { status: 'open' | 'closed'; max: number; current: number };
   };
 }
 
@@ -44,9 +44,8 @@ const GENDER_CONFIG: Record<string, { label: string; className: string }> = {
 };
 
 // --- Position Chip Component ---
-const PositionChip = ({ label, max, status }: { label: string; max: number; status?: 'open' | 'closed' }) => {
+const PositionChip = ({ label, max, current, status }: { label: string; max: number; current: number; status?: 'open' | 'closed' }) => {
   const isClosed = status === 'closed';
-  const current = isClosed ? max : 0;
 
   return (
     <div className={cn(
@@ -175,6 +174,7 @@ export const MatchListItem = React.memo(function MatchListItem({ match, showDate
             <PositionChip
               label="포지션 무관"
               max={match.positions.all.max}
+              current={match.positions.all.current}
               status={match.positions.all.status}
             />
           ) : (
@@ -183,6 +183,7 @@ export const MatchListItem = React.memo(function MatchListItem({ match, showDate
                 <PositionChip
                   label="가드"
                   max={match.positions.g.max}
+                  current={match.positions.g.current}
                   status={match.positions.g.status}
                 />
               )}
@@ -190,6 +191,7 @@ export const MatchListItem = React.memo(function MatchListItem({ match, showDate
                 <PositionChip
                   label="포워드"
                   max={match.positions.f.max}
+                  current={match.positions.f.current}
                   status={match.positions.f.status}
                 />
               )}
@@ -197,6 +199,7 @@ export const MatchListItem = React.memo(function MatchListItem({ match, showDate
                 <PositionChip
                   label="센터"
                   max={match.positions.c.max}
+                  current={match.positions.c.current}
                   status={match.positions.c.status}
                 />
               )}

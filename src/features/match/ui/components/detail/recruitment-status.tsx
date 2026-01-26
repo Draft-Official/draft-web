@@ -13,12 +13,12 @@ export function RecruitmentStatus({ match }: RecruitmentStatusProps) {
 
   const renderCard = (
     type: 'all' | 'g' | 'f' | 'c' | 'bigman',
-    data?: { status: 'open' | 'closed'; max: number }
+    data?: { status: 'open' | 'closed'; max: number; current: number }
   ) => {
     if (!data) return null;
 
     const isClosed = data.status === 'closed';
-    const current = isClosed ? data.max : Math.max(0, data.max - 1); // Mock current count calculation
+    const current = data.current;
 
     const config = {
       all: { label: 'ALL', title: '포지션 무관', subtitle: null },

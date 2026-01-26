@@ -1,6 +1,5 @@
 import { useCallback } from 'react';
 import type { UseFormReturn } from 'react-hook-form';
-import { toast } from 'sonner';
 import type { MatchWithRelations } from '@/shared/types/database.types';
 import type { GenderValue, MatchFormatValue } from '@/shared/config/constants';
 import { MatchToPrefillMapper } from '@/features/match-create/mappers/match-to-prefill-mapper';
@@ -146,9 +145,6 @@ export function useRecentMatchPrefill(params: {
     // 11. 준비물
     setHasShoes(data.requirements.hasShoes);
     setHasJersey(data.requirements.hasJersey);
-
-    // 12. Toast 메시지
-    toast.success("지난 경기 정보를 불러왔습니다. 경기 날짜를 선택해주세요.");
   }, [
     setValue,
     handleLocationSelect,

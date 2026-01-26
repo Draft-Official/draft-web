@@ -77,9 +77,9 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
   const hasApplied = isFromSchedule || !!myApplication;
 
   // 취소 가능 여부 (REJECTED, CANCELED 상태가 아닌 경우만)
-  const canCancel = myApplication &&
+  const canCancel = !!(myApplication &&
     myApplication.status !== 'REJECTED' &&
-    myApplication.status !== 'CANCELED';
+    myApplication.status !== 'CANCELED');
 
   // 상태 텍스트
   const getStatusText = () => {
