@@ -48,6 +48,7 @@ export function useApproveApplication() {
       queryClient.invalidateQueries({
         queryKey: matchManagementKeys.matchDetail(variables.matchId),
       });
+      queryClient.invalidateQueries({ queryKey: matchKeys.lists() });
       toast.success('신청을 승인했습니다. 입금 안내가 발송됩니다.');
     },
     onError: (error: Error) => {
@@ -359,6 +360,7 @@ export function useUpdateRecruitmentSetup() {
       queryClient.invalidateQueries({
         queryKey: matchManagementKeys.matchDetail(variables.matchId),
       });
+      queryClient.invalidateQueries({ queryKey: matchKeys.lists() });
       toast.success('모집 인원이 수정되었습니다.');
     },
     onError: (error: Error) => {
