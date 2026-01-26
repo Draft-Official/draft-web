@@ -173,7 +173,7 @@ export const filterMatches = (
     }
 
     if (options.gameFormats && options.gameFormats.length > 0) {
-        filtered = filtered.filter(m => m.gameFormat && options.gameFormats!.includes(m.gameFormat));
+        filtered = filtered.filter(m => m.matchFormat && options.gameFormats!.includes(m.matchFormat));
     }
 
     return filtered;
