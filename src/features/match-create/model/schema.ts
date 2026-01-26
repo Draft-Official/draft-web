@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { PLAY_STYLE_VALUES, REFEREE_TYPE_VALUES, COURT_SIZE_VALUES } from '@/shared/config/constants';
+import { PLAY_STYLE_VALUES, REFEREE_TYPE_VALUES, COURT_SIZE_VALUES, MATCH_FORMAT_VALUES } from '@/shared/config/constants';
 
 // Location schema - Kakao API를 통해 선택된 장소 (모든 필드 필수)
 export const locationSchema = z.object({
@@ -80,8 +80,8 @@ export const matchCreateSchema = z.object({
   // Match Specs
   level: z.number().or(z.string()),
 
-  // matchType: 5vs5, 3vs3
-  matchType: z.enum(['5vs5', '3vs3'], {
+  // matchFormat: 5vs5, 3vs3
+  matchFormat: z.enum(MATCH_FORMAT_VALUES, {
     message: '경기 인원을 선택하세요',
   }),
 
@@ -202,7 +202,7 @@ export const matchSpecsSchema = matchCreateSchema.pick({
 
 export const gameFormatSchema = matchCreateSchema.pick({
   gameFormat: true,
-  matchType: true,
+  matchFormat: true,
   facilities: true,
 });
 

@@ -166,7 +166,7 @@ export class MatchToPrefillMapper {
    */
   mapSpecs() {
     return {
-      matchType: this.match.match_type || '5vs5',
+      matchFormat: this.match.match_format || 'FIVE_ON_FIVE',
       gender: (this.match.gender_rule || 'MALE'),
       level: Number(this.match.level_limit) || 4,
     };

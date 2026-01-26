@@ -122,6 +122,7 @@ export type Database = {
           id: string
           level_limit: string | null
           manual_team_name: string
+          match_format: string
           match_rule: Json | null
           match_type: string
           operation_info: Json | null
@@ -145,6 +146,7 @@ export type Database = {
           id?: string
           level_limit?: string | null
           manual_team_name: string
+          match_format?: string
           match_rule?: Json | null
           match_type: string
           operation_info?: Json | null
@@ -168,6 +170,7 @@ export type Database = {
           id?: string
           level_limit?: string | null
           manual_team_name?: string
+          match_format?: string
           match_rule?: Json | null
           match_type?: string
           operation_info?: Json | null

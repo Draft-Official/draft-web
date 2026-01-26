@@ -43,7 +43,7 @@ function adaptToDetailMatch(data: GuestListMatch): Match {
     price: getPriceDisplay(),
     priceNum: priceAmount,
     gender: data.gender as 'MALE' | 'FEMALE' | 'MIXED',
-    gameFormat: data.gameFormat ?? '',
+    matchFormat: data.matchFormat,
     courtType: (data.courtType ?? 'indoor') as 'indoor' | 'outdoor',
     ageRange: data.ageMin && data.ageMax ? `${data.ageMin}대 ~ ${data.ageMax}대` : undefined,
     level: data.level,

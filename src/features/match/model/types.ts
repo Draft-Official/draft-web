@@ -12,6 +12,8 @@ import type {
   GenderValue,
   PositionValue,
   MatchStatusValue,
+  MatchTypeValue,
+  MatchFormatValue,
 } from '@/shared/config/constants';
 import type { MatchRule } from '@/shared/types/jsonb.types';
 
@@ -72,7 +74,8 @@ export interface PositionStatusUI {
 export interface BaseMatch {
   id: string;
   title: string;
-  matchType: string; // '5vs5', '3vs3'
+  matchType: MatchTypeValue; // 'GUEST_RECRUIT', 'PICKUP_GAME' etc.
+  matchFormat: MatchFormatValue; // 'FIVE_ON_FIVE', 'THREE_ON_THREE'
   location: Location;
   dateISO: string; // YYYY-MM-DD
   startTime: string; // HH:mm
@@ -120,7 +123,6 @@ export interface GuestListMatch extends BaseMatch {
   positions: Partial<Record<PositionValue, PositionStatus>>; // max가 0인 포지션은 제외
   level: string;
   gender: GenderValue;
-  gameFormat?: string; // "내부 2게임", "교류전" 등
   courtType?: string;
   ageMin?: number;
   ageMax?: number;
@@ -164,8 +166,9 @@ export interface Match {
 
   // Guest Detail View Fields
   level?: string; // e.g., "중수 (B) 이상"
-  gameFormat: string; // e.g., "5vs5"
+  matchFormat: MatchFormatValue; // e.g., "FIVE_ON_FIVE"
   ageRange?: string; // e.g., "20대 ~ 30대"
+
   totalPlayers?: number;
   currentPlayers?: number;
 

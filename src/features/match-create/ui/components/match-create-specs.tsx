@@ -3,16 +3,17 @@ import { Chip } from '@/shared/ui/base/chip';
 import { cn } from '@/shared/lib/utils';
 import { Settings } from 'lucide-react';
 import {
-  MATCH_TYPE_OPTIONS,
+  MATCH_FORMAT_OPTIONS,
   GENDER_OPTIONS,
-  GenderValue
+  GenderValue,
+  MatchFormatValue
 } from '@/shared/config/constants';
 import { AgeSelector } from './age-selector';
 import { SkillSlider } from '@/shared/ui/base/skill-slider';
 
 interface MatchCreateSpecsProps {
-  matchType: string;
-  setMatchType: (v: string) => void;
+  matchFormat: MatchFormatValue;
+  setMatchFormat: (v: MatchFormatValue) => void;
   gender: GenderValue;
   setGender: (v: GenderValue) => void;
   level: number;
@@ -27,7 +28,7 @@ interface MatchCreateSpecsProps {
 }
 
 export function MatchCreateSpecs({
-  matchType, setMatchType,
+  matchFormat, setMatchFormat,
   gender, setGender,
   level, setLevel,
   selectedAges, handleAgeSelection,
@@ -44,18 +45,18 @@ export function MatchCreateSpecs({
         </h2>
 
         <div className="space-y-4">
-            {/* Match Type */}
+            {/* Match Format */}
             <div className="space-y-2">
                 <Label className="text-sm font-bold text-slate-600">매치 타입</Label>
                 <div className="flex gap-2">
-                    {MATCH_TYPE_OPTIONS.map((type) => (
+                    {MATCH_FORMAT_OPTIONS.map((type) => (
                         <Chip
                             key={type.value}
                             label={type.label}
                             variant="orange"
-                            isActive={matchType === type.value}
+                            isActive={matchFormat === type.value}
                             showCheckIcon={false}
-                            onClick={() => setMatchType(type.value)}
+                            onClick={() => setMatchFormat(type.value)}
                         />
                     ))}
                 </div>

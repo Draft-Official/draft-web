@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import type { UseFormReturn } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { MatchWithRelations } from '@/shared/types/database.types';
-import type { GenderValue } from '@/shared/config/constants';
+import type { GenderValue, MatchFormatValue } from '@/shared/config/constants';
 import { MatchToPrefillMapper } from '@/features/match-create/mappers/match-to-prefill-mapper';
 
 /**
@@ -40,7 +40,7 @@ export function useRecentMatchPrefill(params: {
   setPositions: (v: { guard: number; forward: number; center: number; bigman: number }) => void;
   setIsFlexBigman: (v: boolean) => void;
   setTotalCount: (v: number) => void;
-  setMatchType: (v: string) => void;
+  setMatchFormat: (v: MatchFormatValue) => void;
   setGender: (v: GenderValue) => void;
   setLevel: (v: number) => void;
   setGameFormatType: (v: any) => void;
@@ -61,7 +61,7 @@ export function useRecentMatchPrefill(params: {
     setPositions,
     setIsFlexBigman,
     setTotalCount,
-    setMatchType,
+    setMatchFormat,
     setGender,
     setLevel,
     setGameFormatType,
@@ -127,7 +127,7 @@ export function useRecentMatchPrefill(params: {
     setTotalCount(data.recruitment.totalCount);
 
     // 9. 경기 스펙
-    setMatchType(data.specs.matchType);
+    setMatchFormat(data.specs.matchFormat as MatchFormatValue);
     setGender(data.specs.gender as GenderValue);
     setLevel(data.specs.level);
 
@@ -158,7 +158,7 @@ export function useRecentMatchPrefill(params: {
     setPositions,
     setIsFlexBigman,
     setTotalCount,
-    setMatchType,
+    setMatchFormat,
     setGender,
     setLevel,
     setGameFormatType,

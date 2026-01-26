@@ -7,7 +7,7 @@ import { Chip } from '@/shared/ui/base/chip';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/base/dialog";
 import { ScrollArea } from "@/shared/ui/base/scroll-area";
 import { cn } from '@/shared/lib/utils';
-import { GENDER_OPTIONS } from '@/shared/config/constants';
+import { GENDER_OPTIONS, MATCH_FORMAT_OPTIONS } from '@/shared/config/constants';
 
 interface DetailedFilterModalProps {
   open: boolean;
@@ -27,10 +27,7 @@ interface DetailedFilterModalProps {
 }
 
 // Separate constants for filter options
-const GAME_FORMAT_OPTIONS = [
-  { value: '5vs5', label: '5vs5' },
-  { value: '3vs3', label: '3vs3' },
-];
+
 
 const AGE_FILTER_OPTIONS = [
   { value: '20', label: '20대' },
@@ -121,7 +118,7 @@ export function DetailedFilterModal({
             <div className="space-y-3">
               <h3 className="text-sm font-bold text-slate-900">경기 방식</h3>
               <div className="flex flex-wrap gap-2">
-                {GAME_FORMAT_OPTIONS.map((bg) => (
+                {MATCH_FORMAT_OPTIONS.map((bg) => (
                   <Chip 
                     key={bg.value} 
                     label={bg.label} 

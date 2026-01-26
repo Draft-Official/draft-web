@@ -7,7 +7,7 @@ import {
   GuestListMatch,
   MatchOptionsUI,
 } from '@/features/match/model/types';
-import type { CostTypeValue, PositionValue, PlayStyleValue, RefereeTypeValue } from '@/shared/config/constants';
+import type { CostTypeValue, PositionValue, PlayStyleValue, RefereeTypeValue, MatchTypeValue, MatchFormatValue } from '@/shared/config/constants';
 
 // Alias for backward compatibility
 type Position = PositionValue;
@@ -132,7 +132,8 @@ export function matchRowToGuestListMatch(row: any): GuestListMatch {
   return {
     id: row.id,
     title: gym.name || '', // 체육관 이름을 title로 사용
-    matchType: row.match_type || '5vs5',
+    // match_type: 경기 목적 ('GUEST_RECRUIT' 등)
+    matchType: row.match_type as MatchTypeValue, 
 
     location: {
       name: gym.name || '',
@@ -168,7 +169,7 @@ export function matchRowToGuestListMatch(row: any): GuestListMatch {
 
     facilities,
 
-    gameFormat: row.match_type || '5vs5', // match_type 사용 (5vs5, 3vs3)
+    matchFormat: (row.match_format || 'FIVE_ON_FIVE') as MatchFormatValue, // 경기 방식 ('FIVE_ON_FIVE' 등)
     level: row.level_limit || '',
     gender: (row.gender_rule || 'MIXED') as 'MALE' | 'FEMALE' | 'MIXED',
     courtType: (facilities.court_size_type === 'REGULAR' ? 'indoor' : 'outdoor') as 'indoor' | 'outdoor',

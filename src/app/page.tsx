@@ -36,7 +36,7 @@ function adaptMatch(match: GuestListMatch) {
     location: match.location.address, // 시/구 주소 표시
     address: match.location.address,
     gender: match.gender, // 대문자 그대로 사용: 'MALE' | 'FEMALE' | 'MIXED'
-    gameFormat: match.gameFormat ?? '',
+    matchFormat: match.matchFormat,
     ageRange: match.ageMin && match.ageMax ? `${match.ageMin}대 ~ ${match.ageMax}대` : undefined,
     // 팀/호스트 정보
     teamName: match.teamName,

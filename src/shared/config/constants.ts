@@ -218,16 +218,23 @@ export const COURT_SIZE_OPTIONS = COURT_SIZE_VALUES.map(value => ({
 export const COURT_SIZE_DEFAULT: CourtSizeValue = 'REGULAR';
 
 // ============================================
-// Match Type (경기 인원)
+// Match Format (경기 방식) - 5vs5, 3vs3
 // ============================================
 
-export const MATCH_TYPE_VALUES = ['5vs5', '3vs3'] as const;
-export type MatchTypeValue = typeof MATCH_TYPE_VALUES[number];
+export const MATCH_FORMAT_VALUES = ['FIVE_ON_FIVE', 'THREE_ON_THREE'] as const;
+export type MatchFormatValue = typeof MATCH_FORMAT_VALUES[number];
 
-export const MATCH_TYPE_OPTIONS = MATCH_TYPE_VALUES.map(value => ({
+export const MATCH_FORMAT_LABELS: Record<MatchFormatValue, string> = {
+  FIVE_ON_FIVE: '5vs5',
+  THREE_ON_THREE: '3vs3',
+};
+
+export const MATCH_FORMAT_OPTIONS = MATCH_FORMAT_VALUES.map(value => ({
   value,
-  label: value,
+  label: MATCH_FORMAT_LABELS[value],
 }));
+
+export const MATCH_FORMAT_DEFAULT: MatchFormatValue = 'FIVE_ON_FIVE';
 
 // ============================================
 // Age (연령대)
@@ -240,24 +247,21 @@ export const AGE_OPTIONS = AGE_VALUES.map(value => ({
   value,
   label: `${value}대`,
 }));
+
 // ============================================
-// Match Category (경기 유형)
+// Match Type (경기 목적) - 용병모집, 픽업게임 등
 // ============================================
 
-export const MATCH_CATEGORY_VALUES = [
+export const MATCH_TYPE_VALUES = [
   'GUEST_RECRUIT',
-  'PICKUP_GAME',
-  'TUTORIAL',
-  'LESSON',
+  'PICKUP',
   'TOURNAMENT',
 ] as const;
-export type MatchCategoryValue = (typeof MATCH_CATEGORY_VALUES)[number];
+export type MatchTypeValue = (typeof MATCH_TYPE_VALUES)[number];
 
-export const MATCH_CATEGORY_LABELS: Record<MatchCategoryValue, string> = {
-  GUEST_RECRUIT: '용병 모집',
-  PICKUP_GAME: '픽업 게임',
-  TUTORIAL: '튜토리얼',
-  LESSON: '레슨',
+export const MATCH_TYPE_LABELS: Record<MatchTypeValue, string> = {
+  GUEST_RECRUIT: '게스트 모집',
+  PICKUP: '픽업 게임',
   TOURNAMENT: '토너먼트',
 };
 

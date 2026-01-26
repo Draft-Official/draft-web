@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { MapPin } from 'lucide-react';
 import { Button } from '@/shared/ui/base/button';
 import { cn } from '@/shared/lib/utils';
+import { MATCH_FORMAT_LABELS, MatchFormatValue } from '@/shared/config/constants';
 
 interface Match {
   id: string;
@@ -19,7 +20,7 @@ interface Match {
   isPersonalHost?: boolean; // 개인 주최 여부
   location: string;
   gender: 'MALE' | 'FEMALE' | 'MIXED';
-  gameFormat: string; // e.g. "5vs5"
+  matchFormat: MatchFormatValue; // e.g. "FIVE_ON_FIVE"
   isClosed?: boolean;
   positions: {
     all?: { status: 'open' | 'closed'; max: number };
@@ -98,7 +99,7 @@ export const MatchListItem = React.memo(function MatchListItem({ match, showDate
               ? "bg-slate-100 border-slate-100 text-slate-400" 
               : "bg-white border-slate-300 text-slate-900"
           )}>
-            {match.gameFormat}
+            {MATCH_FORMAT_LABELS[match.matchFormat]}
           </span>
 
           {/* Gender Badge */}

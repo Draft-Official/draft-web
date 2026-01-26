@@ -31,10 +31,12 @@ import {
   PLAY_STYLE_DEFAULT,
   REFEREE_TYPE_DEFAULT,
   COURT_SIZE_DEFAULT,
+  MATCH_FORMAT_DEFAULT,
   GenderValue,
   PlayStyleValue,
   RefereeTypeValue,
-  CourtSizeValue
+  CourtSizeValue,
+  MatchFormatValue
 } from '@/shared/config/constants';
 import { useLocationSearch } from '@/src/features/match-create/lib/hooks/use-location-search';
 import { useRecentMatchPrefill } from '@/src/features/match-create/lib/hooks/use-recent-match-prefill';
@@ -77,7 +79,7 @@ export function MatchCreateView() {
   const [courtSize, setCourtSize] = useState<CourtSizeValue | "">("");
 
   // Match Specs
-  const [matchType, setMatchType] = useState("5vs5");
+  const [matchFormat, setMatchFormat] = useState<MatchFormatValue>(MATCH_FORMAT_DEFAULT);
   const [gender, setGender] = useState<GenderValue>(GENDER_DEFAULT);
   const [level, setLevel] = useState(4); // 4 = Middle 2 (Default)
   const [selectedAges, setSelectedAges] = useState<string[]>(['any']);
@@ -301,7 +303,7 @@ export function MatchCreateView() {
     setPositions,
     setIsFlexBigman,
     setTotalCount,
-    setMatchType,
+    setMatchFormat: setMatchFormat,
     setGender,
     setLevel,
     setGameFormatType,
@@ -425,7 +427,7 @@ export function MatchCreateView() {
         
         // Specs 
         // Note: Flattening specs as per schema definition
-        matchType: matchType as any, // 5vs5, 3vs3
+        matchFormat: matchFormat, // 5vs5, 3vs3
         gameFormat: gameFormatType !== PLAY_STYLE_DEFAULT ? (gameFormatType as any) : undefined,
         level: level,
         gender: gender as any,
@@ -667,7 +669,7 @@ export function MatchCreateView() {
             {/* SECTION 3: Match Specs */}
             <div id="section-match-specs">
               <MatchCreateSpecs
-                  matchType={matchType} setMatchType={setMatchType}
+                  matchFormat={matchFormat} setMatchFormat={setMatchFormat}
                   gender={gender} setGender={setGender}
                   level={level} setLevel={setLevel}
                   selectedAges={selectedAges} handleAgeSelection={handleAgeSelection}
