@@ -1,9 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Match } from '@/features/match/model/mock-data';
+import { Match } from '@/features/match/model/types';
 import { Trophy, User, Swords, Calendar, Shirt } from 'lucide-react';
-import { getLevelLabel, getRequirementLabels } from '@/shared/config/match-constants';
+import { getLevelLabel, getRequirementLabels, GENDER_LABELS, MATCH_FORMAT_LABELS, GenderValue } from '@/shared/config/constants';
 
 interface MatchInfoSectionProps {
   match: Match;
@@ -33,7 +33,7 @@ export function MatchInfoSection({ match }: MatchInfoSectionProps) {
           </div>
           <div>
             <div className="text-xs font-bold text-slate-400 mb-0.5">매치 타입</div>
-            <div className="text-[13px] font-bold text-slate-900">{match.gameFormat || '5vs5'}</div>
+            <div className="text-[13px] font-bold text-slate-900">{MATCH_FORMAT_LABELS[match.matchFormat] || match.matchFormat}</div>
           </div>
         </div>
 
@@ -45,7 +45,7 @@ export function MatchInfoSection({ match }: MatchInfoSectionProps) {
           <div>
             <div className="text-xs font-bold text-slate-400 mb-0.5">성별</div>
             <div className="text-[13px] font-bold text-slate-900">
-              {match.gender === 'mixed' ? '성별 무관' : (match.gender === 'men' ? '남성' : '여성')}
+              {GENDER_LABELS[match.gender as GenderValue] || match.gender}
             </div>
           </div>
         </div>

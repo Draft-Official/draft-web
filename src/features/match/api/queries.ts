@@ -6,9 +6,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { createMatchService } from '@/features/match/api/match-api';
 import { matchRowToGuestListMatch } from '@/features/match/api/match-mapper';
-import { matchKeys } from './keys';
-import { useAuth } from '@/features/auth';
-import { GuestListMatch } from '@/shared/types/match';
+import { matchKeys } from '@/shared/api/keys';
+import { GuestListMatch } from '@/features/match/model/types';
 
 /**
  * 모집중 매치 목록 조회
@@ -61,25 +60,5 @@ export function useMatch(matchId: string) {
     },
     // 초기값은 즉시 stale 처리 → 백그라운드 refetch 트리거
     initialDataUpdatedAt: 0,
-  });
-}
-
-/**
- * 내가 주최한 최근 경기 목록 (최대 5개)
- * @returns gym, team 정보가 포함된 매치 목록 (raw DB row)
- */
-export function useMyRecentMatches() {
-  const { user } = useAuth();
-
-  return useQuery({
-    queryKey: matchKeys.byHost(user?.id ?? ''),
-    queryFn: async () => {
-      if (!user?.id) return [];
-
-      const supabase = getSupabaseBrowserClient();
-      const matchService = createMatchService(supabase);
-      return await matchService.getMyHostedMatches(user.id, 5);
-    },
-    enabled: !!user?.id,
   });
 }

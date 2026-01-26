@@ -185,25 +185,43 @@ export function HostMatchDetailView() {
     }));
   };
 
-  // 인원 저장
+  // 기존 current 값을 가져오는 헬퍼 함수
+  const getCurrentCount = (positionCode: string): number => {
+    if (match?.positionQuotas) {
+      const quota = match.positionQuotas.find(q => q.position === positionCode);
+      return quota?.current || 0;
+    }
+    return 0;
+  };
+
+  // 인원 저장 (기존 current 값 보존)
   const handleSaveQuota = () => {
+    // 모집 모드가 변경되면 current를 0으로 초기화
+    const modeChanged = (editMode === 'total' && match?.recruitmentMode === 'position') ||
+                        (editMode === 'position' && match?.recruitmentMode === 'total');
+
+    if (modeChanged) {
+      toast.warning('모집 모드가 변경되어 현재 인원이 초기화됩니다.');
+    }
+
     const recruitmentSetup: RecruitmentSetup =
       editMode === 'total'
         ? {
             type: 'ANY',
             max_count: editPositions.total,
+            current_count: modeChanged ? 0 : (match?.totalQuota?.current || 0),
           }
         : {
             type: 'POSITION',
             positions: isFlexBigman
               ? {
-                  G: { max: editPositions.guard, current: 0 },
-                  B: { max: editPositions.bigman, current: 0 },
+                  G: { max: editPositions.guard, current: modeChanged ? 0 : getCurrentCount('G') },
+                  B: { max: editPositions.bigman, current: modeChanged ? 0 : getCurrentCount('B') },
                 }
               : {
-                  G: { max: editPositions.guard, current: 0 },
-                  F: { max: editPositions.forward, current: 0 },
-                  C: { max: editPositions.center, current: 0 },
+                  G: { max: editPositions.guard, current: modeChanged ? 0 : getCurrentCount('G') },
+                  F: { max: editPositions.forward, current: modeChanged ? 0 : getCurrentCount('F') },
+                  C: { max: editPositions.center, current: modeChanged ? 0 : getCurrentCount('C') },
                 },
           };
 

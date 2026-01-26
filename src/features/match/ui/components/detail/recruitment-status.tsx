@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { cn } from '@/shared/lib/utils';
-import { Match } from '@/features/match/model/mock-data';
+import { Match } from '@/features/match/model/types';
 
 interface RecruitmentStatusProps {
   match: Match;

@@ -7,7 +7,9 @@ import type {
   Database,
   User,
   UserUpdate,
+  Json,
 } from '@/shared/types/database.types';
+import type { OperationInfo, AccountInfo } from '@/shared/types/jsonb.types';
 import { handleSupabaseError, AuthError } from '@/shared/lib/errors';
 
 export class AuthService {
@@ -80,27 +82,28 @@ export class AuthService {
   async updateOperationsDefaults(
     userId: string,
     updates: {
-      default_account_bank?: string | null;
-      default_account_number?: string | null;
-      default_account_holder?: string | null;
-      default_contact_type?: 'PHONE' | 'KAKAO_OPEN_CHAT';
-      kakao_open_chat_url?: string | null;
-      default_host_notice?: string | null;
+      operationInfo?: OperationInfo;
+      accountInfo?: AccountInfo;
     }
   ): Promise<User> {
-    return this.updateProfile(userId, updates);
+    const dbUpdates: UserUpdate = {};
+
+    if (updates.operationInfo) {
+      dbUpdates.operation_info = updates.operationInfo as unknown as Json;
+    }
+    if (updates.accountInfo) {
+      dbUpdates.account_info = updates.accountInfo as unknown as Json;
+    }
+
+    return this.updateProfile(userId, dbUpdates);
   }
 
   /**
    * 현재 사용자의 운영 정보 기본값 업데이트
    */
   async updateCurrentOperationsDefaults(updates: {
-    default_account_bank?: string | null;
-    default_account_number?: string | null;
-    default_account_holder?: string | null;
-    default_contact_type?: 'PHONE' | 'KAKAO_OPEN_CHAT';
-    kakao_open_chat_url?: string | null;
-    default_host_notice?: string | null;
+    operationInfo?: OperationInfo;
+    accountInfo?: AccountInfo;
   }): Promise<User> {
     const user = await this.getCurrentUser();
     if (!user) throw new AuthError();

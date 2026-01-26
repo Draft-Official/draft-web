@@ -21,7 +21,8 @@ import {
 import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/base/avatar';
 import { cn } from '@/shared/lib/utils';
 import { SkillSlider } from './skill-slider';
-import { ProfileData, POSITIONS } from '../model/types';
+import { ProfileData } from '../model/types';
+import { POSITION_OPTIONS } from '@/shared/config/constants';
 
 interface ProfileSetupModalProps {
   open: boolean;
@@ -189,19 +190,19 @@ export function ProfileSetupModal({
               주 포지션
             </Label>
             <div className="grid grid-cols-3 gap-2">
-              {POSITIONS.map((pos) => (
+              {POSITION_OPTIONS.map((pos) => (
                 <button
-                  key={pos}
+                  key={pos.value}
                   type="button"
-                  onClick={() => setFormData({ ...formData, position: pos })}
+                  onClick={() => setFormData({ ...formData, position: pos.value })}
                   className={cn(
                     "h-12 rounded-lg font-medium transition-all",
-                    formData.position === pos
+                    formData.position === pos.value
                       ? "bg-primary text-white"
                       : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                   )}
                 >
-                  {pos}
+                  {pos.label}
                 </button>
               ))}
             </div>

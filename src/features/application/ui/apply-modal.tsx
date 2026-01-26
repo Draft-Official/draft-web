@@ -23,26 +23,14 @@ import { useAuth } from '@/features/auth/model/auth-context';
 import { useUpdateProfile } from '@/features/auth/api/mutations';
 import { useCreateApplication } from '../api/mutations';
 import { useUserTeams } from '../api/queries';
-import type { ParticipantInfo, Profile, UserMetadata, UserUpdate } from '@/shared/types/database.types';
-
-// 포지션 매핑
-const POSITIONS = ['가드', '포워드', '센터'] as const;
-const POSITION_MAP: Record<string, string> = {
-  '가드': 'G',
-  '포워드': 'F',
-  '센터': 'C',
-};
-const POSITION_MAP_REVERSE: Record<string, string> = {
-  'G': '가드',
-  'F': '포워드',
-  'C': '센터',
-};
+import type { ParticipantInfo, Profile, UserMetadata, UserUpdate, Json } from '@/shared/types/database.types';
+import { POSITION_OPTIONS, POSITION_DEFAULT, PositionValue } from '@/shared/config/constants';
 
 interface ApplyFormData {
   height: string;
   age: string;
   weight: string;
-  position: string;
+  position: PositionValue | '';  // DB codes: 'G', 'F', 'C'
   teamId: string;
 }
 
@@ -59,7 +47,7 @@ function profileToFormData(dbProfile: Profile | null): ApplyFormData {
     height: metadata?.height?.toString() || '',
     age: metadata?.age?.toString() || '',
     weight: metadata?.weight?.toString() || '',
-    position: position ? (POSITION_MAP_REVERSE[position] || '') : '',
+    position: (position as ApplyFormData['position']) || '',  // Already 'G', 'F', 'C'
     teamId: '',
   };
 }
@@ -92,16 +80,13 @@ function getProfileUpdates(
   }
 
   if (Object.keys(metadataUpdates).length > 0) {
-    updates.metadata = { ...metadata, ...metadataUpdates };
+    updates.metadata = { ...metadata, ...metadataUpdates } as Json;
   }
 
   // positions 업데이트
   if (!currentPosition && formData.position) {
-    const positionCode = POSITION_MAP[formData.position];
-    if (positionCode) {
-      updates.positions = [positionCode];
-      hasUpdates = true;
-    }
+    updates.positions = [formData.position];  // Already code
+    hasUpdates = true;
   }
 
   return hasUpdates ? updates : null;
@@ -151,7 +136,7 @@ export function ApplyModal({
 
     if (!isFormValid() || !user) return;
 
-    const positionCode = POSITION_MAP[formData.position] || 'G';
+    const positionCode = formData.position || POSITION_DEFAULT;
 
     const participantsInfo: ParticipantInfo[] = [
       {
@@ -293,23 +278,23 @@ export function ApplyModal({
               <Label className="text-sm text-slate-600 mb-2 block">
                 포지션 <span className="text-red-500">*</span>
               </Label>
-              <div className="grid grid-cols-3 gap-2">
-                {POSITIONS.map((pos) => (
-                  <button
-                    key={pos}
-                    type="button"
-                    onClick={() => setFormData({ ...formData, position: pos })}
-                    className={cn(
-                      "h-12 rounded-lg font-medium transition-all",
-                      formData.position === pos
-                        ? "bg-primary text-white"
-                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                    )}
-                  >
-                    {pos}
-                  </button>
-                ))}
-              </div>
+            <div className="grid grid-cols-3 gap-2">
+              {POSITION_OPTIONS.map((pos) => (
+                <button
+                  key={pos.value}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, position: pos.value })}
+                  className={cn(
+                    "h-12 rounded-lg font-medium transition-all",
+                    formData.position === pos.value
+                      ? "bg-primary text-white"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  )}
+                >
+                  {pos.label}
+                </button>
+              ))}
+            </div>
             </div>
           </div>
 

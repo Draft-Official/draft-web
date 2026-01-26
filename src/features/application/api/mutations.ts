@@ -7,7 +7,7 @@ import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { createApplicationService } from '@/features/application/api/application-api';
 import type { ParticipantInfo } from '@/shared/types/database.types';
 import { applicationKeys } from './keys';
-import { matchKeys } from '@/features/match/api/keys';
+import { matchKeys } from '@/shared/api/keys';
 
 interface CreateApplicationInput {
   matchId: string;

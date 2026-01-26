@@ -105,6 +105,13 @@ Features DO NOT import from other features
 
 **Important**: Features should NOT import from other features. Extract shared logic to `src/shared/`.
 
+### Data Layer Rules
+
+**JSONB Fields Usage**:
+- Use `account_info` and `operation_info` JSONB columns instead of legacy flat fields.
+- Always use explicit types from `@/shared/types/jsonb.types` when casting JSONB data.
+- **Pattern**: `const account = (user.account_info as unknown as AccountInfo) || {};`
+
 ---
 
 ## File Structure Rules
@@ -222,8 +229,86 @@ export function matchRowToClientMatch(row: MatchRow): ClientMatch {
   return {
     id: row.id,
     title: row.title,
-    // ... type conversion
+    // ... type conversion (값 변환 X, 타입만 변환)
   };
+}
+```
+
+### Enum & Constants Pattern
+
+**규칙**: DB 값과 클라이언트 값을 동일하게 사용 (대문자 UPPER_SNAKE_CASE)
+
+```typescript
+// ❌ 잘못된 패턴 - 값 변환
+const genderMap = { MALE: 'men', FEMALE: 'women' };
+return { gender: genderMap[row.gender_rule] };  // DB: MALE → Client: men
+
+// ✅ 올바른 패턴 - 값 그대로 사용
+return { gender: row.gender_rule };  // DB: MALE → Client: MALE
+```
+
+**모든 매핑은 `shared/config/match-constants.ts`에서 관리:**
+
+```typescript
+// Constants 구조
+export const GENDER_VALUES = ['MALE', 'FEMALE', 'MIXED'] as const;
+export type GenderValue = typeof GENDER_VALUES[number];
+export const GENDER_LABELS: Record<GenderValue, string> = { MALE: '남성', ... };
+export const GENDER_STYLES: Record<GenderValue, { color: string }> = { ... };
+export const GENDER_OPTIONS = GENDER_VALUES.map(v => ({ value: v, label: GENDER_LABELS[v] }));
+export const GENDER_DEFAULT: GenderValue = 'MALE';  // Form 초기값
+```
+
+**Form 초기값은 Constants DEFAULT 사용:**
+
+```typescript
+// ❌ 잘못된 패턴 - 하드코딩된 초기값
+const [gender, setGender] = useState("men");
+
+// ✅ 올바른 패턴 - Constants DEFAULT 사용
+import { GENDER_DEFAULT } from '@/shared/config/match-constants';
+const [gender, setGender] = useState(GENDER_DEFAULT);  // 'MALE'
+```
+
+**컴포넌트 내 매핑 정의 금지:**
+
+```typescript
+// ❌ 컴포넌트 내부에 매핑 정의
+const GENDER_CONFIG = { men: { label: '남성' } };
+
+// ✅ constants에서 import
+import { GENDER_LABELS, GENDER_STYLES } from '@/shared/config/match-constants';
+```
+
+**Schema에서 Constants 참조:**
+
+```typescript
+// ❌ 잘못된 패턴 - 하드코딩된 enum
+gameFormat: z.enum(['internal_2', 'internal_3', 'exchange'])
+courtSize: z.enum(['regular', 'short', 'narrow'])
+referee: z.enum(['self', 'member', 'pro'])
+
+// ✅ 올바른 패턴 - Constants 참조
+import { PLAY_STYLE_VALUES, COURT_SIZE_VALUES, REFEREE_TYPE_VALUES } from '@/shared/config/match-constants';
+gameFormat: z.enum(PLAY_STYLE_VALUES)  // ['INTERNAL_2WAY', 'INTERNAL_3WAY', 'EXCHANGE']
+courtSize: z.enum(COURT_SIZE_VALUES)   // ['REGULAR', 'SHORT', 'NARROW']
+referee: z.enum(REFEREE_TYPE_VALUES)   // ['SELF', 'STAFF', 'PRO']
+```
+
+**Component Prop Types:**
+
+```typescript
+// ❌ 잘못된 패턴 - string 타입
+interface Props {
+  gender: string;
+  setGender: (v: string) => void;
+}
+
+// ✅ 올바른 패턴 - 타입 명시
+import { GenderValue } from '@/shared/config/match-constants';
+interface Props {
+  gender: GenderValue;
+  setGender: (v: GenderValue) => void;
 }
 ```
 
@@ -307,6 +392,6 @@ For deeper context, refer to:
 
 ---
 
-**Last Updated**: 2026-01-23  
+**Last Updated**: 2026-01-25  
 **Maintainer**: @beom  
 **Project**: Draft - 농구 용병 모집 플랫폼

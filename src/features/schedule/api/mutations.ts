@@ -8,8 +8,8 @@ import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { createApplicationService } from '@/features/application/api/application-api';
 import { useAuth } from '@/features/auth';
 import { matchManagementKeys } from './keys';
-import { matchKeys } from '@/features/match/api/keys';
-import type { RecruitmentSetup } from '@/shared/types/database.types';
+import { matchKeys } from '@/shared/api/keys';
+import type { RecruitmentSetup, Json } from '@/shared/types/database.types';
 
 /**
  * 신청 승인 (PENDING → approved_at 설정, 입금대기 상태)
@@ -229,7 +229,7 @@ export function useUpdateRecruitmentSetup() {
 
       const { data, error } = await supabase
         .from('matches')
-        .update({ recruitment_setup: recruitmentSetup })
+        .update({ recruitment_setup: recruitmentSetup as unknown as Json })
         .eq('id', matchId)
         .select()
         .single();

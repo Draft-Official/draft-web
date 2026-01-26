@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Match } from '@/features/match/model/mock-data';
+import { Match } from '@/features/match/model/types';
 
 interface MatchRuleSectionProps {
   match: Match;

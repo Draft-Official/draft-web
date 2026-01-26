@@ -2,11 +2,11 @@
 
 import React from 'react';
 import { cn } from '@/shared/lib/utils';
-import { PositionStatus } from '../model/mock-data';
+import { PositionStatusUI } from '../model/types';
 
 interface PositionChipProps {
   label: string;
-  status: PositionStatus['status'];
+  status: PositionStatusUI['status'];
   max: number;
 }
 

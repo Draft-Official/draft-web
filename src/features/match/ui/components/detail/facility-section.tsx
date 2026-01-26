@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Match } from '@/features/match/model/mock-data';
+import { Match } from '@/features/match/model/types';
 import { Car, Droplets, Thermometer, BoxSelect, Droplet } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 

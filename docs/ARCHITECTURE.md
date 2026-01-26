@@ -98,8 +98,7 @@ draft-web/
 │   │   │   │   ├── team-api.ts
 │   │   │   │   └── index.ts
 │   │   │   ├── model/
-│   │   │   │   ├── types.ts
-│   │   │   │   ├── mock-data.ts
+│   │   │   │   ├── types.ts              # Match UI 타입 정의
 │   │   │   │   └── index.ts
 │   │   │   ├── ui/
 │   │   │   │   ├── host-dashboard-view.tsx
@@ -148,6 +147,7 @@ draft-web/
 │   │   │   └── errors.ts
 │   │   │
 │   │   ├── config/                       # 전역 설정
+│   │   │   ├── match-constants.ts        # Match 관련 enum/라벨 매핑
 │   │   │   └── skill-constants.ts
 │   │   │
 │   │   └── types/                        # 전역 타입
@@ -322,6 +322,128 @@ export * from './button';
 export * from './card';
 export * from './dialog';
 // ... 20개 base UI 컴포넌트
+```
+
+---
+
+### 4. Enum & Constants Pattern
+
+도메인 값(Gender, Position 등)의 매핑은 `shared/config/match-constants.ts`에서 단일 관리합니다.
+
+**핵심 규칙:**
+- DB 값과 클라이언트 값을 동일하게 사용 (대문자 UPPER_SNAKE_CASE)
+- Mapper는 값 변환 없이 타입 변환만 수행
+- UI 컴포넌트 내부에 매핑 정의 금지
+- Form 초기값은 DEFAULT 상수 참조
+
+**Constants 구조 패턴:**
+
+```typescript
+// shared/config/match-constants.ts (Single Source of Truth)
+
+// 1. 값 정의 (as const로 타입 추론)
+export const GENDER_VALUES = ['MALE', 'FEMALE', 'MIXED'] as const;
+export type GenderValue = typeof GENDER_VALUES[number];
+
+// 2. 라벨 매핑 (UI 표시용)
+export const GENDER_LABELS: Record<GenderValue, string> = {
+  MALE: '남성',
+  FEMALE: '여성',
+  MIXED: '성별 무관',
+};
+
+// 3. 스타일 매핑 (필요 시)
+export const GENDER_STYLES: Record<GenderValue, { color: string }> = {
+  MALE: { color: 'text-blue-600' },
+  FEMALE: { color: 'text-pink-600' },
+  MIXED: { color: 'text-purple-600' },
+};
+
+// 4. Options 배열 (Select/Chip용)
+export const GENDER_OPTIONS = GENDER_VALUES.map(value => ({
+  value,
+  label: GENDER_LABELS[value],
+}));
+
+// 5. DEFAULT 값 (Form 초기값)
+export const GENDER_DEFAULT: GenderValue = 'MALE';
+```
+
+**Form 초기값 패턴:**
+
+```typescript
+// ❌ 잘못된 패턴 - 하드코딩된 초기값
+const [gender, setGender] = useState("men");
+const [gameFormat, setGameFormat] = useState("internal_2");
+
+// ✅ 올바른 패턴 - Constants DEFAULT 사용
+import { GENDER_DEFAULT, PLAY_STYLE_DEFAULT } from '@/shared/config/match-constants';
+const [gender, setGender] = useState(GENDER_DEFAULT);  // 'MALE'
+const [gameFormat, setGameFormat] = useState(PLAY_STYLE_DEFAULT);  // 'INTERNAL_2WAY'
+```
+
+**Schema에서 Constants 참조:**
+
+```typescript
+// ❌ 잘못된 패턴 - 하드코딩된 enum 값
+gameFormat: z.enum(['internal_2', 'internal_3', 'exchange'])
+
+// ✅ 올바른 패턴 - Constants 참조
+import { PLAY_STYLE_VALUES } from '@/shared/config/match-constants';
+gameFormat: z.enum(PLAY_STYLE_VALUES)  // ['INTERNAL_2WAY', 'INTERNAL_3WAY', 'EXCHANGE']
+```
+
+**UI 컴포넌트 패턴:**
+
+```typescript
+// ❌ 잘못된 패턴 - 컴포넌트 내 매핑 정의
+const GENDER_CONFIG = { men: { label: '남성' } };
+<span>{GENDER_CONFIG[gender].label}</span>
+
+// ✅ 올바른 패턴 - constants import
+import { GENDER_LABELS, GENDER_STYLES } from '@/shared/config/match-constants';
+<span className={GENDER_STYLES[gender].color}>
+  {GENDER_LABELS[gender]}
+</span>
+```
+
+**Mapper에서의 사용:**
+
+```typescript
+// features/match/api/match-mapper.ts
+// 값 변환 없이 그대로 전달
+return {
+  gender: row.gender_rule,  // DB: 'MALE' → Client: 'MALE'
+};
+
+// ❌ 잘못된 패턴 - inline 매핑
+const gameFormatMap = { internal_2: 'INTERNAL_2WAY' };
+play_style: gameFormatMap[form.gameFormat]
+
+// ✅ 올바른 패턴 - Form이 이미 대문자를 사용
+play_style: form.gameFormat  // 이미 'INTERNAL_2WAY'
+```
+
+**Component Prop Types:**
+
+```typescript
+// ❌ 잘못된 패턴 - string 타입 (타입 안전성 부족)
+interface MatchCreateSpecsProps {
+  gender: string;
+  setGender: (v: string) => void;
+  gameFormat: string;
+  setGameFormat: (v: string) => void;
+}
+
+// ✅ 올바른 패턴 - 명시적 타입 (컴파일 타임 에러 검출)
+import { GenderValue, PlayStyleValue } from '@/shared/config/match-constants';
+
+interface MatchCreateSpecsProps {
+  gender: GenderValue;  // 'MALE' | 'FEMALE' | 'MIXED'만 허용
+  setGender: (v: GenderValue) => void;
+  gameFormat: PlayStyleValue;  // 'INTERNAL_2WAY' | 'INTERNAL_3WAY' | 'EXCHANGE'만 허용
+  setGameFormat: (v: PlayStyleValue) => void;
+}
 ```
 
 ---
@@ -513,6 +635,24 @@ export function matchRowToClientMatch(row: MatchRow): ClientMatch {
 npx supabase gen types typescript --project-id YOUR_PROJECT_ID > src/shared/types/database.types.ts
 ```
 
+### JSONB Type Layer (Layer 1.5)
+
+Supabase가 생성한 `Json` 타입은 구체적이지 않으므로, 중간 레이어를 두어 타입을 강화합니다.
+
+```typescript
+// src/shared/types/jsonb.types.ts
+export interface AccountInfo {
+  bank?: string;
+  number?: string;
+  holder?: string;
+}
+
+// 사용 예시
+import { AccountInfo } from '@/shared/types/jsonb.types';
+
+const account = (user.account_info as unknown as AccountInfo);
+```
+
 ---
 
 ## 📁 파일 명명 규칙
@@ -560,6 +700,6 @@ npx supabase gen types typescript --project-id YOUR_PROJECT_ID > src/shared/type
 
 ---
 
-**Last Updated**: 2026-01-23  
+**Last Updated**: 2026-01-25  
 **Maintainer**: @beom  
 **Project**: Draft - 농구 용병 모집 플랫폼

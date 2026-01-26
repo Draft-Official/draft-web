@@ -9,6 +9,7 @@ import type {
   TeamUpdate,
   TeamMember,
 } from '@/shared/types/database.types';
+import { AccountInfo, OperationInfo } from '@/shared/types/jsonb.types';
 import { handleSupabaseError } from '@/shared/lib/errors';
 
 export class TeamService {
@@ -56,15 +57,23 @@ export class TeamService {
   async updateTeamDefaults(
     teamId: string,
     updates: {
-      account_bank?: string | null;
-      account_number?: string | null;
-      account_holder?: string | null;
-      host_notice?: string | null;
+      accountInfo?: AccountInfo | null;
+      operationInfo?: Partial<OperationInfo> | null;
     }
   ): Promise<Team> {
+    const dbUpdates: TeamUpdate = {};
+    
+    // Explicitly map using string indexing to avoid partial type issues if needed, strictly speaking casting is safer here
+    if (updates.accountInfo !== undefined) {
+      dbUpdates.account_info = updates.accountInfo as any;
+    }
+    if (updates.operationInfo !== undefined) {
+      dbUpdates.operation_info = updates.operationInfo as any;
+    }
+
     const { data, error } = await this.supabase
       .from('teams')
-      .update(updates)
+      .update(dbUpdates)
       .eq('id', teamId)
       .select()
       .single();

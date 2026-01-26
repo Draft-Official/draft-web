@@ -2,18 +2,15 @@
 
 import React from 'react';
 import { cn } from '@/shared/lib/utils';
-import { Match } from '@/features/match/model/mock-data';
+import { Match } from '@/features/match/model/types';
+import { GENDER_LABELS, GenderValue } from '@/shared/config/constants';
 
 interface HeroSectionProps {
   match: Match;
 }
 
 export function HeroSection({ match }: HeroSectionProps) {
-  const genderLabel = {
-    men: '남성',
-    women: '여성',
-    mixed: '성별 무관'
-  }[match.gender] || match.gender;
+  const genderLabel = GENDER_LABELS[match.gender as GenderValue] || match.gender;
 
   const isClosed = match.positions.all?.status === 'closed';
 
@@ -80,7 +77,7 @@ export function HeroSection({ match }: HeroSectionProps) {
           <span className="text-xs font-medium text-slate-500 self-center mb-0.5">참가비</span>
           <div className="relative">
             {/* Speech Bubble Badge - 음료 제공 시에만 표시 */}
-            {match.facilities?.providesBeverage && (
+            {Boolean(match.facilities?.providesBeverage) && (
               <div className="absolute -top-6 left-0 px-2 py-0.5 bg-[#FF6600] rounded-full shadow-sm whitespace-nowrap z-10">
                   <span className="text-[10px] font-bold text-white tracking-wide block">
                   물/음료 제공

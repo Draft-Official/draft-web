@@ -1,5 +1,5 @@
 import { SupabaseClient } from '@supabase/supabase-js';
-import { Database, GymInsert, GymFacilities, Gym } from '@/shared/types/database.types';
+import { Database, GymInsert, GymFacilities, Gym, Json } from '@/shared/types/database.types';
 import { logRequest, logResponse, logSupabaseQuery, logSupabaseResult } from '@/shared/lib/logger';
 
 /**
@@ -83,7 +83,7 @@ export class GymService {
         latitude: gymData.latitude,
         longitude: gymData.longitude,
         kakao_place_id: gymData.kakaoPlaceId,
-        facilities: gymData.facilities || {},
+        facilities: (gymData.facilities || {}) as unknown as Json,
       };
 
       logSupabaseQuery('gyms', 'INSERT', insertData);
@@ -140,7 +140,7 @@ export class GymService {
 
     const { data, error } = await this.supabase
       .from('gyms')
-      .update({ facilities })
+      .update({ facilities: facilities as unknown as Json })
       .eq('id', gymId)
       .select()
       .single();
