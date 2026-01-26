@@ -62,6 +62,7 @@ export interface PositionStatus {
 export interface PositionStatusUI {
   status: 'open' | 'closed';
   max: number;
+  current: number;
 }
 
 // ============================================

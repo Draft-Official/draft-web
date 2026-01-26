@@ -45,15 +45,18 @@ function adaptMatch(match: GuestListMatch) {
     positions: {
       g: match.positions.G && {
         status: match.positions.G.open > 0 ? 'open' as const : 'closed' as const,
-        max: match.positions.G.closed + match.positions.G.open
+        max: match.positions.G.closed + match.positions.G.open,
+        current: match.positions.G.closed,
       },
       f: match.positions.F && {
         status: match.positions.F.open > 0 ? 'open' as const : 'closed' as const,
-        max: match.positions.F.closed + match.positions.F.open
+        max: match.positions.F.closed + match.positions.F.open,
+        current: match.positions.F.closed,
       },
       c: match.positions.C && {
         status: match.positions.C.open > 0 ? 'open' as const : 'closed' as const,
-        max: match.positions.C.closed + match.positions.C.open
+        max: match.positions.C.closed + match.positions.C.open,
+        current: match.positions.C.closed,
       },
     }
   };
