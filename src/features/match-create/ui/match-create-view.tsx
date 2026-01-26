@@ -2,12 +2,13 @@
 
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Users,
   RefreshCw,
   Zap,
   X,
+  Loader2,
 } from 'lucide-react';
 
 import { Button } from '@/shared/ui/base/button';
@@ -20,12 +21,13 @@ import { MatchCreateSpecs } from './components/match-create-specs';
 import { MatchCreateGameFormat } from './components/match-create-game-format';
 import { MatchCreateOperations, OperationsData } from './components/match-create-operations';
 import { RecentMatchesDialog } from './components/recent-matches-dialog';
-import { useCreateMatch } from '@/features/match-create/api/mutations';
+import { useCreateMatch, useUpdateMatch } from '@/features/match-create/api/mutations';
 import { useMyRecentMatches } from '@/features/match-create/api/queries';
 import { MatchCreateFormData } from '@/features/match-create/model/schema';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { createAuthService } from '@/features/auth/api/auth-api';
 import { createTeamService } from '@/features/team/api/team-api';
+import { createMatchService } from '@/features/match/api/match-api';
 import {
   GENDER_DEFAULT,
   PLAY_STYLE_DEFAULT,
@@ -38,8 +40,8 @@ import {
   CourtSizeValue,
   MatchFormatValue
 } from '@/shared/config/constants';
-import { useLocationSearch } from '@/src/features/match-create/lib/hooks/use-location-search';
-import { useRecentMatchPrefill } from '@/src/features/match-create/lib/hooks/use-recent-match-prefill';
+import { useLocationSearch } from '@/features/match-create/lib/hooks/use-location-search';
+import { useRecentMatchPrefill } from '@/features/match-create/lib/hooks/use-recent-match-prefill';
 import type { LocationData } from '@/features/match-create/model/types';
 import type { MatchWithRelations } from '@/shared/types/database.types';
 
@@ -48,8 +50,16 @@ import { getNext14Days } from '@/features/match-create/lib/utils';
 
 export function MatchCreateView() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const editMatchId = searchParams?.get('edit');
+  const isEditMode = !!editMatchId;
+
   const methods = useForm();
   const { handleSubmit, setValue, formState: { errors } } = methods;
+
+  // Edit mode states
+  const [isLoadingEditData, setIsLoadingEditData] = useState(false);
+  const [editDataLoaded, setEditDataLoaded] = useState(false);
 
   // Debug: form errors
   useEffect(() => {
@@ -58,7 +68,6 @@ export function MatchCreateView() {
     }
   }, [errors]);
 
-  // -- State --
   // -- State --
   const [selectedDate, setSelectedDate] = useState<string | null>(() => getNext14Days()[0].dateISO);
 
@@ -293,7 +302,7 @@ export function MatchCreateView() {
     setSelectedAges(newAges);
   };
 
-  // Recent Match Prefill Hook
+  // Recent Match Prefill Hook (also reused for edit mode)
   const { fillFromRecentMatch } = useRecentMatchPrefill({
     setValue,
     handleLocationSelect,
@@ -316,8 +325,44 @@ export function MatchCreateView() {
     setHasJersey,
   });
 
-  // Mutation
-  const { mutate: createMatch, isPending } = useCreateMatch();
+  // Edit mode: Load existing match data
+  useEffect(() => {
+    const loadEditData = async () => {
+      if (!isEditMode || !editMatchId || editDataLoaded) return;
+
+      setIsLoadingEditData(true);
+      try {
+        const supabase = getSupabaseBrowserClient();
+        const matchService = createMatchService(supabase);
+        const matchData = await matchService.getMatchDetail(editMatchId);
+
+        if (matchData) {
+          // Reuse fillFromRecentMatch (uses MatchToPrefillMapper with new JSONB fields)
+          await fillFromRecentMatch(matchData as MatchWithRelations);
+
+          // Edit mode: also set the date (fillFromRecentMatch skips date)
+          if (matchData.start_time) {
+            const dateISO = matchData.start_time.split('T')[0];
+            setSelectedDate(dateISO);
+          }
+
+          setEditDataLoaded(true);
+        }
+      } catch (error) {
+        console.error('Failed to load match data:', error);
+        toast.error('경기 정보를 불러오는데 실패했습니다.');
+      } finally {
+        setIsLoadingEditData(false);
+      }
+    };
+
+    loadEditData();
+  }, [isEditMode, editMatchId, editDataLoaded, fillFromRecentMatch]);
+
+  // Mutations
+  const { mutate: createMatch, isPending: isCreating } = useCreateMatch();
+  const { mutate: updateMatch, isPending: isUpdating } = useUpdateMatch();
+  const isPending = isCreating || isUpdating;
 
   // 섹션으로 스크롤 이동
   const scrollToSection = (sectionId: string) => {
@@ -488,87 +533,92 @@ export function MatchCreateView() {
     if (data.refundPolicy) payload.refundPolicy = data.refundPolicy;
 
     console.log("Submitting Match:", payload);
-    
-    createMatch(payload, {
-        onSuccess: async () => {
-            // Save defaults if checkboxes were checked
-            if (operationsData && currentUser) {
-              const supabase = getSupabaseBrowserClient();
-              const authService = createAuthService(supabase);
-              const teamService = createTeamService(supabase);
 
-              try {
-                // Save all defaults if checkbox was checked
-                if (operationsData.saveAsDefault) {
-                  // Save to user or team based on selectedHost
-                  if (operationsData.selectedHost === 'me') {
-                    // Save all user defaults
-                    await authService.updateOperationsDefaults(currentUser.id, {
-                      accountInfo: {
-                        bank: operationsData.accountInfo.bank,
-                        number: operationsData.accountInfo.number,
-                        holder: operationsData.accountInfo.holder,
-                      },
-                      operationInfo: {
-                        type: operationsData.contactInfo.type,
-                        url: operationsData.contactInfo.type === 'KAKAO_OPEN_CHAT' 
-                          ? operationsData.contactInfo.content 
-                          : undefined,
-                        notice: operationsData.hostNotice,
-                      }
-                    });
-                    
-                    // Update phone if contact type is PHONE
-                    if (operationsData.contactInfo.type === 'PHONE') {
-                      await authService.updateProfile(currentUser.id, {
-                        phone: operationsData.contactInfo.content,
-                      });
-                    }
-                  } else {
-                    // Save team defaults
-                    await teamService.updateTeamDefaults(operationsData.selectedHost, {
-                      accountInfo: {
-                        bank: operationsData.accountInfo.bank,
-                        number: operationsData.accountInfo.number,
-                        holder: operationsData.accountInfo.holder,
-                      },
-                      operationInfo: {
-                        notice: operationsData.hostNotice,
-                      }
-                    });
-                    
-                    // Contact info is always saved to user
-                    await authService.updateOperationsDefaults(currentUser.id, {
-                      operationInfo: {
-                        type: operationsData.contactInfo.type,
-                        url: operationsData.contactInfo.type === 'KAKAO_OPEN_CHAT' 
-                          ? operationsData.contactInfo.content 
-                          : undefined,
-                      }
-                    });
-                    
-                    if (operationsData.contactInfo.type === 'PHONE') {
-                      await authService.updateProfile(currentUser.id, {
-                        phone: operationsData.contactInfo.content,
-                      });
-                    }
-                  }
+    const handleSuccess = async () => {
+      // Save defaults if checkboxes were checked
+      if (operationsData && currentUser) {
+        const supabase = getSupabaseBrowserClient();
+        const authService = createAuthService(supabase);
+        const teamService = createTeamService(supabase);
+
+        try {
+          if (operationsData.saveAsDefault) {
+            if (operationsData.selectedHost === 'me') {
+              await authService.updateOperationsDefaults(currentUser.id, {
+                accountInfo: {
+                  bank: operationsData.accountInfo.bank,
+                  number: operationsData.accountInfo.number,
+                  holder: operationsData.accountInfo.holder,
+                },
+                operationInfo: {
+                  type: operationsData.contactInfo.type,
+                  url: operationsData.contactInfo.type === 'KAKAO_OPEN_CHAT'
+                    ? operationsData.contactInfo.content
+                    : undefined,
+                  notice: operationsData.hostNotice,
                 }
+              });
 
-                console.log('✅ Defaults saved successfully');
-              } catch (saveError) {
-                console.error('Failed to save defaults:', saveError);
-                // Don't block navigation on save failure
+              if (operationsData.contactInfo.type === 'PHONE') {
+                await authService.updateProfile(currentUser.id, {
+                  phone: operationsData.contactInfo.content,
+                });
+              }
+            } else {
+              await teamService.updateTeamDefaults(operationsData.selectedHost, {
+                accountInfo: {
+                  bank: operationsData.accountInfo.bank,
+                  number: operationsData.accountInfo.number,
+                  holder: operationsData.accountInfo.holder,
+                },
+                operationInfo: {
+                  notice: operationsData.hostNotice,
+                }
+              });
+
+              await authService.updateOperationsDefaults(currentUser.id, {
+                operationInfo: {
+                  type: operationsData.contactInfo.type,
+                  url: operationsData.contactInfo.type === 'KAKAO_OPEN_CHAT'
+                    ? operationsData.contactInfo.content
+                    : undefined,
+                }
+              });
+
+              if (operationsData.contactInfo.type === 'PHONE') {
+                await authService.updateProfile(currentUser.id, {
+                  phone: operationsData.contactInfo.content,
+                });
               }
             }
+          }
 
-            router.push('/');
-        },
-        onError: (err) => {
-            console.error(err);
-            toast.error("경기 생성에 실패했습니다: " + err.message);
+          console.log('✅ Defaults saved successfully');
+        } catch (saveError) {
+          console.error('Failed to save defaults:', saveError);
         }
-    });
+      }
+
+      if (isEditMode && editMatchId) {
+        router.push(`/matches/${editMatchId}/manage`);
+      } else {
+        router.push('/');
+      }
+    };
+
+    const handleError = (err: Error) => {
+      console.error(err);
+      toast.error(isEditMode ? "경기 수정에 실패했습니다: " + err.message : "경기 생성에 실패했습니다: " + err.message);
+    };
+
+    if (isEditMode && editMatchId) {
+      updateMatch(
+        { matchId: editMatchId, form: payload },
+        { onSuccess: handleSuccess, onError: handleError }
+      );
+    } else {
+      createMatch(payload, { onSuccess: handleSuccess, onError: handleError });
+    }
   };
 
   // Fix ref type for Location
@@ -581,36 +631,51 @@ export function MatchCreateView() {
         {/* Header */}
         <header className="bg-white px-4 h-14 flex items-center justify-between border-b border-slate-100 sticky top-0 z-30">
             <div className="flex items-center gap-3">
-                <button 
+                <button
                   type="button"
                   onClick={() => router.back()}
                   className="-ml-2 p-2 text-slate-900 hover:bg-slate-50 rounded-full transition-colors"
                 >
                     <X className="w-6 h-6" />
                 </button>
-                <h1 className="font-bold text-lg text-slate-900">경기 개설</h1>
+                <h1 className="font-bold text-lg text-slate-900">
+                  {isEditMode ? '경기 수정' : '경기 개설'}
+                </h1>
             </div>
-            
-            <div className="flex gap-2 relative">
-                <button
-                    type="button"
-                    onClick={() => setShowRecentMatchesDialog(true)}
-                    className="text-xs font-bold text-[#FF6600] flex items-center gap-1 bg-orange-50 px-2.5 py-1.5 rounded-full hover:bg-orange-100 transition-colors"
-                >
-                    <RefreshCw className="w-3.5 h-3.5" />
-                    최근 경기 불러오기
-                </button>
-            </div>
+
+            {/* 수정 모드에서는 최근 경기 불러오기 버튼 숨김 */}
+            {!isEditMode && (
+              <div className="flex gap-2 relative">
+                  <button
+                      type="button"
+                      onClick={() => setShowRecentMatchesDialog(true)}
+                      className="text-xs font-bold text-[#FF6600] flex items-center gap-1 bg-orange-50 px-2.5 py-1.5 rounded-full hover:bg-orange-100 transition-colors"
+                  >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      최근 경기 불러오기
+                  </button>
+              </div>
+            )}
         </header>
 
-        {/* Onboarding Tip Banner */}
-        {showTip && (
+        {/* Edit Mode Loading Overlay */}
+        {isLoadingEditData && (
+            <div className="fixed inset-0 bg-white/80 z-50 flex items-center justify-center">
+                <div className="flex flex-col items-center gap-3">
+                    <Loader2 className="w-8 h-8 text-[#FF6600] animate-spin" />
+                    <p className="text-sm text-slate-600">경기 정보를 불러오는 중...</p>
+                </div>
+            </div>
+        )}
+
+        {/* Onboarding Tip Banner - 수정 모드에서는 숨김 */}
+        {showTip && !isEditMode && (
             <div className="mx-5 mt-4 p-3 bg-orange-50 rounded-xl flex items-center gap-3 relative animate-in fade-in slide-in-from-top-2 duration-300">
                 <Zap className="w-5 h-5 text-[#FF6600] flex-shrink-0 fill-orange-500" />
                 <p className="text-sm font-bold text-orange-800 pr-6">
                     딱 한 번만 작성하세요! 다음부턴 '불러오기'로 3초만에 개설가능!
                 </p>
-                <button 
+                <button
                     onClick={handleDismissTip}
                     className="absolute top-2 right-2 p-1 text-orange-400 hover:text-orange-600 transition-colors"
                 >
@@ -702,10 +767,13 @@ export function MatchCreateView() {
             <div className="pt-4">
                 <Button
                     type="submit"
-                    disabled={isPending}
+                    disabled={isPending || isLoadingEditData}
                     className="w-full h-14 text-lg font-bold bg-[#FF6600] hover:bg-[#FF6600]/90 text-white rounded-xl shadow-lg shadow-orange-100 disabled:opacity-50"
                 >
-                    {isPending ? '생성 중...' : '경기 생성하기'}
+                    {isPending
+                      ? (isEditMode ? '수정 중...' : '생성 중...')
+                      : (isEditMode ? '경기 수정하기' : '경기 생성하기')
+                    }
                 </Button>
             </div>
 
@@ -717,8 +785,9 @@ export function MatchCreateView() {
           onOpenChange={setShowRecentMatchesDialog}
           matches={(recentMatches as MatchWithRelations[]) || []}
           isLoading={isLoadingRecentMatches}
-          onSelect={(match) => {
-            fillFromRecentMatch(match);
+          onSelect={async (match) => {
+            await fillFromRecentMatch(match);
+            toast.success("지난 경기 정보를 불러왔습니다. 경기 날짜를 선택해주세요.");
             setShowRecentMatchesDialog(false);
           }}
         />

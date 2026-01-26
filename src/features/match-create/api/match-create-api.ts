@@ -14,69 +14,85 @@ export class MatchCreateService {
   constructor(private supabase: SupabaseClient<Database>) {}
 
   /**
-   * 경기 생성 (V3: Gym 생성/조회 후 Match 생성)
-   *
-   * Transaction Flow:
-   * 1. Extract Gym Data from Form
-   * 2. Find or Create Gym -> get gym_id
-   * 3. Extract Match Data (with gym_id)
-   * 4. Insert Match
+   * Form → DB 데이터 준비 (Gym upsert + Match 매핑 + Team Name 보정)
+   */
+  private async prepareMatchData(hostId: string, form: MatchCreateFormData) {
+    const gymService = createGymService(this.supabase);
+    const gymId = await gymService.upsertGym(extractGymDataV3(form));
+    const matchData = toMatchInsertDataV3(hostId, form, gymId);
+
+    // Team Name 보정
+    if (matchData.manual_team_name === '' && matchData.team_id) {
+      logSupabaseQuery('teams', 'SELECT', undefined, { id: matchData.team_id });
+
+      const { data: team, error: teamError } = await this.supabase
+        .from('teams')
+        .select('name')
+        .eq('id', matchData.team_id)
+        .single();
+
+      logSupabaseResult('teams', 'SELECT', team, teamError);
+      matchData.manual_team_name = team ? team.name : 'Unknown Team';
+    } else if (matchData.manual_team_name === '') {
+      matchData.manual_team_name = '개인 주최';
+    }
+
+    return { matchData, gymId };
+  }
+
+  /**
+   * 경기 생성
    */
   async createMatch(hostId: string, form: MatchCreateFormData) {
     logRequest(this.SERVICE_NAME, 'createMatch', { hostId, form });
 
     try {
-      // 1. Gym 처리
-      const gymService = createGymService(this.supabase);
-      const gymData = extractGymDataV3(form);
+      const { matchData, gymId } = await this.prepareMatchData(hostId, form);
 
-      // Gym 생성 또는 조회 (Upsert + Latest Wins)
-      const gymId = await gymService.upsertGym(gymData);
-
-      // 2. Match Data 매핑 (gymId 전달)
-      const matchInsertData = toMatchInsertDataV3(hostId, form, gymId);
-
-      // 3. Team Name 보정 (Manual Team Name)
-      if (matchInsertData.manual_team_name === '' && matchInsertData.team_id) {
-        logSupabaseQuery('teams', 'SELECT', undefined, { id: matchInsertData.team_id });
-
-        const { data: team, error: teamError } = await this.supabase
-          .from('teams')
-          .select('name')
-          .eq('id', matchInsertData.team_id)
-          .single();
-
-        logSupabaseResult('teams', 'SELECT', team, teamError);
-
-        if (team) {
-          matchInsertData.manual_team_name = team.name;
-        } else {
-          matchInsertData.manual_team_name = 'Unknown Team';
-        }
-      } else if (matchInsertData.manual_team_name === '') {
-        matchInsertData.manual_team_name = '개인 주최';
-      }
-
-      // 4. Match Insert
-      logSupabaseQuery('matches', 'INSERT', matchInsertData);
-
+      logSupabaseQuery('matches', 'INSERT', matchData);
       const { data: match, error } = await this.supabase
         .from('matches')
-        .insert(matchInsertData)
+        .insert(matchData)
         .select()
         .single();
 
       logSupabaseResult('matches', 'INSERT', match, error);
-
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       logResponse(this.SERVICE_NAME, 'createMatch', { matchId: match.id, gymId });
       return match;
-
     } catch (error) {
       logResponse(this.SERVICE_NAME, 'createMatch', undefined, error);
+      throw error;
+    }
+  }
+
+  /**
+   * 경기 수정
+   */
+  async updateMatch(matchId: string, hostId: string, form: MatchCreateFormData) {
+    logRequest(this.SERVICE_NAME, 'updateMatch', { matchId, hostId, form });
+
+    try {
+      const { matchData, gymId } = await this.prepareMatchData(hostId, form);
+      delete (matchData as any).status; // 수정 시 기존 상태 유지
+
+      logSupabaseQuery('matches', 'UPDATE', matchData, { id: matchId });
+      const { data: match, error } = await this.supabase
+        .from('matches')
+        .update(matchData)
+        .eq('id', matchId)
+        .eq('host_id', hostId)
+        .select()
+        .single();
+
+      logSupabaseResult('matches', 'UPDATE', match, error);
+      if (error) throw error;
+
+      logResponse(this.SERVICE_NAME, 'updateMatch', { matchId: match.id, gymId });
+      return match;
+    } catch (error) {
+      logResponse(this.SERVICE_NAME, 'updateMatch', undefined, error);
       throw error;
     }
   }

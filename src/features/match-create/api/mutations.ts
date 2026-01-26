@@ -60,3 +60,48 @@ export function useCreateMatch() {
     },
   });
 }
+
+/**
+ * 매치 수정
+ */
+export function useUpdateMatch() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async (input: { matchId: string; form: MatchCreateFormData }) => {
+      if (!user?.id) {
+        throw new Error('로그인이 필요합니다');
+      }
+      const hostId = user.id;
+
+      console.log('[useUpdateMatch] matchId:', input.matchId);
+      console.log('[useUpdateMatch] hostId:', hostId);
+      console.log('[useUpdateMatch] input:', input.form);
+
+      const supabase = getSupabaseBrowserClient();
+      const matchCreateService = createMatchCreateService(supabase);
+
+      try {
+        const result = await matchCreateService.updateMatch(input.matchId, hostId, input.form);
+        console.log('[useUpdateMatch] updateMatch result:', result);
+        return result;
+      } catch (err) {
+        console.error('[useUpdateMatch] updateMatch error:', err);
+        throw err;
+      }
+    },
+    onSuccess: (_, variables) => {
+      // 관련 쿼리 무효화
+      queryClient.invalidateQueries({ queryKey: matchKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: matchKeys.detail(variables.matchId) });
+      queryClient.invalidateQueries({ queryKey: ['match-management'] }); // schedule 쪽 캐시도 무효화
+      toast.success('경기가 수정되었습니다');
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.message || error?.error_description || JSON.stringify(error);
+      console.error('Match update error:', error);
+      toast.error(`경기 수정 실패: ${errorMessage}`);
+    },
+  });
+}
