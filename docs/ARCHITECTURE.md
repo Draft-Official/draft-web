@@ -635,6 +635,24 @@ export function matchRowToClientMatch(row: MatchRow): ClientMatch {
 npx supabase gen types typescript --project-id YOUR_PROJECT_ID > src/shared/types/database.types.ts
 ```
 
+### JSONB Type Layer (Layer 1.5)
+
+Supabase가 생성한 `Json` 타입은 구체적이지 않으므로, 중간 레이어를 두어 타입을 강화합니다.
+
+```typescript
+// src/shared/types/jsonb.types.ts
+export interface AccountInfo {
+  bank?: string;
+  number?: string;
+  holder?: string;
+}
+
+// 사용 예시
+import { AccountInfo } from '@/shared/types/jsonb.types';
+
+const account = (user.account_info as unknown as AccountInfo);
+```
+
 ---
 
 ## 📁 파일 명명 규칙

@@ -502,14 +502,18 @@ export function MatchCreateView() {
                   if (operationsData.selectedHost === 'me') {
                     // Save all user defaults
                     await authService.updateOperationsDefaults(currentUser.id, {
-                      default_account_bank: operationsData.accountInfo.bank,
-                      default_account_number: operationsData.accountInfo.number,
-                      default_account_holder: operationsData.accountInfo.holder,
-                      default_contact_type: operationsData.contactInfo.type,
-                      kakao_open_chat_url: operationsData.contactInfo.type === 'KAKAO_OPEN_CHAT' 
-                        ? operationsData.contactInfo.content 
-                        : null,
-                      default_host_notice: operationsData.hostNotice,
+                      accountInfo: {
+                        bank: operationsData.accountInfo.bank,
+                        number: operationsData.accountInfo.number,
+                        holder: operationsData.accountInfo.holder,
+                      },
+                      operationInfo: {
+                        type: operationsData.contactInfo.type,
+                        url: operationsData.contactInfo.type === 'KAKAO_OPEN_CHAT' 
+                          ? operationsData.contactInfo.content 
+                          : undefined,
+                        notice: operationsData.hostNotice,
+                      }
                     });
                     
                     // Update phone if contact type is PHONE
@@ -521,18 +525,24 @@ export function MatchCreateView() {
                   } else {
                     // Save team defaults
                     await teamService.updateTeamDefaults(operationsData.selectedHost, {
-                      account_bank: operationsData.accountInfo.bank,
-                      account_number: operationsData.accountInfo.number,
-                      account_holder: operationsData.accountInfo.holder,
-                      host_notice: operationsData.hostNotice,
+                      accountInfo: {
+                        bank: operationsData.accountInfo.bank,
+                        number: operationsData.accountInfo.number,
+                        holder: operationsData.accountInfo.holder,
+                      },
+                      operationInfo: {
+                        notice: operationsData.hostNotice,
+                      }
                     });
                     
                     // Contact info is always saved to user
                     await authService.updateOperationsDefaults(currentUser.id, {
-                      default_contact_type: operationsData.contactInfo.type,
-                      kakao_open_chat_url: operationsData.contactInfo.type === 'KAKAO_OPEN_CHAT' 
-                        ? operationsData.contactInfo.content 
-                        : null,
+                      operationInfo: {
+                        type: operationsData.contactInfo.type,
+                        url: operationsData.contactInfo.type === 'KAKAO_OPEN_CHAT' 
+                          ? operationsData.contactInfo.content 
+                          : undefined,
+                      }
                     });
                     
                     if (operationsData.contactInfo.type === 'PHONE') {

@@ -105,6 +105,13 @@ Features DO NOT import from other features
 
 **Important**: Features should NOT import from other features. Extract shared logic to `src/shared/`.
 
+### Data Layer Rules
+
+**JSONB Fields Usage**:
+- Use `account_info` and `operation_info` JSONB columns instead of legacy flat fields.
+- Always use explicit types from `@/shared/types/jsonb.types` when casting JSONB data.
+- **Pattern**: `const account = (user.account_info as unknown as AccountInfo) || {};`
+
 ---
 
 ## File Structure Rules

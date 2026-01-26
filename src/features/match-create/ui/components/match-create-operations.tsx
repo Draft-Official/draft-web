@@ -10,6 +10,11 @@ import { Switch } from '@/shared/ui/base/switch';
 import { Textarea } from '@/shared/ui/base/textarea';
 import { FileText, MessageCircle, Phone, UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
+import { AccountInfo, OperationInfo } from '@/shared/types/jsonb.types';
+
+// Helper to safely cast JSONB to specific type
+const getAccountInfo = (info: any): AccountInfo => info as AccountInfo || {};
+const getOperationInfo = (info: any): OperationInfo => info as OperationInfo || {};
 
 export interface OperationsData {
   selectedHost: 'me' | string; // 'me' or team_id
@@ -55,14 +60,17 @@ export function MatchCreateOperations({
   // Initial setup for defaults - run once when user/teams load if needed, or rely on manual selection
   // Refactored: No auto-selection of 'me'. User must select.
 
-  // Check if user has existing info (계좌정보, 오픈채팅, 공지 중 하나라도 있으면 true)
+  // Check if user has existing info
+  const userAccount = user ? getAccountInfo(user.account_info) : null;
+  const userOps = user ? getOperationInfo(user.operation_info) : null;
+
   const hasExistingInfo = Boolean(
-    user?.default_account_bank &&
-    user?.default_account_number &&
-    user?.default_account_holder
+    userAccount?.bank &&
+    userAccount?.number &&
+    userAccount?.holder
   ) || Boolean(
-    user?.kakao_open_chat_url ||
-    user?.default_host_notice
+    userOps?.url ||
+    userOps?.notice
   );
 
   // Handle host selection change
@@ -71,14 +79,17 @@ export function MatchCreateOperations({
 
     if (value === 'me' && user) {
       // Reset to user defaults
-      const bank = user.default_account_bank || '';
-      const number = user.default_account_number || '';
-      const holder = user.default_account_holder || '';
-      const notice = user.default_host_notice || '';
-      const contact = user.default_contact_type || 'PHONE';
+      const userAccount = getAccountInfo(user.account_info);
+      const userOps = getOperationInfo(user.operation_info);
+
+      const bank = userAccount.bank || '';
+      const number = userAccount.number || '';
+      const holder = userAccount.holder || '';
+      const notice = userOps.notice || '';
+      const contact = userOps.type || 'PHONE';
       const contactVal = contact === 'PHONE'
         ? user.phone || ''
-        : user.kakao_open_chat_url || '';
+        : userOps.url || '';
 
       setValue('bankName', bank);
       setValue('accountNumber', number);
@@ -101,10 +112,13 @@ export function MatchCreateOperations({
       // Find team and set team defaults
       const team = teams.find((t) => t.id === value);
       if (team) {
-        const bank = team.account_bank || '';
-        const number = team.account_number || '';
-        const holder = team.account_holder || '';
-        const notice = team.host_notice || '';
+        const teamAccount = getAccountInfo(team.account_info);
+        const teamOps = getOperationInfo(team.operation_info);
+
+        const bank = teamAccount.bank || '';
+        const number = teamAccount.number || '';
+        const holder = teamAccount.holder || '';
+        const notice = teamOps.notice || '';
 
         setValue('bankName', bank);
         setValue('accountNumber', number);
@@ -113,13 +127,14 @@ export function MatchCreateOperations({
 
         // Contact info from user (always defaults to user's contact initially)
         if (user) {
-          const contact = user.default_contact_type || 'PHONE';
+          const userOps = getOperationInfo(user.operation_info);
+          const contact = userOps.type || 'PHONE';
           setValue('operations.contactType', contact);
           
           if (contact === 'PHONE') {
             setValue('phoneNumber', user.phone || '');
           } else {
-            setValue('kakaoLink', user.kakao_open_chat_url || '');
+            setValue('kakaoLink', userOps.url || '');
           }
         }
 
