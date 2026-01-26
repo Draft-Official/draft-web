@@ -48,14 +48,56 @@ export interface AccountInfo {
 // ============================================
 
 /**
- * 모집 설정
+ * 포지션별 모집 현황
+ */
+export interface PositionQuota {
+  max: number;
+  current: number;
+}
+
+/**
+ * 모집 설정 - ANY 타입 (포지션 무관)
  * 사용 테이블: matches (recruitment_setup)
  */
-export interface RecruitmentSetup {
+export interface RecruitmentSetupAny {
+  type: 'ANY';
+  max_count: number;
+  current_count: number;
+}
+
+/**
+ * 모집 설정 - POSITION 타입 (포지션별)
+ * 사용 테이블: matches (recruitment_setup)
+ *
+ * positions 키:
+ * - G: 가드
+ * - F: 포워드
+ * - C: 센터
+ * - B: 빅맨 (F/C 통합)
+ */
+export interface RecruitmentSetupPosition {
+  type: 'POSITION';
+  positions: {
+    [key in PositionValue]?: PositionQuota;
+  };
+}
+
+/**
+ * 모집 설정 (통합 타입)
+ * 사용 테이블: matches (recruitment_setup)
+ */
+export type RecruitmentSetup = RecruitmentSetupAny | RecruitmentSetupPosition;
+
+/**
+ * @deprecated Use RecruitmentSetup instead
+ * 기존 호환성을 위한 레거시 타입
+ */
+export interface RecruitmentSetupLegacy {
   type: 'ANY' | 'POSITION';
   max_count?: number;
+  current_count?: number;
   positions?: {
-    [key in PositionValue]?: { max: number; current: number };
+    [key in PositionValue]?: PositionQuota;
   };
 }
 

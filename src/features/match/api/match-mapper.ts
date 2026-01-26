@@ -88,7 +88,7 @@ export function matchRowToGuestListMatch(row: any): GuestListMatch {
   } else if (recruitmentSetup.type === 'ANY') {
     // ANY 타입: 전체 인원 표시
     const maxCount = recruitmentSetup.max_count || 0;
-    const currentCount = row.current_players_count || 0;
+    const currentCount = recruitmentSetup.current_count ?? 0;
     positions.G = {
       open: maxCount - currentCount,
       closed: currentCount,

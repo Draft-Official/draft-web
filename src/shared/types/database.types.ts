@@ -114,7 +114,6 @@ export type Database = {
           cost_amount: number | null
           cost_type: string
           created_at: string | null
-          current_players_count: number | null
           end_time: string
           gender_rule: string
           gym_id: string
@@ -138,7 +137,6 @@ export type Database = {
           cost_amount?: number | null
           cost_type?: string
           created_at?: string | null
-          current_players_count?: number | null
           end_time: string
           gender_rule: string
           gym_id: string
@@ -577,6 +575,7 @@ export interface GymFacilities {
 export interface RecruitmentSetup {
   type: 'ANY' | 'POSITION';
   max_count?: number;
+  current_count?: number; // ANY 타입용 현재 인원
   max_total?: number;
   positions?: {
     [key: string]: { max: number; current: number };

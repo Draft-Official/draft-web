@@ -100,6 +100,7 @@ export function toMatchInsertDataV3(
     recruitmentSetup = {
       type: 'ANY',
       max_count: form.recruitment.count,
+      current_count: 0, // 초기값 0
     };
   } else {
     // POSITION

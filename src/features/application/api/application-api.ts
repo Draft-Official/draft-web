@@ -13,6 +13,21 @@ import type {
 } from '@/shared/types/database.types';
 import { handleSupabaseError, NotFoundError, ValidationError } from '@/shared/lib/errors';
 
+/**
+ * participants_info에서 포지션 배열 추출
+ */
+function extractPositionsFromParticipants(
+  participantsInfo: Json | null
+): string[] {
+  if (!participantsInfo || !Array.isArray(participantsInfo)) {
+    return [];
+  }
+
+  return (participantsInfo as unknown as Array<{ position?: string }>)
+    .map((p) => p.position)
+    .filter((pos): pos is string => typeof pos === 'string' && pos.length > 0);
+}
+
 export class ApplicationService {
   constructor(private supabase: SupabaseClient<Database>) {}
 
@@ -182,10 +197,35 @@ export class ApplicationService {
   }
 
   /**
-   * 신청 확정
+   * 신청 확정 (with recruitment count update)
+   * RPC 함수를 통해 트랜잭션으로 처리
    */
-  async confirmApplication(applicationId: string) {
-    return this.updateApplicationStatus(applicationId, 'CONFIRMED');
+  async confirmApplication(applicationId: string): Promise<Application> {
+    // 먼저 신청 정보 조회하여 participants_info 추출
+    const application = await this.getApplicationById(applicationId);
+    const positions = extractPositionsFromParticipants(application.participants_info);
+
+    // RPC 함수 호출 (신청 확정 + count 업데이트)
+    // Note: RPC 타입은 마이그레이션 후 database.types.ts에 추가됨
+    const { error } = await (this.supabase.rpc as CallableFunction)(
+      'confirm_application_with_count',
+      {
+        p_application_id: applicationId,
+        p_positions: positions.length > 0 ? positions : null,
+      }
+    );
+
+    if (error) {
+      // RPC 함수가 없는 경우 fallback
+      if (error.code === '42883') {
+        console.warn('RPC function not found, using legacy method');
+        return this.updateApplicationStatus(applicationId, 'CONFIRMED');
+      }
+      handleSupabaseError(error, '신청 확정');
+    }
+
+    // 업데이트된 신청 정보 다시 조회
+    return this.getApplicationById(applicationId);
   }
 
   /**
@@ -196,21 +236,45 @@ export class ApplicationService {
   }
 
   /**
-   * 신청 취소 (사용자용)
+   * 신청 취소 (with recruitment count update)
+   * RPC 함수를 통해 트랜잭션으로 처리
    */
-  async cancelApplication(applicationId: string, _reason?: string) {
-    const { data, error } = await this.supabase
-      .from('applications')
-      .update({
-        status: 'CANCELED',
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', applicationId)
-      .select()
-      .single();
+  async cancelApplication(applicationId: string, _reason?: string): Promise<Application> {
+    // 먼저 신청 정보 조회하여 participants_info 추출
+    const application = await this.getApplicationById(applicationId);
+    const positions = extractPositionsFromParticipants(application.participants_info);
 
-    if (error) handleSupabaseError(error, '신청 취소');
-    return data!;
+    // RPC 함수 호출 (신청 취소 + count 감소)
+    const { error } = await (this.supabase.rpc as CallableFunction)(
+      'cancel_application_with_count',
+      {
+        p_application_id: applicationId,
+        p_positions: positions.length > 0 ? positions : null,
+      }
+    );
+
+    if (error) {
+      // RPC 함수가 없는 경우 fallback
+      if (error.code === '42883') {
+        console.warn('RPC function not found, using legacy method');
+        const { data, error: updateError } = await this.supabase
+          .from('applications')
+          .update({
+            status: 'CANCELED',
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', applicationId)
+          .select()
+          .single();
+
+        if (updateError) handleSupabaseError(updateError, '신청 취소');
+        return data!;
+      }
+      handleSupabaseError(error, '신청 취소');
+    }
+
+    // 업데이트된 신청 정보 다시 조회
+    return this.getApplicationById(applicationId);
   }
 }
 

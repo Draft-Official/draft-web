@@ -26,6 +26,27 @@ import type {
 // Type Guards and Helpers
 // ============================================
 
+/**
+ * RecruitmentSetup에서 총 현재 인원 계산
+ * current_players_count 대신 사용
+ */
+function getTotalCurrentFromSetup(setup: RecruitmentSetup | null | undefined): number | undefined {
+  if (!setup) return undefined;
+
+  if (setup.type === 'ANY') {
+    return setup.current_count ?? 0;
+  }
+
+  if (setup.type === 'POSITION' && setup.positions) {
+    return Object.values(setup.positions).reduce(
+      (sum, pos) => sum + (pos?.current || 0),
+      0
+    );
+  }
+
+  return 0;
+}
+
 type ApplicationWithUser = Application & {
   user: Pick<User, 'id' | 'nickname' | 'avatar_url' | 'positions' | 'manner_score'> & {
     metadata?: { height?: number };
@@ -125,7 +146,8 @@ export function matchToManagedMatch(
       : undefined,
 
     // Host specific
-    applicants: type === 'host' ? (match.current_players_count ?? undefined) : undefined,
+    // recruitment_setup에서 현재 인원 계산 (current_players_count deprecated)
+    applicants: type === 'host' ? getTotalCurrentFromSetup(recruitmentSetup) : undefined,
     vacancies: type === 'host' ? vacancies : undefined,
 
     // Guest specific
@@ -163,7 +185,8 @@ export function matchToHostMatchDetail(match: MatchWithRelations): HostMatchDeta
     totalQuota:
       recruitmentMode === 'total'
         ? {
-            current: match.current_players_count || 0,
+            // recruitment_setup.current_count 사용 (current_players_count deprecated)
+            current: recruitmentSetup?.current_count ?? 0,
             max: recruitmentSetup?.max_count || 10,
           }
         : undefined,
@@ -218,8 +241,8 @@ function calculateRecruitmentStats(setup?: RecruitmentSetup): {
 
   if (setup.type === 'ANY') {
     const max = setup.max_count || 10;
-    // current_players_count는 match에서 가져와야 함
-    return { applicants: 0, vacancies: max };
+    const current = setup.current_count ?? 0;
+    return { applicants: current, vacancies: Math.max(0, max - current) };
   }
 
   // POSITION 타입
