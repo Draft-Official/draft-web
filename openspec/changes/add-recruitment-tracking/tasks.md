@@ -25,6 +25,7 @@
 - [x] 5.1 `match-mapper.ts`에서 current_players_count 참조 제거 (fallback 유지)
 - [x] 5.2 `mappers.ts`에서 current_players_count 참조 제거
 - [x] 5.3 recruitment_setup에서 current 값 읽도록 변경
+- [] 5.4 Legacy Trigger/Function 제거 (current_players_count 업데이트 로직)
 
 ## 6. UI 업데이트
 - [x] 6.1 `host-match-detail-view.tsx`에서 recruitment_setup 기준으로 표시 (매퍼로 자동 반영)
