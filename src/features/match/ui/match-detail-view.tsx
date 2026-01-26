@@ -158,7 +158,7 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
         match={match}
         onApply={handleApplyClick}
         hasApplied={hasApplied}
-        canCancel={canCancel}
+        canCancel={canCancel ?? undefined}
         onCancel={handleCancelClick}
         isLoading={isLoadingApplication && isFromSchedule}
         isCanceling={cancelMutation.isPending}
