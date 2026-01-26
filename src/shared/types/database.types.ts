@@ -246,58 +246,52 @@ export type Database = {
       }
       teams: {
         Row: {
-          account_bank: string | null
-          account_holder: string | null
-          account_number: string | null
-          contact_link: string | null
+          account_info: Json | null
           created_at: string | null
+          description: string | null
           home_gym_id: string | null
-          host_notice: string | null
           id: string
           is_recruiting: boolean | null
           logo_url: string | null
           name: string
+          operation_info: Json | null
           region_depth1: string | null
           region_depth2: string | null
-          regular_schedule: string | null
+          regular_schedules: Json | null
           team_avg_age: string | null
           team_avg_level: string | null
           team_gender: string | null
         }
         Insert: {
-          account_bank?: string | null
-          account_holder?: string | null
-          account_number?: string | null
-          contact_link?: string | null
+          account_info?: Json | null
           created_at?: string | null
+          description?: string | null
           home_gym_id?: string | null
-          host_notice?: string | null
           id?: string
           is_recruiting?: boolean | null
           logo_url?: string | null
           name: string
+          operation_info?: Json | null
           region_depth1?: string | null
           region_depth2?: string | null
-          regular_schedule?: string | null
+          regular_schedules?: Json | null
           team_avg_age?: string | null
           team_avg_level?: string | null
           team_gender?: string | null
         }
         Update: {
-          account_bank?: string | null
-          account_holder?: string | null
-          account_number?: string | null
-          contact_link?: string | null
+          account_info?: Json | null
           created_at?: string | null
+          description?: string | null
           home_gym_id?: string | null
-          host_notice?: string | null
           id?: string
           is_recruiting?: boolean | null
           logo_url?: string | null
           name?: string
+          operation_info?: Json | null
           region_depth1?: string | null
           region_depth2?: string | null
-          regular_schedule?: string | null
+          regular_schedules?: Json | null
           team_avg_age?: string | null
           team_avg_level?: string | null
           team_gender?: string | null
@@ -314,60 +308,48 @@ export type Database = {
       }
       users: {
         Row: {
+          account_info: Json | null
           avatar_url: string | null
           created_at: string | null
-          default_account_bank: string | null
-          default_account_holder: string | null
-          default_account_number: string | null
-          default_contact_type: string | null
-          default_host_notice: string | null
           deleted_at: string | null
           email: string | null
           id: string
-          kakao_open_chat_url: string | null
           manner_score: number | null
           metadata: Json | null
           nickname: string | null
+          operation_info: Json | null
           phone: string | null
           phone_verified: boolean | null
           positions: string[] | null
           real_name: string | null
         }
         Insert: {
+          account_info?: Json | null
           avatar_url?: string | null
           created_at?: string | null
-          default_account_bank?: string | null
-          default_account_holder?: string | null
-          default_account_number?: string | null
-          default_contact_type?: string | null
-          default_host_notice?: string | null
           deleted_at?: string | null
           email?: string | null
           id: string
-          kakao_open_chat_url?: string | null
           manner_score?: number | null
           metadata?: Json | null
           nickname?: string | null
+          operation_info?: Json | null
           phone?: string | null
           phone_verified?: boolean | null
           positions?: string[] | null
           real_name?: string | null
         }
         Update: {
+          account_info?: Json | null
           avatar_url?: string | null
           created_at?: string | null
-          default_account_bank?: string | null
-          default_account_holder?: string | null
-          default_account_number?: string | null
-          default_contact_type?: string | null
-          default_host_notice?: string | null
           deleted_at?: string | null
           email?: string | null
           id?: string
-          kakao_open_chat_url?: string | null
           manner_score?: number | null
           metadata?: Json | null
           nickname?: string | null
+          operation_info?: Json | null
           phone?: string | null
           phone_verified?: boolean | null
           positions?: string[] | null
@@ -383,7 +365,14 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      application_status: "PENDING" | "CONFIRMED" | "REJECTED" | "CANCELED"
+      application_status:
+        | "PENDING"
+        | "CONFIRMED"
+        | "REJECTED"
+        | "CANCELED"
+        | "PAYMENT_PENDING"
+        | "LATE"
+        | "NOT_ATTENDING"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -511,7 +500,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      application_status: ["PENDING", "CONFIRMED", "REJECTED", "CANCELED"],
+      application_status: [
+        "PENDING",
+        "CONFIRMED",
+        "REJECTED",
+        "CANCELED",
+        "PAYMENT_PENDING",
+        "LATE",
+        "NOT_ATTENDING",
+      ],
     },
   },
 } as const
@@ -608,6 +605,7 @@ export interface MatchRule {
 
 export interface OperationInfo {
   type: 'PHONE' | 'KAKAO_OPEN_CHAT';
+  phone?: string;
   url?: string;
   notice?: string;
 }

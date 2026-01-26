@@ -151,9 +151,11 @@ export function toMatchInsertDataV3(
   }
 
   // F. Operation Info (contact + notice)
+  const contactType = form.contactType || 'KAKAO_OPEN_CHAT';
   const operationInfo: OperationInfo = {
-    type: form.contactType || 'KAKAO_OPEN_CHAT',
-    url: form.contactContent || undefined,
+    type: contactType,
+    phone: contactType === 'PHONE' ? (form.contactContent || undefined) : undefined,
+    url: contactType === 'KAKAO_OPEN_CHAT' ? (form.contactContent || undefined) : undefined,
     notice: form.notice || undefined,
   };
 

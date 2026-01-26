@@ -3,17 +3,14 @@
 import React from 'react';
 import { cn } from '@/shared/lib/utils';
 import { Match } from '@/features/match/model/types';
+import { GENDER_LABELS, GenderValue } from '@/shared/config/constants';
 
 interface HeroSectionProps {
   match: Match;
 }
 
 export function HeroSection({ match }: HeroSectionProps) {
-  const genderLabel = {
-    MALE: '남성',
-    FEMALE: '여성',
-    MIXED: '성별 무관'
-  }[match.gender] || match.gender;
+  const genderLabel = GENDER_LABELS[match.gender as GenderValue] || match.gender;
 
   const isClosed = match.positions.all?.status === 'closed';
 

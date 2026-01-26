@@ -110,8 +110,8 @@ export class MatchToPrefillMapper {
 
     return {
       contactType: operationInfo.type,
-      phoneNumber: operationInfo.type === 'PHONE' ? (operationInfo.url || '') : '',
-      kakaoLink: operationInfo.type !== 'PHONE' ? (operationInfo.url || '') : '',
+      phoneNumber: operationInfo.type === 'PHONE' ? (operationInfo.phone || '') : '',
+      kakaoLink: operationInfo.type === 'KAKAO_OPEN_CHAT' ? (operationInfo.url || '') : '',
     };
   }
 

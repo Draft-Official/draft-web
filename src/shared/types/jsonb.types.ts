@@ -28,6 +28,7 @@ import type {
  */
 export interface OperationInfo {
   type: 'PHONE' | 'KAKAO_OPEN_CHAT';
+  phone?: string; // 전화번호 (type이 PHONE일 때)
   url?: string; // 오픈채팅 URL (type이 KAKAO_OPEN_CHAT일 때)
   notice?: string; // 공지사항
 }

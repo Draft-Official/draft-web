@@ -3,7 +3,7 @@
 import React from 'react';
 import { Match } from '@/features/match/model/types';
 import { Trophy, User, Swords, Calendar, Shirt } from 'lucide-react';
-import { getLevelLabel, getRequirementLabels } from '@/shared/config/constants';
+import { getLevelLabel, getRequirementLabels, GENDER_LABELS, GenderValue } from '@/shared/config/constants';
 
 interface MatchInfoSectionProps {
   match: Match;
@@ -45,7 +45,7 @@ export function MatchInfoSection({ match }: MatchInfoSectionProps) {
           <div>
             <div className="text-xs font-bold text-slate-400 mb-0.5">성별</div>
             <div className="text-[13px] font-bold text-slate-900">
-              {match.gender === 'MIXED' ? '성별 무관' : (match.gender === 'MALE' ? '남성' : '여성')}
+              {GENDER_LABELS[match.gender as GenderValue] || match.gender}
             </div>
           </div>
         </div>
