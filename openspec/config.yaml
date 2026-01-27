@@ -1,0 +1,37 @@
+schema: spec-driven
+
+context: |
+  ## Project: DRAFT (농구 용병 모집 플랫폼)
+  Basketball guest recruiting platform for Korean amateur basketball players.
+  Mobile-first adaptive web app (max-width: 430px).
+
+  ## Tech Stack
+  - Next.js 15 (App Router), TypeScript (Strict), React 19
+  - Tailwind CSS 4 + shadcn/ui + Radix UI
+  - Supabase (Auth + PostgreSQL + Storage)
+  - React Query for server state, React Hook Form + Zod for forms
+  - Kakao Maps API for location search
+
+  ## Architecture
+  3-Folder: app/ (routing only) → features/ (domain logic) → shared/ (cross-cutting)
+  Features must NOT import from other features.
+  All files kebab-case. Import aliases: @/features/*, @/shared/*
+
+  ## Domain
+  - Host: Team organizer creating matches
+  - Guest: Player applying to join matches
+  - Match lifecycle: recruiting → completed
+  - Positions: G (Guard), F (Forward), C (Center)
+
+  ## Type/Interface Rules
+  - Search before creating any new type (rg "interface TypeName|type TypeName" src/)
+  - Shared types (2+ features): src/shared/types/
+  - Feature-only types: src/features/[name]/model/types.ts
+  - API types: src/features/[name]/api/types.ts
+  - Create once, import everywhere. No duplicates.
+
+  ## Constraints
+  - Mobile-first: max-w-[430px], primary color #FF6600
+  - No business logic in app/ directory
+  - DB access only via feature API layers (never Supabase from UI)
+  - Commit convention: feat/fix/refactor with scope, Co-Authored-By
