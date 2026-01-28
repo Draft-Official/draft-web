@@ -108,6 +108,7 @@ export function applicationToGuest(app: ApplicationWithUser): Guest {
     ageGroup: '정보 없음', // DB에 age_group이 없어서 기본값
     height: height ? `${height}cm` : '정보 없음',
     status: getGuestStatus(app),
+    paymentVerified: !!app.payment_verified_at, // 호스트 내부 관리용 입금 확인 여부
     avatar: app.user.avatar_url || undefined,
     // matchHistory는 별도 쿼리 필요 (추후 구현)
   };

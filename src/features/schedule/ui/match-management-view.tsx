@@ -6,7 +6,7 @@ import { Calendar, RotateCcw, Loader2 } from "lucide-react";
 import { useLocalStorage } from "@/shared/lib/hooks/use-local-storage";
 import { FilterDropdown } from "./components/filter-dropdown";
 import { MatchCard } from "./components/match-card";
-import { useHostedMatches, useParticipatingMatches } from "../api";
+import { useHostedMatches, useParticipatingMatches, useConfirmPaymentByGuest } from "../api";
 import type { MatchType, ManagedMatch } from "../model/types";
 import {
   MATCH_TYPE_FILTER_OPTIONS,
@@ -33,6 +33,13 @@ export function MatchManagementView() {
   // Fetch data from Supabase
   const { data: hostedMatches = [], isLoading: isLoadingHosted } = useHostedMatches();
   const { data: participatingMatches = [], isLoading: isLoadingParticipating } = useParticipatingMatches();
+
+  // Mutation for confirming payment by guest
+  const confirmPaymentMutation = useConfirmPaymentByGuest();
+
+  const handleConfirmPayment = (applicationId: string, matchId: string) => {
+    confirmPaymentMutation.mutate({ applicationId, matchId });
+  };
 
   const isLoading = viewMode === "host" ? isLoadingHosted : isLoadingParticipating;
   const allMatches: ManagedMatch[] = viewMode === "host" ? hostedMatches : participatingMatches;
@@ -260,7 +267,12 @@ export function MatchManagementView() {
           </div>
         ) : (
           filteredMatches.map((match) => (
-            <MatchCard key={match.id} match={match} onClick={handleCardClick} />
+            <MatchCard
+              key={match.id}
+              match={match}
+              onClick={handleCardClick}
+              onConfirmPayment={handleConfirmPayment}
+            />
           ))
         )}
       </section>

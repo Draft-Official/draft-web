@@ -40,7 +40,10 @@ function makeQueryClient() {
       },
     }),
     mutationCache: new MutationCache({
-      onError: (error) => {
+      onError: (error, _variables, _context, mutation) => {
+        // 개별 mutation에 onError가 있으면 글로벌 토스트 생략 (중복 방지)
+        if (mutation.options.onError) return;
+
         const message =
           error instanceof AppError
             ? error.message

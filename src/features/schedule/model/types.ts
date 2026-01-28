@@ -34,6 +34,7 @@ export interface ManagedMatch {
   locationUrl?: string;
 
   // Guest specific
+  applicationId?: string; // 게스트 신청 ID (송금 완료 처리용)
   approvalStatus?: string;
   amount?: number;
   bankInfo?: {
@@ -84,6 +85,7 @@ export interface Participant {
 // 게스트 정보 (호스트 관리용)
 export interface Guest extends Participant {
   status: GuestStatus;
+  paymentVerified?: boolean; // 호스트 내부 관리용 입금 확인 여부
   matchHistory?: {
     count: number;
     lastDate?: string;

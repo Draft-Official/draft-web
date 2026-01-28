@@ -29,11 +29,12 @@ import {
 import { Input } from '@/shared/ui/base/input';
 import { Label } from '@/shared/ui/base/label';
 import { toast } from 'sonner';
+import { PaymentConfirmDialog } from '../components/payment-confirm-dialog';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { useAuth } from '@/features/auth';
 import { createApplicationService } from '@/features/application/api/application-api';
-import { matchManagementKeys } from '../../api/keys';
+import { matchManagementKeys, useConfirmPaymentByGuest } from '../../api';
 import type { GuestMatchDetail } from '../../model/types';
 import { MOCK_GUEST_MATCH_DETAIL } from '../../model/mock-data';
 
@@ -85,6 +86,20 @@ export function GuestMatchDetailView() {
     },
   });
 
+  // 게스트 자가 확정 mutation (송금 완료)
+  const confirmPaymentByGuestMutation = useConfirmPaymentByGuest();
+  const handleConfirmPayment = () => {
+    if (!myApplication?.id) return;
+    confirmPaymentByGuestMutation.mutate(
+      { applicationId: myApplication.id, matchId },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ['my-application', matchId] });
+        },
+      }
+    );
+  };
+
   // 신청 상태에 따른 텍스트
   const getStatusText = () => {
     if (!myApplication) return null;
@@ -102,6 +117,7 @@ export function GuestMatchDetailView() {
 
   const [match] = useState<GuestMatchDetail>(MOCK_GUEST_MATCH_DETAIL);
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
+  const [isPaymentConfirmOpen, setIsPaymentConfirmOpen] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
 
   // 기존 applied 상태 대신 myApplication 사용
@@ -422,6 +438,71 @@ export function GuestMatchDetailView() {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
+          ) : myApplication?.status === 'PENDING' && myApplication?.approved_at ? (
+            // 입금대기 상태: 송금 완료 버튼 표시
+            <div className="space-y-3">
+              {/* 상태 및 계좌 정보 */}
+              <div className="bg-slate-50 p-4 rounded-xl space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500">현재 상태</span>
+                  <span className="font-bold text-primary">입금대기</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500">참가비</span>
+                  <span className="font-bold text-slate-900">
+                    {match.price.toLocaleString()}원
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500">입금계좌</span>
+                  <div className="text-right">
+                    <span className="font-bold text-slate-900">
+                      {match.bankInfo.bank} {match.bankInfo.account}
+                    </span>
+                    <button
+                      onClick={() => copyToClipboard(`${match.bankInfo.bank} ${match.bankInfo.account}`)}
+                      className="ml-2 text-xs text-primary underline"
+                    >
+                      복사
+                    </button>
+                  </div>
+                </div>
+              </div>
+              {/* 버튼 영역 */}
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => setIsCancelDialogOpen(true)}
+                  variant="outline"
+                  className="flex-1 h-12 text-base font-bold rounded-xl border-slate-200"
+                >
+                  취소하기
+                </Button>
+                <Button
+                  onClick={() => setIsPaymentConfirmOpen(true)}
+                  disabled={confirmPaymentByGuestMutation.isPending}
+                  className="flex-1 h-12 text-base font-bold rounded-xl bg-primary hover:bg-primary/90 text-white"
+                >
+                  {confirmPaymentByGuestMutation.isPending ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    '송금 완료'
+                  )}
+                </Button>
+              </div>
+            </div>
+          ) : myApplication?.status === 'CONFIRMED' ? (
+            // 확정 상태
+            <div className="space-y-2">
+              <div className="text-center text-sm text-slate-500">
+                현재 상태: <span className="font-bold text-green-600">참가 확정</span>
+              </div>
+              <Button
+                onClick={() => setIsCancelDialogOpen(true)}
+                className="w-full h-12 text-lg font-bold rounded-xl transition-all active:scale-95 bg-red-100 hover:bg-red-200 text-red-600 border border-red-200"
+              >
+                참가 취소
+              </Button>
+            </div>
           ) : canCancel ? (
             <div className="space-y-2">
               {/* 현재 상태 표시 */}
@@ -477,6 +558,13 @@ export function GuestMatchDetailView() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <PaymentConfirmDialog
+        open={isPaymentConfirmOpen}
+        onOpenChange={setIsPaymentConfirmOpen}
+        onConfirm={handleConfirmPayment}
+        isPending={confirmPaymentByGuestMutation.isPending}
+      />
     </div>
   );
 }

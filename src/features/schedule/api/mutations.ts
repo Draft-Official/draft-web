@@ -59,8 +59,145 @@ export function useApproveApplication() {
 }
 
 /**
- * 입금 확인 (→ CONFIRMED)
- * 신청 확정 시 recruitment_setup의 current 값도 업데이트
+ * 게스트 자가 확정 (송금 완료 → CONFIRMED)
+ * 게스트가 직접 "송금 완료" 버튼을 누르면 바로 CONFIRMED 상태로 전환
+ * recruitment_setup의 current 값도 업데이트
+ */
+export function useConfirmPaymentByGuest() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      applicationId,
+      matchId,
+    }: {
+      applicationId: string;
+      matchId: string;
+    }) => {
+      const supabase = getSupabaseBrowserClient();
+      const applicationService = createApplicationService(supabase);
+
+      // 1. 신청 정보 조회 (participants_info 포함)
+      const application = await applicationService.getApplicationById(applicationId);
+
+      // 2. 경기 정보 조회 (recruitment_setup 포함)
+      const { data: match, error: matchError } = await supabase
+        .from('matches')
+        .select('recruitment_setup')
+        .eq('id', matchId)
+        .single();
+
+      if (matchError) throw matchError;
+
+      // 3. recruitment_setup의 current 값 업데이트
+      const recruitmentSetup = match.recruitment_setup as RecruitmentSetup;
+
+      if (recruitmentSetup && application.participants_info) {
+        const participantsInfo = application.participants_info as Array<{ position?: string }>;
+
+        if (recruitmentSetup.type === 'POSITION' && recruitmentSetup.positions) {
+          // 포지션별로 current 증가
+          participantsInfo.forEach((participant) => {
+            const pos = participant.position as 'G' | 'F' | 'C' | 'B';
+            if (pos && recruitmentSetup.positions?.[pos]) {
+              recruitmentSetup.positions[pos].current += 1;
+            }
+          });
+        } else if (recruitmentSetup.type === 'ANY') {
+          // ANY 타입: max_count는 유지, current_count 증가 (또는 별도 필드 사용)
+          // 참가자 수만큼 증가
+          const addCount = participantsInfo.length;
+          if (!recruitmentSetup.current_count) {
+            recruitmentSetup.current_count = 0;
+          }
+          recruitmentSetup.current_count += addCount;
+        }
+
+        // 4. 경기 recruitment_setup 업데이트
+        const { error: updateError } = await supabase
+          .from('matches')
+          .update({ recruitment_setup: recruitmentSetup as unknown as Json })
+          .eq('id', matchId);
+
+        if (updateError) {
+          console.error('Failed to update recruitment_setup:', updateError);
+          // 에러가 나도 신청 확정은 진행
+        }
+      }
+
+      // 5. 신청 상태 확정
+      return applicationService.confirmApplication(applicationId);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: matchManagementKeys.applicants(variables.matchId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: matchManagementKeys.matchDetail(variables.matchId),
+      });
+      // 모든 사용자의 참여 목록 갱신 (게스트 탭)
+      queryClient.invalidateQueries({
+        queryKey: matchManagementKeys.all,
+      });
+      // 홈탭 경기 목록 갱신 (빈자리 반영)
+      queryClient.invalidateQueries({
+        queryKey: matchKeys.lists(),
+      });
+      toast.success('송금 완료! 참가가 확정되었습니다.');
+    },
+    onError: (error: Error) => {
+      console.error('Confirm payment by guest error:', error);
+      toast.error(`확정 실패: ${error.message}`);
+    },
+  });
+}
+
+/**
+ * 호스트 입금 확인 (CONFIRMED 상태에서 payment_verified_at 설정)
+ * 호스트 내부 관리용 - 게스트 상태에는 영향 없음
+ */
+export function useVerifyPayment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      applicationId,
+      matchId,
+    }: {
+      applicationId: string;
+      matchId: string;
+    }) => {
+      const supabase = getSupabaseBrowserClient();
+
+      const { data, error } = await supabase
+        .from('applications')
+        .update({
+          payment_verified_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', applicationId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: matchManagementKeys.applicants(variables.matchId),
+      });
+      toast.success('입금이 확인되었습니다.');
+    },
+    onError: (error: Error) => {
+      console.error('Verify payment error:', error);
+      toast.error(`입금 확인 실패: ${error.message}`);
+    },
+  });
+}
+
+/**
+ * 입금 확인 (→ CONFIRMED) - DEPRECATED: useConfirmPaymentByGuest 사용 권장
+ * 기존 호스트가 입금 확인하는 플로우 (하위 호환성 유지)
  */
 export function useConfirmPayment() {
   const queryClient = useQueryClient();

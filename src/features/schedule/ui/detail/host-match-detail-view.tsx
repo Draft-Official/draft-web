@@ -15,6 +15,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
+import { Badge } from '@/shared/ui/base/badge';
 import { Button } from '@/shared/ui/base/button';
 import { Checkbox } from '@/shared/ui/base/checkbox';
 import {
@@ -41,6 +42,7 @@ import {
   useMatchApplicants,
   useApproveApplication,
   useConfirmPayment,
+  useVerifyPayment,
   useRejectApplication,
   useCancelParticipation,
   useUpdateMatchStatus,
@@ -68,6 +70,7 @@ export function HostMatchDetailView() {
   // Mutations
   const approveMutation = useApproveApplication();
   const confirmMutation = useConfirmPayment();
+  const verifyPaymentMutation = useVerifyPayment();
   const rejectMutation = useRejectApplication();
   const cancelMutation = useCancelParticipation();
   const statusMutation = useUpdateMatchStatus();
@@ -468,7 +471,22 @@ export function HostMatchDetailView() {
 
                     {/* Info */}
                     <div className="flex-1 min-w-0">
-                      <p className="font-bold text-slate-900">{guest.name}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-bold text-slate-900">{guest.name}</p>
+                        {guest.status === 'confirmed' && (
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              'text-[10px] px-2 py-0.5',
+                              guest.paymentVerified
+                                ? 'bg-green-50 text-green-700 border-green-200'
+                                : 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                            )}
+                          >
+                            {guest.paymentVerified ? '입금확인' : '입금미확인'}
+                          </Badge>
+                        )}
+                      </div>
                       <p className="text-sm text-slate-500">
                         {guest.position} · {guest.level} · {guest.ageGroup}
                       </p>
@@ -529,17 +547,32 @@ export function HostMatchDetailView() {
                       )}
 
                       {guest.status === 'confirmed' && (
-                        <Button
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setGuestToCancel(guest);
-                            setIsCancelConfirmOpen(true);
-                          }}
-                          className="bg-red-100 hover:bg-red-200 text-red-600 border border-red-200 h-8 px-3 text-xs"
-                        >
-                          취소
-                        </Button>
+                        <>
+                          {!guest.paymentVerified && (
+                            <Button
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                verifyPaymentMutation.mutate({ applicationId: guest.id, matchId });
+                              }}
+                              variant="outline"
+                              className="h-8 px-3 text-xs"
+                            >
+                              입금확인
+                            </Button>
+                          )}
+                          <Button
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setGuestToCancel(guest);
+                              setIsCancelConfirmOpen(true);
+                            }}
+                            className="bg-red-100 hover:bg-red-200 text-red-600 border border-red-200 h-8 px-3 text-xs"
+                          >
+                            취소
+                          </Button>
+                        </>
                       )}
                     </div>
                   </div>
