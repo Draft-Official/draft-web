@@ -211,7 +211,12 @@ export function MatchCreateView() {
 
       // parking 처리
       if (gymFacilities.parking) {
-        setParkingCost(gymFacilities.parking_fee ?? "0");
+        // parking_fee: "무료" -> "0" 변환 (기존 데이터 호환성)
+        let parkingFee = gymFacilities.parking_fee ?? "0";
+        if (parkingFee === "무료") {
+          parkingFee = "0";
+        }
+        setParkingCost(parkingFee);
       } else {
         setParkingCost("");
       }

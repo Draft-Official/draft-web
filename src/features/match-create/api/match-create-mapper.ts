@@ -18,6 +18,8 @@ import { MatchCreateFormData } from '@/features/match-create/model/schema';
 export function extractGymDataV3(form: MatchCreateFormData): GymData {
   const formFacilities = form.facilities;
 
+  console.log('[extractGymDataV3] Input form.facilities:', formFacilities);
+
   // 빈 값이면 필드 자체를 제외 (undefined)
   const facilities: GymFacilities = {};
 
@@ -35,10 +37,11 @@ export function extractGymDataV3(form: MatchCreateFormData): GymData {
     facilities.shower = formFacilities.shower; // boolean으로 단순화
   }
 
-  // parking 처리: 빈 문자열이 아닐 때만
-  if (formFacilities?.parking) {
+  // parking 처리: 빈 문자열이 아닐 때만 (빈 문자열 = 주차 정보 없음)
+  if (formFacilities?.parking !== undefined && formFacilities.parking !== '') {
     facilities.parking = true;
-    facilities.parking_fee = formFacilities.parking === '0' ? '무료' : formFacilities.parking;
+    // 숫자 문자열 그대로 저장 (예: "0" = 무료, "3000" = 시간당 3000원)
+    facilities.parking_fee = formFacilities.parking;
     if (formFacilities.parkingDetail) {
       facilities.parking_location = formFacilities.parkingDetail;
     }
@@ -48,6 +51,9 @@ export function extractGymDataV3(form: MatchCreateFormData): GymData {
   if (formFacilities?.courtSize) {
     facilities.court_size_type = formFacilities.courtSize; // Already uppercase: 'REGULAR', 'SHORT', 'NARROW'
   }
+
+  console.log('[extractGymDataV3] Output facilities:', facilities);
+  console.log('[extractGymDataV3] facilities keys count:', Object.keys(facilities).length);
 
   return {
     name: form.location.name,

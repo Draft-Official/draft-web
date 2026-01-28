@@ -50,26 +50,61 @@ export class GymService {
       logSupabaseResult('gyms', 'SELECT', existingGym, lookupError);
 
       if (!lookupError && existingGym) {
-        // 기존 gym 발견: facilities 병합 업데이트 (Latest Wins)
+        // 기존 gym 발견: facilities 완전 덮어쓰기 (Latest Wins)
+        // 새 데이터가 있으면 기존 데이터를 완전히 교체
         if (gymData.facilities && Object.keys(gymData.facilities).length > 0) {
-          const mergedFacilities = {
-            ...(existingGym.facilities as any || {}),
-            ...gymData.facilities,
-          };
+          // 명시적으로 삭제할 필드 처리: 새 데이터에 없는 필드는 null로 설정하여 삭제
+          const existingFacilities = (existingGym.facilities as Record<string, unknown>) || {};
+          const newFacilities: Record<string, unknown> = { ...gymData.facilities };
+
+          // 기존에 있던 필드 중 새 데이터에 없는 것은 명시적으로 null 설정
+          // 이렇게 해야 DB에서 해당 필드가 제거됨
+          const facilityKeys = ['parking', 'parking_fee', 'parking_location', 'court_size_type',
+                               'ball', 'water_purifier', 'air_conditioner', 'shower'];
+
+          for (const key of facilityKeys) {
+            if (existingFacilities[key] !== undefined && newFacilities[key] === undefined) {
+              // 기존에 있었지만 새 데이터에 없음 = 삭제 의도
+              newFacilities[key] = null;
+            }
+          }
 
           const updatePayload = {
-            facilities: mergedFacilities,
+            facilities: newFacilities as unknown as Json,
             updated_at: new Date().toISOString()
           };
 
+          console.log('[GymService] Updating gym facilities:', {
+            gymId: existingGym.id,
+            existingFacilities,
+            newFacilities,
+            updatePayload
+          });
+
           logSupabaseQuery('gyms', 'UPDATE', updatePayload, { id: existingGym.id });
 
-          const { error: updateError } = await this.supabase
+          // .maybeSingle() 사용: RLS로 인해 0개 결과일 때 에러 방지
+          const { data: updatedData, error: updateError } = await this.supabase
             .from('gyms')
             .update(updatePayload)
-            .eq('id', existingGym.id);
+            .eq('id', existingGym.id)
+            .select()
+            .maybeSingle();
 
-          logSupabaseResult('gyms', 'UPDATE', { id: existingGym.id }, updateError);
+          console.log('[GymService] UPDATE result:', { updatedData, updateError });
+          logSupabaseResult('gyms', 'UPDATE', { id: existingGym.id, updated: !!updatedData }, updateError);
+
+          // UPDATE 에러 처리
+          if (updateError) {
+            console.error('[GymService] Failed to update gym facilities:', updateError);
+            throw updateError;
+          }
+
+          // RLS로 인해 UPDATE가 무시된 경우 - 경고만 출력하고 계속 진행
+          // (gym id는 이미 있으므로 match 생성은 가능)
+          if (!updatedData) {
+            console.warn('[GymService] UPDATE returned no data - RLS policy may be blocking updates. Check gyms table UPDATE policy.');
+          }
         }
 
         logResponse(this.SERVICE_NAME, 'upsertGym', { gymId: existingGym.id, source: 'kakao_place_id' });
