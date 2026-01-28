@@ -45,13 +45,14 @@ export const facilitiesSchema = z.object({
 });
 
 // Age range schema
+// max가 null이면 "이상" (예: { min: 30, max: null } → "30대 이상")
 export const ageRangeSchema = z.object({
-  min: z.number().min(10, '최소 연령은 10세 이상이어야 합니다').max(99),
-  max: z.number().min(10).max(99, '최대 연령은 99세 이하여야 합니다'),
+  min: z.number().min(20, '최소 연령대는 20대입니다').max(50),
+  max: z.number().min(20).max(50).nullable(), // null = "이상"
 }).refine(
-  (data: { min: number; max: number }) => data.max >= data.min,
+  (data: { min: number; max: number | null }) => data.max === null || data.max >= data.min,
   {
-    message: '최대 연령은 최소 연령보다 크거나 같아야 합니다',
+    message: '최대 연령대는 최소 연령대보다 크거나 같아야 합니다',
     path: ['max'],
   }
 );
@@ -79,6 +80,8 @@ export const matchCreateSchema = z.object({
 
   // Match Specs
   level: z.number().or(z.string()),
+  levelMin: z.number().min(1).max(7).optional(), // 실력 범위 최소값
+  levelMax: z.number().min(1).max(7).optional(), // 실력 범위 최대값
 
   // matchFormat: 5vs5, 3vs3
   matchFormat: z.enum(MATCH_FORMAT_VALUES, {
@@ -100,7 +103,6 @@ export const matchCreateSchema = z.object({
     quarterTime: z.number().min(1).max(20).optional(),
     quarterCount: z.number().min(1).max(10).optional(),
     fullGames: z.number().min(0).max(10).optional(),
-    guaranteedQuarters: z.number().min(0).max(10).optional(),
     referee: z.enum(REFEREE_TYPE_VALUES).optional(), // 심판 유형
   }).optional(),
 

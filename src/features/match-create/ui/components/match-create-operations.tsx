@@ -8,6 +8,7 @@ import { Label } from '@/shared/ui/base/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/base/select';
 import { Switch } from '@/shared/ui/base/switch';
 import { Textarea } from '@/shared/ui/base/textarea';
+import { BankCombobox } from '@/shared/ui/base/bank-combobox';
 import { FileText, MessageCircle, Phone, UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
 import { AccountInfo, OperationInfo } from '@/shared/types/jsonb.types';
@@ -193,7 +194,7 @@ export function MatchCreateOperations({
             <div>
               <p className="text-sm font-medium text-blue-800">처음이시네요! 👋</p>
               <p className="text-xs text-blue-600 mt-1">
-                팀을 생성하고 게스트를 편리하게 모집하세요.
+                팀을 생성하면 팀을 관리하고 게스트를 편하게 모집할 수 있어요.
               </p>
             </div>
           </div>
@@ -225,6 +226,24 @@ export function MatchCreateOperations({
         <p className="text-xs text-slate-500 mt-1">
           💡 팀을 선택하면 팀의 기본 계좌·공지가 자동으로 채워집니다.
         </p>
+
+        {/* Team Name for Individual Host */}
+        {selectedHost === 'me' && (
+          <div className="mt-3 space-y-2">
+            <div className="flex items-center gap-1">
+              <Label className="text-sm font-bold text-slate-600">팀 이름</Label>
+              <span className="text-red-500 text-xs">*</span>
+            </div>
+            <Input
+              {...register('manualTeamName')}
+              placeholder="예: 강남픽업, 수요농구회"
+              className="h-11 bg-white border-slate-200"
+            />
+            <p className="text-xs text-slate-500">
+              💡 팀을 생성하면 팀을 관리하고 게스트를 편하게 모집할 수 있어요
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="space-y-4">
@@ -240,10 +259,10 @@ export function MatchCreateOperations({
               placeholder="예금주"
               className="w-[90px] h-11 bg-white border-slate-200"
             />
-            <Input
-              {...register('bankName')}
-              placeholder="은행명"
-              className="w-[90px] h-11 bg-white border-slate-200"
+            <BankCombobox
+              value={bankName}
+              onValueChange={(value) => setValue('bankName', value)}
+              className="w-[100px] h-11 bg-white border-slate-200"
             />
             <Input
               {...register('accountNumber')}
@@ -258,13 +277,13 @@ export function MatchCreateOperations({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1">
               <Label className="text-sm font-bold text-slate-600">
-                문의하기 (연락처)
+                문의연락처
               </Label>
               <span className="text-red-500 text-xs">*</span>
             </div>
             {/* Toggle: 전화번호 / 오픈채팅 */}
             <div className="flex items-center gap-2">
-              <span className={`text-xs ${contactType === 'PHONE' ? 'text-orange-600 font-medium' : 'text-slate-400'}`}>
+              <span className={`text-xs font-bold ${contactType === 'PHONE' ? 'text-[#FF6600]' : 'text-slate-400'}`}>
                 <Phone className="w-3 h-3 inline mr-0.5" />
                 전화
               </span>
@@ -274,9 +293,9 @@ export function MatchCreateOperations({
                   setValue('operations.contactType', checked ? 'KAKAO_OPEN_CHAT' : 'PHONE');
                   // Value persistence: Do not reset content
                 }}
-                className="data-[state=checked]:bg-yellow-400 data-[state=unchecked]:bg-orange-400"
+                className="data-[state=checked]:bg-[#FF6600] data-[state=unchecked]:bg-slate-200"
               />
-              <span className={`text-xs ${contactType === 'KAKAO_OPEN_CHAT' ? 'text-yellow-600 font-medium' : 'text-slate-400'}`}>
+              <span className={`text-xs font-bold ${contactType === 'KAKAO_OPEN_CHAT' ? 'text-[#FF6600]' : 'text-slate-400'}`}>
                 <MessageCircle className="w-3 h-3 inline mr-0.5" />
                 오픈채팅
               </span>

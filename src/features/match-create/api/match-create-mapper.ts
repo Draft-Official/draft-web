@@ -5,6 +5,8 @@ import {
   RecruitmentSetup,
   OperationInfo,
   AccountInfo,
+  LevelRange,
+  AgeRange,
   Json,
 } from '@/shared/types/database.types';
 import { GymData } from '@/shared/api/gym-api';
@@ -136,7 +138,7 @@ export function toMatchInsertDataV3(
   const hasQuarterRules = rules.quarterTime || rules.quarterCount || rules.fullGames;
 
   // Check if any match option data exists
-  const hasMatchRuleData = form.gameFormat || hasQuarterRules || rules.guaranteedQuarters || rules.referee;
+  const hasMatchRuleData = form.gameFormat || hasQuarterRules || rules.referee;
 
   if (hasMatchRuleData) {
     matchRule = {
@@ -146,10 +148,22 @@ export function toMatchInsertDataV3(
         quarter_count: rules.quarterCount || 4,
         game_count: rules.fullGames || 2,
       } : undefined,
-      guaranteed_quarters: rules.guaranteedQuarters,
       referee_type: rules.referee, // Already uppercase: 'SELF', 'STAFF', 'PRO'
     };
   }
+
+  // E-2. Level Range (별도 JSONB 컬럼)
+  const levelRange: LevelRange = {
+    min: form.levelMin ?? Number(form.level) ?? 1,
+    max: form.levelMax ?? Number(form.level) ?? 7,
+  };
+
+  // E-3. Age Range (별도 JSONB 컬럼)
+  // form.ageRange: { min: number, max: number | null } | undefined
+  const ageRange: AgeRange | undefined = form.ageRange ? {
+    min: form.ageRange.min,
+    max: form.ageRange.max,
+  } : undefined;
 
   // F. Operation Info (contact + notice)
   const contactType = form.contactType || 'KAKAO_OPEN_CHAT';
@@ -191,7 +205,9 @@ export function toMatchInsertDataV3(
     match_type: 'GUEST_RECRUIT',     // 경기 목적 고정 (매치 생성 v1은 용병 모집만 지원)
     match_format: form.matchFormat,    // 경기 방식 (UI 작업 전이라 form.matchType 사용)
     gender_rule: form.gender, // 이미 대문자: 'MALE' | 'FEMALE' | 'MIXED'
-    level_limit: String(form.level),   // number to string
+    level_limit: String(form.level),   // number to string (backward compatibility)
+    level_range: levelRange as unknown as Json,
+    age_range: ageRange ? (ageRange as unknown as Json) : null,
 
     cost_type: costType,
     cost_amount: costAmount,

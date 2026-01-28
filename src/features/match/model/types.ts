@@ -110,7 +110,6 @@ export interface MatchOptionsUI {
     quarterCount: number;
     gameCount: number;
   };
-  guaranteedQuarters?: number;
   refereeType?: 'SELF' | 'STAFF' | 'PRO';
 }
 
@@ -179,7 +178,6 @@ export interface Match {
     quarterTime: number;
     quarterCount: number;
     fullGames?: number;
-    guaranteedQuarters: number;
     referee: 'self' | 'guest' | 'pro';
   };
 

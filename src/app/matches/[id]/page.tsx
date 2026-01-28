@@ -69,7 +69,6 @@ function adaptToDetailMatch(data: GuestListMatch): Match {
       quarterTime: matchOptions.quarterRule?.minutesPerQuarter ?? 0,
       quarterCount: matchOptions.quarterRule?.quarterCount ?? 0,
       fullGames: matchOptions.quarterRule?.gameCount ?? 0,
-      guaranteedQuarters: matchOptions.guaranteedQuarters ?? 0,
       referee: matchOptions.refereeType ? refereeTypeMap[matchOptions.refereeType] : 'self',
     } : undefined,
     currentPlayers: 0,

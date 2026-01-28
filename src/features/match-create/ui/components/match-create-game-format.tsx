@@ -14,8 +14,6 @@ interface MatchCreateGameFormatProps {
   setRuleQuarters: (v: string) => void;
   ruleGames: string;
   setRuleGames: (v: string) => void;
-  guaranteedQuarters: string;
-  setGuaranteedQuarters: (v: string) => void;
   refereeType: RefereeTypeValue;
   setRefereeType: (v: RefereeTypeValue) => void;
 }
@@ -71,13 +69,11 @@ export function MatchCreateGameFormat({
   ruleMinutes, setRuleMinutes,
   ruleQuarters, setRuleQuarters,
   ruleGames, setRuleGames,
-  guaranteedQuarters, setGuaranteedQuarters,
   refereeType, setRefereeType
 }: MatchCreateGameFormatProps) {
   // UI 상태 로컬화
   const [showGameFormatType, setShowGameFormatType] = useState(false);
   const [showRules, setShowRules] = useState(false);
-  const [showGuaranteed, setShowGuaranteed] = useState(false);
   const [showReferee, setShowReferee] = useState(false);
 
   return (
@@ -104,7 +100,7 @@ export function MatchCreateGameFormat({
                         <Chip
                             key={t.value}
                             label={t.label}
-                            variant="orange"
+                            variant="navy"
                             isActive={gameFormatType === t.value}
                             showCheckIcon={false}
                             onClick={() => setGameFormatType(t.value)}
@@ -161,28 +157,6 @@ export function MatchCreateGameFormat({
                 </div>
             </GameFormatItem>
 
-            {/* Guaranteed Quarters - Input Suffix */}
-            <GameFormatItem
-                title="보장 쿼터"
-                isOpen={showGuaranteed}
-                onOpen={() => setShowGuaranteed(true)}
-                onClose={() => {
-                    setShowGuaranteed(false);
-                    setGuaranteedQuarters("");
-                }}
-            >
-                <div className="flex items-center gap-2">
-                    <Input
-                        value={guaranteedQuarters}
-                        onChange={(e) => setGuaranteedQuarters(e.target.value)}
-                        placeholder="0"
-                        className="w-16 h-10 text-center bg-white border-slate-200 rounded-lg"
-                        inputMode="numeric"
-                    />
-                    <span className="text-slate-500 text-sm whitespace-nowrap">쿼터</span>
-                </div>
-            </GameFormatItem>
-
             {/* Referee - Spacing Update */}
             <GameFormatItem
                 title="심판 방식"
@@ -198,7 +172,7 @@ export function MatchCreateGameFormat({
                         <Chip
                             key={r.value}
                             label={r.label}
-                            variant="orange"
+                            variant="navy"
                             isActive={refereeType === r.value}
                             showCheckIcon={false}
                             onClick={() => setRefereeType(r.value)}

@@ -107,7 +107,6 @@ export function matchRowToGuestListMatch(row: any): GuestListMatch {
     const hasAnyOption =
       dbMatchRule.play_style ||
       dbMatchRule.quarter_rule ||
-      (dbMatchRule.guaranteed_quarters && dbMatchRule.guaranteed_quarters > 0) ||
       dbMatchRule.referee_type;
 
     if (hasAnyOption) {
@@ -120,10 +119,6 @@ export function matchRowToGuestListMatch(row: any): GuestListMatch {
               gameCount: dbMatchRule.quarter_rule.game_count,
             }
           : undefined,
-        guaranteedQuarters:
-          dbMatchRule.guaranteed_quarters && dbMatchRule.guaranteed_quarters > 0
-            ? dbMatchRule.guaranteed_quarters
-            : undefined,
         refereeType: dbMatchRule.referee_type as RefereeTypeValue | undefined,
       };
     }

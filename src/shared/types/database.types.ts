@@ -111,6 +111,7 @@ export type Database = {
       matches: {
         Row: {
           account_info: Json | null
+          age_range: Json | null
           cost_amount: number | null
           cost_type: string
           created_at: string | null
@@ -120,6 +121,7 @@ export type Database = {
           host_id: string
           id: string
           level_limit: string | null
+          level_range: Json | null
           manual_team_name: string
           match_format: string
           match_rule: Json | null
@@ -134,6 +136,7 @@ export type Database = {
         }
         Insert: {
           account_info?: Json | null
+          age_range?: Json | null
           cost_amount?: number | null
           cost_type?: string
           created_at?: string | null
@@ -143,6 +146,7 @@ export type Database = {
           host_id: string
           id?: string
           level_limit?: string | null
+          level_range?: Json | null
           manual_team_name: string
           match_format?: string
           match_rule?: Json | null
@@ -157,6 +161,7 @@ export type Database = {
         }
         Update: {
           account_info?: Json | null
+          age_range?: Json | null
           cost_amount?: number | null
           cost_type?: string
           created_at?: string | null
@@ -167,6 +172,7 @@ export type Database = {
           host_id?: string
           id?: string
           level_limit?: string | null
+          level_range?: Json | null
           manual_team_name?: string
           match_format?: string
           match_rule?: Json | null
@@ -601,8 +607,26 @@ export interface MatchRule {
     quarter_count: number;
     game_count: number;
   };
-  guaranteed_quarters?: number;
   referee_type?: string;
+}
+
+/**
+ * 실력 범위
+ * 사용 테이블: matches (level_range)
+ */
+export interface LevelRange {
+  min: number; // 1-7
+  max: number; // 1-7
+}
+
+/**
+ * 나이 범위
+ * 사용 테이블: matches (age_range)
+ * max가 null이면 "이상" (예: { min: 30, max: null } → "30대 이상")
+ */
+export interface AgeRange {
+  min: number; // 20, 30, 40, 50
+  max: number | null; // null = "이상"
 }
 
 export interface OperationInfo {

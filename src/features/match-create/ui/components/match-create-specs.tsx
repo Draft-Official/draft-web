@@ -1,6 +1,5 @@
 import { Label } from '@/shared/ui/base/label';
 import { Chip } from '@/shared/ui/base/chip';
-import { cn } from '@/shared/lib/utils';
 import { Settings } from 'lucide-react';
 import {
   MATCH_FORMAT_OPTIONS,
@@ -9,15 +8,16 @@ import {
   MatchFormatValue
 } from '@/shared/config/constants';
 import { AgeSelector } from './age-selector';
-import { SkillSlider } from '@/shared/ui/base/skill-slider';
+import { SkillRangeSlider } from '@/shared/ui/base/skill-range-slider';
 
 interface MatchCreateSpecsProps {
   matchFormat: MatchFormatValue;
   setMatchFormat: (v: MatchFormatValue) => void;
   gender: GenderValue;
   setGender: (v: GenderValue) => void;
-  level: number;
-  setLevel: (v: number) => void;
+  levelMin: number;
+  levelMax: number;
+  onLevelChange: (min: number, max: number) => void;
   selectedAges: string[];
   handleAgeSelection: (age: string) => void;
   handleAgeRangeUpdate: (ages: string[]) => void;
@@ -30,7 +30,7 @@ interface MatchCreateSpecsProps {
 export function MatchCreateSpecs({
   matchFormat, setMatchFormat,
   gender, setGender,
-  level, setLevel,
+  levelMin, levelMax, onLevelChange,
   selectedAges, handleAgeSelection,
   handleAgeRangeUpdate,
   hasShoes, setHasShoes,
@@ -53,7 +53,7 @@ export function MatchCreateSpecs({
                         <Chip
                             key={type.value}
                             label={type.label}
-                            variant="orange"
+                            variant="navy"
                             isActive={matchFormat === type.value}
                             showCheckIcon={false}
                             onClick={() => setMatchFormat(type.value)}
@@ -70,7 +70,7 @@ export function MatchCreateSpecs({
                         <Chip
                             key={g.value}
                             label={g.label}
-                            variant="orange"
+                            variant="navy"
                             isActive={gender === g.value}
                             showCheckIcon={false}
                             onClick={() => setGender(g.value)}
@@ -85,14 +85,14 @@ export function MatchCreateSpecs({
                 <div className="flex gap-2">
                     <Chip
                         label="실내 농구화"
-                        variant="orange"
+                        variant="navy"
                         isActive={hasShoes}
                         showCheckIcon={false}
                         onClick={() => setHasShoes(!hasShoes)}
                     />
                     <Chip
                         label="흰색/검은색 상의"
-                        variant="orange"
+                        variant="navy"
                         isActive={hasJersey}
                         showCheckIcon={false}
                         onClick={() => setHasJersey(!hasJersey)}
@@ -110,10 +110,10 @@ export function MatchCreateSpecs({
                 />
             </div>
 
-            {/* Level Slider */}
+            {/* Level Range Slider */}
             <div className="space-y-3">
                 <Label className="text-sm font-bold text-slate-600">권장 실력</Label>
-                <SkillSlider value={level} onChange={setLevel} />
+                <SkillRangeSlider minValue={levelMin} maxValue={levelMax} onChange={onLevelChange} />
             </div>
         </div>
     </section>
