@@ -84,12 +84,17 @@ export function MatchManagementView() {
       filtered = filtered.filter((m) => !PAST_MATCH_STATUSES.includes(m.status));
     }
 
-    // Sort by date (newest first)
-    filtered.sort((a, b) => {
-      const dateA = new Date(a.date.split(" ")[0].replace(/\./g, "-"));
-      const dateB = new Date(b.date.split(" ")[0].replace(/\./g, "-"));
-      return dateB.getTime() - dateA.getTime();
-    });
+    // 진행 중/예정 → 종료/취소 순, 각 그룹 내에서 가까운 시간순
+    const parseDate = (m: ManagedMatch) =>
+      new Date(`${m.date.split(" ")[0].replace(/\./g, "-")}T${m.time}`);
+
+    const active = filtered.filter((m) => !PAST_MATCH_STATUSES.includes(m.status));
+    const past = filtered.filter((m) => PAST_MATCH_STATUSES.includes(m.status));
+
+    active.sort((a, b) => parseDate(a).getTime() - parseDate(b).getTime());
+    past.sort((a, b) => parseDate(b).getTime() - parseDate(a).getTime());
+
+    filtered = [...active, ...past];
 
     return filtered;
   }, [allMatches, viewMode, guestTypeFilter, hostTypeFilter, statusFilter, showPastMatches]);
