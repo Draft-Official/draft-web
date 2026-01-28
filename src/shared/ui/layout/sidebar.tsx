@@ -57,15 +57,6 @@ export function Sidebar() {
           </Link>
         </div>
       )}
-      
-      {/* User Mini Profile (Optional X style) */}
-      <div className="flex items-center gap-3 p-3 rounded-full hover:bg-slate-100 cursor-pointer transition-colors mt-4">
-        <div className="w-10 h-10 rounded-full bg-slate-200" />
-        <div className="flex-1 min-w-0">
-          <div className="text-sm font-bold text-slate-900">홍길동</div>
-          <div className="text-xs text-slate-500">@hong_gd</div>
-        </div>
-      </div>
     </div>
   );
 }
