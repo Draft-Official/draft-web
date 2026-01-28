@@ -18,8 +18,6 @@ import { MatchCreateFormData } from '@/features/match-create/model/schema';
 export function extractGymDataV3(form: MatchCreateFormData): GymData {
   const formFacilities = form.facilities;
 
-  console.log('[extractGymDataV3] Input form.facilities:', formFacilities);
-
   // 빈 값이면 필드 자체를 제외 (undefined)
   const facilities: GymFacilities = {};
 
@@ -51,9 +49,6 @@ export function extractGymDataV3(form: MatchCreateFormData): GymData {
   if (formFacilities?.courtSize) {
     facilities.court_size_type = formFacilities.courtSize; // Already uppercase: 'REGULAR', 'SHORT', 'NARROW'
   }
-
-  console.log('[extractGymDataV3] Output facilities:', facilities);
-  console.log('[extractGymDataV3] facilities keys count:', Object.keys(facilities).length);
 
   return {
     name: form.location.name,

@@ -98,26 +98,6 @@ export function BankCombobox({
                 </CommandItem>
               ))}
             </CommandGroup>
-            <CommandGroup heading="증권사">
-              {SECURITIES.map((bank) => (
-                <CommandItem
-                  key={bank.value}
-                  value={bank.value}
-                  onSelect={(currentValue) => {
-                    onValueChange(currentValue === value ? '' : currentValue);
-                    setOpen(false);
-                  }}
-                >
-                  <Check
-                    className={cn(
-                      'mr-2 h-4 w-4',
-                      value === bank.value ? 'opacity-100' : 'opacity-0'
-                    )}
-                  />
-                  {bank.label}
-                </CommandItem>
-              ))}
-            </CommandGroup>
           </CommandList>
         </Command>
       </PopoverContent>
