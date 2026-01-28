@@ -102,9 +102,30 @@ export interface RecruitmentSetupLegacy {
 }
 
 /**
+ * 실력 범위
+ * 사용 테이블: matches (level_range)
+ */
+export interface LevelRange {
+  min: number; // 1-7
+  max: number; // 1-7
+}
+
+/**
+ * 나이 범위
+ * 사용 테이블: matches (age_range)
+ * max가 null이면 "이상" (예: { min: 30, max: null } → "30대 이상")
+ */
+export interface AgeRange {
+  min: number; // 20, 30, 40, 50
+  max: number | null; // null = "이상"
+}
+
+/**
  * 경기 규칙
  * 사용 테이블: matches (match_rule)
  * 기존 MatchOptionsUI → MatchRule로 이름 변경
+ *
+ * Note: skill_level_min/max는 level_range로 이동됨
  */
 export interface MatchRule {
   play_style?: PlayStyleValue;
@@ -113,7 +134,6 @@ export interface MatchRule {
     quarter_count: number;
     game_count: number;
   };
-  guaranteed_quarters?: number;
   referee_type?: RefereeTypeValue;
 }
 

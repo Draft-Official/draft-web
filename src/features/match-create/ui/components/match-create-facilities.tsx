@@ -71,7 +71,7 @@ export function MatchCreateFacilities({
                     variant="orange"
                     label="🏀 농구공"
                     isActive={hasBall}
-                    checkIconPosition="right"
+                    showCheckIcon={false}
                     onClick={() => setHasBall(!hasBall)}
                 />
 
@@ -79,7 +79,7 @@ export function MatchCreateFacilities({
                     variant="orange"
                     label="정수기"
                     isActive={hasWater}
-                    checkIconPosition="right"
+                    showCheckIcon={false}
                     onClick={() => setHasWater(!hasWater)}
                 />
 
@@ -87,7 +87,7 @@ export function MatchCreateFacilities({
                     variant="orange"
                     label="냉난방"
                     isActive={hasAcHeat}
-                    checkIconPosition="right"
+                    showCheckIcon={false}
                     onClick={() => setHasAcHeat(!hasAcHeat)}
                 />
 
@@ -95,7 +95,7 @@ export function MatchCreateFacilities({
                     variant="orange"
                     label="샤워실"
                     isActive={hasShower}
-                    checkIconPosition="right"
+                    showCheckIcon={false}
                     onClick={() => setHasShower(!hasShower)}
                 />
 
@@ -103,7 +103,7 @@ export function MatchCreateFacilities({
                     variant="orange"
                     label="주차"
                     isActive={parkingCost !== ""}
-                    checkIconPosition="right"
+                    showCheckIcon={false}
                     valueLabel={parkingCost === "0" ? "0원 (무료)" : (parkingCost ? `${Number(parkingCost).toLocaleString()}원/시간` : undefined)}
                     onClick={() => {
                         // Always open dialog. If previously cleared, restore from ref.
@@ -119,7 +119,7 @@ export function MatchCreateFacilities({
                     variant="orange"
                     label="코트 크기"
                     isActive={courtSize !== ""}
-                    checkIconPosition="right"
+                    showCheckIcon={false}
                     valueLabel={getCourtSizeLabel()}
                     onClick={() => {
                         // Always open dialog. If previously cleared, restore from ref.
@@ -147,13 +147,24 @@ export function MatchCreateFacilities({
               <Label className="text-sm font-medium text-slate-700">시간당 주차 요금</Label>
               <div className="relative">
                 <Input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                   value={parkingCost}
-                  onChange={(e) => setParkingCost(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^0-9]/g, ''); // 숫자만 허용
+                    setParkingCost(value);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === '-' || e.key === 'e' || e.key === 'E') {
+                      e.preventDefault();
+                    }
+                  }}
                   placeholder="0"
                   className="h-12 bg-white border-slate-200 pr-12 text-right"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">원</span>
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
+                  {parkingCost === '0' ? '무료' : '원'}
+                </span>
               </div>
               <p className="text-xs text-slate-500">💡 0원을 입력하면 무료로 표시됩니다.</p>
             </div>

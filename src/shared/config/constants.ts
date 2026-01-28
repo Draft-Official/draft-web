@@ -240,13 +240,38 @@ export const MATCH_FORMAT_DEFAULT: MatchFormatValue = 'FIVE_ON_FIVE';
 // Age (연령대)
 // ============================================
 
-export const AGE_VALUES = ['20', '30', '40', '50', '60', '70'] as const;
+export const AGE_VALUES = ['20', '30', '40', '50+'] as const;
 export type AgeValue = typeof AGE_VALUES[number];
+
+export const AGE_LABELS: Record<AgeValue, string> = {
+  '20': '20대',
+  '30': '30대',
+  '40': '40대',
+  '50+': '50대 이상',
+};
 
 export const AGE_OPTIONS = AGE_VALUES.map(value => ({
   value,
-  label: `${value}대`,
+  label: AGE_LABELS[value],
 }));
+
+/**
+ * 나이 range 표시 로직
+ * @param range { min: number, max: number | null } | null
+ * @returns 표시 문자열
+ *
+ * 예시:
+ * - null → "나이 무관"
+ * - { min: 20, max: null } → "20대 이상"
+ * - { min: 30, max: 40 } → "30~40대"
+ * - { min: 30, max: 30 } → "30대"
+ */
+export function getAgeRangeLabel(range: { min: number; max: number | null } | null): string {
+  if (!range) return '나이 무관';
+  if (range.max === null) return `${range.min}대 이상`;
+  if (range.min === range.max) return `${range.min}대`;
+  return `${range.min}~${range.max}대`;
+}
 
 // ============================================
 // Match Type (경기 목적) - 용병모집, 픽업게임 등

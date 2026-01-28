@@ -5,6 +5,8 @@ import {
   RecruitmentSetup,
   OperationInfo,
   AccountInfo,
+  LevelRange,
+  AgeRange,
   Json,
 } from '@/shared/types/database.types';
 import { GymData } from '@/shared/api/gym-api';
@@ -15,6 +17,8 @@ import { MatchCreateFormData } from '@/features/match-create/model/schema';
 // ==============================================
 export function extractGymDataV3(form: MatchCreateFormData): GymData {
   const formFacilities = form.facilities;
+
+  console.log('[extractGymDataV3] Input form.facilities:', formFacilities);
 
   // 빈 값이면 필드 자체를 제외 (undefined)
   const facilities: GymFacilities = {};
@@ -33,10 +37,11 @@ export function extractGymDataV3(form: MatchCreateFormData): GymData {
     facilities.shower = formFacilities.shower; // boolean으로 단순화
   }
 
-  // parking 처리: 빈 문자열이 아닐 때만
-  if (formFacilities?.parking) {
+  // parking 처리: 빈 문자열이 아닐 때만 (빈 문자열 = 주차 정보 없음)
+  if (formFacilities?.parking !== undefined && formFacilities.parking !== '') {
     facilities.parking = true;
-    facilities.parking_fee = formFacilities.parking === '0' ? '무료' : formFacilities.parking;
+    // 숫자 문자열 그대로 저장 (예: "0" = 무료, "3000" = 시간당 3000원)
+    facilities.parking_fee = formFacilities.parking;
     if (formFacilities.parkingDetail) {
       facilities.parking_location = formFacilities.parkingDetail;
     }
@@ -46,6 +51,9 @@ export function extractGymDataV3(form: MatchCreateFormData): GymData {
   if (formFacilities?.courtSize) {
     facilities.court_size_type = formFacilities.courtSize; // Already uppercase: 'REGULAR', 'SHORT', 'NARROW'
   }
+
+  console.log('[extractGymDataV3] Output facilities:', facilities);
+  console.log('[extractGymDataV3] facilities keys count:', Object.keys(facilities).length);
 
   return {
     name: form.location.name,
@@ -136,7 +144,7 @@ export function toMatchInsertDataV3(
   const hasQuarterRules = rules.quarterTime || rules.quarterCount || rules.fullGames;
 
   // Check if any match option data exists
-  const hasMatchRuleData = form.gameFormat || hasQuarterRules || rules.guaranteedQuarters || rules.referee;
+  const hasMatchRuleData = form.gameFormat || hasQuarterRules || rules.referee;
 
   if (hasMatchRuleData) {
     matchRule = {
@@ -146,10 +154,22 @@ export function toMatchInsertDataV3(
         quarter_count: rules.quarterCount || 4,
         game_count: rules.fullGames || 2,
       } : undefined,
-      guaranteed_quarters: rules.guaranteedQuarters,
       referee_type: rules.referee, // Already uppercase: 'SELF', 'STAFF', 'PRO'
     };
   }
+
+  // E-2. Level Range (별도 JSONB 컬럼)
+  const levelRange: LevelRange = {
+    min: form.levelMin ?? Number(form.level) ?? 1,
+    max: form.levelMax ?? Number(form.level) ?? 7,
+  };
+
+  // E-3. Age Range (별도 JSONB 컬럼)
+  // form.ageRange: { min: number, max: number | null } | undefined
+  const ageRange: AgeRange | undefined = form.ageRange ? {
+    min: form.ageRange.min,
+    max: form.ageRange.max,
+  } : undefined;
 
   // F. Operation Info (contact + notice)
   const contactType = form.contactType || 'KAKAO_OPEN_CHAT';
@@ -191,7 +211,9 @@ export function toMatchInsertDataV3(
     match_type: 'GUEST_RECRUIT',     // 경기 목적 고정 (매치 생성 v1은 용병 모집만 지원)
     match_format: form.matchFormat,    // 경기 방식 (UI 작업 전이라 form.matchType 사용)
     gender_rule: form.gender, // 이미 대문자: 'MALE' | 'FEMALE' | 'MIXED'
-    level_limit: String(form.level),   // number to string
+    level_limit: String(form.level),   // number to string (backward compatibility)
+    level_range: levelRange as unknown as Json,
+    age_range: ageRange ? (ageRange as unknown as Json) : null,
 
     cost_type: costType,
     cost_amount: costAmount,

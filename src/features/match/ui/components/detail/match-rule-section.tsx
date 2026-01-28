@@ -16,11 +16,10 @@ export function MatchRuleSection({ match }: MatchRuleSectionProps) {
   // 유효한 필드가 하나라도 있는지 확인
   const hasPlayStyle = !!rule.type;
   const hasQuarterRule = rule.quarterTime > 0 || rule.quarterCount > 0;
-  const hasGuaranteedQuarters = rule.guaranteedQuarters > 0;
   const hasReferee = !!rule.referee;
 
   // 모든 필드가 비어있으면 숨김
-  if (!hasPlayStyle && !hasQuarterRule && !hasGuaranteedQuarters && !hasReferee) {
+  if (!hasPlayStyle && !hasQuarterRule && !hasReferee) {
     return null;
   }
 
@@ -61,15 +60,7 @@ export function MatchRuleSection({ match }: MatchRuleSectionProps) {
           </div>
         )}
 
-        {/* 3. 보장 쿼터 - 0보다 클 때만 */}
-        {hasGuaranteedQuarters && (
-          <div className="flex items-start text-sm">
-              <span className="text-slate-500 font-medium w-24 shrink-0">보장 쿼터</span>
-              <span className="text-slate-900 font-bold">{rule.guaranteedQuarters}쿼터</span>
-          </div>
-        )}
-
-        {/* 4. 심판 방식 - 값이 있을 때만 */}
+        {/* 3. 심판 방식 - 값이 있을 때만 */}
         {hasReferee && (
           <div className="flex items-start text-sm">
               <span className="text-slate-500 font-medium w-24 shrink-0">심판 방식</span>

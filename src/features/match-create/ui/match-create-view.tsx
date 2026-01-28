@@ -30,8 +30,6 @@ import { createTeamService } from '@/features/team/api/team-api';
 import { createMatchService } from '@/features/match/api/match-api';
 import {
   GENDER_DEFAULT,
-  PLAY_STYLE_DEFAULT,
-  REFEREE_TYPE_DEFAULT,
   COURT_SIZE_DEFAULT,
   MATCH_FORMAT_DEFAULT,
   GenderValue,
@@ -47,6 +45,38 @@ import type { MatchWithRelations } from '@/shared/types/database.types';
 
 // --- Helpers ---
 import { getNext14Days } from '@/features/match-create/lib/utils';
+
+// 나이 값 매핑
+const AGE_VALUE_MAP_GLOBAL: Record<string, number> = { '20': 20, '30': 30, '40': 40, '50+': 50 };
+
+/**
+ * selectedAges 배열을 ageRange 객체로 변환
+ * @param selectedAges 선택된 나이 배열 (예: ['20', '30', '40', '50+'])
+ * @returns { min: number, max: number | null } | undefined
+ *
+ * 규칙:
+ * - ['any'] 또는 빈 배열 → undefined (무관)
+ * - 마지막이 '50+' → max: null (이상)
+ * - 그 외 → max: 마지막 숫자값
+ */
+function convertSelectedAgesToRange(selectedAges: string[]): { min: number; max: number | null } | undefined {
+  if (selectedAges.length === 0 || selectedAges.includes('any')) {
+    return undefined; // 무관
+  }
+
+  // 숫자로 변환 후 정렬
+  const sortedAges = [...selectedAges].sort(
+    (a, b) => (AGE_VALUE_MAP_GLOBAL[a] || 0) - (AGE_VALUE_MAP_GLOBAL[b] || 0)
+  );
+
+  const firstAge = sortedAges[0];
+  const lastAge = sortedAges[sortedAges.length - 1];
+
+  const min = AGE_VALUE_MAP_GLOBAL[firstAge] || 20;
+  const max = lastAge === '50+' ? null : (AGE_VALUE_MAP_GLOBAL[lastAge] || null);
+
+  return { min, max };
+}
 
 export function MatchCreateView() {
   const router = useRouter();
@@ -90,18 +120,21 @@ export function MatchCreateView() {
   // Match Specs
   const [matchFormat, setMatchFormat] = useState<MatchFormatValue>(MATCH_FORMAT_DEFAULT);
   const [gender, setGender] = useState<GenderValue>(GENDER_DEFAULT);
-  const [level, setLevel] = useState(4); // 4 = Middle 2 (Default)
+  const [levelMin, setLevelMin] = useState(1); // Default: 전체 범위
+  const [levelMax, setLevelMax] = useState(7);
   const [selectedAges, setSelectedAges] = useState<string[]>(['any']);
   const [hasShoes, setHasShoes] = useState(true);
   const [hasJersey, setHasJersey] = useState(true);
 
-  // Game Format (Optional)
-  const [gameFormatType, setGameFormatType] = useState<PlayStyleValue>(PLAY_STYLE_DEFAULT);
-  const [ruleMinutes, setRuleMinutes] = useState("8");
+  // Game Format (Optional) - + 클릭했을 때만 서버 전송
+  const [gameFormatType, setGameFormatType] = useState<PlayStyleValue | undefined>(undefined);
+  const [isGameFormatSelected, setIsGameFormatSelected] = useState(false);
+  const [ruleMinutes, setRuleMinutes] = useState("8"); // 기본값 유지
   const [ruleQuarters, setRuleQuarters] = useState("4");
   const [ruleGames, setRuleGames] = useState("2");
-  const [guaranteedQuarters, setGuaranteedQuarters] = useState("6");
-  const [refereeType, setRefereeType] = useState<RefereeTypeValue>(REFEREE_TYPE_DEFAULT);
+  const [isRulesSelected, setIsRulesSelected] = useState(false);
+  const [refereeType, setRefereeType] = useState<RefereeTypeValue | undefined>(undefined);
+  const [isRefereeSelected, setIsRefereeSelected] = useState(false);
   
   // Operations Info (replaces Admin Info)
   const [operationsData, setOperationsData] = useState<OperationsData | null>(null);
@@ -178,7 +211,12 @@ export function MatchCreateView() {
 
       // parking 처리
       if (gymFacilities.parking) {
-        setParkingCost(gymFacilities.parking_fee ?? "0");
+        // parking_fee: "무료" -> "0" 변환 (기존 데이터 호환성)
+        let parkingFee = gymFacilities.parking_fee ?? "0";
+        if (parkingFee === "무료") {
+          parkingFee = "0";
+        }
+        setParkingCost(parkingFee);
       } else {
         setParkingCost("");
       }
@@ -225,6 +263,10 @@ export function MatchCreateView() {
     setSelectedAges(newAges);
   };
 
+  // 나이 값 매핑 (50+는 50으로 처리)
+  const AGE_VALUE_MAP: Record<string, number> = { '20': 20, '30': 30, '40': 40, '50+': 50 };
+  const AGE_ORDER = ['20', '30', '40', '50+'];
+
   const handleAgeSelection = (age: string) => {
     if (age === 'any') {
         setSelectedAges(['any']);
@@ -237,17 +279,16 @@ export function MatchCreateView() {
     }
 
     const isRemoving = selectedAges.includes(age);
-    const ageValues: Record<string, number> = { '20': 20, '30': 30, '40': 40, '50': 50, '60': 60, '70': 70 };
-    
+
     // Helper to sort ages
-    const sortAges = (ages: string[]) => ages.sort((a, b) => (ageValues[a] || 0) - (ageValues[b] || 0));
+    const sortAges = (ages: string[]) => ages.sort((a, b) => (AGE_VALUE_MAP[a] || 0) - (AGE_VALUE_MAP[b] || 0));
 
     if (isRemoving) {
         // Split & Keep Logic
         const sortedCurrent = sortAges([...selectedAges]);
         const removeIndex = sortedCurrent.indexOf(age);
-        
-        if (removeIndex === -1) return; // Should not happen
+
+        if (removeIndex === -1) return;
 
         const leftSegment = sortedCurrent.slice(0, removeIndex);
         const rightSegment = sortedCurrent.slice(removeIndex + 1);
@@ -267,7 +308,7 @@ export function MatchCreateView() {
 
     if (newAges.length >= 2) {
         const numericAges = newAges
-            .map(a => ageValues[a])
+            .map(a => AGE_VALUE_MAP[a])
             .filter((n): n is number => n !== undefined)
             .sort((a, b) => a - b);
 
@@ -275,10 +316,9 @@ export function MatchCreateView() {
         const max = numericAges[numericAges.length - 1];
 
         const filledAges: string[] = [];
-        const ageOrder = ['20', '30', '40', '50', '60', '70'];
-        
-        ageOrder.forEach(ageStr => {
-            const val = ageValues[ageStr];
+
+        AGE_ORDER.forEach(ageStr => {
+            const val = AGE_VALUE_MAP[ageStr];
             if (val >= min && val <= max) {
                 filledAges.push(ageStr);
             }
@@ -302,6 +342,12 @@ export function MatchCreateView() {
     setSelectedAges(newAges);
   };
 
+  // Handler for level range changes
+  const handleLevelChange = (min: number, max: number) => {
+    setLevelMin(min);
+    setLevelMax(max);
+  };
+
   // Recent Match Prefill Hook (also reused for edit mode)
   const { fillFromRecentMatch } = useRecentMatchPrefill({
     setValue,
@@ -314,12 +360,12 @@ export function MatchCreateView() {
     setTotalCount,
     setMatchFormat: setMatchFormat,
     setGender,
-    setLevel,
+    setLevelMin,
+    setLevelMax,
     setGameFormatType,
     setRuleMinutes,
     setRuleQuarters,
     setRuleGames,
-    setGuaranteedQuarters,
     setRefereeType,
     setHasShoes,
     setHasJersey,
@@ -408,7 +454,14 @@ export function MatchCreateView() {
     const opsHost = data.operations?.selectedHost;
     if (!opsHost) {
         toast.error("⚠️ 운영 정보를 확인해주세요: 주최자를 선택해주세요.");
-        scrollToSection('section-operations'); 
+        scrollToSection('section-operations');
+        return;
+    }
+
+    // 개인주최 시 팀이름 필수 검증
+    if (opsHost === 'me' && (!data.manualTeamName || data.manualTeamName.trim() === '')) {
+        toast.error("⚠️ 운영 정보를 확인해주세요: 개인 주최 시 팀 이름을 입력해주세요.");
+        scrollToSection('section-operations');
         return;
     }
 
@@ -419,14 +472,48 @@ export function MatchCreateView() {
         return;
     }
 
+    // 예금주 형식 검증 (한글 2-10자)
+    const accountHolderRegex = /^[가-힣]{2,10}$/;
+    if (!accountHolderRegex.test(data.accountHolder)) {
+        toast.error("⚠️ 운영 정보를 확인해주세요: 예금주는 한글 2-10자로 입력해주세요.");
+        scrollToSection('section-operations');
+        return;
+    }
+
+    // 계좌번호 형식 검증 (숫자 10-16자리)
+    const accountNumberRegex = /^\d{10,16}$/;
+    if (!accountNumberRegex.test(data.accountNumber)) {
+        toast.error("⚠️ 운영 정보를 확인해주세요: 계좌번호는 숫자 10-16자리로 입력해주세요.");
+        scrollToSection('section-operations');
+        return;
+    }
+
     const opsContactType = data.operations?.contactType; // PHONE or KAKAO_OPEN_CHAT
     const opsContactContent = opsContactType === 'PHONE' ? data.phoneNumber : data.kakaoLink;
-
 
     if (!opsContactContent) {
         toast.error("⚠️ 운영 정보를 확인해주세요: 연락처를 입력해주세요.");
         scrollToSection('section-operations');
         return;
+    }
+
+    // 전화번호 형식 검증 (010-1234-5678)
+    if (opsContactType === 'PHONE') {
+        const phoneRegex = /^01[0-9]-?\d{3,4}-?\d{4}$/;
+        if (!phoneRegex.test(opsContactContent)) {
+            toast.error("⚠️ 운영 정보를 확인해주세요: 올바른 전화번호 형식으로 입력해주세요 (예: 010-1234-5678)");
+            scrollToSection('section-operations');
+            return;
+        }
+    }
+
+    // 오픈채팅 링크 형식 검증 (URL)
+    if (opsContactType === 'KAKAO_OPEN_CHAT') {
+        if (!opsContactContent.startsWith('http')) {
+            toast.error("⚠️ 운영 정보를 확인해주세요: 올바른 오픈채팅 링크를 입력해주세요.");
+            scrollToSection('section-operations');
+            return;
+        }
     }
 
     // Calculate endTime from startTime + duration
@@ -470,21 +557,22 @@ export function MatchCreateView() {
             count: totalCount
         },
         
-        // Specs 
+        // Specs
         // Note: Flattening specs as per schema definition
         matchFormat: matchFormat, // 5vs5, 3vs3
-        gameFormat: gameFormatType !== PLAY_STYLE_DEFAULT ? (gameFormatType as any) : undefined,
-        level: level,
+        gameFormat: isGameFormatSelected ? gameFormatType : undefined, // + 클릭했을 때만 전송
+        level: levelMin, // For backward compatibility, also see levelMin/levelMax below
+        levelMin: levelMin,
+        levelMax: levelMax,
         gender: gender as any,
-        ageRange: selectedAges.length > 0 ? { min: 20, max: 40 } : undefined, // Simplification for MVP
+        ageRange: convertSelectedAgesToRange(selectedAges),
         
-        // Detailed Rules
+        // Detailed Rules - + 클릭했을 때만 전송
         rules: {
-            quarterTime: ruleMinutes ? Number(ruleMinutes) : undefined,
-            quarterCount: ruleQuarters ? Number(ruleQuarters) : undefined,
-            fullGames: ruleGames ? Number(ruleGames) : undefined,
-            guaranteedQuarters: guaranteedQuarters ? Number(guaranteedQuarters) : undefined,
-            referee: refereeType !== REFEREE_TYPE_DEFAULT ? refereeType : undefined
+            quarterTime: isRulesSelected && ruleMinutes ? Number(ruleMinutes) : undefined,
+            quarterCount: isRulesSelected && ruleQuarters ? Number(ruleQuarters) : undefined,
+            fullGames: isRulesSelected && ruleGames ? Number(ruleGames) : undefined,
+            referee: isRefereeSelected ? refereeType : undefined
         },
 
         facilities: {
@@ -525,7 +613,7 @@ export function MatchCreateView() {
 
         // Team Info (Host) - Critical Fix
         selectedTeamId: opsHost === 'me' ? null : opsHost,
-        manualTeamName: undefined, // 팀 선택 시 자동 처리, 개인 시 필요없음
+        manualTeamName: opsHost === 'me' ? (data.manualTeamName || '') : '',
     };
     
     // Add missing fields if they exist in data but not in payload
@@ -736,7 +824,7 @@ export function MatchCreateView() {
               <MatchCreateSpecs
                   matchFormat={matchFormat} setMatchFormat={setMatchFormat}
                   gender={gender} setGender={setGender}
-                  level={level} setLevel={setLevel}
+                  levelMin={levelMin} levelMax={levelMax} onLevelChange={handleLevelChange}
                   selectedAges={selectedAges} handleAgeSelection={handleAgeSelection}
                   handleAgeRangeUpdate={handleAgeRangeUpdate}
                   hasShoes={hasShoes} setHasShoes={setHasShoes}
@@ -747,11 +835,13 @@ export function MatchCreateView() {
             {/* SECTION 4: Game Format (Optional) */}
             <MatchCreateGameFormat
                 gameFormatType={gameFormatType} setGameFormatType={setGameFormatType}
+                isGameFormatSelected={isGameFormatSelected} setIsGameFormatSelected={setIsGameFormatSelected}
                 ruleMinutes={ruleMinutes} setRuleMinutes={setRuleMinutes}
                 ruleQuarters={ruleQuarters} setRuleQuarters={setRuleQuarters}
                 ruleGames={ruleGames} setRuleGames={setRuleGames}
-                guaranteedQuarters={guaranteedQuarters} setGuaranteedQuarters={setGuaranteedQuarters}
+                isRulesSelected={isRulesSelected} setIsRulesSelected={setIsRulesSelected}
                 refereeType={refereeType} setRefereeType={setRefereeType}
+                isRefereeSelected={isRefereeSelected} setIsRefereeSelected={setIsRefereeSelected}
             />
 
             {/* SECTION 5: Operations Info */}

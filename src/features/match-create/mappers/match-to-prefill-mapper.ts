@@ -1,4 +1,4 @@
-import type { MatchWithRelations, AccountInfo, OperationInfo, MatchRule } from '@/shared/types/database.types';
+import type { MatchWithRelations, AccountInfo, OperationInfo, MatchRule, LevelRange, AgeRange } from '@/shared/types/database.types';
 import type { LocationData } from '@/features/match-create/model/types';
 
 /**
@@ -66,9 +66,16 @@ export class MatchToPrefillMapper {
 
     const startDate = new Date(this.match.start_time);
     const endDate = new Date(this.match.end_time);
-    const startTime = `${String(startDate.getHours()).padStart(2, '0')}:${String(startDate.getMinutes()).padStart(2, '0')}`;
 
-    // duration 계산
+    // KST 기준으로 시간 포맷 (SSR/CSR 간 일관성 보장)
+    const startTime = startDate.toLocaleTimeString('ko-KR', {
+      timeZone: 'Asia/Seoul',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+
+    // duration 계산 (timestamp 차이는 timezone 영향 없음)
     const durationMs = endDate.getTime() - startDate.getTime();
     const durationHours = durationMs / (1000 * 60 * 60);
 
@@ -165,10 +172,22 @@ export class MatchToPrefillMapper {
    * 경기 스펙 매핑
    */
   mapSpecs() {
+    // level_range JSONB 컬럼에서 읽기 (fallback: level_limit)
+    const levelLimit = Number(this.match.level_limit) || 4;
+    const levelRange = this.match.level_range as LevelRange | null;
+    const levelMin = levelRange?.min ?? levelLimit;
+    const levelMax = levelRange?.max ?? levelLimit;
+
+    // age_range JSONB 컬럼에서 읽기
+    const ageRange = this.match.age_range as AgeRange | null;
+
     return {
       matchFormat: this.match.match_format || 'FIVE_ON_FIVE',
       gender: (this.match.gender_rule || 'MALE'),
-      level: Number(this.match.level_limit) || 4,
+      level: levelLimit,
+      levelMin,
+      levelMax,
+      ageRange, // { min: number, max: number | null } | null
     };
   }
 
@@ -185,7 +204,6 @@ export class MatchToPrefillMapper {
       ruleMinutes: matchRule.quarter_rule ? String(matchRule.quarter_rule.minutes_per_quarter || 8) : '',
       ruleQuarters: matchRule.quarter_rule ? String(matchRule.quarter_rule.quarter_count || 4) : '',
       ruleGames: matchRule.quarter_rule ? String(matchRule.quarter_rule.game_count || 2) : '',
-      guaranteedQuarters: matchRule.guaranteed_quarters ? String(matchRule.guaranteed_quarters) : '',
       refereeType: matchRule.referee_type || null,
     };
   }

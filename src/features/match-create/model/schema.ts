@@ -34,24 +34,25 @@ export const recruitmentSchema = z.union([
 
 // Facilities schema - Phase 2 compatible (JSONB style, Gym에 귀속)
 export const facilitiesSchema = z.object({
-  parking: z.string().optional(),       // 주차비 (금액 문자열, "0"=무료, ""=없음)
+  parking: z.string().regex(/^\d*$/, '주차비는 숫자만 입력 가능합니다').optional(), // 주차비 (양의 정수 문자열, "0"=무료, ""=없음)
   parkingDetail: z.string().optional(), // 주차 상세 (예: "3시간 무료")
   water: z.boolean().default(false),    // 정수기
   acHeat: z.boolean().default(false),   // 냉난방
   shower: z.boolean().default(false),     // 샤워실
-  courtSize: z.enum(COURT_SIZE_VALUES).default('REGULAR'), // Uppercase constants
+  courtSize: z.enum(COURT_SIZE_VALUES).optional(), // 선택사항 - default 제거
   ball: z.boolean().default(false),     // 농구공 제공
   beverage: z.boolean().default(false), // 음료 제공
 });
 
 // Age range schema
+// max가 null이면 "이상" (예: { min: 30, max: null } → "30대 이상")
 export const ageRangeSchema = z.object({
-  min: z.number().min(10, '최소 연령은 10세 이상이어야 합니다').max(99),
-  max: z.number().min(10).max(99, '최대 연령은 99세 이하여야 합니다'),
+  min: z.number().min(20, '최소 연령대는 20대입니다').max(50),
+  max: z.number().min(20).max(50).nullable(), // null = "이상"
 }).refine(
-  (data: { min: number; max: number }) => data.max >= data.min,
+  (data: { min: number; max: number | null }) => data.max === null || data.max >= data.min,
   {
-    message: '최대 연령은 최소 연령보다 크거나 같아야 합니다',
+    message: '최대 연령대는 최소 연령대보다 크거나 같아야 합니다',
     path: ['max'],
   }
 );
@@ -79,6 +80,8 @@ export const matchCreateSchema = z.object({
 
   // Match Specs
   level: z.number().or(z.string()),
+  levelMin: z.number().min(1).max(7).optional(), // 실력 범위 최소값
+  levelMax: z.number().min(1).max(7).optional(), // 실력 범위 최대값
 
   // matchFormat: 5vs5, 3vs3
   matchFormat: z.enum(MATCH_FORMAT_VALUES, {
@@ -100,7 +103,6 @@ export const matchCreateSchema = z.object({
     quarterTime: z.number().min(1).max(20).optional(),
     quarterCount: z.number().min(1).max(10).optional(),
     fullGames: z.number().min(0).max(10).optional(),
-    guaranteedQuarters: z.number().min(0).max(10).optional(),
     referee: z.enum(REFEREE_TYPE_VALUES).optional(), // 심판 유형
   }).optional(),
 
@@ -115,9 +117,19 @@ export const matchCreateSchema = z.object({
   // 참가비 타입 (현금/음료 구분)
   costInputType: z.enum(['money', 'beverage']).default('money'),
 
+  // 참가비 (현금: 0 이상, 음료: 1 이상)
+  fee: z.string()
+    .regex(/^\d+$/, '참가비는 양의 정수만 입력 가능합니다')
+    .optional(),
+
   // 연락처 타입 및 내용
   contactType: z.enum(['PHONE', 'KAKAO_OPEN_CHAT']).default('KAKAO_OPEN_CHAT'),
   contactContent: z.string().optional(),
+
+  // 전화번호 (PHONE 선택 시 사용)
+  phoneNumber: z.string()
+    .regex(/^01[0-9]-?\d{3,4}-?\d{4}$/, '올바른 전화번호 형식으로 입력해주세요 (예: 010-1234-5678)')
+    .optional(),
 
   // Admin Info
   price: z.number()
@@ -126,11 +138,11 @@ export const matchCreateSchema = z.object({
 
   accountHolder: z.string()
     .min(1, '예금주를 입력하세요')
-    .max(50, '예금주는 50자 이내로 입력하세요'),
+    .regex(/^[가-힣]{2,10}$/, '예금주는 한글 2-10자로 입력해주세요'),
 
   accountNumber: z.string()
     .min(1, '계좌번호를 입력하세요')
-    .regex(/^[\d-]+$/, '계좌번호는 숫자와 하이픈(-)만 입력 가능합니다'),
+    .regex(/^\d{10,16}$/, '계좌번호는 숫자 10-16자리로 입력해주세요'),
 
   bank: z.string()
     .min(1, '은행을 선택하세요'),
@@ -145,8 +157,20 @@ export const matchCreateSchema = z.object({
 
   // Team Info (V3)
   selectedTeamId: z.string().optional().nullable(),
-  manualTeamName: z.string().optional(), // 팀 미선택 시 직접 입력 (혹은 비워두면 '개인 주최')
+  manualTeamName: z.string().optional(), // 개인 주최 시 필수 입력
 }).refine(
+  (data: any) => {
+    // 개인 주최 시 (selectedTeamId가 없거나 'me'일 때) 팀이름 필수
+    if (!data.selectedTeamId || data.selectedTeamId === 'me') {
+      return data.manualTeamName && data.manualTeamName.trim().length > 0;
+    }
+    return true;
+  },
+  {
+    message: '개인 주최 시 팀 이름을 입력해주세요',
+    path: ['manualTeamName'],
+  }
+).refine(
   (data: any) => {
     // Validate that end time is after start time
     const [startHour, startMin] = data.startTime.split(':').map(Number);

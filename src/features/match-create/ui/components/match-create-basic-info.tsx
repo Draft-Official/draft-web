@@ -50,6 +50,21 @@ const DURATION_OPTIONS = [
     { label: '4시간', value: '4' },
 ];
 
+// 종료 시간 계산 헬퍼 함수
+function calculateEndTime(startTime: string, duration: string): string {
+  const [startHour, startMin] = startTime.split(':').map(Number);
+  const durationHours = parseFloat(duration);
+  const totalMinutes = startHour * 60 + startMin + (durationHours * 60);
+  const endHour = Math.floor(totalMinutes / 60) % 24;
+  const endMin = totalMinutes % 60;
+  return `${String(endHour).padStart(2, '0')}:${String(endMin).padStart(2, '0')}`;
+}
+
+// 시간 포맷 헬퍼 (HH:mm 형식 유지)
+function formatTimeDisplay(time: string): string {
+  return time;
+}
+
 export function MatchCreateBasicInfo({
   selectedDate,
   setSelectedDate,
@@ -71,12 +86,34 @@ export function MatchCreateBasicInfo({
   isExistingGym = false,
   onClearLocation
 }: MatchCreateBasicInfoProps) {
-  const { register, control, setValue, getValues } = useFormContext();
+  const { register, control, setValue, getValues, watch } = useFormContext();
   const methods = { getValues }; // Helper to match prev code
+
+  // Watch startTime and duration for time range display
+  const startTime = watch('startTime', '19:00');
+  const duration = watch('duration', '2');
+  const feeValue = watch('fee', '10000');
 
   // Fee Persistence
   const lastCostRef = useRef<string>("10000");
   const lastBeverageRef = useRef<string>("1");
+
+  // 음수 입력 차단 핸들러
+  const handleFeeKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === '-' || e.key === 'e' || e.key === 'E') {
+      e.preventDefault();
+    }
+  };
+
+  // 참가비 입력 핸들러 (양의 정수만, 음료는 1 이상)
+  const handleFeeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/[^0-9]/g, ''); // 숫자만 허용
+    if (feeType === 'beverage' && value === '0') {
+      setValue('fee', '1'); // 음료는 최소 1개
+    } else {
+      setValue('fee', value);
+    }
+  };
 
   return (
     <section className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-6">
@@ -88,10 +125,16 @@ export function MatchCreateBasicInfo({
         {/* Date */}
         <div className="space-y-3">
             <Label className="text-sm font-bold text-slate-600 flex items-center gap-2">
-                경기 날짜 
+                경기 날짜
                 {selectedDate && (() => {
                     const [_, m, d] = selectedDate.split('-');
-                    return <span className="text-[#FF6600]">{parseInt(m)}월 {parseInt(d)}일</span>;
+                    const endTime = calculateEndTime(startTime, duration);
+                    const timeRange = `${formatTimeDisplay(startTime)} ~ ${formatTimeDisplay(endTime)}`;
+                    return (
+                      <span className="text-[#FF6600]">
+                        {parseInt(m)}월 {parseInt(d)}일 {timeRange}
+                      </span>
+                    );
                 })()}
                 <span className="text-slate-400 text-xs font-normal ml-auto">(2주 이내의 경기만 게시 가능)</span>
             </Label>
@@ -256,8 +299,11 @@ export function MatchCreateBasicInfo({
             </div>
             <div className="relative">
                 <Input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     {...register('fee', { required: true })}
+                    onChange={handleFeeChange}
+                    onKeyDown={handleFeeKeyDown}
                     defaultValue="10000"
                     className="h-12 bg-white border-slate-200 pr-10 text-right font-bold text-lg [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     placeholder={feeType === 'cost' ? '10000' : '1'}
@@ -266,6 +312,9 @@ export function MatchCreateBasicInfo({
                     {feeType === 'cost' ? '원' : '병'}
                 </span>
             </div>
+            {feeType === 'cost' && feeValue === '0' && (
+                <p className="text-xs text-green-600 font-medium">무료 매치로 등록됩니다</p>
+            )}
 
             {/* Beverage Checkbox */}
             <button

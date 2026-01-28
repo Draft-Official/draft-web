@@ -28,10 +28,10 @@ import { MatchToPrefillMapper } from '@/features/match-create/mappers/match-to-p
 export function useRecentMatchPrefill(params: {
   // react-hook-form
   setValue: UseFormReturn<any>['setValue'];
-  
+
   // Location handler (from hook)
   handleLocationSelect: (location: any) => Promise<void>;
-  
+
   // State setters
   setFeeType: (v: 'cost' | 'beverage') => void;
   setHasBeverage: (v: boolean) => void;
@@ -41,12 +41,12 @@ export function useRecentMatchPrefill(params: {
   setTotalCount: (v: number) => void;
   setMatchFormat: (v: MatchFormatValue) => void;
   setGender: (v: GenderValue) => void;
-  setLevel: (v: number) => void;
+  setLevelMin: (v: number) => void;
+  setLevelMax: (v: number) => void;
   setGameFormatType: (v: any) => void;
   setRuleMinutes: (v: string) => void;
   setRuleQuarters: (v: string) => void;
   setRuleGames: (v: string) => void;
-  setGuaranteedQuarters: (v: string) => void;
   setRefereeType: (v: any) => void;
   setHasShoes: (v: boolean) => void;
   setHasJersey: (v: boolean) => void;
@@ -62,12 +62,12 @@ export function useRecentMatchPrefill(params: {
     setTotalCount,
     setMatchFormat,
     setGender,
-    setLevel,
+    setLevelMin,
+    setLevelMax,
     setGameFormatType,
     setRuleMinutes,
     setRuleQuarters,
     setRuleGames,
-    setGuaranteedQuarters,
     setRefereeType,
     setHasShoes,
     setHasJersey,
@@ -128,7 +128,11 @@ export function useRecentMatchPrefill(params: {
     // 9. 경기 스펙
     setMatchFormat(data.specs.matchFormat as MatchFormatValue);
     setGender(data.specs.gender as GenderValue);
-    setLevel(data.specs.level);
+    // Level range - use levelMin/levelMax if available, otherwise use level for both
+    const levelMin = data.specs.levelMin ?? data.specs.level ?? 1;
+    const levelMax = data.specs.levelMax ?? data.specs.level ?? 7;
+    setLevelMin(levelMin);
+    setLevelMax(levelMax);
 
     // 10. 경기 형식
     if (data.gameFormat) {
@@ -138,7 +142,6 @@ export function useRecentMatchPrefill(params: {
       if (data.gameFormat.ruleMinutes) setRuleMinutes(data.gameFormat.ruleMinutes);
       if (data.gameFormat.ruleQuarters) setRuleQuarters(data.gameFormat.ruleQuarters);
       if (data.gameFormat.ruleGames) setRuleGames(data.gameFormat.ruleGames);
-      if (data.gameFormat.guaranteedQuarters) setGuaranteedQuarters(data.gameFormat.guaranteedQuarters);
       if (data.gameFormat.refereeType) setRefereeType(data.gameFormat.refereeType);
     }
 
@@ -156,12 +159,12 @@ export function useRecentMatchPrefill(params: {
     setTotalCount,
     setMatchFormat,
     setGender,
-    setLevel,
+    setLevelMin,
+    setLevelMax,
     setGameFormatType,
     setRuleMinutes,
     setRuleQuarters,
     setRuleGames,
-    setGuaranteedQuarters,
     setRefereeType,
     setHasShoes,
     setHasJersey,

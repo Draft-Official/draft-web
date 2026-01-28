@@ -9,11 +9,16 @@ import { cva, type VariantProps } from 'class-variance-authority';
  * Chip Component - Reusable selection chip with soft styling
  *
  * Variants:
- * - orange: Primary brand color (시설 정보)
- * - slate: Secondary color (매치 조건)
+ * - orange: Primary brand color (시설 정보) - soft pastel style
+ * - slate: Secondary color (매치 조건) - soft pastel style
+ * - navy: Solid dark style (날짜 선택과 동일) - solid style
  *
- * Both variants use soft chip styling:
+ * Soft variants:
  * - Active: light pastel background + brand color text/border
+ * - Inactive: white background + gray text/border
+ *
+ * Navy variant:
+ * - Active: dark navy background + white text
  * - Inactive: white background + gray text/border
  */
 
@@ -33,6 +38,12 @@ const chipVariants = cva(
           "bg-white text-slate-500 border-slate-200",
           // Active state: darker slate background with dark slate text (enhanced contrast)
           "data-[active=true]:bg-slate-200 data-[active=true]:text-slate-900 data-[active=true]:border-slate-900 data-[active=true]:font-bold",
+        ],
+        navy: [
+          // Inactive state: white background with gray text
+          "bg-white text-slate-600 border-slate-200 hover:border-slate-300",
+          // Active state: solid dark navy background with white text
+          "data-[active=true]:bg-slate-900 data-[active=true]:text-white data-[active=true]:border-slate-900",
         ],
       },
       size: {
