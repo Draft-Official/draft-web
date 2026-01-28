@@ -127,8 +127,8 @@ export function matchToManagedMatch(
 ): ManagedMatch {
   const matchType: MatchType = type === 'host' ? 'host' : 'guest';
 
-  // Match status 변환
-  const status = getMatchStatus(match.status || 'RECRUITING');
+  // Match status 변환 (시간 기반 파생 포함)
+  const status = getMatchStatus(match.status || 'RECRUITING', match.start_time, match.end_time);
 
   // 모집 현황 계산
   const recruitmentSetup = match.recruitment_setup as RecruitmentSetup | null;
@@ -219,7 +219,25 @@ function getLevelLabel(mannerScore: number): string {
   return '초급 (Lv.1)';
 }
 
-function getMatchStatus(dbStatus: string): MatchStatus {
+function getMatchStatus(
+  dbStatus: string,
+  startTime?: string,
+  endTime?: string,
+): MatchStatus {
+  // 시간 기반 파생 상태 (시간이 DB 상태보다 우선)
+  if (startTime && endTime) {
+    const now = new Date();
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+
+    if (now >= end) {
+      return dbStatus === 'CONFIRMED' ? 'ended' : 'cancelled';
+    }
+    if (now >= start) {
+      return 'ongoing';
+    }
+  }
+
   const statusMap: Record<string, MatchStatus> = {
     RECRUITING: 'recruiting',   // 모집 중
     CLOSED: 'closed',           // 모집 마감

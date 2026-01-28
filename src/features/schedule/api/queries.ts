@@ -63,6 +63,7 @@ export function useParticipatingMatches() {
             id,
             manual_team_name,
             start_time,
+            end_time,
             cost_type,
             cost_amount,
             status,
@@ -84,6 +85,7 @@ export function useParticipatingMatches() {
             id: string;
             manual_team_name: string;
             start_time: string;
+            end_time: string;
             cost_type: string;
             cost_amount: number;
             status: string;
@@ -91,12 +93,25 @@ export function useParticipatingMatches() {
             gym: { name: string; address: string; kakao_place_id: string | null } | null;
           };
 
-          // Application status를 UI status로 매핑
-          const status = app.status === 'CONFIRMED' ? 'confirmed' :
-                        app.status === 'REJECTED' ? 'cancelled' :
-                        app.status === 'CANCELED' ? 'cancelled' :
-                        app.status === 'PENDING' && app.approved_at ? 'payment_waiting' :
-                        'waiting';
+          // 경기 시간 기반 종료 판정
+          const now = new Date();
+          const matchEnded = match.end_time && now >= new Date(match.end_time);
+          const matchOngoing = match.start_time && match.end_time &&
+            now >= new Date(match.start_time) && now < new Date(match.end_time);
+
+          // Application status를 UI status로 매핑 (시간 기반 오버라이드 포함)
+          let status: ManagedMatch['status'];
+          if (matchEnded) {
+            status = app.status === 'REJECTED' || app.status === 'CANCELED' ? 'cancelled' : 'ended';
+          } else if (matchOngoing && app.status === 'CONFIRMED') {
+            status = 'ongoing';
+          } else {
+            status = app.status === 'CONFIRMED' ? 'confirmed' :
+                    app.status === 'REJECTED' ? 'cancelled' :
+                    app.status === 'CANCELED' ? 'cancelled' :
+                    app.status === 'PENDING' && app.approved_at ? 'payment_waiting' :
+                    'waiting';
+          }
 
           const approvalStatusText = app.status === 'CONFIRMED' ? '경기 확정' :
                                     app.status === 'REJECTED' ? '종료/취소' :
