@@ -113,6 +113,7 @@ export function useParticipatingMatches() {
             time: formatMatchTime(match.start_time),
             location: match.gym?.name || match.gym?.address || '장소 미정',
             locationUrl: match.gym?.kakao_place_id ? `https://map.kakao.com/link/map/${match.gym.kakao_place_id}` : undefined,
+            applicationId: app.id, // 송금 완료 처리용
             approvalStatus: approvalStatusText,
             amount: match.cost_amount,
             bankInfo: match.account_info?.bank && match.account_info?.number && match.account_info?.holder

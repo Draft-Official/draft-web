@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Calendar, Clock, MapPin, Navigation, Users, Shield, Trophy, Copy, Check } from 'lucide-react';
 import { Badge } from '@/shared/ui/base/badge';
 import { Button } from '@/shared/ui/base/button';
@@ -9,6 +9,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/shared/ui/base/popover';
+import { PaymentConfirmDialog } from './payment-confirm-dialog';
 import { cn } from '@/shared/lib/utils';
 import { toast } from 'sonner';
 import type { ManagedMatch } from '../../model/types';
@@ -23,11 +24,19 @@ import {
 interface MatchCardProps {
   match: ManagedMatch;
   onClick: (matchId: string) => void;
+  onConfirmPayment?: (applicationId: string, matchId: string) => void;
 }
 
-export function MatchCard({ match, onClick }: MatchCardProps) {
+export function MatchCard({ match, onClick, onConfirmPayment }: MatchCardProps) {
   const isPastMatch = PAST_MATCH_STATUSES.includes(match.status);
   const [copied, setCopied] = useState(false);
+  const [isPaymentConfirmOpen, setIsPaymentConfirmOpen] = useState(false);
+  const dialogClosedAt = useRef(0);
+
+  const handlePaymentDialogChange = (open: boolean) => {
+    if (!open) dialogClosedAt.current = Date.now();
+    setIsPaymentConfirmOpen(open);
+  };
 
   const handleLocationClick = (e: React.MouseEvent, url?: string) => {
     e.stopPropagation();
@@ -49,7 +58,10 @@ export function MatchCard({ match, onClick }: MatchCardProps) {
 
   return (
     <div
-      onClick={() => onClick(match.id)}
+      onClick={() => {
+        if (Date.now() - dialogClosedAt.current < 300) return;
+        onClick(match.id);
+      }}
       className={cn(
         'bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden transition-all cursor-pointer hover:shadow-md',
         isPastMatch && 'opacity-50 grayscale'
@@ -117,7 +129,55 @@ export function MatchCard({ match, onClick }: MatchCardProps) {
                 {match.amount?.toLocaleString()}원
               </span>
             </div>
-            {match.bankInfo && (
+            {match.bankInfo && match.status === 'payment_waiting' ? (
+              // 입금대기 상태: 송금 하기 + 송금 완료 버튼
+              <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 text-xs font-medium border-slate-200 text-slate-600 hover:text-slate-900"
+                    >
+                      송금 하기
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    className="w-auto p-3 bg-white"
+                    align="end"
+                  >
+                    <div className="space-y-2">
+                      <div className="text-sm font-medium text-slate-900">계좌 정보</div>
+                      <button
+                        className="flex items-center gap-2 text-sm text-slate-700 underline underline-offset-2 decoration-slate-300 hover:decoration-slate-500 cursor-pointer"
+                        onClick={handleCopyBankInfo}
+                      >
+                        <span>
+                          <span className="font-medium">{match.bankInfo.bank}</span>
+                          {' '}
+                          {match.bankInfo.account}
+                          {' '}
+                          <span className="text-slate-500">({match.bankInfo.holder})</span>
+                        </span>
+                        {copied ? (
+                          <Check className="w-4 h-4 text-green-500 shrink-0" />
+                        ) : (
+                          <Copy className="w-4 h-4 text-slate-400 shrink-0" />
+                        )}
+                      </button>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+                <Button
+                  size="sm"
+                  className="h-8 text-xs font-medium bg-primary hover:bg-primary/90 text-white"
+                  onClick={() => setIsPaymentConfirmOpen(true)}
+                >
+                  송금 완료
+                </Button>
+              </div>
+            ) : match.bankInfo ? (
+              // 그 외 상태: 기존 송금 정보 팝오버
               <Popover>
                 <PopoverTrigger asChild onClick={(e) => e.stopPropagation()}>
                   <Button
@@ -155,7 +215,7 @@ export function MatchCard({ match, onClick }: MatchCardProps) {
                   </div>
                 </PopoverContent>
               </Popover>
-            )}
+            ) : null}
           </div>
         )}
 
@@ -192,6 +252,16 @@ export function MatchCard({ match, onClick }: MatchCardProps) {
           </div>
         )}
       </div>
+
+      <PaymentConfirmDialog
+        open={isPaymentConfirmOpen}
+        onOpenChange={handlePaymentDialogChange}
+        onConfirm={() => {
+          if (match.applicationId && onConfirmPayment) {
+            onConfirmPayment(match.applicationId, match.id);
+          }
+        }}
+      />
     </div>
   );
 }

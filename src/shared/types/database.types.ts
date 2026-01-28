@@ -21,6 +21,7 @@ export type Database = {
           id: string
           match_id: string
           participants_info: Json | null
+          payment_verified_at: string | null
           status: Database["public"]["Enums"]["application_status"] | null
           team_id: string | null
           updated_at: string | null
@@ -32,6 +33,7 @@ export type Database = {
           id?: string
           match_id: string
           participants_info?: Json | null
+          payment_verified_at?: string | null
           status?: Database["public"]["Enums"]["application_status"] | null
           team_id?: string | null
           updated_at?: string | null
@@ -43,6 +45,7 @@ export type Database = {
           id?: string
           match_id?: string
           participants_info?: Json | null
+          payment_verified_at?: string | null
           status?: Database["public"]["Enums"]["application_status"] | null
           team_id?: string | null
           updated_at?: string | null
