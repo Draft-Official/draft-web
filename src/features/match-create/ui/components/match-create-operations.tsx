@@ -194,7 +194,7 @@ export function MatchCreateOperations({
             <div>
               <p className="text-sm font-medium text-blue-800">처음이시네요! 👋</p>
               <p className="text-xs text-blue-600 mt-1">
-                팀을 생성하면 팀을 관리하고 게스트를 편하게 모집할 수 있어요.
+                팀을 만들면 계좌·연락처가 자동 입력되고, 게스트 신청도 한눈에 관리할 수 있어요.
               </p>
             </div>
           </div>
@@ -240,7 +240,7 @@ export function MatchCreateOperations({
               className="h-11 bg-white border-slate-200"
             />
             <p className="text-xs text-slate-500">
-              💡 팀을 생성하면 팀을 관리하고 게스트를 편하게 모집할 수 있어요
+              💡 팀을 만들면 매치 정보가 자동 저장되고, 신청자 관리도 한 곳에서 할 수 있어요
             </p>
           </div>
         )}
@@ -255,9 +255,14 @@ export function MatchCreateOperations({
           </div>
           <div className="flex gap-2">
             <Input
-              {...register('accountHolder')}
+              value={accountHolder}
               placeholder="예금주"
               className="w-[90px] h-11 bg-white border-slate-200"
+              onChange={(e) => {
+                // 한글 자음/모음/완성형 허용 (2-10자)
+                const value = e.target.value.replace(/[^ㄱ-ㅎㅏ-ㅣ가-힣]/g, '').slice(0, 10);
+                setValue('accountHolder', value);
+              }}
             />
             <BankCombobox
               value={bankName}
@@ -265,11 +270,20 @@ export function MatchCreateOperations({
               className="w-[100px] h-11 bg-white border-slate-200"
             />
             <Input
-              {...register('accountNumber')}
-              placeholder="계좌번호 (- 없이)"
+              value={accountNumber}
+              placeholder="계좌번호 (숫자만)"
               className="flex-1 h-11 bg-white border-slate-200"
+              inputMode="numeric"
+              onChange={(e) => {
+                // 숫자만 허용 (10-16자리)
+                const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 16);
+                setValue('accountNumber', value);
+              }}
             />
           </div>
+          <p className="text-xs text-slate-400">
+            예금주: 한글 2-10자 / 계좌번호: 숫자만 10-16자리
+          </p>
         </div>
 
         {/* Contact Info - Toggle style */}
@@ -312,7 +326,19 @@ export function MatchCreateOperations({
               <Input
                 {...register('phoneNumber')}
                 placeholder="010-1234-5678"
+                inputMode="tel"
                 className="pl-9 h-11 bg-white border-slate-200 text-sm focus-visible:ring-1 focus-visible:ring-[#FF6600] focus-visible:border-[#FF6600]"
+                onChange={(e) => {
+                  // 전화번호 자동 포맷팅 (숫자만 추출 후 하이픈 추가)
+                  const digits = e.target.value.replace(/[^0-9]/g, '').slice(0, 11);
+                  let formatted = digits;
+                  if (digits.length > 3 && digits.length <= 7) {
+                    formatted = `${digits.slice(0, 3)}-${digits.slice(3)}`;
+                  } else if (digits.length > 7) {
+                    formatted = `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
+                  }
+                  setValue('phoneNumber', formatted);
+                }}
               />
             ) : (
               <Input
@@ -323,7 +349,7 @@ export function MatchCreateOperations({
             )}
           </div>
           <p className="text-xs text-slate-400">
-            * 승인된 게스트에게만 공개됩니다.
+            {contactType === 'PHONE' ? '* 010-XXXX-XXXX 형식으로 입력해주세요' : '* 승인된 게스트에게만 공개됩니다'}
           </p>
         </div>
 

@@ -30,8 +30,6 @@ import { createTeamService } from '@/features/team/api/team-api';
 import { createMatchService } from '@/features/match/api/match-api';
 import {
   GENDER_DEFAULT,
-  PLAY_STYLE_DEFAULT,
-  REFEREE_TYPE_DEFAULT,
   COURT_SIZE_DEFAULT,
   MATCH_FORMAT_DEFAULT,
   GenderValue,
@@ -128,12 +126,15 @@ export function MatchCreateView() {
   const [hasShoes, setHasShoes] = useState(true);
   const [hasJersey, setHasJersey] = useState(true);
 
-  // Game Format (Optional)
-  const [gameFormatType, setGameFormatType] = useState<PlayStyleValue>(PLAY_STYLE_DEFAULT);
-  const [ruleMinutes, setRuleMinutes] = useState("8");
+  // Game Format (Optional) - + 클릭했을 때만 서버 전송
+  const [gameFormatType, setGameFormatType] = useState<PlayStyleValue | undefined>(undefined);
+  const [isGameFormatSelected, setIsGameFormatSelected] = useState(false);
+  const [ruleMinutes, setRuleMinutes] = useState("8"); // 기본값 유지
   const [ruleQuarters, setRuleQuarters] = useState("4");
   const [ruleGames, setRuleGames] = useState("2");
-  const [refereeType, setRefereeType] = useState<RefereeTypeValue>(REFEREE_TYPE_DEFAULT);
+  const [isRulesSelected, setIsRulesSelected] = useState(false);
+  const [refereeType, setRefereeType] = useState<RefereeTypeValue | undefined>(undefined);
+  const [isRefereeSelected, setIsRefereeSelected] = useState(false);
   
   // Operations Info (replaces Admin Info)
   const [operationsData, setOperationsData] = useState<OperationsData | null>(null);
@@ -448,7 +449,14 @@ export function MatchCreateView() {
     const opsHost = data.operations?.selectedHost;
     if (!opsHost) {
         toast.error("⚠️ 운영 정보를 확인해주세요: 주최자를 선택해주세요.");
-        scrollToSection('section-operations'); 
+        scrollToSection('section-operations');
+        return;
+    }
+
+    // 개인주최 시 팀이름 필수 검증
+    if (opsHost === 'me' && (!data.manualTeamName || data.manualTeamName.trim() === '')) {
+        toast.error("⚠️ 운영 정보를 확인해주세요: 개인 주최 시 팀 이름을 입력해주세요.");
+        scrollToSection('section-operations');
         return;
     }
 
@@ -459,14 +467,48 @@ export function MatchCreateView() {
         return;
     }
 
+    // 예금주 형식 검증 (한글 2-10자)
+    const accountHolderRegex = /^[가-힣]{2,10}$/;
+    if (!accountHolderRegex.test(data.accountHolder)) {
+        toast.error("⚠️ 운영 정보를 확인해주세요: 예금주는 한글 2-10자로 입력해주세요.");
+        scrollToSection('section-operations');
+        return;
+    }
+
+    // 계좌번호 형식 검증 (숫자 10-16자리)
+    const accountNumberRegex = /^\d{10,16}$/;
+    if (!accountNumberRegex.test(data.accountNumber)) {
+        toast.error("⚠️ 운영 정보를 확인해주세요: 계좌번호는 숫자 10-16자리로 입력해주세요.");
+        scrollToSection('section-operations');
+        return;
+    }
+
     const opsContactType = data.operations?.contactType; // PHONE or KAKAO_OPEN_CHAT
     const opsContactContent = opsContactType === 'PHONE' ? data.phoneNumber : data.kakaoLink;
-
 
     if (!opsContactContent) {
         toast.error("⚠️ 운영 정보를 확인해주세요: 연락처를 입력해주세요.");
         scrollToSection('section-operations');
         return;
+    }
+
+    // 전화번호 형식 검증 (010-1234-5678)
+    if (opsContactType === 'PHONE') {
+        const phoneRegex = /^01[0-9]-?\d{3,4}-?\d{4}$/;
+        if (!phoneRegex.test(opsContactContent)) {
+            toast.error("⚠️ 운영 정보를 확인해주세요: 올바른 전화번호 형식으로 입력해주세요 (예: 010-1234-5678)");
+            scrollToSection('section-operations');
+            return;
+        }
+    }
+
+    // 오픈채팅 링크 형식 검증 (URL)
+    if (opsContactType === 'KAKAO_OPEN_CHAT') {
+        if (!opsContactContent.startsWith('http')) {
+            toast.error("⚠️ 운영 정보를 확인해주세요: 올바른 오픈채팅 링크를 입력해주세요.");
+            scrollToSection('section-operations');
+            return;
+        }
     }
 
     // Calculate endTime from startTime + duration
@@ -513,19 +555,19 @@ export function MatchCreateView() {
         // Specs
         // Note: Flattening specs as per schema definition
         matchFormat: matchFormat, // 5vs5, 3vs3
-        gameFormat: gameFormatType !== PLAY_STYLE_DEFAULT ? (gameFormatType as any) : undefined,
+        gameFormat: isGameFormatSelected ? gameFormatType : undefined, // + 클릭했을 때만 전송
         level: levelMin, // For backward compatibility, also see levelMin/levelMax below
         levelMin: levelMin,
         levelMax: levelMax,
         gender: gender as any,
         ageRange: convertSelectedAgesToRange(selectedAges),
         
-        // Detailed Rules
+        // Detailed Rules - + 클릭했을 때만 전송
         rules: {
-            quarterTime: ruleMinutes ? Number(ruleMinutes) : undefined,
-            quarterCount: ruleQuarters ? Number(ruleQuarters) : undefined,
-            fullGames: ruleGames ? Number(ruleGames) : undefined,
-            referee: refereeType !== REFEREE_TYPE_DEFAULT ? refereeType : undefined
+            quarterTime: isRulesSelected && ruleMinutes ? Number(ruleMinutes) : undefined,
+            quarterCount: isRulesSelected && ruleQuarters ? Number(ruleQuarters) : undefined,
+            fullGames: isRulesSelected && ruleGames ? Number(ruleGames) : undefined,
+            referee: isRefereeSelected ? refereeType : undefined
         },
 
         facilities: {
@@ -788,10 +830,13 @@ export function MatchCreateView() {
             {/* SECTION 4: Game Format (Optional) */}
             <MatchCreateGameFormat
                 gameFormatType={gameFormatType} setGameFormatType={setGameFormatType}
+                isGameFormatSelected={isGameFormatSelected} setIsGameFormatSelected={setIsGameFormatSelected}
                 ruleMinutes={ruleMinutes} setRuleMinutes={setRuleMinutes}
                 ruleQuarters={ruleQuarters} setRuleQuarters={setRuleQuarters}
                 ruleGames={ruleGames} setRuleGames={setRuleGames}
+                isRulesSelected={isRulesSelected} setIsRulesSelected={setIsRulesSelected}
                 refereeType={refereeType} setRefereeType={setRefereeType}
+                isRefereeSelected={isRefereeSelected} setIsRefereeSelected={setIsRefereeSelected}
             />
 
             {/* SECTION 5: Operations Info */}

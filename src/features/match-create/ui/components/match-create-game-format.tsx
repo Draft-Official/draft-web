@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Input } from '@/shared/ui/base/input';
 import { Label } from '@/shared/ui/base/label';
 import { Chip } from '@/shared/ui/base/chip';
@@ -6,16 +5,22 @@ import { Info, Plus, Minus } from 'lucide-react';
 import { PLAY_STYLE_OPTIONS as GAME_FORMAT_OPTIONS, REFEREE_TYPE_OPTIONS as REFEREE_OPTIONS, PLAY_STYLE_DEFAULT, REFEREE_TYPE_DEFAULT, PlayStyleValue, RefereeTypeValue } from '@/shared/config/constants';
 
 interface MatchCreateGameFormatProps {
-  gameFormatType: PlayStyleValue;
-  setGameFormatType: (v: PlayStyleValue) => void;
+  gameFormatType: PlayStyleValue | undefined;
+  setGameFormatType: (v: PlayStyleValue | undefined) => void;
+  isGameFormatSelected: boolean;
+  setIsGameFormatSelected: (v: boolean) => void;
   ruleMinutes: string;
   setRuleMinutes: (v: string) => void;
   ruleQuarters: string;
   setRuleQuarters: (v: string) => void;
   ruleGames: string;
   setRuleGames: (v: string) => void;
-  refereeType: RefereeTypeValue;
-  setRefereeType: (v: RefereeTypeValue) => void;
+  isRulesSelected: boolean;
+  setIsRulesSelected: (v: boolean) => void;
+  refereeType: RefereeTypeValue | undefined;
+  setRefereeType: (v: RefereeTypeValue | undefined) => void;
+  isRefereeSelected: boolean;
+  setIsRefereeSelected: (v: boolean) => void;
 }
 
 // Reusable Section Item Component
@@ -66,16 +71,14 @@ function GameFormatItem({
 
 export function MatchCreateGameFormat({
   gameFormatType, setGameFormatType,
+  isGameFormatSelected, setIsGameFormatSelected,
   ruleMinutes, setRuleMinutes,
   ruleQuarters, setRuleQuarters,
   ruleGames, setRuleGames,
-  refereeType, setRefereeType
+  isRulesSelected, setIsRulesSelected,
+  refereeType, setRefereeType,
+  isRefereeSelected, setIsRefereeSelected
 }: MatchCreateGameFormatProps) {
-  // UI 상태 로컬화
-  const [showGameFormatType, setShowGameFormatType] = useState(false);
-  const [showRules, setShowRules] = useState(false);
-  const [showReferee, setShowReferee] = useState(false);
-
   return (
     <section className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-4 relative overflow-hidden">
         <h2 className="font-bold text-slate-900 flex items-center gap-2">
@@ -88,11 +91,14 @@ export function MatchCreateGameFormat({
             {/* Game Type - Componentized */}
             <GameFormatItem
                 title="경기 형태"
-                isOpen={showGameFormatType}
-                onOpen={() => setShowGameFormatType(true)}
+                isOpen={isGameFormatSelected}
+                onOpen={() => {
+                    setIsGameFormatSelected(true);
+                    if (!gameFormatType) setGameFormatType(PLAY_STYLE_DEFAULT); // 기본값 설정
+                }}
                 onClose={() => {
-                    setShowGameFormatType(false);
-                    setGameFormatType(PLAY_STYLE_DEFAULT);
+                    setIsGameFormatSelected(false);
+                    setGameFormatType(undefined);
                 }}
             >
                 <div className="flex flex-wrap gap-2">
@@ -112,13 +118,14 @@ export function MatchCreateGameFormat({
             {/* Rules - Layout Update */}
             <GameFormatItem
                 title="쿼터 진행 방식"
-                isOpen={showRules}
-                onOpen={() => setShowRules(true)}
+                isOpen={isRulesSelected}
+                onOpen={() => {
+                    setIsRulesSelected(true);
+                    // 기본값 설정 (이미 부모에서 설정됨)
+                }}
                 onClose={() => {
-                    setShowRules(false);
-                    setRuleMinutes("");
-                    setRuleQuarters("");
-                    setRuleGames("");
+                    setIsRulesSelected(false);
+                    // 값은 유지하되 선택 해제 (서버 전송 안함)
                 }}
             >
                  <div className="flex items-center gap-3">
@@ -160,11 +167,14 @@ export function MatchCreateGameFormat({
             {/* Referee - Spacing Update */}
             <GameFormatItem
                 title="심판 방식"
-                isOpen={showReferee}
-                onOpen={() => setShowReferee(true)}
+                isOpen={isRefereeSelected}
+                onOpen={() => {
+                    setIsRefereeSelected(true);
+                    if (!refereeType) setRefereeType(REFEREE_TYPE_DEFAULT); // 기본값 설정
+                }}
                 onClose={() => {
-                    setShowReferee(false);
-                    setRefereeType(REFEREE_TYPE_DEFAULT);
+                    setIsRefereeSelected(false);
+                    setRefereeType(undefined);
                 }}
             >
                 <div className="flex gap-2">
