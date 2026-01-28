@@ -66,9 +66,16 @@ export class MatchToPrefillMapper {
 
     const startDate = new Date(this.match.start_time);
     const endDate = new Date(this.match.end_time);
-    const startTime = `${String(startDate.getHours()).padStart(2, '0')}:${String(startDate.getMinutes()).padStart(2, '0')}`;
 
-    // duration 계산
+    // KST 기준으로 시간 포맷 (SSR/CSR 간 일관성 보장)
+    const startTime = startDate.toLocaleTimeString('ko-KR', {
+      timeZone: 'Asia/Seoul',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+
+    // duration 계산 (timestamp 차이는 timezone 영향 없음)
     const durationMs = endDate.getTime() - startDate.getTime();
     const durationHours = durationMs / (1000 * 60 * 60);
 

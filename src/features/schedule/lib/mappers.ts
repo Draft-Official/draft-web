@@ -291,18 +291,33 @@ function getPositionQuotas(setup?: RecruitmentSetup): PositionQuota[] {
 function formatMatchDate(dateString: string): string {
   const date = new Date(dateString);
   const days = ['일', '월', '화', '수', '목', '금', '토'];
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const dayName = days[date.getDay()];
 
-  return `${year}. ${month}. ${day} (${dayName})`;
+  // KST 기준으로 날짜 포맷 (SSR/CSR 간 일관성 보장)
+  const kstFormatter = new Intl.DateTimeFormat('ko-KR', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    weekday: 'short',
+  });
+
+  const parts = kstFormatter.formatToParts(date);
+  const year = parts.find(p => p.type === 'year')?.value || '';
+  const month = parts.find(p => p.type === 'month')?.value || '';
+  const day = parts.find(p => p.type === 'day')?.value || '';
+  const weekday = parts.find(p => p.type === 'weekday')?.value || '';
+
+  return `${year}. ${month}. ${day} (${weekday})`;
 }
 
 function formatMatchTime(dateString: string): string {
   const date = new Date(dateString);
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
 
-  return `${hours}:${minutes}`;
+  // KST 기준으로 시간 포맷 (SSR/CSR 간 일관성 보장)
+  return date.toLocaleTimeString('ko-KR', {
+    timeZone: 'Asia/Seoul',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
 }
