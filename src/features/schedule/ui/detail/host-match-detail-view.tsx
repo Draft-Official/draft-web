@@ -476,6 +476,14 @@ export function HostMatchDetailView() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <p className="font-bold text-slate-900">{guest.name}</p>
+                        {guest.companions && guest.companions.length > 0 && (
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] px-2 py-0.5 bg-blue-50 text-blue-700 border-blue-200"
+                          >
+                            +{guest.companions.length}명
+                          </Badge>
+                        )}
                         {guest.status === 'confirmed' && (
                           <Badge
                             variant="outline"
@@ -579,6 +587,23 @@ export function HostMatchDetailView() {
                       )}
                     </div>
                   </div>
+
+                  {/* 동반인 서브리스트 */}
+                  {guest.companions && guest.companions.length > 0 && (
+                    <div className="mt-2 ml-14 pl-3 border-l-2 border-blue-200 space-y-1">
+                      {guest.companions.map((companion, idx) => (
+                        <div key={idx} className="flex items-center gap-2 py-1">
+                          <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                            <span className="text-blue-600 font-bold text-[10px]">
+                              {companion.name.charAt(0)}
+                            </span>
+                          </div>
+                          <span className="text-sm text-slate-700">{companion.name}</span>
+                          <span className="text-xs text-slate-400">{companion.position}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))
             )}
@@ -643,6 +668,35 @@ export function HostMatchDetailView() {
                   </div>
                 )}
               </div>
+
+              {/* 동반인 정보 */}
+              {selectedGuest.companions && selectedGuest.companions.length > 0 && (
+                <div className="w-full space-y-3">
+                  <p className="text-sm font-medium text-slate-700">
+                    동반인 ({selectedGuest.companions.length}명)
+                  </p>
+                  <div className="space-y-2">
+                    {selectedGuest.companions.map((companion, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between bg-blue-50 rounded-xl p-3 border border-blue-100"
+                      >
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-full bg-blue-200 flex items-center justify-center">
+                            <span className="text-blue-700 font-bold text-xs">
+                              {companion.name.charAt(0)}
+                            </span>
+                          </div>
+                          <span className="font-medium text-slate-900 text-sm">
+                            {companion.name}
+                          </span>
+                        </div>
+                        <span className="text-sm text-slate-500">{companion.position}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="w-full flex gap-2 pt-2">
                 {selectedGuest.status === 'pending' && (

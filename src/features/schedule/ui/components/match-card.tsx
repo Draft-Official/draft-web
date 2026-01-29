@@ -123,11 +123,15 @@ export function MatchCard({ match, onClick, onConfirmPayment }: MatchCardProps) 
         {/* Bottom Section - Type Specific Info */}
         {match.type === 'guest' && (
           <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-slate-500">금액</span>
+            <div className="flex items-baseline gap-1.5">
               <span className="font-bold text-slate-900 text-lg">
                 {match.amount?.toLocaleString()}원
               </span>
+              {match.companionCount != null && match.perAmount != null && (
+                <span className="text-xs text-slate-400">
+                  (인당:{match.perAmount.toLocaleString()}원)
+                </span>
+              )}
             </div>
             {match.bankInfo && match.status === 'payment_waiting' ? (
               // 입금대기 상태: 송금 하기 + 송금 완료 버튼

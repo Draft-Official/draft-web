@@ -36,7 +36,9 @@ export interface ManagedMatch {
   // Guest specific
   applicationId?: string; // 게스트 신청 ID (송금 완료 처리용)
   approvalStatus?: string;
-  amount?: number;
+  amount?: number;       // 총금액 (본인 + 동반인)
+  perAmount?: number;    // 인당 금액
+  companionCount?: number; // 동반인 수
   bankInfo?: {
     bank: string;
     account: string;
@@ -71,6 +73,12 @@ export type GuestStatus = 'pending' | 'payment_waiting' | 'confirmed' | 'rejecte
 // 모집 방식
 export type RecruitmentMode = 'position' | 'total';
 
+// 동반인 정보
+export interface CompanionInfo {
+  name: string;
+  position: string;
+}
+
 // 참여자 기본 정보
 export interface Participant {
   id: string;
@@ -86,6 +94,9 @@ export interface Participant {
 export interface Guest extends Participant {
   status: GuestStatus;
   paymentVerified?: boolean; // 호스트 내부 관리용 입금 확인 여부
+  companions?: CompanionInfo[];
+  totalCost?: number;   // 총 참가비 (본인 + 동반인)
+  perCost?: number;     // 1인당 참가비
   matchHistory?: {
     count: number;
     lastDate?: string;
