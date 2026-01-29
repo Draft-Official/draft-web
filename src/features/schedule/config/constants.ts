@@ -57,13 +57,13 @@ export const MATCH_STATUS_LABELS: Record<MatchStatus, string> = {
   voting: '투표 중',
   confirmed: '경기 확정',
   ongoing: '경기 중',
-  ended: '종료/취소',
-  cancelled: '종료/취소',
+  ended: '종료',
+  cancelled: '취소',
   // Legacy
   scheduled: '경기 확정',
   pending: '승인 대기',
   closed: '모집 마감',
-  rejected: '종료/취소',
+  rejected: '취소',
 };
 
 // 경기 상태별 색상 (Tailwind classes)

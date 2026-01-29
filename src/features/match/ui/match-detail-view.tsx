@@ -73,11 +73,15 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
     },
   });
 
+  // 경기 종료 여부 (시간 기반)
+  const isMatchEnded = !!(match.dateISO && match.endTime &&
+    new Date() >= new Date(`${match.dateISO}T${match.endTime}`));
+
   // 이미 신청한 경기인지 (from=schedule이거나 myApplication이 있는 경우)
   const hasApplied = isFromSchedule || !!myApplication;
 
-  // 취소 가능 여부 (REJECTED, CANCELED 상태가 아닌 경우만)
-  const canCancel = !!(myApplication &&
+  // 취소 가능 여부 (종료된 경기이거나 REJECTED, CANCELED 상태가 아닌 경우만)
+  const canCancel = !isMatchEnded && !!(myApplication &&
     myApplication.status !== 'REJECTED' &&
     myApplication.status !== 'CANCELED');
 
@@ -163,6 +167,7 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
         isLoading={isLoadingApplication && isFromSchedule}
         isCanceling={cancelMutation.isPending}
         statusText={getStatusText()}
+        isMatchEnded={isMatchEnded}
       />
 
       {/* 4. Apply Modal */}

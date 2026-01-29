@@ -128,6 +128,7 @@ export class MatchToPrefillMapper {
   mapHost() {
     return {
       selectedHost: this.match.team_id || 'me',
+      manualTeamName: this.match.manual_team_name || '',
     };
   }
 

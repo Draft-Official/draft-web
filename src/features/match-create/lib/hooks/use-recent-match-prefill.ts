@@ -115,6 +115,9 @@ export function useRecentMatchPrefill(params: {
 
     // 6.1 주최자 정보
     setValue('operations.selectedHost', data.host.selectedHost);
+    if (data.host.manualTeamName) {
+      setValue('manualTeamName', data.host.manualTeamName);
+    }
 
     // 7. 공지사항
     if (data.notice) setValue('description', data.notice);
