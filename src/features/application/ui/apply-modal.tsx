@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/ui/base/select';
+import { Switch } from '@/shared/ui/base/switch';
 import { cn } from '@/shared/lib/utils';
 import { useAuth } from '@/features/auth/model/auth-context';
 import { useUpdateProfile } from '@/features/auth/api/mutations';
@@ -25,6 +26,13 @@ import { useCreateApplication } from '../api/mutations';
 import { useUserTeams } from '../api/queries';
 import type { ParticipantInfo, Profile, UserMetadata, UserUpdate, Json } from '@/shared/types/database.types';
 import { POSITION_OPTIONS, POSITION_DEFAULT, PositionValue } from '@/shared/config/constants';
+
+const MAX_COMPANIONS = 4;
+
+interface CompanionFormData {
+  name: string;
+  position: PositionValue | '';
+}
 
 interface ApplyFormData {
   height: string;
@@ -119,6 +127,8 @@ export function ApplyModal({
     position: '',
     teamId: '',
   });
+  const [hasCompanions, setHasCompanions] = useState(false);
+  const [companions, setCompanions] = useState<CompanionFormData[]>([]);
 
   // 프로필 데이터로 폼 초기화
   useEffect(() => {
@@ -128,8 +138,29 @@ export function ApplyModal({
   }, [profile]);
 
   const isFormValid = () => {
-    return formData.position !== '';
+    if (formData.position === '') return false;
+    if (hasCompanions && companions.length > 0) {
+      return companions.every((c) => c.name.trim() !== '' && c.position !== '');
+    }
+    return true;
   };
+
+  const addCompanion = () => {
+    if (companions.length < MAX_COMPANIONS) {
+      setCompanions([...companions, { name: '', position: '' }]);
+    }
+  };
+
+  const removeCompanion = (index: number) => {
+    setCompanions(companions.filter((_, i) => i !== index));
+  };
+
+  const updateCompanion = (index: number, field: keyof CompanionFormData, value: string) => {
+    setCompanions(companions.map((c, i) => (i === index ? { ...c, [field]: value } : c)));
+  };
+
+  const totalCount = 1 + (hasCompanions ? companions.length : 0);
+  const totalCost = (costAmount || 0) * totalCount;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -145,6 +176,14 @@ export function ApplyModal({
         position: positionCode,
         cost: costAmount || 0,
       },
+      ...(hasCompanions
+        ? companions.map((c) => ({
+            type: 'GUEST' as const,
+            name: c.name,
+            position: c.position || POSITION_DEFAULT,
+            cost: costAmount || 0,
+          }))
+        : []),
     ];
 
     try {
@@ -296,6 +335,100 @@ export function ApplyModal({
               ))}
             </div>
             </div>
+          </div>
+
+          {/* 동반인 섹션 */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label className="text-sm font-semibold text-slate-900">
+                동반인 신청
+              </Label>
+              <Switch
+                checked={hasCompanions}
+                className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-slate-200"
+                onCheckedChange={(checked) => {
+                  setHasCompanions(checked);
+                  if (checked && companions.length === 0) {
+                    setCompanions([{ name: '', position: '' }]);
+                  }
+                  if (!checked) {
+                    setCompanions([]);
+                  }
+                }}
+              />
+            </div>
+
+            {hasCompanions && (
+              <div className="space-y-3">
+                {companions.map((companion, index) => (
+                  <div
+                    key={index}
+                    className="bg-slate-50 rounded-xl p-4 space-y-3 relative"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-slate-700">
+                        동반인 {index + 1}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => removeCompanion(index)}
+                        className="text-xs text-red-500 hover:text-red-700"
+                      >
+                        삭제
+                      </button>
+                    </div>
+
+                    {/* 이름 */}
+                    <div>
+                      <Label className="text-sm text-slate-600 mb-1 block">
+                        이름 <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        type="text"
+                        placeholder="동반인 이름"
+                        value={companion.name}
+                        onChange={(e) => updateCompanion(index, 'name', e.target.value)}
+                        className="h-10 bg-white border-slate-300 focus-visible:ring-primary"
+                      />
+                    </div>
+
+                    {/* 포지션 */}
+                    <div>
+                      <Label className="text-sm text-slate-600 mb-1 block">
+                        포지션 <span className="text-red-500">*</span>
+                      </Label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {POSITION_OPTIONS.map((pos) => (
+                          <button
+                            key={pos.value}
+                            type="button"
+                            onClick={() => updateCompanion(index, 'position', pos.value)}
+                            className={cn(
+                              'h-10 rounded-lg text-sm font-medium transition-all',
+                              companion.position === pos.value
+                                ? 'bg-primary text-white'
+                                : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+                            )}
+                          >
+                            {pos.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {companions.length < MAX_COMPANIONS && (
+                  <button
+                    type="button"
+                    onClick={addCompanion}
+                    className="w-full h-10 rounded-xl border-2 border-dashed border-slate-300 text-sm text-slate-500 hover:border-primary hover:text-primary transition-colors"
+                  >
+                    + 동반인 추가 (최대 {MAX_COMPANIONS}명)
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
           {/* 팀 선택 */}

@@ -100,6 +100,18 @@ export function applicationToGuest(app: ApplicationWithUser): Guest {
   // User metadata에서 height 추출 (있는 경우)
   const height = (app.user as { metadata?: { height?: number } })?.metadata?.height;
 
+  // 동반인 추출 (type === 'GUEST')
+  const companions = participants
+    .filter((p) => p.type === 'GUEST')
+    .map((p) => ({
+      name: p.name,
+      position: getPositionLabel(p.position),
+    }));
+
+  // 비용 계산
+  const totalCost = participants.reduce((sum, p) => sum + (p.cost || 0), 0);
+  const perCost = participants[0]?.cost || 0;
+
   return {
     id: app.id,
     name: app.user.nickname || '이름 없음',
@@ -110,6 +122,9 @@ export function applicationToGuest(app: ApplicationWithUser): Guest {
     status: getGuestStatus(app),
     paymentVerified: !!app.payment_verified_at, // 호스트 내부 관리용 입금 확인 여부
     avatar: app.user.avatar_url || undefined,
+    companions: companions.length > 0 ? companions : undefined,
+    totalCost: totalCost > 0 ? totalCost : undefined,
+    perCost: perCost > 0 ? perCost : undefined,
     // matchHistory는 별도 쿼리 필요 (추후 구현)
   };
 }
