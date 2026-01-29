@@ -15,6 +15,7 @@ interface BottomBarProps {
   isLoading?: boolean;
   isCanceling?: boolean;
   statusText?: string;
+  isMatchEnded?: boolean;
 }
 
 export function MatchDetailBottomBar({
@@ -26,6 +27,7 @@ export function MatchDetailBottomBar({
   isLoading = false,
   isCanceling = false,
   statusText,
+  isMatchEnded = false,
 }: BottomBarProps) {
   const isClosed = match.isClosed || match.positions.all?.status === 'closed';
 
@@ -36,6 +38,23 @@ export function MatchDetailBottomBar({
         <div className="max-w-[760px] mx-auto bg-white border-t border-slate-100 px-5 pt-4 pb-8 pointer-events-auto shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
           <Button disabled className="w-full text-lg font-bold h-12 rounded-xl">
             <Loader2 className="w-5 h-5 animate-spin" />
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // 종료된 경기
+  if (isMatchEnded) {
+    return (
+      <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none md:pl-[240px]">
+        <div className="max-w-[760px] mx-auto bg-white border-t border-slate-100 px-5 pt-4 pb-8 pointer-events-auto shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+          <Button
+            size="lg"
+            className="w-full text-lg font-bold h-12 rounded-xl bg-slate-200 text-slate-500"
+            disabled
+          >
+            종료된 경기입니다
           </Button>
         </div>
       </div>

@@ -45,6 +45,29 @@ export function GuestMatchDetailView() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
+  // 경기 상태 조회 (종료/취소 판별용)
+  const { data: matchTimes } = useQuery({
+    queryKey: ['match-times', matchId],
+    queryFn: async () => {
+      if (!matchId) return null;
+
+      const supabase = getSupabaseBrowserClient();
+      const { data, error } = await supabase
+        .from('matches')
+        .select('status, end_time')
+        .eq('id', matchId)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!matchId,
+  });
+
+  const isMatchFinished = !!(matchTimes?.end_time && new Date() >= new Date(matchTimes.end_time));
+  const isMatchCanceled = matchTimes?.status === 'CANCELED';
+  const isMatchEnded = isMatchFinished || isMatchCanceled;
+
   // 내 신청 정보 조회
   const { data: myApplication, isLoading: isLoadingApplication } = useQuery({
     queryKey: ['my-application', matchId, user?.id],
@@ -355,7 +378,14 @@ export function GuestMatchDetailView() {
       {/* Footer Sticky Action */}
       <div className="fixed bottom-0 left-0 right-0 md:left-[240px] bg-white border-t border-slate-100 p-4 z-50">
         <div className="max-w-[760px] mx-auto">
-          {isLoadingApplication ? (
+          {isMatchEnded ? (
+            <Button
+              disabled
+              className="w-full bg-slate-200 text-slate-500 h-12 rounded-xl font-bold text-lg cursor-not-allowed"
+            >
+              {isMatchCanceled ? '취소된 경기입니다' : '종료된 경기입니다'}
+            </Button>
+          ) : isLoadingApplication ? (
             <Button disabled className="w-full h-12 text-lg font-bold rounded-xl">
               <Loader2 className="w-5 h-5 animate-spin" />
             </Button>

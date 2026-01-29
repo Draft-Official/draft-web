@@ -105,6 +105,7 @@ export interface HostMatchDetail {
   id: string;
   date: string;
   time: string;
+  endTimeISO: string; // ISO timestamp for time-based status derivation
   location: string;
   locationUrl: string;
   teamName: string;

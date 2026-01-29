@@ -687,8 +687,8 @@ export function MatchCreateView() {
         }
       }
 
-      if (isEditMode && editMatchId) {
-        router.push(`/matches/${editMatchId}/manage`);
+      if (isEditMode) {
+        router.back();
       } else {
         router.push('/');
       }

@@ -172,6 +172,7 @@ export function matchToHostMatchDetail(match: MatchWithRelations): HostMatchDeta
     id: match.id,
     date: formatMatchDate(match.start_time),
     time: formatMatchTime(match.start_time),
+    endTimeISO: match.end_time || '',
     location: match.gym?.name || '장소 미정',
     locationUrl: match.gym?.kakao_place_id
       ? `https://map.kakao.com/link/map/${match.gym.kakao_place_id}`

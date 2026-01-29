@@ -95,11 +95,14 @@ export function HostMatchDetailView() {
 
   const isLoading = isLoadingMatch || isLoadingGuests;
 
-  // Match status helpers
+  // Match status helpers (DB status + 시간 기반 파생)
   const matchStatus = match?.status;
-  const isRecruiting = matchStatus === 'RECRUITING';
-  const isClosed = matchStatus === 'CLOSED';
-  const isConfirmed = matchStatus === 'CONFIRMED' || matchStatus === 'ONGOING' || matchStatus === 'FINISHED' || matchStatus === 'CANCELED';
+  const isMatchFinished = !!(match?.endTimeISO && new Date() >= new Date(match.endTimeISO));
+  const isMatchCanceled = matchStatus === 'CANCELED';
+  const isEnded = isMatchFinished || isMatchCanceled;
+  const isRecruiting = !isEnded && matchStatus === 'RECRUITING';
+  const isClosed = !isEnded && matchStatus === 'CLOSED';
+  const isConfirmed = !isEnded && (matchStatus === 'CONFIRMED' || matchStatus === 'ONGOING');
 
   // 확정자 수 계산 (포지션별)
   const confirmedCountByPosition = guests
@@ -962,6 +965,16 @@ export function HostMatchDetailView() {
               className="w-full bg-slate-200 text-slate-500 h-12 rounded-xl font-bold text-lg cursor-not-allowed"
             >
               확정 완료
+            </Button>
+          )}
+
+          {/* 종료/취소 */}
+          {isEnded && (
+            <Button
+              disabled
+              className="w-full bg-slate-200 text-slate-500 h-12 rounded-xl font-bold text-lg cursor-not-allowed"
+            >
+              {isMatchCanceled ? '취소된 경기입니다' : '종료된 경기입니다'}
             </Button>
           )}
         </div>
