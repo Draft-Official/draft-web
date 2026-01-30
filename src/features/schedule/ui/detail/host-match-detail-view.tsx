@@ -10,45 +10,36 @@ import {
   Clock,
   Shield,
   Users,
-  Minus,
-  Plus,
   Loader2,
 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { Badge } from '@/shared/ui/base/badge';
 import { Button } from '@/shared/ui/base/button';
-import { Checkbox } from '@/shared/ui/base/checkbox';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/shared/ui/base/dropdown-menu';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/shared/ui/base/dialog';
 import { toast } from 'sonner';
 import type {
   Guest,
   GuestStatus,
-  RecruitmentMode,
 } from '../../model/types';
 import {
   useHostMatchDetail,
   useMatchApplicants,
   useApproveApplication,
-  useConfirmPayment,
+  useConfirmPaymentByGuest,
   useVerifyPayment,
   useRejectApplication,
   useCancelParticipation,
   useUpdateMatchStatus,
   useUpdateRecruitmentSetup,
 } from '../../api';
-import type { RecruitmentSetup } from '@/shared/types/database.types';
+import { GuestProfileDialog } from './guest-profile-dialog';
+import { EditQuotaDialog } from './edit-quota-dialog';
+import { CancelConfirmDialog } from './cancel-confirm-dialog';
 
 // 탭 설정
 const GUEST_TABS: { status: GuestStatus; label: string }[] = [
@@ -69,7 +60,7 @@ export function HostMatchDetailView() {
 
   // Mutations
   const approveMutation = useApproveApplication();
-  const confirmMutation = useConfirmPayment();
+  const confirmMutation = useConfirmPaymentByGuest();
   const verifyPaymentMutation = useVerifyPayment();
   const rejectMutation = useRejectApplication();
   const cancelMutation = useCancelParticipation();
@@ -83,15 +74,6 @@ export function HostMatchDetailView() {
   const [isEditQuotaOpen, setIsEditQuotaOpen] = useState(false);
   const [isCancelConfirmOpen, setIsCancelConfirmOpen] = useState(false);
   const [guestToCancel, setGuestToCancel] = useState<Guest | null>(null);
-  const [editMode, setEditMode] = useState<RecruitmentMode>('position');
-  const [isFlexBigman, setIsFlexBigman] = useState(false);
-  const [editPositions, setEditPositions] = useState({
-    guard: 2,
-    forward: 2,
-    center: 1,
-    bigman: 3,
-    total: 5,
-  });
 
   const isLoading = isLoadingMatch || isLoadingGuests;
 
@@ -178,67 +160,6 @@ export function HostMatchDetailView() {
   const openGuestProfile = (guest: Guest) => {
     setSelectedGuest(guest);
     setIsGuestProfileOpen(true);
-  };
-
-  // 포지션 인원 수정
-  const updatePosition = (
-    pos: 'guard' | 'forward' | 'center' | 'bigman' | 'total',
-    delta: number
-  ) => {
-    setEditPositions((prev) => ({
-      ...prev,
-      [pos]: Math.max(0, prev[pos] + delta),
-    }));
-  };
-
-  // 기존 current 값을 가져오는 헬퍼 함수
-  const getCurrentCount = (positionCode: string): number => {
-    if (match?.positionQuotas) {
-      const quota = match.positionQuotas.find(q => q.position === positionCode);
-      return quota?.current || 0;
-    }
-    return 0;
-  };
-
-  // 인원 저장 (기존 current 값 보존)
-  const handleSaveQuota = () => {
-    // 모집 모드가 변경되면 current를 0으로 초기화
-    const modeChanged = (editMode === 'total' && match?.recruitmentMode === 'position') ||
-                        (editMode === 'position' && match?.recruitmentMode === 'total');
-
-    if (modeChanged) {
-      toast.warning('모집 모드가 변경되어 현재 인원이 초기화됩니다.');
-    }
-
-    const recruitmentSetup: RecruitmentSetup =
-      editMode === 'total'
-        ? {
-            type: 'ANY',
-            max_count: editPositions.total,
-            current_count: modeChanged ? 0 : (match?.totalQuota?.current || 0),
-          }
-        : {
-            type: 'POSITION',
-            positions: isFlexBigman
-              ? {
-                  G: { max: editPositions.guard, current: modeChanged ? 0 : getCurrentCount('G') },
-                  B: { max: editPositions.bigman, current: modeChanged ? 0 : getCurrentCount('B') },
-                }
-              : {
-                  G: { max: editPositions.guard, current: modeChanged ? 0 : getCurrentCount('G') },
-                  F: { max: editPositions.forward, current: modeChanged ? 0 : getCurrentCount('F') },
-                  C: { max: editPositions.center, current: modeChanged ? 0 : getCurrentCount('C') },
-                },
-          };
-
-    recruitmentMutation.mutate(
-      { matchId, recruitmentSetup },
-      {
-        onSuccess: () => {
-          setIsEditQuotaOpen(false);
-        },
-      }
-    );
   };
 
   // 모집 마감 처리 (RECRUITING → CLOSED)
@@ -612,372 +533,43 @@ export function HostMatchDetailView() {
       </div>
 
       {/* 게스트 프로필 Dialog */}
-      <Dialog open={isGuestProfileOpen} onOpenChange={setIsGuestProfileOpen}>
-        <DialogContent className="max-w-sm mx-4 rounded-2xl p-6">
-          {selectedGuest && (
-            <div className="flex flex-col items-center space-y-6 pt-2">
-              <div className="w-20 h-20 rounded-full bg-slate-200 flex items-center justify-center">
-                <span className="text-slate-600 font-bold text-3xl">
-                  {selectedGuest.name.charAt(0)}
-                </span>
-              </div>
-
-              <DialogHeader className="space-y-2">
-                <DialogTitle className="text-2xl font-bold text-slate-900 text-center">
-                  {selectedGuest.name}
-                </DialogTitle>
-                <DialogDescription className="sr-only">
-                  게스트의 상세 정보를 확인하고 승인 또는 거절할 수 있습니다.
-                </DialogDescription>
-              </DialogHeader>
-
-              <div className="w-full space-y-3 border-t border-b border-slate-100 py-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-500">포지션</span>
-                  <span className="font-medium text-slate-900">{selectedGuest.position}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-500">실력</span>
-                  <span className="font-medium text-slate-900">{selectedGuest.level}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-500">나이대</span>
-                  <span className="font-medium text-slate-900">{selectedGuest.ageGroup}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-500">키</span>
-                  <span className="font-medium text-slate-900">{selectedGuest.height}</span>
-                </div>
-              </div>
-
-              <div className="w-full space-y-3">
-                <p className="text-sm font-medium text-slate-700">이 팀과의 경기 이력</p>
-
-                {selectedGuest.matchHistory ? (
-                  <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
-                    <p className="text-slate-900 font-medium">
-                      참여 {selectedGuest.matchHistory.count}회
-                    </p>
-                    <p className="text-sm text-slate-500 mt-1">
-                      마지막 참여: {selectedGuest.matchHistory.lastDate}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
-                    <p className="text-slate-900 font-medium">첫 참여입니다</p>
-                  </div>
-                )}
-              </div>
-
-              {/* 동반인 정보 */}
-              {selectedGuest.companions && selectedGuest.companions.length > 0 && (
-                <div className="w-full space-y-3">
-                  <p className="text-sm font-medium text-slate-700">
-                    동반인 ({selectedGuest.companions.length}명)
-                  </p>
-                  <div className="space-y-2">
-                    {selectedGuest.companions.map((companion, idx) => (
-                      <div
-                        key={idx}
-                        className="flex items-center justify-between bg-blue-50 rounded-xl p-3 border border-blue-100"
-                      >
-                        <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-full bg-blue-200 flex items-center justify-center">
-                            <span className="text-blue-700 font-bold text-xs">
-                              {companion.name.charAt(0)}
-                            </span>
-                          </div>
-                          <span className="font-medium text-slate-900 text-sm">
-                            {companion.name}
-                          </span>
-                        </div>
-                        <span className="text-sm text-slate-500">{companion.position}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <div className="w-full flex gap-2 pt-2">
-                {selectedGuest.status === 'pending' && (
-                  <>
-                    <Button
-                      onClick={() => handleApprove(selectedGuest)}
-                      variant="outline"
-                      className="flex-1 h-12 rounded-xl"
-                    >
-                      승인
-                    </Button>
-                    <Button
-                      onClick={() => handleReject(selectedGuest)}
-                      className="flex-1 bg-red-100 hover:bg-red-200 text-red-600 border border-red-200 h-12 rounded-xl"
-                    >
-                      거절
-                    </Button>
-                  </>
-                )}
-
-                {selectedGuest.status === 'payment_waiting' && (
-                  <>
-                    <Button
-                      onClick={() => handleConfirmPayment(selectedGuest)}
-                      variant="outline"
-                      className="flex-1 h-12 rounded-xl"
-                    >
-                      입금확인
-                    </Button>
-                    <Button
-                      onClick={() => handleCancel(selectedGuest)}
-                      className="flex-1 bg-red-100 hover:bg-red-200 text-red-600 border border-red-200 h-12 rounded-xl"
-                    >
-                      취소
-                    </Button>
-                  </>
-                )}
-
-                {selectedGuest.status === 'confirmed' && (
-                  <Button
-                    onClick={() => handleCancel(selectedGuest)}
-                    className="w-full bg-red-100 hover:bg-red-200 text-red-600 border border-red-200 h-12 rounded-xl"
-                  >
-                    취소
-                  </Button>
-                )}
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      <GuestProfileDialog
+        guest={selectedGuest}
+        open={isGuestProfileOpen}
+        onOpenChange={setIsGuestProfileOpen}
+        onApprove={handleApprove}
+        onReject={handleReject}
+        onConfirmPayment={handleConfirmPayment}
+        onCancel={handleCancel}
+      />
 
       {/* 모집 인원 수정 Dialog */}
-      <Dialog open={isEditQuotaOpen} onOpenChange={setIsEditQuotaOpen}>
-        <DialogContent className="max-w-sm mx-4 rounded-2xl p-6">
-          <DialogHeader>
-            <DialogTitle>모집 인원 수정</DialogTitle>
-            <DialogDescription>경기의 모집 인원을 수정할 수 있습니다.</DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-6 py-4">
-            {/* 모드 토글 */}
-            <div className="flex items-center justify-center gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
-              <button
-                onClick={() => setEditMode('total')}
-                className={cn(
-                  'text-sm font-medium transition-colors',
-                  editMode === 'total' ? 'text-slate-900' : 'text-slate-400'
-                )}
-              >
-                포지션 무관
-              </button>
-              <div
-                className="relative w-12 h-6 bg-slate-200 rounded-full cursor-pointer"
-                onClick={() => setEditMode(editMode === 'total' ? 'position' : 'total')}
-              >
-                <div
-                  className={cn(
-                    'absolute top-1 w-4 h-4 bg-slate-900 rounded-full transition-transform',
-                    editMode === 'position' ? 'translate-x-7' : 'translate-x-1'
-                  )}
-                />
-              </div>
-              <button
-                onClick={() => setEditMode('position')}
-                className={cn(
-                  'text-sm font-medium transition-colors',
-                  editMode === 'position' ? 'text-slate-900' : 'text-slate-400'
-                )}
-              >
-                포지션별
-              </button>
-            </div>
-
-            {/* 포지션별 모드 */}
-            {editMode === 'position' && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-end space-x-2">
-                  <Checkbox
-                    id="flex-bigman"
-                    checked={isFlexBigman}
-                    onCheckedChange={(c) => setIsFlexBigman(!!c)}
-                  />
-                  <label
-                    htmlFor="flex-bigman"
-                    className="text-sm font-medium text-slate-600"
-                  >
-                    빅맨 통합 (F/C)
-                  </label>
-                </div>
-
-                <div className="space-y-3">
-                  {/* 가드 */}
-                  <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
-                    <span className="font-bold text-slate-700">가드 (G)</span>
-                    <div className="flex items-center gap-3">
-                      <button
-                        type="button"
-                        onClick={() => updatePosition('guard', -1)}
-                        className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-100"
-                      >
-                        <Minus className="w-4 h-4 text-slate-600" />
-                      </button>
-                      <span className="w-4 text-center font-bold text-lg">
-                        {editPositions.guard}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => updatePosition('guard', 1)}
-                        className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center hover:bg-slate-800"
-                      >
-                        <Plus className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-
-                  {isFlexBigman ? (
-                    <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
-                      <span className="font-bold text-slate-700">빅맨 (F/C)</span>
-                      <div className="flex items-center gap-3">
-                        <button
-                          type="button"
-                          onClick={() => updatePosition('bigman', -1)}
-                          className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-100"
-                        >
-                          <Minus className="w-4 h-4 text-slate-600" />
-                        </button>
-                        <span className="w-4 text-center font-bold text-lg">
-                          {editPositions.bigman}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => updatePosition('bigman', 1)}
-                          className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center hover:bg-slate-800"
-                        >
-                          <Plus className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
-                        <span className="font-bold text-slate-700">포워드 (F)</span>
-                        <div className="flex items-center gap-3">
-                          <button
-                            type="button"
-                            onClick={() => updatePosition('forward', -1)}
-                            className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-100"
-                          >
-                            <Minus className="w-4 h-4 text-slate-600" />
-                          </button>
-                          <span className="w-4 text-center font-bold text-lg">
-                            {editPositions.forward}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => updatePosition('forward', 1)}
-                            className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center hover:bg-slate-800"
-                          >
-                            <Plus className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
-                        <span className="font-bold text-slate-700">센터 (C)</span>
-                        <div className="flex items-center gap-3">
-                          <button
-                            type="button"
-                            onClick={() => updatePosition('center', -1)}
-                            className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-100"
-                          >
-                            <Minus className="w-4 h-4 text-slate-600" />
-                          </button>
-                          <span className="w-4 text-center font-bold text-lg">
-                            {editPositions.center}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => updatePosition('center', 1)}
-                            className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center hover:bg-slate-800"
-                          >
-                            <Plus className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* 전체 모드 */}
-            {editMode === 'total' && (
-              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
-                <span className="font-bold text-slate-700">전체 인원</span>
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => updatePosition('total', -1)}
-                    className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-100"
-                  >
-                    <Minus className="w-4 h-4 text-slate-600" />
-                  </button>
-                  <span className="w-12 text-center font-bold text-lg">
-                    {editPositions.total}명
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => updatePosition('total', 1)}
-                    className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center hover:bg-slate-800"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            <Button
-              onClick={handleSaveQuota}
-              className="w-full bg-primary hover:bg-primary/90 text-white h-14 rounded-xl font-bold"
-            >
-              저장
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <EditQuotaDialog
+        open={isEditQuotaOpen}
+        onOpenChange={setIsEditQuotaOpen}
+        match={match}
+        onSave={(recruitmentSetup) => {
+          recruitmentMutation.mutate(
+            { matchId, recruitmentSetup },
+            {
+              onSuccess: () => {
+                setIsEditQuotaOpen(false);
+              },
+            }
+          );
+        }}
+      />
 
       {/* 취소 확인 Dialog */}
-      <Dialog open={isCancelConfirmOpen} onOpenChange={setIsCancelConfirmOpen}>
-        <DialogContent className="max-w-sm mx-4 rounded-2xl p-6">
-          <DialogHeader>
-            <DialogTitle>참가 취소 확인</DialogTitle>
-            <DialogDescription className="text-slate-600 pt-2">
-              참가자의 동의 없는 일방적인 취소는 법적 불이익을 당할 수 있습니다. 정말
-              취소하시겠습니까?
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="flex gap-2 pt-4">
-            <Button
-              onClick={() => setIsCancelConfirmOpen(false)}
-              variant="outline"
-              className="flex-1 h-12 rounded-xl font-bold"
-            >
-              취소
-            </Button>
-            <Button
-              onClick={() => {
-                if (guestToCancel) {
-                  handleCancel(guestToCancel);
-                }
-                setIsCancelConfirmOpen(false);
-              }}
-              className="flex-1 bg-red-100 hover:bg-red-200 text-red-600 border border-red-200 h-12 rounded-xl font-bold"
-            >
-              확인
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <CancelConfirmDialog
+        open={isCancelConfirmOpen}
+        onOpenChange={setIsCancelConfirmOpen}
+        onConfirm={() => {
+          if (guestToCancel) {
+            handleCancel(guestToCancel);
+          }
+        }}
+      />
 
       {/* 하단 고정 버튼 */}
       <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none md:pl-[240px]">

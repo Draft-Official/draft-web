@@ -16,7 +16,6 @@ export {
 // Mutation Hooks
 export {
   useApproveApplication,
-  useConfirmPayment,
   useConfirmPaymentByGuest,
   useVerifyPayment,
   useRejectApplication,

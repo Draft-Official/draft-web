@@ -26,7 +26,7 @@ export const MOCK_MANAGED_MATCHES: ManagedMatch[] = [
     location: '강남구민체육센터 농구장',
     locationUrl: 'https://map.kakao.com',
     approvalStatus: '확정',
-    amount: 15000,
+    totalCost: 15000,
   },
   {
     id: '2',
@@ -73,7 +73,7 @@ export const MOCK_MANAGED_MATCHES: ManagedMatch[] = [
     location: '마포구민체육센터',
     locationUrl: 'https://map.kakao.com',
     approvalStatus: '승인대기',
-    amount: 20000,
+    totalCost: 20000,
   },
   {
     id: '6',
@@ -97,7 +97,7 @@ export const MOCK_MANAGED_MATCHES: ManagedMatch[] = [
     location: '송파구민체육센터',
     locationUrl: 'https://map.kakao.com',
     approvalStatus: '취소됨',
-    amount: 18000,
+    totalCost: 18000,
   },
   {
     id: '8',
@@ -109,7 +109,7 @@ export const MOCK_MANAGED_MATCHES: ManagedMatch[] = [
     location: '노원구민체육센터',
     locationUrl: 'https://map.kakao.com',
     approvalStatus: '승인거부',
-    amount: 15000,
+    totalCost: 15000,
   },
   {
     id: '9',
@@ -175,6 +175,7 @@ export const MOCK_HOST_MATCH_DETAIL: HostMatchDetail = {
   id: '2',
   date: '2025. 01. 22 (수)',
   time: '20:00',
+  endTimeISO: '2025-01-22T13:00:00.000Z',
   location: '서초구민체육센터 농구장',
   locationUrl: 'https://map.kakao.com',
   teamName: '서초 호퍼스',

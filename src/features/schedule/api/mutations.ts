@@ -9,6 +9,7 @@ import { createApplicationService } from '@/features/application/api/application
 import { useAuth } from '@/features/auth';
 import { matchManagementKeys } from './keys';
 import { matchKeys } from '@/shared/api/keys';
+import { adjustRecruitmentSetup, updateRecruitmentSetupInDb } from '../lib/recruitment-utils';
 import type { RecruitmentSetup, Json } from '@/shared/types/database.types';
 
 /**
@@ -89,43 +90,16 @@ export function useConfirmPaymentByGuest() {
 
       if (matchError) throw matchError;
 
-      // 3. recruitment_setup의 current 값 업데이트
+      // 3. recruitment_setup의 current 값 증가 + DB 업데이트
       const recruitmentSetup = match.recruitment_setup as RecruitmentSetup;
 
       if (recruitmentSetup && application.participants_info) {
         const participantsInfo = application.participants_info as Array<{ position?: string }>;
-
-        if (recruitmentSetup.type === 'POSITION' && recruitmentSetup.positions) {
-          // 포지션별로 current 증가
-          participantsInfo.forEach((participant) => {
-            const pos = participant.position as 'G' | 'F' | 'C' | 'B';
-            if (pos && recruitmentSetup.positions?.[pos]) {
-              recruitmentSetup.positions[pos].current += 1;
-            }
-          });
-        } else if (recruitmentSetup.type === 'ANY') {
-          // ANY 타입: max_count는 유지, current_count 증가 (또는 별도 필드 사용)
-          // 참가자 수만큼 증가
-          const addCount = participantsInfo.length;
-          if (!recruitmentSetup.current_count) {
-            recruitmentSetup.current_count = 0;
-          }
-          recruitmentSetup.current_count += addCount;
-        }
-
-        // 4. 경기 recruitment_setup 업데이트
-        const { error: updateError } = await supabase
-          .from('matches')
-          .update({ recruitment_setup: recruitmentSetup as unknown as Json })
-          .eq('id', matchId);
-
-        if (updateError) {
-          console.error('Failed to update recruitment_setup:', updateError);
-          // 에러가 나도 신청 확정은 진행
-        }
+        adjustRecruitmentSetup(recruitmentSetup, participantsInfo, 'increment');
+        await updateRecruitmentSetupInDb(supabase, matchId, recruitmentSetup);
       }
 
-      // 5. 신청 상태 확정
+      // 4. 신청 상태 확정
       return applicationService.confirmApplication(applicationId);
     },
     onSuccess: (_, variables) => {
@@ -196,99 +170,6 @@ export function useVerifyPayment() {
 }
 
 /**
- * 입금 확인 (→ CONFIRMED) - DEPRECATED: useConfirmPaymentByGuest 사용 권장
- * 기존 호스트가 입금 확인하는 플로우 (하위 호환성 유지)
- */
-export function useConfirmPayment() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({
-      applicationId,
-      matchId,
-    }: {
-      applicationId: string;
-      matchId: string;
-    }) => {
-      const supabase = getSupabaseBrowserClient();
-      const applicationService = createApplicationService(supabase);
-
-      // 1. 신청 정보 조회 (participants_info 포함)
-      const application = await applicationService.getApplicationById(applicationId);
-
-      // 2. 경기 정보 조회 (recruitment_setup 포함)
-      const { data: match, error: matchError } = await supabase
-        .from('matches')
-        .select('recruitment_setup')
-        .eq('id', matchId)
-        .single();
-
-      if (matchError) throw matchError;
-
-      // 3. recruitment_setup의 current 값 업데이트
-      const recruitmentSetup = match.recruitment_setup as RecruitmentSetup;
-
-      if (recruitmentSetup && application.participants_info) {
-        const participantsInfo = application.participants_info as Array<{ position?: string }>;
-
-        if (recruitmentSetup.type === 'POSITION' && recruitmentSetup.positions) {
-          // 포지션별로 current 증가
-          participantsInfo.forEach((participant) => {
-            const pos = participant.position as 'G' | 'F' | 'C' | 'B';
-            if (pos && recruitmentSetup.positions?.[pos]) {
-              recruitmentSetup.positions[pos].current += 1;
-            }
-          });
-        } else if (recruitmentSetup.type === 'ANY') {
-          // ANY 타입: max_count는 유지, current_count 증가 (또는 별도 필드 사용)
-          // 참가자 수만큼 증가
-          const addCount = participantsInfo.length;
-          if (!recruitmentSetup.current_count) {
-            recruitmentSetup.current_count = 0;
-          }
-          recruitmentSetup.current_count += addCount;
-        }
-
-        // 4. 경기 recruitment_setup 업데이트
-        const { error: updateError } = await supabase
-          .from('matches')
-          .update({ recruitment_setup: recruitmentSetup as unknown as Json })
-          .eq('id', matchId);
-
-        if (updateError) {
-          console.error('Failed to update recruitment_setup:', updateError);
-          // 에러가 나도 신청 확정은 진행
-        }
-      }
-
-      // 5. 신청 상태 확정
-      return applicationService.confirmApplication(applicationId);
-    },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: matchManagementKeys.applicants(variables.matchId),
-      });
-      queryClient.invalidateQueries({
-        queryKey: matchManagementKeys.matchDetail(variables.matchId),
-      });
-      // 모든 사용자의 참여 목록 갱신 (게스트 탭)
-      queryClient.invalidateQueries({
-        queryKey: matchManagementKeys.all,
-      });
-      // 홈탭 경기 목록 갱신 (빈자리 반영)
-      queryClient.invalidateQueries({
-        queryKey: matchKeys.lists(),
-      });
-      toast.success('입금이 확인되었습니다. 참가가 확정되었습니다.');
-    },
-    onError: (error: Error) => {
-      console.error('Confirm payment error:', error);
-      toast.error(`입금 확인 실패: ${error.message}`);
-    },
-  });
-}
-
-/**
  * 신청 거절 (→ REJECTED)
  */
 export function useRejectApplication() {
@@ -352,7 +233,6 @@ export function useCancelParticipation() {
 
       // 확정된 신청만 current 값 감소 처리
       if (application.status === 'CONFIRMED') {
-        // 2. 경기 정보 조회
         const { data: match, error: matchError } = await supabase
           .from('matches')
           .select('recruitment_setup')
@@ -360,34 +240,17 @@ export function useCancelParticipation() {
           .single();
 
         if (!matchError && match) {
-          // 3. recruitment_setup의 current 값 감소
           const recruitmentSetup = match.recruitment_setup as RecruitmentSetup;
 
           if (recruitmentSetup && application.participants_info) {
             const participantsInfo = application.participants_info as Array<{ position?: string }>;
-
-            if (recruitmentSetup.type === 'POSITION' && recruitmentSetup.positions) {
-              participantsInfo.forEach((participant) => {
-                const pos = participant.position as 'G' | 'F' | 'C' | 'B';
-                if (pos && recruitmentSetup.positions?.[pos] && recruitmentSetup.positions[pos].current > 0) {
-                  recruitmentSetup.positions[pos].current -= 1;
-                }
-              });
-            } else if (recruitmentSetup.type === 'ANY' && recruitmentSetup.current_count) {
-              const subtractCount = participantsInfo.length;
-              recruitmentSetup.current_count = Math.max(0, recruitmentSetup.current_count - subtractCount);
-            }
-
-            // 4. 경기 recruitment_setup 업데이트
-            await supabase
-              .from('matches')
-              .update({ recruitment_setup: recruitmentSetup as unknown as Json })
-              .eq('id', matchId);
+            adjustRecruitmentSetup(recruitmentSetup, participantsInfo, 'decrement');
+            await updateRecruitmentSetupInDb(supabase, matchId, recruitmentSetup);
           }
         }
       }
 
-      // 5. 신청 취소 처리
+      // 2. 신청 취소 처리
       return applicationService.cancelApplication(applicationId, reason);
     },
     onSuccess: (_, variables) => {
