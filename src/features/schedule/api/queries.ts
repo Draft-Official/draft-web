@@ -120,10 +120,10 @@ export function useParticipatingMatches() {
                                     app.status === 'PENDING' && app.approved_at ? '결제 대기' :
                                     '승인 대기';
 
-          // 동반인 수 및 총금액 계산
-          const participants = (app.participants_info as { type: string; cost?: number }[] | null) || [];
+          // 동반인 수 계산
+          const participants = (app.participants_info as { type: string }[] | null) || [];
           const companionCount = participants.filter((p) => p.type === 'GUEST').length;
-          const totalCost = participants.reduce((sum, p) => sum + (p.cost || 0), 0);
+          const totalCount = participants.length || 1;
 
           return {
             id: match.id,
@@ -136,7 +136,7 @@ export function useParticipatingMatches() {
             locationUrl: match.gym?.kakao_place_id ? `https://map.kakao.com/link/map/${match.gym.kakao_place_id}` : undefined,
             applicationId: app.id, // 송금 완료 처리용
             approvalStatus: approvalStatusText,
-            totalCost: totalCost > 0 ? totalCost : match.cost_amount,
+            totalCost: match.cost_amount ? match.cost_amount * totalCount : undefined,
             perCost: companionCount > 0 ? match.cost_amount : undefined,
             companionCount: companionCount > 0 ? companionCount : undefined,
             bankInfo: match.account_info?.bank && match.account_info?.number && match.account_info?.holder

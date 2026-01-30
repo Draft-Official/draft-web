@@ -12,6 +12,7 @@ import type {
   ParticipantInfo,
 } from '@/shared/types/database.types';
 import { formatMatchDate, formatMatchTime } from '@/shared/lib/date';
+import { SKILL_LEVEL_NAMES } from '@/shared/config/skill-constants';
 import type {
   ManagedMatch,
   MatchType,
@@ -49,9 +50,7 @@ function getTotalCurrentFromSetup(setup: RecruitmentSetup | null | undefined): n
 }
 
 type ApplicationWithUser = Application & {
-  user: Pick<User, 'id' | 'nickname' | 'avatar_url' | 'positions' | 'manner_score'> & {
-    metadata?: { height?: number };
-  };
+  user: Pick<User, 'id' | 'nickname' | 'avatar_url' | 'positions' | 'manner_score' | 'metadata'>;
 };
 
 type MatchWithRelations = Match & {
@@ -98,8 +97,10 @@ export function applicationToGuest(app: ApplicationWithUser): Guest {
   const position = participants[0]?.position || 'G';
   const positionLabel = getPositionLabel(position);
 
-  // User metadata에서 height 추출 (있는 경우)
-  const height = (app.user as { metadata?: { height?: number } })?.metadata?.height;
+  // User metadata에서 height, age 추출 (있는 경우)
+  const userMetadata = app.user?.metadata as { height?: number; age?: number } | null;
+  const height = userMetadata?.height;
+  const age = userMetadata?.age;
 
   // 동반인 추출 (type === 'GUEST')
   const companions = participants
@@ -107,25 +108,22 @@ export function applicationToGuest(app: ApplicationWithUser): Guest {
     .map((p) => ({
       name: p.name,
       position: getPositionLabel(p.position),
+      height: p.height ? `${p.height}cm` : undefined,
+      age: p.age ? `${p.age}세` : undefined,
+      skillLevel: p.skillLevel ? (SKILL_LEVEL_NAMES[p.skillLevel] || `Lv.${p.skillLevel}`) : undefined,
     }));
-
-  // 비용 계산
-  const totalCost = participants.reduce((sum, p) => sum + (p.cost || 0), 0);
-  const perCost = participants[0]?.cost || 0;
 
   return {
     id: app.id,
     name: app.user.nickname || '이름 없음',
     position: positionLabel,
     level: getLevelLabel(app.user.manner_score || 0),
-    ageGroup: '정보 없음', // DB에 age_group이 없어서 기본값
+    ageGroup: age ? `${age}세` : '정보 없음',
     height: height ? `${height}cm` : '정보 없음',
     status: getGuestStatus(app),
     paymentVerified: !!app.payment_verified_at, // 호스트 내부 관리용 입금 확인 여부
     avatar: app.user.avatar_url || undefined,
     companions: companions.length > 0 ? companions : undefined,
-    totalCost: totalCost > 0 ? totalCost : undefined,
-    perCost: perCost > 0 ? perCost : undefined,
     // matchHistory는 별도 쿼리 필요 (추후 구현)
   };
 }

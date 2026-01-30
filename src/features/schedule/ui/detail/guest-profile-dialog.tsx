@@ -97,19 +97,17 @@ export function GuestProfileDialog({
                   {guest.companions.map((companion, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center justify-between bg-blue-50 rounded-xl p-3 border border-blue-100"
+                      className="bg-blue-50 rounded-xl p-3 border border-blue-100 space-y-1"
                     >
-                      <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-full bg-blue-200 flex items-center justify-center">
-                          <span className="text-blue-700 font-bold text-xs">
-                            {companion.name.charAt(0)}
-                          </span>
-                        </div>
-                        <span className="font-medium text-slate-900 text-sm">
-                          {companion.name}
-                        </span>
+                      <span className="font-medium text-slate-900 text-sm">
+                        {companion.name}
+                      </span>
+                      <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                        <span>{companion.position}</span>
+                        {companion.height && <><span className="text-slate-300">·</span><span>{companion.height}</span></>}
+                        {companion.age && <><span className="text-slate-300">·</span><span>{companion.age}</span></>}
+                        {companion.skillLevel && <><span className="text-slate-300">·</span><span>{companion.skillLevel}</span></>}
                       </div>
-                      <span className="text-sm text-slate-500">{companion.position}</span>
                     </div>
                   ))}
                 </div>

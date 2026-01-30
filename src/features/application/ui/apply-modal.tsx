@@ -26,12 +26,16 @@ import { useCreateApplication } from '../api/mutations';
 import { useUserTeams } from '../api/queries';
 import type { ParticipantInfo, Profile, UserMetadata, UserUpdate, Json } from '@/shared/types/database.types';
 import { POSITION_OPTIONS, POSITION_DEFAULT, PositionValue } from '@/shared/config/constants';
+import { SKILL_LEVELS } from '@/shared/config/skill-constants';
 
 const MAX_COMPANIONS = 4;
 
 interface CompanionFormData {
   name: string;
   position: PositionValue | '';
+  height: string;
+  age: string;
+  skillLevel: string;
 }
 
 interface ApplyFormData {
@@ -145,9 +149,14 @@ export function ApplyModal({
     return true;
   };
 
+  const getUserSkillLevel = (): string => {
+    const metadata = profile?.metadata as UserMetadata & { skill_level?: number } | null;
+    return metadata?.skill_level?.toString() || '';
+  };
+
   const addCompanion = () => {
     if (companions.length < MAX_COMPANIONS) {
-      setCompanions([...companions, { name: '', position: '' }]);
+      setCompanions([...companions, { name: '', position: '', height: '', age: '', skillLevel: getUserSkillLevel() }]);
     }
   };
 
@@ -174,14 +183,15 @@ export function ApplyModal({
         type: 'MAIN',
         name: profile?.nickname || profile?.real_name || '',
         position: positionCode,
-        cost: costAmount || 0,
       },
       ...(hasCompanions
         ? companions.map((c) => ({
             type: 'GUEST' as const,
             name: c.name,
             position: c.position || POSITION_DEFAULT,
-            cost: costAmount || 0,
+            ...(c.height ? { height: parseInt(c.height, 10) } : {}),
+            ...(c.age ? { age: parseInt(c.age, 10) } : {}),
+            ...(c.skillLevel ? { skillLevel: parseInt(c.skillLevel, 10) } : {}),
           }))
         : []),
     ];
@@ -349,7 +359,7 @@ export function ApplyModal({
                 onCheckedChange={(checked) => {
                   setHasCompanions(checked);
                   if (checked && companions.length === 0) {
-                    setCompanions([{ name: '', position: '' }]);
+                    setCompanions([{ name: '', position: '', height: '', age: '', skillLevel: getUserSkillLevel() }]);
                   }
                   if (!checked) {
                     setCompanions([]);
@@ -415,6 +425,64 @@ export function ApplyModal({
                         ))}
                       </div>
                     </div>
+
+                    {/* 키 / 나이 */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label className="text-sm text-slate-600 mb-1 block">키</Label>
+                        <div className="relative">
+                          <Input
+                            type="text"
+                            inputMode="numeric"
+                            placeholder="175"
+                            value={companion.height}
+                            onChange={(e) => {
+                              const value = e.target.value.replace(/[^0-9]/g, '');
+                              updateCompanion(index, 'height', value);
+                            }}
+                            className="h-10 bg-white border-slate-300 focus-visible:ring-primary pr-10"
+                          />
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500">cm</span>
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="text-sm text-slate-600 mb-1 block">나이</Label>
+                        <div className="relative">
+                          <Input
+                            type="text"
+                            inputMode="numeric"
+                            placeholder="28"
+                            value={companion.age}
+                            onChange={(e) => {
+                              const value = e.target.value.replace(/[^0-9]/g, '');
+                              updateCompanion(index, 'age', value);
+                            }}
+                            className="h-10 bg-white border-slate-300 focus-visible:ring-primary pr-8"
+                          />
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500">세</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 실력 */}
+                    <div>
+                      <Label className="text-sm text-slate-600 mb-1 block">실력</Label>
+                      <Select
+                        value={companion.skillLevel}
+                        onValueChange={(value) => updateCompanion(index, 'skillLevel', value)}
+                      >
+                        <SelectTrigger className="h-10 bg-white border-slate-300">
+                          <SelectValue placeholder="실력 선택" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {SKILL_LEVELS.map((skill) => (
+                            <SelectItem key={skill.level} value={skill.level.toString()}>
+                              {skill.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 ))}
 
@@ -441,10 +509,10 @@ export function ApplyModal({
               onValueChange={(value) => setFormData({ ...formData, teamId: value === 'none' ? '' : value })}
             >
               <SelectTrigger className="h-12 bg-white border-slate-300">
-                <SelectValue placeholder="팀 없음 (개인 참가)" />
+                <SelectValue placeholder="팀 없음" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">팀 없음 (개인 참가)</SelectItem>
+                <SelectItem value="none">팀 없음</SelectItem>
                 {userTeams?.map((team: { id: string; name: string }) => (
                   <SelectItem key={team.id} value={team.id}>
                     {team.name}
