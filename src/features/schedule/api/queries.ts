@@ -7,6 +7,7 @@ import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { createMatchService } from '@/features/match/api/match-api';
 import { createApplicationService } from '@/features/application/api/application-api';
 import { useAuth } from '@/features/auth';
+import { formatMatchDate, formatMatchTime } from '@/shared/lib/date';
 import { matchManagementKeys } from './keys';
 import {
   matchToManagedMatch,
@@ -135,8 +136,8 @@ export function useParticipatingMatches() {
             locationUrl: match.gym?.kakao_place_id ? `https://map.kakao.com/link/map/${match.gym.kakao_place_id}` : undefined,
             applicationId: app.id, // 송금 완료 처리용
             approvalStatus: approvalStatusText,
-            amount: totalCost > 0 ? totalCost : match.cost_amount,
-            perAmount: companionCount > 0 ? match.cost_amount : undefined,
+            totalCost: totalCost > 0 ? totalCost : match.cost_amount,
+            perCost: companionCount > 0 ? match.cost_amount : undefined,
             companionCount: companionCount > 0 ? companionCount : undefined,
             bankInfo: match.account_info?.bank && match.account_info?.number && match.account_info?.holder
               ? {
@@ -198,36 +199,3 @@ export function useMatchApplicants(matchId: string) {
   });
 }
 
-// Helper functions
-function formatMatchDate(dateString: string): string {
-  const date = new Date(dateString);
-
-  // KST 기준으로 날짜 포맷 (SSR/CSR 간 일관성 보장)
-  const kstFormatter = new Intl.DateTimeFormat('ko-KR', {
-    timeZone: 'Asia/Seoul',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    weekday: 'short',
-  });
-
-  const parts = kstFormatter.formatToParts(date);
-  const year = parts.find(p => p.type === 'year')?.value || '';
-  const month = parts.find(p => p.type === 'month')?.value || '';
-  const day = parts.find(p => p.type === 'day')?.value || '';
-  const weekday = parts.find(p => p.type === 'weekday')?.value || '';
-
-  return `${year}. ${month}. ${day} (${weekday})`;
-}
-
-function formatMatchTime(dateString: string): string {
-  const date = new Date(dateString);
-
-  // KST 기준으로 시간 포맷 (SSR/CSR 간 일관성 보장)
-  return date.toLocaleTimeString('ko-KR', {
-    timeZone: 'Asia/Seoul',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  });
-}

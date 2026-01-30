@@ -125,11 +125,11 @@ export function MatchCard({ match, onClick, onConfirmPayment }: MatchCardProps) 
           <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
             <div className="flex items-baseline gap-1.5">
               <span className="font-bold text-slate-900 text-lg">
-                {match.amount?.toLocaleString()}원
+                {match.totalCost?.toLocaleString()}원
               </span>
-              {match.companionCount != null && match.perAmount != null && (
+              {match.companionCount != null && match.perCost != null && (
                 <span className="text-xs text-slate-400">
-                  (인당:{match.perAmount.toLocaleString()}원)
+                  (인당:{match.perCost.toLocaleString()}원)
                 </span>
               )}
             </div>

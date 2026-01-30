@@ -87,6 +87,11 @@ Features DO NOT import from other features
 
 **Important**: Features should NOT import from other features. Extract shared logic to `src/shared/`.
 
+**Cross-import 허용 예외**: 다음 모듈은 인프라 성격으로 다른 feature에서 import 허용:
+- `features/auth` — 인증 컨텍스트 (`useAuth`)
+- `features/match/api` — Match DB 서비스 (`createMatchService`)
+- `features/application/api` — Application DB 서비스 (`createApplicationService`)
+
 ### Data Layer Rules
 
 **JSONB Fields Usage**:

@@ -1,0 +1,170 @@
+'use client';
+
+import { Button } from '@/shared/ui/base/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/shared/ui/base/dialog';
+import type { Guest } from '../../model/types';
+
+interface GuestProfileDialogProps {
+  guest: Guest | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onApprove: (guest: Guest) => void;
+  onReject: (guest: Guest) => void;
+  onConfirmPayment: (guest: Guest) => void;
+  onCancel: (guest: Guest) => void;
+}
+
+export function GuestProfileDialog({
+  guest,
+  open,
+  onOpenChange,
+  onApprove,
+  onReject,
+  onConfirmPayment,
+  onCancel,
+}: GuestProfileDialogProps) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-sm mx-4 rounded-2xl p-6">
+        {guest && (
+          <div className="flex flex-col items-center space-y-6 pt-2">
+            <div className="w-20 h-20 rounded-full bg-slate-200 flex items-center justify-center">
+              <span className="text-slate-600 font-bold text-3xl">
+                {guest.name.charAt(0)}
+              </span>
+            </div>
+
+            <DialogHeader className="space-y-2">
+              <DialogTitle className="text-2xl font-bold text-slate-900 text-center">
+                {guest.name}
+              </DialogTitle>
+              <DialogDescription className="sr-only">
+                게스트의 상세 정보를 확인하고 승인 또는 거절할 수 있습니다.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="w-full space-y-3 border-t border-b border-slate-100 py-4">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">포지션</span>
+                <span className="font-medium text-slate-900">{guest.position}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">실력</span>
+                <span className="font-medium text-slate-900">{guest.level}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">나이대</span>
+                <span className="font-medium text-slate-900">{guest.ageGroup}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">키</span>
+                <span className="font-medium text-slate-900">{guest.height}</span>
+              </div>
+            </div>
+
+            <div className="w-full space-y-3">
+              <p className="text-sm font-medium text-slate-700">이 팀과의 경기 이력</p>
+
+              {guest.matchHistory ? (
+                <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                  <p className="text-slate-900 font-medium">
+                    참여 {guest.matchHistory.count}회
+                  </p>
+                  <p className="text-sm text-slate-500 mt-1">
+                    마지막 참여: {guest.matchHistory.lastDate}
+                  </p>
+                </div>
+              ) : (
+                <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                  <p className="text-slate-900 font-medium">첫 참여입니다</p>
+                </div>
+              )}
+            </div>
+
+            {/* 동반인 정보 */}
+            {guest.companions && guest.companions.length > 0 && (
+              <div className="w-full space-y-3">
+                <p className="text-sm font-medium text-slate-700">
+                  동반인 ({guest.companions.length}명)
+                </p>
+                <div className="space-y-2">
+                  {guest.companions.map((companion, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between bg-blue-50 rounded-xl p-3 border border-blue-100"
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-full bg-blue-200 flex items-center justify-center">
+                          <span className="text-blue-700 font-bold text-xs">
+                            {companion.name.charAt(0)}
+                          </span>
+                        </div>
+                        <span className="font-medium text-slate-900 text-sm">
+                          {companion.name}
+                        </span>
+                      </div>
+                      <span className="text-sm text-slate-500">{companion.position}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="w-full flex gap-2 pt-2">
+              {guest.status === 'pending' && (
+                <>
+                  <Button
+                    onClick={() => onApprove(guest)}
+                    variant="outline"
+                    className="flex-1 h-12 rounded-xl"
+                  >
+                    승인
+                  </Button>
+                  <Button
+                    onClick={() => onReject(guest)}
+                    className="flex-1 bg-red-100 hover:bg-red-200 text-red-600 border border-red-200 h-12 rounded-xl"
+                  >
+                    거절
+                  </Button>
+                </>
+              )}
+
+              {guest.status === 'payment_waiting' && (
+                <>
+                  <Button
+                    onClick={() => onConfirmPayment(guest)}
+                    variant="outline"
+                    className="flex-1 h-12 rounded-xl"
+                  >
+                    입금확인
+                  </Button>
+                  <Button
+                    onClick={() => onCancel(guest)}
+                    className="flex-1 bg-red-100 hover:bg-red-200 text-red-600 border border-red-200 h-12 rounded-xl"
+                  >
+                    취소
+                  </Button>
+                </>
+              )}
+
+              {guest.status === 'confirmed' && (
+                <Button
+                  onClick={() => onCancel(guest)}
+                  className="w-full bg-red-100 hover:bg-red-200 text-red-600 border border-red-200 h-12 rounded-xl"
+                >
+                  취소
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}

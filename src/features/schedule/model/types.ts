@@ -36,8 +36,8 @@ export interface ManagedMatch {
   // Guest specific
   applicationId?: string; // 게스트 신청 ID (송금 완료 처리용)
   approvalStatus?: string;
-  amount?: number;       // 총금액 (본인 + 동반인)
-  perAmount?: number;    // 인당 금액
+  totalCost?: number;    // 총금액 (본인 + 동반인)
+  perCost?: number;      // 인당 금액
   companionCount?: number; // 동반인 수
   bankInfo?: {
     bank: string;
