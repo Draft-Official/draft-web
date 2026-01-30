@@ -45,7 +45,8 @@ export class ApplicationService {
           nickname,
           avatar_url,
           positions,
-          manner_score
+          manner_score,
+          metadata
         )
       `
       )
@@ -120,7 +121,7 @@ export class ApplicationService {
   ): Promise<Application> {
     // 레거시 호환: 단일 포지션을 participants_info 배열로 변환
     const participantsInfo: ParticipantInfo[] = [
-      { type: 'MAIN', name: '', position, cost: 0 }
+      { type: 'MAIN', name: '', position }
     ];
 
     return this.createApplicationV2(matchId, userId, participantsInfo);

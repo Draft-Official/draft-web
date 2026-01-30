@@ -77,6 +77,9 @@ export type RecruitmentMode = 'position' | 'total';
 export interface CompanionInfo {
   name: string;
   position: string;
+  height?: string;
+  age?: string;
+  skillLevel?: string;
 }
 
 // 참여자 기본 정보
@@ -95,8 +98,6 @@ export interface Guest extends Participant {
   status: GuestStatus;
   paymentVerified?: boolean; // 호스트 내부 관리용 입금 확인 여부
   companions?: CompanionInfo[];
-  totalCost?: number;   // 총 참가비 (본인 + 동반인)
-  perCost?: number;     // 1인당 참가비
   matchHistory?: {
     count: number;
     lastDate?: string;

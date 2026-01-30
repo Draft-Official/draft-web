@@ -649,7 +649,9 @@ export interface ParticipantInfo {
   type: 'MAIN' | 'GUEST';
   name: string;
   position: string;
-  cost: number;
+  height?: number;
+  age?: number;
+  skillLevel?: number;
   [key: string]: unknown;
 }
 

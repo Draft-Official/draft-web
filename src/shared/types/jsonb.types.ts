@@ -185,7 +185,6 @@ export interface Participant {
   type: 'MAIN' | 'GUEST';
   name: string;
   position: PositionValue;
-  cost: number;
 }
 
 // ============================================
