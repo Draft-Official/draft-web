@@ -11,7 +11,14 @@ import type {
   ParticipantInfo,
   Json,
 } from '@/shared/types/database.types';
+import type { CancelTypeValue, CanceledByValue } from '@/shared/config/constants';
 import { handleSupabaseError, NotFoundError, ValidationError } from '@/shared/lib/errors';
+
+export interface CancelOptions {
+  cancelType?: CancelTypeValue;
+  canceledBy?: CanceledByValue;
+  cancelReason?: string;
+}
 
 /**
  * participants_info에서 포지션 배열 추출
@@ -240,7 +247,7 @@ export class ApplicationService {
    * 신청 취소 (with recruitment count update)
    * RPC 함수를 통해 트랜잭션으로 처리
    */
-  async cancelApplication(applicationId: string, _reason?: string): Promise<Application> {
+  async cancelApplication(applicationId: string, options?: CancelOptions): Promise<Application> {
     // 먼저 신청 정보 조회하여 participants_info 추출
     const application = await this.getApplicationById(applicationId);
     const positions = extractPositionsFromParticipants(application.participants_info);
@@ -263,6 +270,9 @@ export class ApplicationService {
           .update({
             status: 'CANCELED',
             updated_at: new Date().toISOString(),
+            ...(options?.cancelType && { cancel_type: options.cancelType }),
+            ...(options?.canceledBy && { canceled_by: options.canceledBy }),
+            ...(options?.cancelReason && { cancel_reason: options.cancelReason }),
           })
           .eq('id', applicationId)
           .select()
@@ -272,6 +282,18 @@ export class ApplicationService {
         return data!;
       }
       handleSupabaseError(error, '신청 취소');
+    }
+
+    // cancel 메타데이터 저장 (RPC는 status만 변경하므로 별도 업데이트)
+    if (options?.cancelType || options?.canceledBy || options?.cancelReason) {
+      await this.supabase
+        .from('applications')
+        .update({
+          ...(options.cancelType && { cancel_type: options.cancelType }),
+          ...(options.canceledBy && { canceled_by: options.canceledBy }),
+          ...(options.cancelReason && { cancel_reason: options.cancelReason }),
+        })
+        .eq('id', applicationId);
     }
 
     // 업데이트된 신청 정보 다시 조회

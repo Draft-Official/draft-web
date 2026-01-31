@@ -6,6 +6,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { createApplicationService } from '@/features/application/api/application-api';
+import type { CancelOptions } from '@/features/application/api/application-api';
 import { useAuth } from '@/features/auth';
 import { matchManagementKeys } from './keys';
 import { matchKeys } from '@/shared/api/keys';
@@ -219,11 +220,11 @@ export function useCancelParticipation() {
     mutationFn: async ({
       applicationId,
       matchId,
-      reason,
+      cancelOptions,
     }: {
       applicationId: string;
       matchId: string;
-      reason?: string;
+      cancelOptions?: CancelOptions;
     }) => {
       const supabase = getSupabaseBrowserClient();
       const applicationService = createApplicationService(supabase);
@@ -250,8 +251,11 @@ export function useCancelParticipation() {
         }
       }
 
-      // 2. 신청 취소 처리
-      return applicationService.cancelApplication(applicationId, reason);
+      // 2. 신청 취소 처리 (호스트 취소 메타데이터 포함)
+      return applicationService.cancelApplication(applicationId, {
+        canceledBy: 'HOST',
+        ...cancelOptions,
+      });
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
@@ -268,7 +272,13 @@ export function useCancelParticipation() {
       queryClient.invalidateQueries({
         queryKey: matchKeys.lists(),
       });
-      toast.error('참가를 취소했습니다.');
+
+      const cancelType = variables.cancelOptions?.cancelType;
+      if (cancelType === 'FRAUDULENT_PAYMENT') {
+        toast.error('허위 송금으로 신고되었습니다. 운영진에게 통보됩니다.');
+      } else {
+        toast.error('참가를 취소했습니다.');
+      }
     },
     onError: (error: Error) => {
       console.error('Cancel participation error:', error);

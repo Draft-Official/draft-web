@@ -60,7 +60,10 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
 
       const supabase = getSupabaseBrowserClient();
       const applicationService = createApplicationService(supabase);
-      return applicationService.cancelApplication(myApplication.id, '사용자 요청');
+      return applicationService.cancelApplication(myApplication.id, {
+        cancelType: 'USER_REQUEST',
+        canceledBy: 'GUEST',
+      });
     },
     onSuccess: () => {
       toast.success('참가 신청이 취소되었습니다.');

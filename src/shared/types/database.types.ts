@@ -17,6 +17,9 @@ export type Database = {
       applications: {
         Row: {
           approved_at: string | null
+          cancel_reason: string | null
+          cancel_type: Database["public"]["Enums"]["cancel_type"] | null
+          canceled_by: string | null
           created_at: string | null
           id: string
           match_id: string
@@ -29,6 +32,9 @@ export type Database = {
         }
         Insert: {
           approved_at?: string | null
+          cancel_reason?: string | null
+          cancel_type?: Database["public"]["Enums"]["cancel_type"] | null
+          canceled_by?: string | null
           created_at?: string | null
           id?: string
           match_id: string
@@ -41,6 +47,9 @@ export type Database = {
         }
         Update: {
           approved_at?: string | null
+          cancel_reason?: string | null
+          cancel_type?: Database["public"]["Enums"]["cancel_type"] | null
+          canceled_by?: string | null
           created_at?: string | null
           id?: string
           match_id?: string
@@ -383,6 +392,10 @@ export type Database = {
         | "PAYMENT_PENDING"
         | "LATE"
         | "NOT_ATTENDING"
+      cancel_type:
+        | "USER_REQUEST"
+        | "PAYMENT_TIMEOUT"
+        | "FRAUDULENT_PAYMENT"
     }
     CompositeTypes: {
       [_ in never]: never

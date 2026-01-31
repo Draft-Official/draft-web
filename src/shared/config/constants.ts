@@ -335,6 +335,7 @@ export const APPLICATION_STATUS_VALUES = [
   'PAYMENT_PENDING',
   'CONFIRMED',
   'REJECTED',
+  'CANCELED',
   'LATE',
   'NOT_ATTENDING',
 ] as const;
@@ -345,6 +346,7 @@ export const APPLICATION_STATUS_LABELS: Record<ApplicationStatusValue, string> =
   PAYMENT_PENDING: '입금 대기',
   CONFIRMED: '참여 확정',
   REJECTED: '거절됨',
+  CANCELED: '취소됨',
   LATE: '늦참',
   NOT_ATTENDING: '불참',
 };
@@ -357,6 +359,7 @@ export const APPLICATION_STATUS_STYLES: Record<
   PAYMENT_PENDING: { color: 'text-blue-600', bgColor: 'bg-blue-50' },
   CONFIRMED: { color: 'text-green-600', bgColor: 'bg-green-50' },
   REJECTED: { color: 'text-red-600', bgColor: 'bg-red-50' },
+  CANCELED: { color: 'text-slate-600', bgColor: 'bg-slate-100' },
   LATE: { color: 'text-orange-600', bgColor: 'bg-orange-50' },
   NOT_ATTENDING: { color: 'text-gray-600', bgColor: 'bg-gray-100' },
 };
@@ -364,6 +367,29 @@ export const APPLICATION_STATUS_STYLES: Record<
 export function getApplicationStatusLabel(value: string): string {
   return APPLICATION_STATUS_LABELS[value as ApplicationStatusValue] || value;
 }
+
+// ============================================
+// Cancel Type (취소 유형)
+// ============================================
+
+export const CANCEL_TYPE_VALUES = ['USER_REQUEST', 'PAYMENT_TIMEOUT', 'FRAUDULENT_PAYMENT'] as const;
+export type CancelTypeValue = (typeof CANCEL_TYPE_VALUES)[number];
+
+export const CANCEL_TYPE_LABELS: Record<CancelTypeValue, string> = {
+  USER_REQUEST: '상호 합의 취소',
+  PAYMENT_TIMEOUT: '미송금 취소',
+  FRAUDULENT_PAYMENT: '허위 송금 신고',
+};
+
+export const CANCEL_TYPE_DESCRIPTIONS: Record<CancelTypeValue, string> = {
+  USER_REQUEST: '게스트 요청 등 상호 합의에 의한 취소',
+  PAYMENT_TIMEOUT: '승인 후 기한 내 송금하지 않음',
+  FRAUDULENT_PAYMENT: '송금 완료를 눌렀으나 실제 미입금 확인',
+};
+
+// Canceled By
+export const CANCELED_BY_VALUES = ['HOST', 'GUEST', 'SYSTEM'] as const;
+export type CanceledByValue = (typeof CANCELED_BY_VALUES)[number];
 
 // ============================================
 // Contact Type (연락 방식)
