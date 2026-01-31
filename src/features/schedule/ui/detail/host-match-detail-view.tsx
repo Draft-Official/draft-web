@@ -22,6 +22,7 @@ import {
   DropdownMenuTrigger,
 } from '@/shared/ui/base/dropdown-menu';
 import { toast } from 'sonner';
+import type { CancelTypeValue } from '@/shared/config/constants';
 import type {
   Guest,
   GuestStatus,
@@ -47,6 +48,7 @@ const GUEST_TABS: { status: GuestStatus; label: string }[] = [
   { status: 'payment_waiting', label: '입금대기' },
   { status: 'confirmed', label: '확정' },
   { status: 'rejected', label: '거절' },
+  { status: 'canceled', label: '취소' },
 ];
 
 export function HostMatchDetailView() {
@@ -145,9 +147,13 @@ export function HostMatchDetailView() {
   };
 
   // 취소 처리
-  const handleCancel = (guest: Guest) => {
+  const handleCancel = (guest: Guest, cancelType?: CancelTypeValue) => {
     cancelMutation.mutate(
-      { applicationId: guest.id, matchId },
+      {
+        applicationId: guest.id,
+        matchId,
+        cancelOptions: cancelType ? { cancelType } : undefined,
+      },
       {
         onSuccess: () => {
           setIsGuestProfileOpen(false);
@@ -373,6 +379,7 @@ export function HostMatchDetailView() {
                   {selectedTab === 'payment_waiting' && '입금대기 중인 게스트가 없습니다.'}
                   {selectedTab === 'confirmed' && '확정된 게스트가 없습니다.'}
                   {selectedTab === 'rejected' && '거절된 게스트가 없습니다.'}
+                  {selectedTab === 'canceled' && '취소된 게스트가 없습니다.'}
                 </p>
               </div>
             ) : (
@@ -469,7 +476,8 @@ export function HostMatchDetailView() {
                             size="sm"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleCancel(guest);
+                              setGuestToCancel(guest);
+                              setIsCancelConfirmOpen(true);
                             }}
                             className="bg-red-100 hover:bg-red-200 text-red-600 border border-red-200 h-8 px-3 text-xs"
                           >
@@ -540,7 +548,11 @@ export function HostMatchDetailView() {
         onApprove={handleApprove}
         onReject={handleReject}
         onConfirmPayment={handleConfirmPayment}
-        onCancel={handleCancel}
+        onCancel={(guest) => {
+          setIsGuestProfileOpen(false);
+          setGuestToCancel(guest);
+          setIsCancelConfirmOpen(true);
+        }}
       />
 
       {/* 모집 인원 수정 Dialog */}
@@ -564,9 +576,9 @@ export function HostMatchDetailView() {
       <CancelConfirmDialog
         open={isCancelConfirmOpen}
         onOpenChange={setIsCancelConfirmOpen}
-        onConfirm={() => {
+        onConfirm={(cancelType) => {
           if (guestToCancel) {
-            handleCancel(guestToCancel);
+            handleCancel(guestToCancel, cancelType);
           }
         }}
       />

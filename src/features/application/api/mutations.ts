@@ -40,16 +40,19 @@ export function useCreateApplication() {
 }
 
 /**
- * 신청 취소 (사용자용)
+ * 신청 취소 (게스트용 - 자기 취소)
  */
 export function useCancelApplication() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ applicationId, reason }: { applicationId: string; reason?: string }) => {
+    mutationFn: async ({ applicationId }: { applicationId: string }) => {
       const supabase = getSupabaseBrowserClient();
       const applicationService = createApplicationService(supabase);
-      return applicationService.cancelApplication(applicationId, reason);
+      return applicationService.cancelApplication(applicationId, {
+        cancelType: 'USER_REQUEST',
+        canceledBy: 'GUEST',
+      });
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: applicationKeys.all });

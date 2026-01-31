@@ -68,7 +68,7 @@ export interface FilterOption<T extends string = string> {
 // ============================================
 
 // 게스트 상태 (호스트 관리용)
-export type GuestStatus = 'pending' | 'payment_waiting' | 'confirmed' | 'rejected';
+export type GuestStatus = 'pending' | 'payment_waiting' | 'confirmed' | 'rejected' | 'canceled';
 
 // 모집 방식
 export type RecruitmentMode = 'position' | 'total';

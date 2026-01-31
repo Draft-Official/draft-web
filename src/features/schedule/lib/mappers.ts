@@ -69,13 +69,15 @@ type MatchWithRelations = Match & {
  * - PENDING + approved_at IS NULL → 신청자 (pending)
  * - PENDING + approved_at IS NOT NULL → 입금대기 (payment_waiting)
  * - CONFIRMED → 확정
- * - REJECTED / CANCELED → 거절
+ * - REJECTED → 거절
+ * - CANCELED → 취소
  */
 export function getGuestStatus(application: Application): GuestStatus {
   const { status, approved_at } = application;
 
   if (status === 'CONFIRMED') return 'confirmed';
-  if (status === 'REJECTED' || status === 'CANCELED') return 'rejected';
+  if (status === 'REJECTED') return 'rejected';
+  if (status === 'CANCELED') return 'canceled';
 
   // PENDING 상태: approved_at 유무로 구분
   if (status === 'PENDING') {
