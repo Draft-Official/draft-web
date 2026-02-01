@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, Bell, RotateCcw } from 'lucide-react';
+import { Search, RotateCcw } from 'lucide-react';
 import { Button } from '@/shared/ui/base/button';
 import { Chip } from '@/shared/ui/base/chip';
 import { cn } from '@/shared/lib/utils';
@@ -57,6 +57,7 @@ interface FilterBarProps {
   onAgesChange?: (ages: string[]) => void;
   selectedGameFormats?: string[];
   onGameFormatsChange?: (formats: string[]) => void;
+  notificationSlot?: React.ReactNode;
 }
 
 export function FilterBar({
@@ -76,6 +77,7 @@ export function FilterBar({
   onAgesChange,
   selectedGameFormats = [],
   onGameFormatsChange,
+  notificationSlot,
 }: FilterBarProps) {
   // -- Scroll Detection --
   const isScrolled = useScrollDirection();
@@ -173,7 +175,7 @@ export function FilterBar({
             경기 개설하기
           </Link>
           <Search className="w-6 h-6 text-slate-900" />
-          <Bell className="w-6 h-6 text-slate-900" />
+          {notificationSlot}
         </div>
       </div>
 

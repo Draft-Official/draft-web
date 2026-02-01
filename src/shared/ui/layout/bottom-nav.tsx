@@ -19,7 +19,7 @@ export function BottomNav() {
   ];
 
   // Pages where bottom nav should be visible
-  const showNavOnPages = ['/', '/team', '/schedule', '/my'];
+  const showNavOnPages = ['/', '/team', '/schedule', '/my', '/notifications'];
   const shouldShowNav = showNavOnPages.includes(pathname);
 
   if (!shouldShowNav) return null;

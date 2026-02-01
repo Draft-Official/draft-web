@@ -2,11 +2,16 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Users, Calendar, User, Plus } from 'lucide-react';
+import { Home, Users, Calendar, User } from 'lucide-react';
 import { Button } from '@/shared/ui/base/button';
 import { cn } from '@/shared/lib/utils';
+import type { ReactNode } from 'react';
 
-export function Sidebar() {
+interface SidebarProps {
+  notificationSlot?: ReactNode;
+}
+
+export function Sidebar({ notificationSlot }: SidebarProps) {
   const pathname = usePathname();
 
   const NAV_ITEMS = [
@@ -18,11 +23,12 @@ export function Sidebar() {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Logo */}
-      <div className="h-14 flex items-center mb-6">
+      {/* Logo + Notification */}
+      <div className="h-14 flex items-center justify-between mb-6">
         <Link href="/" className="text-2xl font-black italic tracking-tighter text-slate-900">
           DRAFT.
         </Link>
+        {notificationSlot}
       </div>
 
       {/* Menu */}

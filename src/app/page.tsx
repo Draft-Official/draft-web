@@ -10,6 +10,7 @@ import { filterMatches, groupMatchesByDate, getDayLabel } from '@/features/match
 import { cn } from '@/shared/lib/utils';
 import { useLocalStorage } from '@/shared/lib/hooks/use-local-storage';
 import { GuestListMatch } from '@/features/match/model/types';
+import { NotificationBell } from '@/features/notification/ui/notification-bell';
 
 // Gender는 DB와 동일하게 대문자 사용 (MALE, FEMALE, MIXED)
 
@@ -158,6 +159,7 @@ export default function GuestMatchListPage() {
           onAgesChange={setSelectedAges}
           selectedGameFormats={selectedGameFormats}
           onGameFormatsChange={setSelectedGameFormats}
+          notificationSlot={<NotificationBell />}
         />
 
         {/* --- Main List Content --- */}

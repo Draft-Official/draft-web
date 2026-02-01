@@ -22,7 +22,11 @@ type GuestTypeFilterValue = Exclude<MatchType, "host">;
 type HostTypeFilterValue = Exclude<MatchType, "guest">;
 type StatusFilterValue = "waiting" | "confirmed" | "ongoing" | "ended";
 
-export function MatchManagementView() {
+interface MatchManagementViewProps {
+  notificationSlot?: React.ReactNode;
+}
+
+export function MatchManagementView({ notificationSlot }: MatchManagementViewProps) {
   const router = useRouter();
   const [viewMode, setViewMode] = useLocalStorage<ViewMode>("schedule_view_mode", "guest");
   const [guestTypeFilter, setGuestTypeFilter] = useLocalStorage<GuestTypeFilterValue[]>("schedule_guest_type_filter", []);
@@ -170,32 +174,35 @@ export function MatchManagementView() {
           <h1 className="text-xl font-bold text-slate-900">경기 관리</h1>
 
           {/* Guest/Host Toggle - Slide Animation */}
-          <div className="relative flex items-center bg-slate-100 rounded-full p-1">
-            {/* Sliding Indicator */}
-            <div
-              className={cn(
-                "absolute h-[calc(100%-8px)] w-[calc(50%-2px)] bg-slate-900 rounded-full transition-transform duration-300 ease-in-out",
-                viewMode === "host" ? "translate-x-full" : "translate-x-0"
-              )}
-            />
-            <button
-              onClick={() => setViewMode("guest")}
-              className={cn(
-                "relative z-10 px-4 py-1.5 text-sm font-bold rounded-full transition-colors duration-300",
-                viewMode === "guest" ? "text-white" : "text-slate-600"
-              )}
-            >
-              참여
-            </button>
-            <button
-              onClick={() => setViewMode("host")}
-              className={cn(
-                "relative z-10 px-4 py-1.5 text-sm font-bold rounded-full transition-colors duration-300",
-                viewMode === "host" ? "text-white" : "text-slate-600"
-              )}
-            >
-              관리
-            </button>
+          <div className="flex items-center gap-3">
+            <div className="relative flex items-center bg-slate-100 rounded-full p-1">
+              {/* Sliding Indicator */}
+              <div
+                className={cn(
+                  "absolute h-[calc(100%-8px)] w-[calc(50%-2px)] bg-slate-900 rounded-full transition-transform duration-300 ease-in-out",
+                  viewMode === "host" ? "translate-x-full" : "translate-x-0"
+                )}
+              />
+              <button
+                onClick={() => setViewMode("guest")}
+                className={cn(
+                  "relative z-10 px-4 py-1.5 text-sm font-bold rounded-full transition-colors duration-300",
+                  viewMode === "guest" ? "text-white" : "text-slate-600"
+                )}
+              >
+                참여
+              </button>
+              <button
+                onClick={() => setViewMode("host")}
+                className={cn(
+                  "relative z-10 px-4 py-1.5 text-sm font-bold rounded-full transition-colors duration-300",
+                  viewMode === "host" ? "text-white" : "text-slate-600"
+                )}
+              >
+                관리
+              </button>
+            </div>
+            {notificationSlot}
           </div>
         </div>
       </header>
