@@ -84,6 +84,64 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          id: string
+          user_id: string
+          type: Database["public"]["Enums"]["notification_type"]
+          reference_id: string
+          reference_type: string
+          match_id: string | null
+          actor_id: string | null
+          is_read: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          type: Database["public"]["Enums"]["notification_type"]
+          reference_id: string
+          reference_type: string
+          match_id?: string | null
+          actor_id?: string | null
+          is_read?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          type?: Database["public"]["Enums"]["notification_type"]
+          reference_id?: string
+          reference_type?: string
+          match_id?: string | null
+          actor_id?: string | null
+          is_read?: boolean
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gyms: {
         Row: {
           address: string
@@ -396,6 +454,16 @@ export type Database = {
         | "USER_REQUEST"
         | "PAYMENT_TIMEOUT"
         | "FRAUDULENT_PAYMENT"
+      notification_type:
+        | "APPLICATION_APPROVED"
+        | "APPLICATION_REJECTED"
+        | "APPLICATION_CANCELED_USER_REQUEST"
+        | "APPLICATION_CANCELED_PAYMENT_TIMEOUT"
+        | "APPLICATION_CANCELED_FRAUDULENT_PAYMENT"
+        | "MATCH_CANCELED"
+        | "NEW_APPLICATION"
+        | "GUEST_CANCELED"
+        | "GUEST_PAYMENT_CONFIRMED"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -546,6 +614,7 @@ export type Team = Database['public']['Tables']['teams']['Row'];
 export type Gym = Database['public']['Tables']['gyms']['Row'];
 export type Match = Database['public']['Tables']['matches']['Row'];
 export type Application = Database['public']['Tables']['applications']['Row'];
+export type Notification = Database['public']['Tables']['notifications']['Row'];
 export type TeamMember = Database['public']['Tables']['team_members']['Row'];
 
 // Insert types
