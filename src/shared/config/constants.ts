@@ -404,3 +404,56 @@ export const CONTACT_TYPE_LABELS: Record<ContactTypeValue, string> = {
 };
 
 export const CONTACT_TYPE_DEFAULT: ContactTypeValue = 'PHONE';
+
+// ============================================
+// Notification Type (알림 유형)
+// ============================================
+
+export const NOTIFICATION_TYPE_VALUES = [
+  'APPLICATION_APPROVED',
+  'APPLICATION_REJECTED',
+  'APPLICATION_CANCELED_USER_REQUEST',
+  'APPLICATION_CANCELED_PAYMENT_TIMEOUT',
+  'APPLICATION_CANCELED_FRAUDULENT_PAYMENT',
+  'MATCH_CANCELED',
+  'NEW_APPLICATION',
+  'GUEST_CANCELED',
+  'GUEST_PAYMENT_CONFIRMED',
+] as const;
+export type NotificationTypeValue = (typeof NOTIFICATION_TYPE_VALUES)[number];
+
+export const NOTIFICATION_TYPE_LABELS: Record<NotificationTypeValue, string> = {
+  APPLICATION_APPROVED: '신청 승인',
+  APPLICATION_REJECTED: '신청 거절',
+  APPLICATION_CANCELED_USER_REQUEST: '합의 취소',
+  APPLICATION_CANCELED_PAYMENT_TIMEOUT: '미송금 취소',
+  APPLICATION_CANCELED_FRAUDULENT_PAYMENT: '허위 송금 신고',
+  MATCH_CANCELED: '경기 취소',
+  NEW_APPLICATION: '새 신청',
+  GUEST_CANCELED: '게스트 취소',
+  GUEST_PAYMENT_CONFIRMED: '송금 완료',
+};
+
+export const NOTIFICATION_TYPE_DESCRIPTIONS: Record<NotificationTypeValue, string> = {
+  APPLICATION_APPROVED: '신청이 승인되었습니다. 입금을 진행해주세요.',
+  APPLICATION_REJECTED: '신청이 거절되었습니다.',
+  APPLICATION_CANCELED_USER_REQUEST: '호스트와 합의하여 취소되었습니다.',
+  APPLICATION_CANCELED_PAYMENT_TIMEOUT: '기한 내 미송금으로 취소되었습니다.',
+  APPLICATION_CANCELED_FRAUDULENT_PAYMENT: '허위 송금 신고로 취소되었습니다.',
+  MATCH_CANCELED: '경기가 취소되었습니다.',
+  NEW_APPLICATION: '새로운 경기 신청이 접수되었습니다.',
+  GUEST_CANCELED: '게스트가 신청을 취소했습니다.',
+  GUEST_PAYMENT_CONFIRMED: '게스트가 송금 완료를 알렸습니다.',
+};
+
+export const NOTIFICATION_TYPE_ICONS: Record<NotificationTypeValue, string> = {
+  APPLICATION_APPROVED: '✅',
+  APPLICATION_REJECTED: '❌',
+  APPLICATION_CANCELED_USER_REQUEST: '🤝',
+  APPLICATION_CANCELED_PAYMENT_TIMEOUT: '⏰',
+  APPLICATION_CANCELED_FRAUDULENT_PAYMENT: '🚨',
+  MATCH_CANCELED: '🚫',
+  NEW_APPLICATION: '🏀',
+  GUEST_CANCELED: '👋',
+  GUEST_PAYMENT_CONFIRMED: '💰',
+};
