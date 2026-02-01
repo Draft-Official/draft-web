@@ -1,23 +1,27 @@
 -- ============================================
 -- Notification System Migration
 -- notifications 테이블, enum, RLS, 트리거
+-- 멱등(idempotent) - 중복 실행 안전
 -- ============================================
 
 -- 1. notification_type enum 생성
-CREATE TYPE notification_type AS ENUM (
-  'APPLICATION_APPROVED',
-  'APPLICATION_REJECTED',
-  'APPLICATION_CANCELED_USER_REQUEST',
-  'APPLICATION_CANCELED_PAYMENT_TIMEOUT',
-  'APPLICATION_CANCELED_FRAUDULENT_PAYMENT',
-  'MATCH_CANCELED',
-  'NEW_APPLICATION',
-  'GUEST_CANCELED',
-  'GUEST_PAYMENT_CONFIRMED'
-);
+DO $$ BEGIN
+  CREATE TYPE notification_type AS ENUM (
+    'APPLICATION_APPROVED',
+    'APPLICATION_REJECTED',
+    'APPLICATION_CANCELED_USER_REQUEST',
+    'APPLICATION_CANCELED_PAYMENT_TIMEOUT',
+    'APPLICATION_CANCELED_FRAUDULENT_PAYMENT',
+    'MATCH_CANCELED',
+    'NEW_APPLICATION',
+    'GUEST_CANCELED',
+    'GUEST_PAYMENT_CONFIRMED'
+  );
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- 2. notifications 테이블 생성
-CREATE TABLE notifications (
+CREATE TABLE IF NOT EXISTS notifications (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   type notification_type NOT NULL,
@@ -30,32 +34,40 @@ CREATE TABLE notifications (
 );
 
 -- 3. 인덱스
-CREATE INDEX idx_notifications_user_id ON notifications(user_id);
-CREATE INDEX idx_notifications_user_unread ON notifications(user_id, is_read) WHERE is_read = FALSE;
-CREATE INDEX idx_notifications_created_at ON notifications(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_user_unread ON notifications(user_id, is_read) WHERE is_read = FALSE;
+CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications(created_at DESC);
 
 -- 4. RLS 정책
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 
--- 자기 알림만 조회 가능
-CREATE POLICY "Users can view own notifications"
-  ON notifications FOR SELECT
-  USING (auth.uid() = user_id);
+DO $$ BEGIN
+  CREATE POLICY "Users can view own notifications"
+    ON notifications FOR SELECT
+    USING (auth.uid() = user_id);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
--- 자기 알림만 읽음 처리 가능
-CREATE POLICY "Users can update own notifications"
-  ON notifications FOR UPDATE
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
+DO $$ BEGIN
+  CREATE POLICY "Users can update own notifications"
+    ON notifications FOR UPDATE
+    USING (auth.uid() = user_id)
+    WITH CHECK (auth.uid() = user_id);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
--- 트리거 함수에서 INSERT 허용 (service_role 또는 trigger context)
-CREATE POLICY "System can insert notifications"
-  ON notifications FOR INSERT
-  WITH CHECK (TRUE);
+DO $$ BEGIN
+  CREATE POLICY "System can insert notifications"
+    ON notifications FOR INSERT
+    WITH CHECK (TRUE);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- ============================================
 -- Trigger 1: 신청 상태 변경 시 알림
 -- ============================================
+
+DROP TRIGGER IF EXISTS trg_notify_on_application_change ON applications;
 
 CREATE OR REPLACE FUNCTION notify_on_application_change()
 RETURNS TRIGGER AS $$
@@ -135,6 +147,8 @@ CREATE TRIGGER trg_notify_on_application_change
 -- Trigger 2: 새 신청 시 알림
 -- ============================================
 
+DROP TRIGGER IF EXISTS trg_notify_on_new_application ON applications;
+
 CREATE OR REPLACE FUNCTION notify_on_new_application()
 RETURNS TRIGGER AS $$
 DECLARE
@@ -160,6 +174,8 @@ CREATE TRIGGER trg_notify_on_new_application
 -- ============================================
 -- Trigger 3: 경기 취소 시 신청자 전원에게 알림
 -- ============================================
+
+DROP TRIGGER IF EXISTS trg_notify_on_match_canceled ON matches;
 
 CREATE OR REPLACE FUNCTION notify_on_match_canceled()
 RETURNS TRIGGER AS $$
