@@ -51,6 +51,37 @@ export class NotificationService {
   }
 
   /**
+   * 읽지 않은 알림 목록 조회 (match_id 기준)
+   */
+  async getUnreadNotifications(userId: string) {
+    const { data, error } = await this.supabase
+      .from('notifications')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('is_read', false)
+      .not('match_id', 'is', null)
+      .order('created_at', { ascending: false })
+      .limit(100);
+
+    if (error) handleSupabaseError(error, '읽지 않은 알림 목록');
+    return data!;
+  }
+
+  /**
+   * 특정 경기의 알림 일괄 읽음 처리
+   */
+  async markAsReadByMatchId(userId: string, matchId: string) {
+    const { error } = await this.supabase
+      .from('notifications')
+      .update({ is_read: true })
+      .eq('user_id', userId)
+      .eq('match_id', matchId)
+      .eq('is_read', false);
+
+    if (error) handleSupabaseError(error, '경기 알림 읽음 처리');
+  }
+
+  /**
    * 모든 알림 읽음 처리
    */
   async markAllAsRead(userId: string) {

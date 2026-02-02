@@ -4,6 +4,10 @@ import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Calendar, RotateCcw, Loader2 } from "lucide-react";
 import { useLocalStorage } from "@/shared/lib/hooks/use-local-storage";
+import { useAuth } from "@/features/auth/model/auth-context";
+import { useUnreadNotifications, useMarkNotificationsAsReadByMatch } from "@/features/notification/api";
+import type { ClientNotification } from "@/features/notification/model/types";
+import type { NotificationTypeValue } from "@/shared/config/constants";
 import { FilterDropdown } from "./components/filter-dropdown";
 import { MatchCard } from "./components/match-card";
 import { useHostedMatches, useParticipatingMatches, useConfirmPaymentByGuest } from "../api";
@@ -28,6 +32,7 @@ interface MatchManagementViewProps {
 
 export function MatchManagementView({ notificationSlot }: MatchManagementViewProps) {
   const router = useRouter();
+  const { user } = useAuth();
   const [viewMode, setViewMode] = useLocalStorage<ViewMode>("schedule_view_mode", "guest");
   const [guestTypeFilter, setGuestTypeFilter] = useLocalStorage<GuestTypeFilterValue[]>("schedule_guest_type_filter", []);
   const [hostTypeFilter, setHostTypeFilter] = useLocalStorage<HostTypeFilterValue[]>("schedule_host_type_filter", []);
@@ -37,6 +42,40 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
   // Fetch data from Supabase
   const { data: hostedMatches = [], isLoading: isLoadingHosted } = useHostedMatches();
   const { data: participatingMatches = [], isLoading: isLoadingParticipating } = useParticipatingMatches();
+
+  // Fetch unread notifications & group by matchId
+  const { data: unreadNotifications = [] } = useUnreadNotifications(user?.id);
+  const markReadByMatch = useMarkNotificationsAsReadByMatch();
+
+  const notificationsByMatchId = useMemo(() => {
+    const GUEST_TYPES: NotificationTypeValue[] = [
+      'APPLICATION_APPROVED',
+      'APPLICATION_REJECTED',
+      'APPLICATION_CANCELED_USER_REQUEST',
+      'APPLICATION_CANCELED_PAYMENT_TIMEOUT',
+      'APPLICATION_CANCELED_FRAUDULENT_PAYMENT',
+      'MATCH_CANCELED',
+    ];
+    const HOST_TYPES: NotificationTypeValue[] = [
+      'NEW_APPLICATION',
+      'GUEST_CANCELED',
+      'GUEST_PAYMENT_CONFIRMED',
+    ];
+    const allowedTypes = viewMode === 'guest' ? GUEST_TYPES : HOST_TYPES;
+
+    const map = new Map<string, ClientNotification[]>();
+    for (const n of unreadNotifications) {
+      if (!n.matchId) continue;
+      if (!allowedTypes.includes(n.type)) continue;
+      const list = map.get(n.matchId);
+      if (list) {
+        list.push(n);
+      } else {
+        map.set(n.matchId, [n]);
+      }
+    }
+    return map;
+  }, [unreadNotifications, viewMode]);
 
   // Mutation for confirming payment by guest
   const confirmPaymentMutation = useConfirmPaymentByGuest();
@@ -104,6 +143,11 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
   }, [allMatches, viewMode, guestTypeFilter, hostTypeFilter, statusFilter, showPastMatches]);
 
   const handleCardClick = (matchId: string) => {
+    // Mark unread notifications for this match as read
+    if (user?.id && notificationsByMatchId.has(matchId)) {
+      markReadByMatch.mutate({ userId: user.id, matchId });
+    }
+
     // Find the match to determine its type
     const match = allMatches.find((m) => m.id === matchId);
     if (!match) return;
@@ -282,6 +326,7 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
             <MatchCard
               key={match.id}
               match={match}
+              notifications={notificationsByMatchId.get(match.id)}
               onClick={handleCardClick}
               onConfirmPayment={handleConfirmPayment}
             />
