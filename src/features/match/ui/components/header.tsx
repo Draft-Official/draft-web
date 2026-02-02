@@ -30,7 +30,7 @@ export function Header({
         <div className="flex items-center gap-3">
           <Link
             href="/matches/create"
-            className="md:hidden px-3 py-1.5 bg-[#FF6600] text-white text-xs font-bold rounded-full shadow-sm hover:bg-[#FF6600]/90 active:scale-95 transition-all mr-1"
+            className="lg:hidden px-3 py-1.5 bg-[#FF6600] text-white text-xs font-bold rounded-full shadow-sm hover:bg-[#FF6600]/90 active:scale-95 transition-all mr-1"
           >
             경기 개설하기
           </Link>
