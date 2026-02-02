@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, ArrowDown } from 'lucide-react';
 import { FilterBar } from '@/features/match/ui/filter-bar';
@@ -9,6 +9,7 @@ import { useRecruitingMatches } from '@/features/match/api/queries';
 import { filterMatches, groupMatchesByDate, getDayLabel } from '@/features/match/lib/utils';
 import { cn } from '@/shared/lib/utils';
 import { useLocalStorage } from '@/shared/lib/hooks/use-local-storage';
+import { useScrollDirection } from '@/shared/lib/hooks/use-scroll-direction';
 import { GuestListMatch } from '@/features/match/model/types';
 import { NotificationBell } from '@/features/notification/ui/notification-bell';
 
@@ -62,33 +63,6 @@ function adaptMatch(match: GuestListMatch) {
     }
   };
 }
-
-// Hook to detect scroll with hysteresis to prevent flickering
-const useScrollDirection = () => {
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  useEffect(() => {
-    const SCROLL_DOWN_THRESHOLD = 60; // Hide header when scrolling down past this
-    const SCROLL_UP_THRESHOLD = 20;   // Show header when scrolling up below this
-
-    const updateScrollDirection = () => {
-      const scrollY = window.scrollY;
-
-      if (!isScrolled && scrollY > SCROLL_DOWN_THRESHOLD) {
-        // Scrolled down past threshold - hide header
-        setIsScrolled(true);
-      } else if (isScrolled && scrollY < SCROLL_UP_THRESHOLD) {
-        // Scrolled up below threshold - show header
-        setIsScrolled(false);
-      }
-    };
-
-    window.addEventListener("scroll", updateScrollDirection, { passive: true });
-    return () => window.removeEventListener("scroll", updateScrollDirection);
-  }, [isScrolled]);
-
-  return isScrolled;
-};
 
 export default function GuestMatchListPage() {
   const router = useRouter();
