@@ -252,7 +252,21 @@ export class ApplicationService {
     const application = await this.getApplicationById(applicationId);
     const positions = extractPositionsFromParticipants(application.participants_info);
 
+    // cancel 메타데이터를 RPC 호출 전에 먼저 설정
+    // (RPC가 status를 CANCELED로 변경할 때 트리거가 canceled_by를 참조하므로)
+    if (options?.cancelType || options?.canceledBy || options?.cancelReason) {
+      await this.supabase
+        .from('applications')
+        .update({
+          ...(options.cancelType && { cancel_type: options.cancelType }),
+          ...(options.canceledBy && { canceled_by: options.canceledBy }),
+          ...(options.cancelReason && { cancel_reason: options.cancelReason }),
+        })
+        .eq('id', applicationId);
+    }
+
     // RPC 함수 호출 (신청 취소 + count 감소)
+    // 이 시점에 canceled_by가 이미 설정되어 있으므로 트리거가 올바른 알림 생성
     const { error } = await (this.supabase.rpc as CallableFunction)(
       'cancel_application_with_count',
       {
@@ -282,18 +296,6 @@ export class ApplicationService {
         return data!;
       }
       handleSupabaseError(error, '신청 취소');
-    }
-
-    // cancel 메타데이터 저장 (RPC는 status만 변경하므로 별도 업데이트)
-    if (options?.cancelType || options?.canceledBy || options?.cancelReason) {
-      await this.supabase
-        .from('applications')
-        .update({
-          ...(options.cancelType && { cancel_type: options.cancelType }),
-          ...(options.canceledBy && { canceled_by: options.canceledBy }),
-          ...(options.cancelReason && { cancel_reason: options.cancelReason }),
-        })
-        .eq('id', applicationId);
     }
 
     // 업데이트된 신청 정보 다시 조회

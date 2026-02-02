@@ -1,3 +1,3 @@
 export { notificationKeys } from './keys';
-export { useNotifications, useUnreadNotificationCount } from './queries';
-export { useMarkNotificationAsRead, useMarkAllNotificationsAsRead } from './mutations';
+export { useNotifications, useUnreadNotifications, useUnreadNotificationCount } from './queries';
+export { useMarkNotificationAsRead, useMarkNotificationsAsReadByMatch, useMarkAllNotificationsAsRead } from './mutations';

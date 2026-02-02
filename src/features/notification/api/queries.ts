@@ -25,6 +25,25 @@ export function useNotifications(userId: string | undefined) {
 }
 
 /**
+ * 읽지 않은 알림 목록 조회 (match_id 기준, polling)
+ */
+export function useUnreadNotifications(userId: string | undefined) {
+  return useQuery({
+    queryKey: notificationKeys.unread(userId ?? ''),
+    queryFn: async () => {
+      const supabase = getSupabaseBrowserClient();
+      const service = createNotificationService(supabase);
+      const rows = await service.getUnreadNotifications(userId!);
+      return rows.map(notificationRowToClient);
+    },
+    enabled: !!userId,
+    staleTime: 30_000,
+    refetchInterval: 30_000,
+    refetchIntervalInBackground: false,
+  });
+}
+
+/**
  * 읽지 않은 알림 개수 조회 (polling)
  */
 export function useUnreadNotificationCount(userId: string | undefined) {
