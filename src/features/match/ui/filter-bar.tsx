@@ -79,6 +79,8 @@ interface FilterBarProps {
   onAgesChange?: (ages: string[]) => void;
   selectedGameFormats?: string[];
   onGameFormatsChange?: (formats: string[]) => void;
+  hideClosed?: boolean;
+  onHideClosedChange?: (hide: boolean) => void;
   notificationSlot?: React.ReactNode;
 }
 
@@ -101,6 +103,8 @@ export function FilterBar({
   onAgesChange,
   selectedGameFormats = [],
   onGameFormatsChange,
+  hideClosed = true,
+  onHideClosedChange,
   notificationSlot,
 }: FilterBarProps) {
   // -- Scroll Detection --
@@ -132,19 +136,21 @@ export function FilterBar({
     }
   };
 
-  // 4. Detailed Filter (now includes position and vacancy)
+  // 4. Detailed Filter (now includes position, vacancy, and hideClosed)
   const handleDetailApply = (filters: {
     positions?: string[];
     minVacancy?: number | null;
     genders: string[];
     ages: string[];
     gameFormats: string[];
+    hideClosed?: boolean;
   }) => {
     if (filters.positions !== undefined) onPositionsChange(filters.positions);
     if (filters.minVacancy !== undefined && onMinVacancyChange) onMinVacancyChange(filters.minVacancy);
     if (onGendersChange) onGendersChange(filters.genders);
     if (onAgesChange) onAgesChange(filters.ages);
     if (onGameFormatsChange) onGameFormatsChange(filters.gameFormats);
+    if (filters.hideClosed !== undefined && onHideClosedChange) onHideClosedChange(filters.hideClosed);
   };
 
   // Label Helpers
@@ -160,13 +166,14 @@ export function FilterBar({
   };
 
   const getDetailLabel = () => {
-    // Count active detailed filters (now includes position and vacancy)
+    // Count active detailed filters (now includes position, vacancy, and hideClosed)
     let count = 0;
     if (selectedPositions.length > 0) count++;
     if (minVacancy !== null && minVacancy > 0) count++;
     if (selectedGenders.length > 0) count++;
     if (selectedAges.length > 0) count++;
     if (selectedGameFormats.length > 0) count++;
+    if (hideClosed) count++;
     return count > 0 ? `상세 (${count})` : "상세";
   };
 
@@ -240,16 +247,17 @@ export function FilterBar({
           />
         )}
 
-        {/* (D) Detailed Filter (Now includes Position & Vacancy) */}
+        {/* (D) Detailed Filter (Now includes Position, Vacancy & HideClosed) */}
         <Chip
           label={getDetailLabel()}
           variant="orange"
           isActive={
-            selectedPositions.length > 0 || 
+            selectedPositions.length > 0 ||
             (minVacancy !== null && minVacancy > 0) ||
-            selectedGenders.length > 0 || 
-            selectedAges.length > 0 || 
-            selectedGameFormats.length > 0
+            selectedGenders.length > 0 ||
+            selectedAges.length > 0 ||
+            selectedGameFormats.length > 0 ||
+            hideClosed
           }
           hasDropdown={true}
           showCheckIcon={false}
@@ -266,6 +274,8 @@ export function FilterBar({
             selectedGenders={selectedGenders || []}
             selectedAges={selectedAges || []}
             selectedGameFormats={selectedGameFormats || []}
+            hideClosed={hideClosed}
+            onHideClosedChange={onHideClosedChange}
             onApply={handleDetailApply}
         />
 
@@ -284,6 +294,7 @@ export function FilterBar({
             if (onGendersChange) onGendersChange([]);
             if (onAgesChange) onAgesChange([]);
             if (onGameFormatsChange) onGameFormatsChange([]);
+            if (onHideClosedChange) onHideClosedChange(true);
           }}
           className="h-8 px-2 text-xs text-slate-400 hover:text-slate-600 hover:bg-transparent shrink-0 ml-auto flex items-center gap-1"
         >

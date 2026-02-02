@@ -177,11 +177,15 @@ export function matchRowToGuestListMatch(row: any): GuestListMatch {
     isPersonalHost: !row.team_id,
 
     positions,
+    recruitmentType: recruitmentSetup.type as 'ANY' | 'POSITION',
 
     // 상세 페이지 전용 필드
     hostNotice: (row.operation_info as OperationInfo)?.notice || undefined,
     hostName: row.host?.nickname || undefined,
     requirements: row.requirements?.length > 0 ? row.requirements : undefined,
     matchOptions: matchOptionsUI,
+
+    // NEW 뱃지용
+    createdAt: row.created_at || undefined,
   };
 }

@@ -1,3 +1,3 @@
 export { applicationKeys } from './keys';
-export { useUserTeams } from './queries';
+export { useUserTeams, useUserApplications } from './queries';
 export { useCreateApplication, useCancelApplication } from './mutations';

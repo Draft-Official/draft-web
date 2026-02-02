@@ -55,6 +55,19 @@ export const getShortDayLabel = (dateISO: string): string => {
     return `${day} (${dayOfWeek})`;
 };
 
+/**
+ * 매치가 1시간 이내에 생성되었는지 확인
+ * @param createdAt ISO timestamp
+ * @returns NEW 뱃지 표시 여부
+ */
+export const isNewMatch = (createdAt: string | undefined): boolean => {
+    if (!createdAt) return false;
+    const created = new Date(createdAt);
+    const now = new Date();
+    const diffHours = (now.getTime() - created.getTime()) / (1000 * 60 * 60);
+    return diffHours <= 1;
+};
+
 // --- Filtering Logic ---
 
 export interface FilterOptions {

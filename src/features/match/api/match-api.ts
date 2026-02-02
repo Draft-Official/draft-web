@@ -66,6 +66,59 @@ export class MatchService {
   }
 
   /**
+   * 모집 중인 경기 목록 조회 (페이지네이션)
+   * @param pageParam 시작 인덱스
+   * @param pageSize 페이지 크기 (기본 20)
+   */
+  async getRecruitingMatchesPaginated(pageParam: number = 0, pageSize: number = 20) {
+    logRequest(this.SERVICE_NAME, 'getRecruitingMatchesPaginated', { pageParam, pageSize });
+
+    // 오늘 날짜 (한국 시간)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayISO = today.toISOString().split('T')[0];
+
+    logSupabaseQuery('matches', 'SELECT', undefined, {
+      status: 'RECRUITING',
+      date: `>= ${todayISO}`,
+      range: `${pageParam}-${pageParam + pageSize - 1}`
+    });
+
+    const { data, error } = await this.supabase
+      .from('matches')
+      .select(`
+        *,
+        gym:gyms!gym_id (*),
+        host:users!host_id (*),
+        team:teams!team_id (*)
+      `)
+      .eq('status', 'RECRUITING')
+      .gte('start_time', todayISO) // 오늘 이후 매치만
+      .order('start_time', { ascending: true })
+      .range(pageParam, pageParam + pageSize - 1);
+
+    logSupabaseResult('matches', 'SELECT', { count: data?.length ?? 0 }, error);
+
+    if (error) {
+      logResponse(this.SERVICE_NAME, 'getRecruitingMatchesPaginated', undefined, error);
+      throw error;
+    }
+
+    const hasMore = data?.length === pageSize;
+    const nextCursor = hasMore ? pageParam + pageSize : undefined;
+
+    logResponse(this.SERVICE_NAME, 'getRecruitingMatchesPaginated', {
+      count: data?.length ?? 0,
+      nextCursor
+    });
+
+    return {
+      matches: data ?? [],
+      nextCursor,
+    };
+  }
+
+  /**
    * 내가 주최한 경기 목록 (gym, team 정보 포함)
    * @param userId 사용자 ID
    * @param limit 최대 조회 개수 (기본 5개)

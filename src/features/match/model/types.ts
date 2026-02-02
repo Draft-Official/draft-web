@@ -121,11 +121,13 @@ export interface GuestListMatch extends BaseMatch {
   teamLogo?: string; // 팀 로고 URL (개인 주최 시 undefined)
   isPersonalHost?: boolean; // 개인 주최 여부
   positions: Partial<Record<PositionValue, PositionStatus>>; // max가 0인 포지션은 제외
+  recruitmentType?: 'ANY' | 'POSITION'; // 모집 타입 (ANY = 포지션 무관)
   level: string;
   gender: GenderValue;
   courtType?: string;
   ageMin?: number;
   ageMax?: number;
+  createdAt?: string; // ISO timestamp - NEW 뱃지용
 
   // 상세 페이지 전용 필드
   hostNotice?: string; // 호스트 메시지

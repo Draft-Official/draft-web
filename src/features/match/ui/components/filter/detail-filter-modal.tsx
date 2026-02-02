@@ -20,6 +20,8 @@ interface DetailedFilterModalProps {
   selectedGenders: string[];
   selectedAges: string[];
   selectedGameFormats: string[];
+  hideClosed?: boolean;
+  onHideClosedChange?: (hide: boolean) => void;
   // Handlers
   onApply: (filters: {
     positions?: string[];
@@ -27,6 +29,7 @@ interface DetailedFilterModalProps {
     genders: string[];
     ages: string[];
     gameFormats: string[];
+    hideClosed?: boolean;
   }) => void;
 }
 
@@ -42,6 +45,8 @@ export function DetailedFilterModal({
   selectedGenders,
   selectedAges,
   selectedGameFormats,
+  hideClosed = true,
+  onHideClosedChange,
   onApply,
 }: DetailedFilterModalProps) {
   // Temp States
@@ -50,6 +55,7 @@ export function DetailedFilterModal({
   const [tempGenders, setTempGenders] = useState<string[]>([]);
   const [tempAges, setTempAges] = useState<string[]>([]);
   const [tempGameFormats, setTempGameFormats] = useState<string[]>([]);
+  const [tempHideClosed, setTempHideClosed] = useState<boolean>(true);
 
   // Sync state when opening
   useEffect(() => {
@@ -59,8 +65,9 @@ export function DetailedFilterModal({
       setTempGenders([...selectedGenders]);
       setTempAges([...selectedAges]);
       setTempGameFormats([...selectedGameFormats]);
+      setTempHideClosed(hideClosed);
     }
-  }, [open, selectedPositions, minVacancy, selectedGenders, selectedAges, selectedGameFormats]);
+  }, [open, selectedPositions, minVacancy, selectedGenders, selectedAges, selectedGameFormats, hideClosed]);
 
   const toggleSelection = (list: string[], item: string, setList: (l: string[]) => void) => {
     setList(list.includes(item) ? list.filter(i => i !== item) : [...list, item]);
@@ -92,6 +99,7 @@ export function DetailedFilterModal({
       genders: tempGenders,
       ages: tempAges,
       gameFormats: tempGameFormats,
+      hideClosed: onHideClosedChange ? tempHideClosed : undefined,
     });
     onOpenChange(false);
   };
@@ -102,6 +110,7 @@ export function DetailedFilterModal({
     setTempGenders([]);
     setTempAges([]);
     setTempGameFormats([]);
+    setTempHideClosed(true);
   };
 
   return (
@@ -198,9 +207,9 @@ export function DetailedFilterModal({
               <h3 className="text-sm font-bold text-slate-900">경기 방식</h3>
               <div className="flex flex-wrap gap-2">
                 {MATCH_FORMAT_OPTIONS.map((bg) => (
-                  <Chip 
-                    key={bg.value} 
-                    label={bg.label} 
+                  <Chip
+                    key={bg.value}
+                    label={bg.label}
                     variant="orange"
                     isActive={tempGameFormats.includes(bg.value)}
                     showCheckIcon={false}
@@ -210,7 +219,34 @@ export function DetailedFilterModal({
               </div>
             </div>
 
-
+            {/* 5. Hide Closed Toggle (if enabled) */}
+            {onHideClosedChange && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-slate-900">마감된 경기 가리기</h3>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={tempHideClosed}
+                    onClick={() => setTempHideClosed(!tempHideClosed)}
+                    className={cn(
+                      "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors",
+                      tempHideClosed ? "bg-[#FF6600]" : "bg-slate-200"
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition-transform",
+                        tempHideClosed ? "translate-x-5" : "translate-x-0"
+                      )}
+                    />
+                  </button>
+                </div>
+                <p className="text-xs text-slate-500">
+                  모집이 마감된 경기를 목록에서 숨깁니다
+                </p>
+              </div>
+            )}
 
           </div>
         </ScrollArea>

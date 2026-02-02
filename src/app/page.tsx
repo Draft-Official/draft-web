@@ -1,17 +1,17 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
-import { Search, ArrowDown } from 'lucide-react';
+import { Search, ArrowDown, Loader2 } from 'lucide-react';
 import { FilterBar } from '@/features/match/ui/filter-bar';
 import { MatchListItem } from '@/features/match/ui/match-list-item';
-import { useRecruitingMatches } from '@/features/match/api/queries';
-import { filterMatches, groupMatchesByDate, getDayLabel } from '@/features/match/lib/utils';
-import { cn } from '@/shared/lib/utils';
+import { useRecruitingMatchesInfinite } from '@/features/match/api/queries';
+import { filterMatches, groupMatchesByDate } from '@/features/match/lib/utils';
 import { useLocalStorage } from '@/shared/lib/hooks/use-local-storage';
-import { useScrollDirection } from '@/shared/lib/hooks/use-scroll-direction';
 import { GuestListMatch } from '@/features/match/model/types';
 import { NotificationBell } from '@/features/notification/ui/notification-bell';
+import { useAuth } from '@/features/auth';
+import { useUserApplications } from '@/features/application/api';
+import type { ApplicationStatusValue } from '@/shared/config/constants';
 
 // Gender는 DB와 동일하게 대문자 사용 (MALE, FEMALE, MIXED)
 
@@ -25,6 +25,38 @@ function adaptMatch(match: GuestListMatch) {
     if (match.price.type === 'FREE') return '무료';
     if (match.price.type === 'BEVERAGE') return `음료수 ${priceAmount}병`;
     return `${priceAmount.toLocaleString()}원`;
+  };
+
+  // 포지션 매핑 (ANY 타입이면 positions.all 사용)
+  const buildPositions = () => {
+    if (match.recruitmentType === 'ANY' && match.positions.G) {
+      // ANY 타입: "포지션 무관"으로 표시
+      return {
+        all: {
+          status: match.positions.G.open > 0 ? 'open' as const : 'closed' as const,
+          max: match.positions.G.closed + match.positions.G.open,
+          current: match.positions.G.closed,
+        },
+      };
+    }
+    // POSITION 타입: 개별 포지션 표시
+    return {
+      g: match.positions.G && {
+        status: match.positions.G.open > 0 ? 'open' as const : 'closed' as const,
+        max: match.positions.G.closed + match.positions.G.open,
+        current: match.positions.G.closed,
+      },
+      f: match.positions.F && {
+        status: match.positions.F.open > 0 ? 'open' as const : 'closed' as const,
+        max: match.positions.F.closed + match.positions.F.open,
+        current: match.positions.F.closed,
+      },
+      c: match.positions.C && {
+        status: match.positions.C.open > 0 ? 'open' as const : 'closed' as const,
+        max: match.positions.C.closed + match.positions.C.open,
+        current: match.positions.C.closed,
+      },
+    };
   };
 
   return {
@@ -44,35 +76,34 @@ function adaptMatch(match: GuestListMatch) {
     teamName: match.teamName,
     teamLogo: match.isPersonalHost ? '🏀' : match.teamLogo, // 개인 주최면 농구공 이모지
     isPersonalHost: match.isPersonalHost,
-    positions: {
-      g: match.positions.G && {
-        status: match.positions.G.open > 0 ? 'open' as const : 'closed' as const,
-        max: match.positions.G.closed + match.positions.G.open,
-        current: match.positions.G.closed,
-      },
-      f: match.positions.F && {
-        status: match.positions.F.open > 0 ? 'open' as const : 'closed' as const,
-        max: match.positions.F.closed + match.positions.F.open,
-        current: match.positions.F.closed,
-      },
-      c: match.positions.C && {
-        status: match.positions.C.open > 0 ? 'open' as const : 'closed' as const,
-        max: match.positions.C.closed + match.positions.C.open,
-        current: match.positions.C.closed,
-      },
-    }
+    positions: buildPositions(),
+    // NEW 뱃지용
+    createdAt: match.createdAt,
   };
 }
 
 export default function GuestMatchListPage() {
-  const router = useRouter();
-  const { data: rawMatches = [], isLoading, error, status } = useRecruitingMatches();
+  const { user } = useAuth();
+  const {
+    data,
+    isLoading,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useRecruitingMatchesInfinite();
+  const { data: userApplications } = useUserApplications(user?.id);
 
-
+  // Flatten pages into single array
+  const rawMatches = data?.pages.flatMap(page => page.matches) ?? [];
 
   const matches = useMemo(() => rawMatches.map(adaptMatch), [rawMatches]);
-  
-  const isScrolled = useScrollDirection();
+
+  // 사용자 신청 상태 Map (matchId → status)
+  const applicationStatusMap = useMemo(() => {
+    if (!userApplications) return new Map<string, ApplicationStatusValue>();
+    return new Map(userApplications.map(app => [app.match_id, app.status]));
+  }, [userApplications]);
 
   // --- State (Persisted) ---
   const [selectedPositions, setSelectedPositions] = useLocalStorage<string[]>('filter_positions', []);
@@ -85,6 +116,7 @@ export default function GuestMatchListPage() {
   const [selectedAges, setSelectedAges] = useLocalStorage<string[]>('filter_ages', []);
   const [selectedGameFormats, setSelectedGameFormats] = useLocalStorage<string[]>('filter_game_formats', []);
   const [startTimeRange, setStartTimeRange] = useLocalStorage<[number, number] | null>('filter_start_time', null);
+  const [hideClosed, setHideClosed] = useLocalStorage<boolean>('filter_hide_closed', true);
 
   // --- State (Transient) ---
   const [selectedDateISO, setSelectedDateISO] = useState<string | null>(null);
@@ -101,11 +133,13 @@ export default function GuestMatchListPage() {
       genders: selectedGenders,
       ages: selectedAges,
       gameFormats: selectedGameFormats,
+      hideClosed: hideClosed,
     });
   }, [
       matches,
       selectedDateISO, selectedPositions, selectedLocations, startTimeRange,
-      selectedPriceMax, minVacancy, selectedGenders, selectedAges, selectedGameFormats
+      selectedPriceMax, minVacancy, selectedGenders, selectedAges, selectedGameFormats,
+      hideClosed
   ]);
 
   // Group by Date
@@ -137,6 +171,8 @@ export default function GuestMatchListPage() {
           onAgesChange={setSelectedAges}
           selectedGameFormats={selectedGameFormats}
           onGameFormatsChange={setSelectedGameFormats}
+          hideClosed={hideClosed}
+          onHideClosedChange={setHideClosed}
           notificationSlot={<NotificationBell />}
         />
 
@@ -181,26 +217,33 @@ export default function GuestMatchListPage() {
               </div>
             </div>
           ) : (
-            // Match List Grouped by Date
-            Object.entries(groupedMatches).map(([dateISO, groupMatches]) => (
-              <div key={dateISO} className="relative">
-                {/* Date Divider (Sticky) */}
-                {!selectedDateISO && (
-                  <div className={cn(
-                    "sticky z-10 bg-slate-50/95 backdrop-blur-sm py-2 px-4 border-b border-slate-100 text-xs font-bold text-slate-500 flex items-center gap-2 transition-all duration-300",
-                    isScrolled ? "top-[110px]" : "top-[165px]"
-                  )}>
-                    {getDayLabel(dateISO)}
-                  </div>
-                )}
-
-                <div>
+            // Match List (각 카드에 날짜가 포함되어 있으므로 sticky header 불필요)
+            <>
+              {Object.entries(groupedMatches).map(([dateISO, groupMatches]) => (
+                <div key={dateISO}>
                   {groupMatches.map((match) => (
-                    <MatchListItem key={match.id} match={match} />
+                    <MatchListItem
+                      key={match.id}
+                      match={match}
+                      applicationStatus={applicationStatusMap.get(match.id)}
+                    />
                   ))}
                 </div>
-              </div>
-            ))
+              ))}
+              {/* 더 보기 버튼 */}
+              {hasNextPage && (
+                <div className="flex justify-center py-6">
+                  <button
+                    onClick={() => fetchNextPage()}
+                    disabled={isFetchingNextPage}
+                    className="flex items-center gap-2 px-6 py-3 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isFetchingNextPage && <Loader2 className="w-4 h-4 animate-spin" />}
+                    더 보기
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
 
