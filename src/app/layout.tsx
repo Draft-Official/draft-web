@@ -17,7 +17,7 @@ export default async function RootLayout({
 }>) {
   return (
     <html lang="ko">
-      <body className="antialiased bg-slate-50 text-slate-900">
+      <body className="antialiased bg-white text-slate-900">
         <Providers>
           <LayoutShell>{children}</LayoutShell>
         </Providers>
