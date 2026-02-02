@@ -28,7 +28,7 @@ import type { ParticipantInfo, Profile, UserMetadata, UserUpdate, Json } from '@
 import { POSITION_OPTIONS, POSITION_DEFAULT, PositionValue } from '@/shared/config/constants';
 import { SKILL_LEVELS } from '@/shared/config/skill-constants';
 
-const MAX_COMPANIONS = 4;
+const MAX_COMPANIONS = 9;
 
 interface CompanionFormData {
   name: string;
@@ -178,11 +178,13 @@ export function ApplyModal({
 
     const positionCode = formData.position || POSITION_DEFAULT;
 
+    const userSkillLevel = getUserSkillLevel();
     const participantsInfo: ParticipantInfo[] = [
       {
         type: 'MAIN',
         name: profile?.nickname || profile?.real_name || '',
         position: positionCode,
+        ...(userSkillLevel ? { skillLevel: parseInt(userSkillLevel, 10) } : {}),
       },
       ...(hasCompanions
         ? companions.map((c) => ({

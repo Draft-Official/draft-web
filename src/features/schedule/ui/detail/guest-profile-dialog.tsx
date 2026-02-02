@@ -8,6 +8,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/shared/ui/base/dialog';
+import { formatMatchDate, formatMatchTime } from '@/shared/lib/date';
 import type { Guest } from '../../model/types';
 
 interface GuestProfileDialogProps {
@@ -34,6 +35,7 @@ export function GuestProfileDialog({
       <DialogContent className="max-w-sm mx-4 rounded-2xl p-6">
         {guest && (
           <div className="flex flex-col items-center space-y-6 pt-2">
+            {/* 아바타 + 이름 + 팀 */}
             <div className="w-20 h-20 rounded-full bg-slate-200 flex items-center justify-center">
               <span className="text-slate-600 font-bold text-3xl">
                 {guest.name.charAt(0)}
@@ -44,11 +46,15 @@ export function GuestProfileDialog({
               <DialogTitle className="text-2xl font-bold text-slate-900 text-center">
                 {guest.name}
               </DialogTitle>
+              {guest.teamName && (
+                <p className="text-sm text-slate-500 text-center">{guest.teamName}</p>
+              )}
               <DialogDescription className="sr-only">
                 게스트의 상세 정보를 확인하고 승인 또는 거절할 수 있습니다.
               </DialogDescription>
             </DialogHeader>
 
+            {/* 프로필 정보 */}
             <div className="w-full space-y-3 border-t border-b border-slate-100 py-4">
               <div className="flex items-center justify-between">
                 <span className="text-slate-500">포지션</span>
@@ -68,6 +74,46 @@ export function GuestProfileDialog({
               </div>
             </div>
 
+            {/* 동반인 정보 */}
+            {guest.companions && guest.companions.length > 0 && (
+              <div className="w-full space-y-3">
+                <p className="text-sm font-medium text-slate-700">
+                  동반인 ({guest.companions.length}명)
+                </p>
+                <div className="space-y-2">
+                  {guest.companions.map((companion, idx) => (
+                    <div
+                      key={idx}
+                      className="bg-slate-50 rounded-xl p-3 border border-slate-100 space-y-1"
+                    >
+                      <span className="font-medium text-slate-900 text-sm">
+                        {companion.name}
+                      </span>
+                      <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                        <span>{companion.position}</span>
+                        {companion.height && <><span className="text-slate-300">·</span><span>{companion.height}</span></>}
+                        {companion.age && <><span className="text-slate-300">·</span><span>{companion.age}</span></>}
+                        {companion.skillLevel && <><span className="text-slate-300">·</span><span>{companion.skillLevel}</span></>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 신청시간 */}
+            {guest.appliedAt && (
+              <div className="w-full space-y-3 border-t border-b border-slate-100 py-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500">신청시간</span>
+                  <span className="font-medium text-slate-900">
+                    {formatMatchDate(guest.appliedAt)} {formatMatchTime(guest.appliedAt)}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* 경기 이력 */}
             <div className="w-full space-y-3">
               <p className="text-sm font-medium text-slate-700">이 팀과의 경기 이력</p>
 
@@ -87,33 +133,7 @@ export function GuestProfileDialog({
               )}
             </div>
 
-            {/* 동반인 정보 */}
-            {guest.companions && guest.companions.length > 0 && (
-              <div className="w-full space-y-3">
-                <p className="text-sm font-medium text-slate-700">
-                  동반인 ({guest.companions.length}명)
-                </p>
-                <div className="space-y-2">
-                  {guest.companions.map((companion, idx) => (
-                    <div
-                      key={idx}
-                      className="bg-blue-50 rounded-xl p-3 border border-blue-100 space-y-1"
-                    >
-                      <span className="font-medium text-slate-900 text-sm">
-                        {companion.name}
-                      </span>
-                      <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                        <span>{companion.position}</span>
-                        {companion.height && <><span className="text-slate-300">·</span><span>{companion.height}</span></>}
-                        {companion.age && <><span className="text-slate-300">·</span><span>{companion.age}</span></>}
-                        {companion.skillLevel && <><span className="text-slate-300">·</span><span>{companion.skillLevel}</span></>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
+            {/* 액션 버튼 */}
             <div className="w-full flex gap-2 pt-2">
               {guest.status === 'pending' && (
                 <>
