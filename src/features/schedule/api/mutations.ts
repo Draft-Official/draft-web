@@ -10,7 +10,6 @@ import type { CancelOptions } from '@/features/application/api/application-api';
 import { useAuth } from '@/features/auth';
 import { matchManagementKeys } from './keys';
 import { matchKeys } from '@/shared/api/keys';
-import { adjustRecruitmentSetup, updateRecruitmentSetupInDb } from '../lib/recruitment-utils';
 import type { RecruitmentSetup, Json } from '@/shared/types/database.types';
 
 /**
@@ -71,7 +70,6 @@ export function useConfirmPaymentByGuest() {
   return useMutation({
     mutationFn: async ({
       applicationId,
-      matchId,
     }: {
       applicationId: string;
       matchId: string;
@@ -79,28 +77,7 @@ export function useConfirmPaymentByGuest() {
       const supabase = getSupabaseBrowserClient();
       const applicationService = createApplicationService(supabase);
 
-      // 1. 신청 정보 조회 (participants_info 포함)
-      const application = await applicationService.getApplicationById(applicationId);
-
-      // 2. 경기 정보 조회 (recruitment_setup 포함)
-      const { data: match, error: matchError } = await supabase
-        .from('matches')
-        .select('recruitment_setup')
-        .eq('id', matchId)
-        .single();
-
-      if (matchError) throw matchError;
-
-      // 3. recruitment_setup의 current 값 증가 + DB 업데이트
-      const recruitmentSetup = match.recruitment_setup as RecruitmentSetup;
-
-      if (recruitmentSetup && application.participants_info) {
-        const participantsInfo = application.participants_info as Array<{ position?: string }>;
-        adjustRecruitmentSetup(recruitmentSetup, participantsInfo, 'increment');
-        await updateRecruitmentSetupInDb(supabase, matchId, recruitmentSetup);
-      }
-
-      // 4. 신청 상태 확정
+      // RPC confirm_application_with_count가 상태 변경 + recruitment_setup 갱신을 원자적으로 처리
       return applicationService.confirmApplication(applicationId);
     },
     onSuccess: (_, variables) => {
@@ -229,29 +206,7 @@ export function useCancelParticipation() {
       const supabase = getSupabaseBrowserClient();
       const applicationService = createApplicationService(supabase);
 
-      // 1. 신청 정보 조회 (participants_info 포함, 확정 상태인지 확인)
-      const application = await applicationService.getApplicationById(applicationId);
-
-      // 확정된 신청만 current 값 감소 처리
-      if (application.status === 'CONFIRMED') {
-        const { data: match, error: matchError } = await supabase
-          .from('matches')
-          .select('recruitment_setup')
-          .eq('id', matchId)
-          .single();
-
-        if (!matchError && match) {
-          const recruitmentSetup = match.recruitment_setup as RecruitmentSetup;
-
-          if (recruitmentSetup && application.participants_info) {
-            const participantsInfo = application.participants_info as Array<{ position?: string }>;
-            adjustRecruitmentSetup(recruitmentSetup, participantsInfo, 'decrement');
-            await updateRecruitmentSetupInDb(supabase, matchId, recruitmentSetup);
-          }
-        }
-      }
-
-      // 2. 신청 취소 처리 (호스트 취소 메타데이터 포함)
+      // RPC cancel_application_with_count가 상태 변경 + recruitment_setup 갱신을 원자적으로 처리
       return applicationService.cancelApplication(applicationId, {
         canceledBy: 'HOST',
         ...cancelOptions,

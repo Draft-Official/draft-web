@@ -88,19 +88,30 @@ export function HostMatchDetailView() {
   const isClosed = !isEnded && matchStatus === 'CLOSED';
   const isConfirmed = !isEnded && (matchStatus === 'CONFIRMED' || matchStatus === 'ONGOING');
 
-  // 확정자 수 계산 (포지션별)
+  // 확정자 수 계산 (포지션별, 동반인 포함)
   const confirmedCountByPosition = guests
     .filter((g) => g.status === 'confirmed')
     .reduce((acc, guest) => {
-      // 포지션에서 괄호 안의 코드 추출 (예: "가드 (G)" -> "G")
+      // 본인 포지션 카운트
       const posMatch = guest.position.match(/\(([A-Z]+)\)/);
       const posCode = posMatch ? posMatch[1] : 'G';
       acc[posCode] = (acc[posCode] || 0) + 1;
+
+      // 동반인 포지션 카운트
+      if (guest.companions) {
+        guest.companions.forEach((c) => {
+          const cPosMatch = c.position.match(/\(([A-Z]+)\)/);
+          const cPosCode = cPosMatch ? cPosMatch[1] : 'G';
+          acc[cPosCode] = (acc[cPosCode] || 0) + 1;
+        });
+      }
       return acc;
     }, {} as Record<string, number>);
 
-  // 전체 확정자 수
-  const totalConfirmedCount = guests.filter((g) => g.status === 'confirmed').length;
+  // 전체 확정자 수 (동반인 포함)
+  const totalConfirmedCount = guests
+    .filter((g) => g.status === 'confirmed')
+    .reduce((sum, g) => sum + 1 + (g.companions?.length || 0), 0);
 
   // 탭별 게스트 수
   const getTabCount = (status: GuestStatus) => {
@@ -259,7 +270,7 @@ export function HostMatchDetailView() {
           </a>
 
           <div className="flex items-center gap-2 text-slate-700">
-            <Shield className="w-5 h-5 text-primary" />
+            <Shield className="w-5 h-5 text-slate-400" />
             <span className="font-medium">{match.teamName}</span>
           </div>
         </section>

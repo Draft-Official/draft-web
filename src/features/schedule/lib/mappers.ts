@@ -51,6 +51,7 @@ function getTotalCurrentFromSetup(setup: RecruitmentSetup | null | undefined): n
 
 type ApplicationWithUser = Application & {
   user: Pick<User, 'id' | 'nickname' | 'avatar_url' | 'positions' | 'manner_score' | 'metadata'>;
+  team?: Pick<Team, 'name'> | null;
 };
 
 type MatchWithRelations = Match & {
@@ -99,8 +100,8 @@ export function applicationToGuest(app: ApplicationWithUser): Guest {
   const position = participants[0]?.position || 'G';
   const positionLabel = getPositionLabel(position);
 
-  // User metadata에서 height, age 추출 (있는 경우)
-  const userMetadata = app.user?.metadata as { height?: number; age?: number } | null;
+  // User metadata에서 height, age, skill_level 추출 (있는 경우)
+  const userMetadata = app.user?.metadata as { height?: number; age?: number; skill_level?: number } | null;
   const height = userMetadata?.height;
   const age = userMetadata?.age;
 
@@ -119,13 +120,17 @@ export function applicationToGuest(app: ApplicationWithUser): Guest {
     id: app.id,
     name: app.user.nickname || '이름 없음',
     position: positionLabel,
-    level: getLevelLabel(app.user.manner_score || 0),
+    level: userMetadata?.skill_level
+      ? (SKILL_LEVEL_NAMES[userMetadata.skill_level] || `Lv.${userMetadata.skill_level}`)
+      : '정보 없음',
     ageGroup: age ? `${age}세` : '정보 없음',
     height: height ? `${height}cm` : '정보 없음',
     status: getGuestStatus(app),
     paymentVerified: !!app.payment_verified_at, // 호스트 내부 관리용 입금 확인 여부
     avatar: app.user.avatar_url || undefined,
+    teamName: app.team?.name || undefined,
     companions: companions.length > 0 ? companions : undefined,
+    appliedAt: app.created_at || undefined,
     // matchHistory는 별도 쿼리 필요 (추후 구현)
   };
 }

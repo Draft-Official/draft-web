@@ -79,14 +79,20 @@ export function MatchDetailBottomBar({
     );
   }
 
-  // 신청했지만 취소 불가 (거절/취소됨)
+  // 신청했지만 취소 불가 (확정/거절/취소됨)
   if (hasApplied && !canCancel) {
+    const isConfirmed = statusText === '확정된 경기입니다';
     return (
       <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none md:pl-[240px]">
         <div className="max-w-[760px] mx-auto bg-white border-t border-slate-100 px-5 pt-4 pb-8 pointer-events-auto shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
           <Button
             size="lg"
-            className="w-full text-lg font-bold h-12 rounded-xl bg-slate-200 text-slate-500"
+            className={cn(
+              "w-full text-lg font-bold h-12 rounded-xl",
+              isConfirmed
+                ? "bg-green-100 text-green-700 border border-green-200"
+                : "bg-slate-200 text-slate-500"
+            )}
             disabled
           >
             {statusText || '신청 완료'}
