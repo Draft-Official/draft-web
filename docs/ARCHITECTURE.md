@@ -129,13 +129,14 @@ draft-web/
 │   │   │   └── index.ts
 │   │   │
 │   │   ├── ui/                           # 공통 UI 컴포넌트
-│   │   │   ├── base/                     # Atomic UI (shadcn/ui)
+│   │   │   ├── base/                     # 커스텀 Atomic UI (button, chip 등)
 │   │   │   │   ├── button.tsx
-│   │   │   │   ├── card.tsx
-│   │   │   │   ├── dialog.tsx
+│   │   │   │   ├── chip.tsx
 │   │   │   │   ├── input.tsx
-│   │   │   │   ├── ... (20개 컴포넌트)
-│   │   │   │   └── index.ts
+│   │   │   │   └── ... (커스텀 컴포넌트)
+│   │   │   ├── shadcn/                   # shadcn/ui CLI로 추가된 컴포넌트
+│   │   │   │   ├── separator.tsx
+│   │   │   │   └── ... (CLI로 추가)
 │   │   │   └── layout/                   # 레이아웃 컴포넌트
 │   │   │       ├── header.tsx
 │   │   │       ├── sidebar.tsx
@@ -229,8 +230,11 @@ features/{feature-name}/
 ```
 shared/
 ├── api/          # Infrastructure (Supabase, React Query)
-├── ui/           # Design system (base + layout)
-├── lib/          # Utilities
+├── ui/           # Design system
+│   ├── base/     # 커스텀 컴포넌트 (button, chip, input 등)
+│   ├── shadcn/   # shadcn/ui CLI로 추가된 컴포넌트
+│   └── layout/   # Header, Sidebar, BottomNav
+├── lib/          # Utilities (cn 함수 포함)
 ├── config/       # Global config
 └── types/        # Global types
 ```
@@ -471,6 +475,68 @@ interface MatchCreateSpecsProps {
   "@tanstack/react-query-persist-client": "^5.x"
 }
 ```
+
+---
+
+## 🎨 shadcn/ui 설정
+
+### 폴더 구조
+
+```
+src/shared/ui/
+├── base/       # 커스텀 컴포넌트 (기존 프로젝트 컴포넌트)
+│   ├── button.tsx
+│   ├── chip.tsx
+│   └── input.tsx
+└── shadcn/     # shadcn/ui CLI로 추가된 컴포넌트
+    └── separator.tsx
+```
+
+**분리 이유**: 기존 커스텀 컴포넌트와 shadcn 컴포넌트의 이름 충돌 방지
+
+### 컴포넌트 추가 방법
+
+```bash
+npx shadcn@latest add <component-name>
+# 예: npx shadcn@latest add dialog
+```
+
+컴포넌트는 자동으로 `src/shared/ui/shadcn/`에 추가됩니다.
+
+### Import 규칙
+
+```typescript
+// shadcn 컴포넌트
+import { Separator } from '@/shared/ui/shadcn/separator';
+import { Dialog } from '@/shared/ui/shadcn/dialog';
+
+// 커스텀 컴포넌트
+import { Button } from '@/shared/ui/base/button';
+import { Chip } from '@/shared/ui/base/chip';
+```
+
+### components.json 경로 설정
+
+```json
+{
+  "aliases": {
+    "components": "@/shared/ui",
+    "utils": "@/shared/lib/utils",
+    "ui": "@/shared/ui/shadcn",
+    "lib": "@/shared/lib",
+    "hooks": "@/shared/hooks"
+  }
+}
+```
+
+### 주의사항
+
+| 항목 | 설명 |
+|------|------|
+| **수정 가능** | shadcn 컴포넌트는 node_modules가 아니라 직접 수정 가능 |
+| **업데이트 주의** | CLI로 업데이트 시 커스텀 수정사항이 덮어씌워질 수 있음 |
+| **globals.css** | shadcn init 시 CSS 변수가 추가됨. 브랜드 색상 덮어쓰기 주의 |
+| **cn 함수** | `@/shared/lib/utils.ts`의 `cn()` 함수 사용 (clsx + tailwind-merge) |
 
 ---
 

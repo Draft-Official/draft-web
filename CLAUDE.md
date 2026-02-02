@@ -116,7 +116,8 @@ Features DO NOT import from other features
 
 **shared/** - Cross-domain resources
 - `api/`: Supabase clients, React Query config
-- `ui/base/`: shadcn/ui atomic components
+- `ui/base/`: Custom atomic components (button, chip, input 등)
+- `ui/shadcn/`: shadcn/ui 컴포넌트 (CLI로 추가된 것들)
 - `ui/layout/`: Header, Sidebar, BottomNav
 - `lib/`, `config/`, `types/`
 
@@ -152,6 +153,54 @@ Features DO NOT import from other features
 
 ### Typography
 Use Pretendard font (imported in globals.css)
+
+---
+
+## shadcn/ui 설정
+
+### 폴더 구조
+```
+src/shared/ui/
+├── base/       # 커스텀 컴포넌트 (button, chip, input 등)
+└── shadcn/     # shadcn/ui CLI로 추가된 컴포넌트
+```
+
+### 컴포넌트 추가 방법
+```bash
+npx shadcn@latest add <component-name>
+# 예: npx shadcn@latest add separator
+```
+
+컴포넌트는 자동으로 `src/shared/ui/shadcn/`에 추가됩니다.
+
+### Import 규칙
+```typescript
+// shadcn 컴포넌트
+import { Separator } from '@/shared/ui/shadcn/separator';
+
+// 커스텀 컴포넌트
+import { Button } from '@/shared/ui/base/button';
+import { Chip } from '@/shared/ui/base/chip';
+```
+
+### 주의사항
+- **폴더 분리 이유**: 기존 커스텀 컴포넌트와 이름 충돌 방지
+- **수정 가능**: shadcn 컴포넌트는 직접 수정 가능 (node_modules가 아님)
+- **업데이트 주의**: CLI로 업데이트 시 커스텀 수정사항이 덮어씌워질 수 있음
+- **globals.css**: shadcn init 시 CSS 변수가 추가됨. 브랜드 색상(`--primary: 24 95% 53%`)이 덮어씌워지지 않도록 주의
+
+### components.json 경로 설정
+```json
+{
+  "aliases": {
+    "components": "@/shared/ui",
+    "utils": "@/shared/lib/utils",
+    "ui": "@/shared/ui/shadcn",
+    "lib": "@/shared/lib",
+    "hooks": "@/shared/hooks"
+  }
+}
+```
 
 ---
 
