@@ -61,7 +61,7 @@ export function MatchCreateRecruitment({
   totalCount, updateTotalCount
 }: MatchCreateRecruitmentProps) {
   return (
-    <section className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-6">
+    <section className="bg-white px-5 py-6 space-y-6 rounded-xl border border-slate-200">
         <div className="flex items-center justify-between">
             <h2 className="font-bold text-slate-900 flex items-center gap-2">
                 <Users className="w-5 h-5 text-slate-400" />

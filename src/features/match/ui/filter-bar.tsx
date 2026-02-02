@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Search, RotateCcw } from 'lucide-react';
 import { Button } from '@/shared/ui/base/button';
+import { Separator } from '@/shared/ui/shadcn/separator';
 import { Chip } from '@/shared/ui/base/chip';
 import { cn } from '@/shared/lib/utils';
 import { RegionFilterModal } from './region-filter-modal';
@@ -180,12 +181,14 @@ export function FilterBar({
       </div>
 
       {/* 2. Date Strip */}
-      <DateStrip 
+      <DateStrip
         dates={calendarDates}
-        selectedDate={selectedDateISO} 
+        selectedDate={selectedDateISO}
         onSelect={onDateSelect}
         showAllOption={true}
       />
+
+      <Separator className="bg-slate-100" />
 
       {/* 3. Integrated Filter Bar */}
       <div className="px-4 pb-3 flex gap-2 overflow-x-auto no-scrollbar bg-white w-full items-center">
