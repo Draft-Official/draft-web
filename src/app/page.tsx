@@ -110,6 +110,7 @@ export default function GuestMatchListPage() {
   const [selectedGenders, setSelectedGenders] = useLocalStorage<string[]>('filter_genders', []);
   const [selectedAges, setSelectedAges] = useLocalStorage<string[]>('filter_ages', []);
   const [selectedGameFormats, setSelectedGameFormats] = useLocalStorage<string[]>('filter_game_formats', []);
+  const [startTimeRange, setStartTimeRange] = useLocalStorage<[number, number] | null>('filter_start_time', null);
 
   // --- State (Transient) ---
   const [selectedDateISO, setSelectedDateISO] = useState<string | null>(null);
@@ -120,6 +121,7 @@ export default function GuestMatchListPage() {
       dateISO: selectedDateISO,
       positions: selectedPositions,
       locations: selectedLocations,
+      startTimeRange: startTimeRange,
       priceMax: selectedPriceMax,
       minVacancy: minVacancy,
       genders: selectedGenders,
@@ -127,9 +129,9 @@ export default function GuestMatchListPage() {
       gameFormats: selectedGameFormats,
     });
   }, [
-      matches, 
-      selectedDateISO, selectedPositions, selectedLocations, selectedPriceMax, 
-      minVacancy, selectedGenders, selectedAges, selectedGameFormats
+      matches,
+      selectedDateISO, selectedPositions, selectedLocations, startTimeRange,
+      selectedPriceMax, minVacancy, selectedGenders, selectedAges, selectedGameFormats
   ]);
 
   // Group by Date
@@ -149,6 +151,8 @@ export default function GuestMatchListPage() {
           onPositionsChange={setSelectedPositions}
           selectedLocations={selectedLocations}
           onLocationsChange={setSelectedLocations}
+          startTimeRange={startTimeRange}
+          onStartTimeRangeChange={setStartTimeRange}
           selectedPriceMax={selectedPriceMax}
           onPriceMaxChange={setSelectedPriceMax}
           minVacancy={minVacancy}

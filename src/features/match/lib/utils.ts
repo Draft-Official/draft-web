@@ -61,6 +61,7 @@ export interface FilterOptions {
     dateISO: string | null;
     positions: string[];
     locations: string[]; // e.g. ["서울 강남구", "서울 서초구"]
+    startTimeRange?: [number, number] | null; // e.g. [6, 18] (6:00 ~ 18:00)
     priceMax?: number | null; // e.g. 10000
     hideClosed?: boolean; // hide closed matches
     minVacancy?: number | null; // e.g. 3 (at least 3 spots)
@@ -95,7 +96,18 @@ export const filterMatches = (
         });
     }
 
-    // 3. Position Filter
+    // 3. Start Time Filter
+    if (options.startTimeRange) {
+        const [minHour, maxHour] = options.startTimeRange;
+        filtered = filtered.filter(m => {
+            if (!m.startTime) return false;
+            // startTime is in "HH:MM" format
+            const hour = parseInt(m.startTime.split(':')[0], 10);
+            return hour >= minHour && hour < maxHour;
+        });
+    }
+
+    // 4. Position Filter
     if (options.positions.length > 0) {
         filtered = filtered.filter(m => {
             if (options.positions.includes('포지션 무관')) return true;

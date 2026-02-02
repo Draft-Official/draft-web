@@ -12,6 +12,8 @@ import { DateStrip } from './components/date-strip';
 import { PositionFilterModal } from './components/filter/position-filter-modal';
 import { VacancyFilterModal } from './components/filter/vacancy-filter-modal';
 import { DetailedFilterModal } from './components/filter/detail-filter-modal';
+import { StartTimeFilterModal } from './components/filter/start-time-filter-modal';
+import { PriceFilter } from './components/filter/price-filter';
 
 // Hook to detect scroll with hysteresis to prevent flickering
 const useScrollDirection = () => {
@@ -47,6 +49,8 @@ interface FilterBarProps {
   onPositionsChange: (positions: string[]) => void;
   selectedLocations: string[];
   onLocationsChange: (locations: string[]) => void;
+  startTimeRange?: [number, number] | null;
+  onStartTimeRangeChange?: (range: [number, number] | null) => void;
   selectedPriceMax?: number | null;
   onPriceMaxChange?: (price: number | null) => void;
   minVacancy?: number | null;
@@ -68,6 +72,8 @@ export function FilterBar({
   onPositionsChange,
   selectedLocations,
   onLocationsChange,
+  startTimeRange = null,
+  onStartTimeRangeChange,
   selectedPriceMax = null,
   onPriceMaxChange,
   minVacancy = null,
@@ -92,6 +98,7 @@ export function FilterBar({
 
   // -- Modal Open States --
   const [isLocationOpen, setIsLocationOpen] = useState(false);
+  const [isStartTimeOpen, setIsStartTimeOpen] = useState(false);
   const [isPositionOpen, setIsPositionOpen] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isVacancyOpen, setIsVacancyOpen] = useState(false);
@@ -103,7 +110,14 @@ export function FilterBar({
     onLocationsChange(locations);
   };
 
-  // 2. Position
+  // 2. Start Time
+  const handleStartTimeApply = (range: [number, number] | null) => {
+    if (onStartTimeRangeChange) {
+      onStartTimeRangeChange(range);
+    }
+  };
+
+  // 3. Position
   const handlePositionApply = (positions: string[]) => {
     onPositionsChange(positions);
   };
@@ -117,12 +131,10 @@ export function FilterBar({
 
   // 4. Detailed Filter
   const handleDetailApply = (filters: {
-    priceMax: number | null;
     genders: string[];
     ages: string[];
     gameFormats: string[];
   }) => {
-    if (onPriceMaxChange) onPriceMaxChange(filters.priceMax);
     if (onGendersChange) onGendersChange(filters.genders);
     if (onAgesChange) onAgesChange(filters.ages);
     if (onGameFormatsChange) onGameFormatsChange(filters.gameFormats);
@@ -133,6 +145,11 @@ export function FilterBar({
     if (selectedLocations.length === 0) return "지역";
     const first = selectedLocations[0].split(' ')[1] || selectedLocations[0]; // Show district name only if possible
     return selectedLocations.length === 1 ? first : `${first} 외 ${selectedLocations.length - 1}`;
+  };
+
+  const getStartTimeLabel = () => {
+    if (!startTimeRange) return "시작 시간";
+    return `${startTimeRange[0]}시~${startTimeRange[1]}시`;
   };
 
   const getPositionLabel = () => {
@@ -150,7 +167,6 @@ export function FilterBar({
   const getDetailLabel = () => {
     // Count active detailed filters
     let count = 0;
-    if (selectedPriceMax !== null) count++;
     if (selectedGenders.length > 0) count++;
     if (selectedAges.length > 0) count++;
     if (selectedGameFormats.length > 0) count++;
@@ -188,10 +204,10 @@ export function FilterBar({
         showAllOption={true}
       />
 
-      <Separator className="bg-slate-100" />
+      <Separator className="bg-slate-200 mt-1.5" />
 
       {/* 3. Integrated Filter Bar */}
-      <div className="px-4 pb-3 flex gap-2 overflow-x-auto no-scrollbar bg-white w-full items-center">
+      <div className="px-4 pt-1.5 pb-1.5 flex gap-2 overflow-x-auto no-scrollbar bg-white w-full items-center">
 
         {/* (A) Location Filter */}
         <Chip 
@@ -199,22 +215,53 @@ export function FilterBar({
           variant="orange"
           isActive={selectedLocations.length > 0}
           hasDropdown={true}
+          showCheckIcon={false}
           onClick={() => setIsLocationOpen(true)}
           className="shrink-0"
         />
-        <RegionFilterModal 
-          open={isLocationOpen} 
+        <RegionFilterModal
+          open={isLocationOpen}
           onOpenChange={setIsLocationOpen}
           onApply={handleLocationApply}
           selectedRegions={selectedLocations}
         />
 
-        {/* (B) Position Filter */}
+        {/* (B) Start Time Filter */}
+        {onStartTimeRangeChange && (
+          <>
+            <Chip
+              label={getStartTimeLabel()}
+              variant="orange"
+              isActive={startTimeRange !== null}
+              hasDropdown={true}
+              showCheckIcon={false}
+              onClick={() => setIsStartTimeOpen(true)}
+              className="shrink-0"
+            />
+            <StartTimeFilterModal
+              open={isStartTimeOpen}
+              onOpenChange={setIsStartTimeOpen}
+              startTimeRange={startTimeRange}
+              onApply={handleStartTimeApply}
+            />
+          </>
+        )}
+
+        {/* (C) Price Filter */}
+        {onPriceMaxChange && (
+          <PriceFilter
+            selectedPriceMax={selectedPriceMax}
+            onPriceMaxChange={onPriceMaxChange}
+          />
+        )}
+
+        {/* (D) Position Filter */}
         <Chip
           label={getPositionLabel()}
           variant="orange"
           isActive={selectedPositions.length > 0}
           hasDropdown={true}
+          showCheckIcon={false}
           onClick={() => setIsPositionOpen(true)}
           className="shrink-0"
         />
@@ -233,6 +280,7 @@ export function FilterBar({
                     variant="orange"
                     isActive={minVacancy !== null && minVacancy > 0}
                     hasDropdown={true}
+                    showCheckIcon={false}
                     onClick={() => setIsVacancyOpen(true)}
                     className="shrink-0"
                 />
@@ -245,19 +293,19 @@ export function FilterBar({
             </>
         )}
 
-        {/* (D) Detailed Filter (Includes Price) */}
+        {/* (D) Detailed Filter */}
         <Chip
           label={getDetailLabel()}
           variant="orange"
-          isActive={selectedPriceMax !== null || selectedGenders.length > 0 || selectedAges.length > 0 || selectedGameFormats.length > 0}
+          isActive={selectedGenders.length > 0 || selectedAges.length > 0 || selectedGameFormats.length > 0}
           hasDropdown={true}
+          showCheckIcon={false}
           onClick={() => setIsDetailOpen(true)}
           className="shrink-0"
         />
         <DetailedFilterModal
             open={isDetailOpen}
             onOpenChange={setIsDetailOpen}
-            selectedPriceMax={selectedPriceMax || null}
             selectedGenders={selectedGenders || []}
             selectedAges={selectedAges || []}
             selectedGameFormats={selectedGameFormats || []}
@@ -273,6 +321,7 @@ export function FilterBar({
             onDateSelect(null);
             onPositionsChange([]);
             onLocationsChange([]);
+            if (onStartTimeRangeChange) onStartTimeRangeChange(null);
             if (onPriceMaxChange) onPriceMaxChange(null);
             if (onMinVacancyChange) onMinVacancyChange(null);
             if (onGendersChange) onGendersChange([]);

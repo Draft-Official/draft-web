@@ -6,20 +6,17 @@ import { Button } from '@/shared/ui/base/button';
 import { Chip } from '@/shared/ui/base/chip';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/base/dialog";
 import { ScrollArea } from "@/shared/ui/base/scroll-area";
-import { cn } from '@/shared/lib/utils';
 import { GENDER_OPTIONS, MATCH_FORMAT_OPTIONS } from '@/shared/config/constants';
 
 interface DetailedFilterModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   // Current States
-  selectedPriceMax: number | null;
   selectedGenders: string[];
   selectedAges: string[];
   selectedGameFormats: string[];
   // Handlers
   onApply: (filters: {
-    priceMax: number | null;
     genders: string[];
     ages: string[];
     gameFormats: string[];
@@ -39,14 +36,12 @@ const AGE_FILTER_OPTIONS = [
 export function DetailedFilterModal({
   open,
   onOpenChange,
-  selectedPriceMax,
   selectedGenders,
   selectedAges,
   selectedGameFormats,
   onApply,
 }: DetailedFilterModalProps) {
   // Temp States
-  const [tempPriceMax, setTempPriceMax] = useState<number | null>(null);
   const [tempGenders, setTempGenders] = useState<string[]>([]);
   const [tempAges, setTempAges] = useState<string[]>([]);
   const [tempGameFormats, setTempGameFormats] = useState<string[]>([]);
@@ -54,12 +49,11 @@ export function DetailedFilterModal({
   // Sync state when opening
   useEffect(() => {
     if (open) {
-      setTempPriceMax(selectedPriceMax);
       setTempGenders([...selectedGenders]);
       setTempAges([...selectedAges]);
       setTempGameFormats([...selectedGameFormats]);
     }
-  }, [open, selectedPriceMax, selectedGenders, selectedAges, selectedGameFormats]);
+  }, [open, selectedGenders, selectedAges, selectedGameFormats]);
 
   const toggleSelection = (list: string[], item: string, setList: (l: string[]) => void) => {
     setList(list.includes(item) ? list.filter(i => i !== item) : [...list, item]);
@@ -73,7 +67,6 @@ export function DetailedFilterModal({
 
   const handleApply = () => {
     onApply({
-      priceMax: tempPriceMax,
       genders: tempGenders,
       ages: tempAges,
       gameFormats: tempGameFormats,
@@ -82,7 +75,6 @@ export function DetailedFilterModal({
   };
 
   const handleReset = () => {
-    setTempPriceMax(null);
     setTempGenders([]);
     setTempAges([]);
     setTempGameFormats([]);
@@ -150,27 +142,6 @@ export function DetailedFilterModal({
                     showCheckIcon={false}
                     onClick={() => toggleSelection(tempAges, age.value, setTempAges)}
                   />
-                ))}
-              </div>
-            </div>
-
-            {/* 4. Price Section */}
-            <div className="space-y-3">
-              <h3 className="text-sm font-bold text-slate-900">참가비 (최대)</h3>
-              <div className="grid grid-cols-3 gap-2">
-                {[null, 10000, 20000].map((price) => (
-                  <button
-                    key={price ?? 'all'}
-                    onClick={() => setTempPriceMax(price)}
-                    className={cn(
-                      "h-10 rounded-lg text-sm font-bold border transition-all",
-                      tempPriceMax === price
-                        ? "bg-slate-900 text-white border-slate-900"
-                        : "bg-white text-slate-600 border-slate-200"
-                    )}
-                  >
-                    {price === null ? "제한없음" : `${(price/10000).toFixed(0)}만원`}
-                  </button>
                 ))}
               </div>
             </div>
