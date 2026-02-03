@@ -5,11 +5,13 @@ import {
 } from '@/shared/types/database.types';
 import {
   GuestListMatch,
+  Match,
   MatchOptionsUI,
   PositionsUI,
   PositionStatusUI,
 } from '@/features/match/model/types';
 import type { CostTypeValue, PositionValue, PlayStyleValue, RefereeTypeValue, MatchTypeValue, MatchFormatValue } from '@/shared/config/constants';
+import { CostType } from '@/shared/config/constants';
 
 // Alias for backward compatibility
 type Position = PositionValue;
@@ -208,13 +210,13 @@ export function matchRowToGuestListMatch(row: any): GuestListMatch {
 
     matchFormat: (row.match_format || 'FIVE_ON_FIVE') as MatchFormatValue, // 경기 방식 ('FIVE_ON_FIVE' 등)
     level: row.level_limit || '',
-    gender: (row.gender_rule || 'MIXED') as 'MALE' | 'FEMALE' | 'MIXED',
+    gender: (row.gender_rule || 'MALE') as 'MALE' | 'FEMALE' | 'MIXED',
     courtType: (facilities.court_size_type === 'REGULAR' ? 'indoor' : 'outdoor') as 'indoor' | 'outdoor',
 
     // 팀/호스트 정보: team_id가 없으면 개인 주최
-    teamName: row.team_id
+    teamName: row.team_id  
       ? (row.team?.name || row.manual_team_name || '팀')
-      : (row.manual_team_name || `호스트 ${row.host?.nickname || ''}`),
+      : (row.manual_team_name || `${row.host?.nickname || ''}`),
     teamLogo: row.team_id ? (row.team?.logo_url || undefined) : undefined,
     isPersonalHost: !row.team_id,
 
@@ -236,5 +238,101 @@ export function matchRowToGuestListMatch(row: any): GuestListMatch {
 
     // 마감 여부 (status가 CLOSED일 때)
     isClosed: row.status === 'CLOSED',
+  };
+}
+
+/**
+ * GuestListMatch -> Match (상세 페이지 UI용) 변환
+ * 기존 page.tsx의 adaptToDetailMatch 로직을 mapper로 이동
+ */
+export function guestListMatchToMatch(data: GuestListMatch): Match {
+  const priceAmount = data.price.amount ?? 0;
+
+  const getPriceDisplay = () => {
+    if (data.price.type === CostType.FREE) return '무료';
+    if (data.price.type === CostType.BEVERAGE) return `음료수 ${priceAmount}병`;
+    return `${priceAmount.toLocaleString()}원`;
+  };
+
+  const matchOptions = data.matchOptions;
+
+  return {
+    id: data.id,
+    dateISO: data.dateISO,
+    startTime: data.startTime,
+    endTime: data.endTime,
+    title: data.title,
+    location: data.location.name,
+    address: data.location.fullAddress || data.location.address,
+    price: getPriceDisplay(),
+    priceNum: priceAmount,
+    gender: data.gender,
+    matchFormat: data.matchFormat,
+    ageRange: data.ageMin && data.ageMax ? `${data.ageMin}대 ~ ${data.ageMax}대` : undefined,
+    level: data.level,
+    hostName: data.hostName || '호스트',
+    hostImage: '',
+    teamName: data.teamName,
+    teamLogo: data.teamLogo || '',
+    hostMessage: data.hostNotice,
+    cancelPolicy: '시작 24시간 전 환불 불가',
+    facilities: {
+      ...data.facilities,
+      providesBeverage: data.price.providesBeverage,
+    },
+    requirements: data.requirements,
+    isClosed: data.isClosed,
+    positions: {
+      // 포지션 무관 (recruitmentType === 'ANY')
+      all: data.recruitmentType === 'ANY' && data.positions.G
+        ? {
+            status: data.positions.G.open > 0 ? 'open' : 'closed',
+            max: data.positions.G.open + data.positions.G.closed,
+            current: data.positions.G.closed,
+          }
+        : undefined,
+      // 개별 포지션 (recruitmentType === 'POSITION')
+      g: data.recruitmentType === 'POSITION' && data.positions.G
+        ? {
+            status: data.positions.G.open > 0 ? 'open' : 'closed',
+            max: data.positions.G.open + data.positions.G.closed,
+            current: data.positions.G.closed,
+          }
+        : undefined,
+      f: data.positions.F
+        ? {
+            status: data.positions.F.open > 0 ? 'open' : 'closed',
+            max: data.positions.F.open + data.positions.F.closed,
+            current: data.positions.F.closed,
+          }
+        : undefined,
+      c: data.positions.C
+        ? {
+            status: data.positions.C.open > 0 ? 'open' : 'closed',
+            max: data.positions.C.open + data.positions.C.closed,
+            current: data.positions.C.closed,
+          }
+        : undefined,
+      bigman: data.positions.B
+        ? {
+            status: data.positions.B.open > 0 ? 'open' : 'closed',
+            max: data.positions.B.open + data.positions.B.closed,
+            current: data.positions.B.closed,
+          }
+        : undefined,
+    },
+    rule: matchOptions
+      ? {
+          // GuestListMatch.matchOptions uses constants values directly (INTERNAL_2WAY, SELF, etc.)
+          // PRACTICE is not in PlayStyleValue, map to INTERNAL_2WAY as fallback
+          type: (matchOptions.playStyle === 'PRACTICE' ? 'INTERNAL_2WAY' : matchOptions.playStyle) as PlayStyleValue ?? 'INTERNAL_2WAY',
+          quarterTime: matchOptions.quarterRule?.minutesPerQuarter ?? 0,
+          quarterCount: matchOptions.quarterRule?.quarterCount ?? 0,
+          fullGames: matchOptions.quarterRule?.gameCount ?? 0,
+          referee: matchOptions.refereeType ?? 'SELF',
+        }
+      : undefined,
+    currentPlayers: 0,
+    totalPlayers: 0,
   };
 }

@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Match } from '@/features/match/model/types';
+import { PLAY_STYLE_LABELS, REFEREE_TYPE_LABELS } from '@/shared/config/constants';
 
 interface MatchRuleSectionProps {
   match: Match;
@@ -23,18 +24,9 @@ export function MatchRuleSection({ match }: MatchRuleSectionProps) {
     return null;
   }
 
-  const typeLabel = {
-      '2team': '자체전 (2파전)',
-      '3team': '자체전 (3파전)',
-      'lesson': '연습/레슨',
-      'exchange': '팀 교류전'
-  }[rule.type] || rule.type;
-
-  const refereeLabel = {
-      'self': '자체콜',
-      'guest': '게스트/팀원',
-      'pro': '전문 심판'
-  }[rule.referee] || rule.referee;
+  // Use constants LABELS for SSOT
+  const typeLabel = PLAY_STYLE_LABELS[rule.type] || rule.type;
+  const refereeLabel = REFEREE_TYPE_LABELS[rule.referee] || rule.referee;
 
   return (
     <section className="px-5 py-6">

@@ -14,6 +14,8 @@ import type {
   MatchStatusValue,
   MatchTypeValue,
   MatchFormatValue,
+  PlayStyleValue,
+  RefereeTypeValue,
 } from '@/shared/config/constants';
 import type { MatchRule } from '@/shared/types/jsonb.types';
 
@@ -177,7 +179,6 @@ export interface Match {
 
   // Detail Fields
   gender: GenderValue;
-  courtType?: 'indoor' | 'outdoor';
 
   // Guest Detail View Fields
   level?: string; // e.g., "중수 (B) 이상"
@@ -189,11 +190,11 @@ export interface Match {
 
   // Match Rule Details
   rule?: {
-    type: '2team' | '3team' | 'lesson' | 'exchange';
+    type: PlayStyleValue;
     quarterTime: number;
     quarterCount: number;
     fullGames?: number;
-    referee: 'self' | 'guest' | 'pro';
+    referee: RefereeTypeValue;
   };
 
   hostName?: string;

@@ -3,6 +3,7 @@
 import React from 'react';
 import { cn } from '@/shared/lib/utils';
 import { Match } from '@/features/match/model/types';
+import { POSITION_LABELS } from '@/shared/config/constants';
 
 interface RecruitmentStatusProps {
   match: Match;
@@ -20,12 +21,14 @@ export function RecruitmentStatus({ match }: RecruitmentStatusProps) {
     const isClosed = data.status === 'closed';
     const current = data.current;
 
+    // Use POSITION_LABELS from constants for SSOT
+    // 'all' is a special case (포지션 무관) not in POSITION_LABELS
     const config = {
       all: { label: 'ALL', title: '포지션 무관', subtitle: null },
-      g: { label: 'G', title: '가드', subtitle: null },
-      f: { label: 'F', title: '포워드', subtitle: null },
-      c: { label: 'C', title: '센터', subtitle: null },
-      bigman: { label: 'F/C', title: '포워드/센터', subtitle: null },
+      g: { label: POSITION_LABELS.G.short, title: POSITION_LABELS.G.full, subtitle: null },
+      f: { label: POSITION_LABELS.F.short, title: POSITION_LABELS.F.full, subtitle: null },
+      c: { label: POSITION_LABELS.C.short, title: POSITION_LABELS.C.full, subtitle: null },
+      bigman: { label: POSITION_LABELS.B.short, title: POSITION_LABELS.B.full, subtitle: null },
     }[type];
 
     // Styles from user snippet
