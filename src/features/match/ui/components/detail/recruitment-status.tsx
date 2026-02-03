@@ -38,15 +38,15 @@ export function RecruitmentStatus({ match }: RecruitmentStatusProps) {
     
     return (
       <div className={cn(
-        "flex items-center justify-between p-3 rounded-xl border mb-3 last:mb-0 transition-all",
-        isClosed 
-          ? "bg-slate-50 border-slate-100 opacity-60" 
+        "flex items-center justify-between p-2.5 rounded-xl border mb-3 last:mb-0 transition-all",
+        isClosed
+          ? "bg-slate-50 border-slate-100 opacity-60"
           : "bg-orange-50/30 border-[#FF6600]/30"
       )}>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           {/* Avatar Icon */}
           <div className={cn(
-            "w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0",
+            "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0",
              isClosed
                ? "bg-slate-200 text-slate-500"
                : "bg-[#FF6600] text-white"
@@ -72,18 +72,18 @@ export function RecruitmentStatus({ match }: RecruitmentStatusProps) {
 
         {/* Right: Count (1/2) */}
         <div className="flex items-baseline font-bold">
-           <span className={cn("text-lg", isClosed ? "text-slate-400" : "text-[#FF6600]")}>
+           <span className={cn("text-base", isClosed ? "text-slate-400" : "text-[#FF6600]")}>
              {current}
            </span>
-           <span className="text-slate-300 mx-0.5 font-normal text-lg">/</span>
-           <span className="text-slate-400 font-medium text-lg">{data.max}</span>
+           <span className="text-slate-300 mx-0.5 font-normal text-base">/</span>
+           <span className="text-slate-400 font-medium text-base">{data.max}</span>
         </div>
       </div>
     );
   };
 
   return (
-    <section className="px-5 py-6">
+    <section className="px-5 py-5">
       <h3 className="text-lg font-bold text-slate-900 mb-4">모집 현황</h3>
       
       <div className="space-y-3">

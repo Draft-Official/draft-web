@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowLeft, Share2, MoreVertical } from 'lucide-react';
+import { ArrowLeft, Share2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { HeroSection } from './components/detail/hero-section';
@@ -12,6 +12,8 @@ import { MatchRuleSection } from './components/detail/match-rule-section';
 import { FacilitySection } from './components/detail/facility-section';
 import { HostSection } from './components/detail/host-section';
 import { MatchDetailBottomBar } from './components/detail/bottom-bar';
+import { ShareModal } from './components/detail/share-modal';
+import { KebabMenu } from './components/detail/kebab-menu';
 import { Match } from '@/features/match/model/types';
 import { ApplyModal } from '@/features/application/ui/apply-modal';
 import { useAuth } from '@/features/auth/model/auth-context';
@@ -29,6 +31,7 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
   const queryClient = useQueryClient();
   const { isAuthenticated, user } = useAuth();
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   // 경기관리 > 참여에서 들어온 경우
   const isFromSchedule = searchParams.get('from') === 'schedule';
@@ -52,6 +55,26 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
     },
     enabled: !!user?.id && !!match.id,
   });
+
+  // 확정된 게스트 수 조회 (호스트 메뉴용)
+  const { data: confirmedCount = 0 } = useQuery({
+    queryKey: ['confirmed-guests', match.id],
+    queryFn: async () => {
+      const supabase = getSupabaseBrowserClient();
+      const { count, error } = await supabase
+        .from('applications')
+        .select('*', { count: 'exact', head: true })
+        .eq('match_id', match.id)
+        .eq('status', 'CONFIRMED');
+
+      if (error) throw error;
+      return count ?? 0;
+    },
+    enabled: !!match.id && match.hostId === user?.id,
+  });
+
+  // 호스트 여부
+  const isHost = match.hostId === user?.id;
 
   // 신청 취소 mutation
   const cancelMutation = useMutation({
@@ -119,19 +142,28 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
       
       {/* 1. Header (Sticky) */}
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-100 h-[52px] flex items-center justify-between px-2">
-        <button 
+        <button
           onClick={() => router.back()}
           className="p-2.5 text-slate-900 hover:bg-slate-50 rounded-full transition-colors"
         >
           <ArrowLeft className="w-6 h-6" />
         </button>
         <div className="flex items-center gap-1">
-          <button className="p-2.5 text-slate-900 hover:bg-slate-50 rounded-full transition-colors">
+          <button
+            onClick={() => setIsShareModalOpen(true)}
+            className="p-2.5 text-slate-900 hover:bg-slate-50 rounded-full transition-colors"
+          >
             <Share2 className="w-5 h-5" />
           </button>
-          <button className="p-2.5 text-slate-900 hover:bg-slate-50 rounded-full transition-colors">
-            <MoreVertical className="w-5 h-5" />
-          </button>
+          <KebabMenu
+            matchId={match.id}
+            isHost={isHost}
+            hasConfirmedGuests={confirmedCount > 0}
+            onCancelMatch={() => {
+              toast.success('경기가 취소되었습니다.');
+              router.back();
+            }}
+          />
         </div>
       </header>
 
@@ -181,6 +213,22 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
         matchId={match.id}
         matchTitle={match.title}
         costAmount={match.priceNum}
+      />
+
+      {/* 5. Share Modal */}
+      <ShareModal
+        open={isShareModalOpen}
+        onOpenChange={setIsShareModalOpen}
+        matchId={match.id}
+        matchTitle={match.title}
+        matchDate={(() => {
+          const d = new Date(match.dateISO);
+          const month = d.getMonth() + 1;
+          const date = d.getDate();
+          const day = ['일', '월', '화', '수', '목', '금', '토'][d.getDay()];
+          return `${month}월 ${date}일 (${day}) ${match.startTime}`;
+        })()}
+        location={match.location}
       />
     </div>
   );

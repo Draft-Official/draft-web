@@ -17,9 +17,9 @@ export function MatchInfoSection({ match }: MatchInfoSectionProps) {
       : match.level
     : '무관';
 
-  // 준비물 표시
+  // 준비물 표시 (구분자: · )
   const requirementsDisplay = match.requirements?.length
-    ? getRequirementLabels(match.requirements).join(' / ')
+    ? getRequirementLabels(match.requirements).join(' · ')
     : null;
 
   return (

@@ -173,11 +173,10 @@ export class MatchToPrefillMapper {
    * 경기 스펙 매핑
    */
   mapSpecs() {
-    // level_range JSONB 컬럼에서 읽기 (fallback: level_limit)
-    const levelLimit = Number(this.match.level_limit) || 4;
+    // level_range JSONB 컬럼에서 읽기
     const levelRange = this.match.level_range as LevelRange | null;
-    const levelMin = levelRange?.min ?? levelLimit;
-    const levelMax = levelRange?.max ?? levelLimit;
+    const levelMin = levelRange?.min ?? 4;
+    const levelMax = levelRange?.max ?? 4;
 
     // age_range JSONB 컬럼에서 읽기
     const ageRange = this.match.age_range as AgeRange | null;
@@ -185,7 +184,7 @@ export class MatchToPrefillMapper {
     return {
       matchFormat: this.match.match_format || 'FIVE_ON_FIVE',
       gender: (this.match.gender_rule || 'MALE'),
-      level: levelLimit,
+      level: levelMin,
       levelMin,
       levelMax,
       ageRange, // { min: number, max: number | null } | null

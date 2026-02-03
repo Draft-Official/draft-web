@@ -206,7 +206,6 @@ export function toMatchInsertDataV3(
     match_type: 'GUEST_RECRUIT',     // 경기 목적 고정 (매치 생성 v1은 용병 모집만 지원)
     match_format: form.matchFormat,    // 경기 방식 (UI 작업 전이라 form.matchType 사용)
     gender_rule: form.gender, // 이미 대문자: 'MALE' | 'FEMALE' | 'MIXED'
-    level_limit: String(form.level),   // number to string (backward compatibility)
     level_range: levelRange as unknown as Json,
     age_range: ageRange ? (ageRange as unknown as Json) : null,
 

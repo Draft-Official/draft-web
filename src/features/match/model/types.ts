@@ -16,6 +16,7 @@ import type {
   MatchFormatValue,
   PlayStyleValue,
   RefereeTypeValue,
+  ContactTypeValue,
 } from '@/shared/config/constants';
 import type { MatchRule } from '@/shared/types/jsonb.types';
 
@@ -124,6 +125,14 @@ export interface PositionsUI {
 }
 
 /**
+ * 연락처 정보
+ */
+export interface ContactInfo {
+  type: ContactTypeValue;
+  value: string; // 전화번호 또는 오픈채팅 URL
+}
+
+/**
  * Guest 매치 리스트/상세용 Match
  */
 export interface GuestListMatch extends BaseMatch {
@@ -134,11 +143,16 @@ export interface GuestListMatch extends BaseMatch {
   recruitmentType?: 'ANY' | 'POSITION'; // 모집 타입 (ANY = 포지션 무관)
   level: string;
   gender: GenderValue;
-  courtType?: string;
   ageMin?: number;
   ageMax?: number;
   createdAt?: string; // ISO timestamp - NEW 뱃지용
   isClosed?: boolean; // 마감 여부 (status === 'CLOSED')
+
+  // === 팀/호스트 정보 ===
+  teamId?: string; // 팀 ID (없으면 개인 주최)
+  manualTeamName?: string; // 수동 입력 팀명 (teamId 없을 때)
+  hostId?: string; // 호스트 사용자 ID
+  contactInfo?: ContactInfo; // 연락처 정보
 
   // === UI 전용 필드 (mapper에서 생성) ===
   priceDisplay: string; // "10,000원", "무료", "음료수 2병"
@@ -179,7 +193,6 @@ export interface Match {
 
   // Detail Fields
   gender: GenderValue;
-  courtType?: 'indoor' | 'outdoor';
 
   // Guest Detail View Fields
   level?: string; // e.g., "중수 (B) 이상"
@@ -198,9 +211,19 @@ export interface Match {
     referee: RefereeTypeValue;
   };
 
+  // 팀/호스트 정보
+  hostId?: string; // 호스트 사용자 ID
   hostName?: string;
   hostImage?: string;
+  teamId?: string; // 팀 ID (없으면 개인 주최)
+  manualTeamName?: string; // 수동 입력 팀명
   teamLogo?: string;
+  contactInfo?: ContactInfo; // 연락처 정보
+
+  // 위치 정보
+  latitude?: number;
+  longitude?: number;
+
   hostMessage?: string;
   cancelPolicy?: string;
   requirements?: string[];
