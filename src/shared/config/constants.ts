@@ -392,6 +392,31 @@ export const CANCELED_BY_VALUES = ['HOST', 'GUEST', 'SYSTEM'] as const;
 export type CanceledByValue = (typeof CANCELED_BY_VALUES)[number];
 
 // ============================================
+// Parking Type (주차 유형)
+// ============================================
+
+export const PARKING_TYPE_VALUES = ['FREE', 'PAID', 'IMPOSSIBLE'] as const;
+export type ParkingTypeValue = (typeof PARKING_TYPE_VALUES)[number];
+
+export const PARKING_TYPE_LABELS: Record<ParkingTypeValue, string> = {
+  FREE: '무료',
+  PAID: '유료',
+  IMPOSSIBLE: '불가',
+};
+
+// ============================================
+// Ball (공 제공)
+// ============================================
+
+export const BALL_VALUES = ['PROVIDED', 'NOT_PROVIDED'] as const;
+export type BallValue = (typeof BALL_VALUES)[number];
+
+export const BALL_LABELS: Record<BallValue, string> = {
+  PROVIDED: '제공',
+  NOT_PROVIDED: '미제공',
+};
+
+// ============================================
 // Contact Type (연락 방식)
 // ============================================
 

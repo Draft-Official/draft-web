@@ -1,33 +1,63 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Match } from '@/features/match/model/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/base/avatar';
 import { Button } from '@/shared/ui/base/button';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, Users, Info } from 'lucide-react';
+import { ContactModal } from './contact-modal';
+import { toast } from 'sonner';
+import { Alert, AlertDescription } from '@/shared/ui/shadcn/alert';
+
+// 기본 팀 로고 (팀이 없을 때 사용)
+const DEFAULT_TEAM_LOGO = '/default-team-logo.jpg';
 
 interface HostSectionProps {
   match: Match;
 }
 
 export function HostSection({ match }: HostSectionProps) {
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+
+  // 팀명: teamId가 있으면 teamName, 없으면 manualTeamName
+  const displayTeamName = match.teamId ? match.teamName : (match.manualTeamName || match.teamName || '팀');
+
+  // 팀 로고: teamId가 있으면 teamLogo, 없으면 기본 로고
+  const teamLogoUrl = match.teamId ? (match.teamLogo || undefined) : DEFAULT_TEAM_LOGO;
+
+  // 팀 이니셜 (Fallback)
+  const teamInitial = displayTeamName?.substring(0, 2) || 'TM';
+
+  const handleContactClick = () => {
+    if (!match.contactInfo) {
+      toast.error('연락처 정보가 없습니다.');
+      return;
+    }
+    setIsContactModalOpen(true);
+  };
+
   return (
     <section className="px-5 py-6">
-      <div className="flex items-center justify-between mb-4">
+      <div className={`flex items-center justify-between ${match.hostMessage ? 'mb-4' : ''}`}>
         <div className="flex items-center gap-3">
-          {/* Using Shadcn Avatar as per snippet */}
           <Avatar className="w-10 h-10 border border-slate-100">
-            <AvatarImage src={match.hostImage || ''} />
+            {teamLogoUrl ? (
+              <AvatarImage src={teamLogoUrl} />
+            ) : null}
             <AvatarFallback className="bg-slate-100 text-slate-500 font-bold text-xs">
-                {match.hostName ? match.hostName.substring(0,2) : "TM"}
+              {teamLogoUrl ? teamInitial : <Users className="w-5 h-5" />}
             </AvatarFallback>
           </Avatar>
           <div>
-            <div className="text-[13px] font-bold text-slate-900">{match.teamName || '팀'}</div>
-            <div className="text-xs text-slate-500">호스트 {match.hostName || ''}</div>
+            <div className="text-[13px] font-bold text-slate-900">{displayTeamName}</div>
           </div>
         </div>
-        <Button variant="outline" size="sm" className="h-8 text-xs rounded-lg border-slate-200 hover:bg-slate-50 text-slate-600">
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8 text-xs rounded-lg border-slate-200 hover:bg-slate-50 text-slate-600"
+          onClick={handleContactClick}
+        >
           문의하기
         </Button>
       </div>
@@ -40,6 +70,26 @@ export function HostSection({ match }: HostSectionProps) {
             "{match.hostMessage}"
           </p>
         </div>
+      )}
+
+      {/* Draft Mediator Notice */}
+      <div className="mt-4">
+        <Alert className="bg-blue-50 border-blue-200">
+          <Info className="h-4 w-4 text-blue-600" />
+          <AlertDescription className="text-xs text-blue-900">
+            Draft는 중개자로서 경기진행과 운영은 호스트가 담당합니다.
+          </AlertDescription>
+        </Alert>
+      </div>
+
+      {/* Contact Modal */}
+      {match.contactInfo && (
+        <ContactModal
+          open={isContactModalOpen}
+          onOpenChange={setIsContactModalOpen}
+          contactType={match.contactInfo.type}
+          contactValue={match.contactInfo.value}
+        />
       )}
     </section>
   );

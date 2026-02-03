@@ -3,15 +3,17 @@ import {
   MatchRule,
   OperationInfo,
 } from '@/shared/types/database.types';
+import type { LevelRange } from '@/shared/types/jsonb.types';
 import {
   GuestListMatch,
   Match,
   MatchOptionsUI,
   PositionsUI,
   PositionStatusUI,
+  ContactInfo,
 } from '@/features/match/model/types';
-import type { CostTypeValue, PositionValue, PlayStyleValue, RefereeTypeValue, MatchTypeValue, MatchFormatValue } from '@/shared/config/constants';
-import { CostType } from '@/shared/config/constants';
+import type { CostTypeValue, PositionValue, PlayStyleValue, RefereeTypeValue, MatchTypeValue, MatchFormatValue, ContactTypeValue } from '@/shared/config/constants';
+import { CostType, getLevelLabel } from '@/shared/config/constants';
 
 // Alias for backward compatibility
 type Position = PositionValue;
@@ -88,6 +90,43 @@ function extractCityDistrict(address: string): string {
   }
 
   return result.join(' ');
+}
+
+/**
+ * level_range JSONB를 표시 문자열로 변환
+ * @param levelRange - { min: number, max: number } JSONB 데이터
+ * @returns "중급1 ~ 상급1" 또는 "중급1 이상"
+ */
+function formatLevelRange(levelRange: LevelRange | null): string {
+  if (!levelRange || !levelRange.min || !levelRange.max) {
+    return '';
+  }
+
+  const minLabel = getLevelLabel(String(levelRange.min), '');
+  const maxLabel = getLevelLabel(String(levelRange.max), '');
+
+  if (levelRange.min === levelRange.max) {
+    return `${minLabel} 이상`;
+  }
+  return `${minLabel} ~ ${maxLabel}`;
+}
+
+/**
+ * OperationInfo에서 ContactInfo 추출
+ */
+function buildContactInfo(operationInfo: OperationInfo | undefined): ContactInfo | undefined {
+  if (!operationInfo) return undefined;
+
+  const contactType = operationInfo.type as ContactTypeValue;
+  if (!contactType) return undefined;
+
+  const value = contactType === 'PHONE' ? operationInfo.phone : operationInfo.url;
+  if (!value) return undefined;
+
+  return {
+    type: contactType,
+    value,
+  };
 }
 
 /**
@@ -209,16 +248,23 @@ export function matchRowToGuestListMatch(row: any): GuestListMatch {
     facilities,
 
     matchFormat: (row.match_format || 'FIVE_ON_FIVE') as MatchFormatValue, // 경기 방식 ('FIVE_ON_FIVE' 등)
-    level: row.level_limit || '',
+    level: formatLevelRange(row.level_range as LevelRange | null),
+    levelMin: (row.level_range as LevelRange | null)?.min,
+    levelMax: (row.level_range as LevelRange | null)?.max,
     gender: (row.gender_rule || 'MALE') as 'MALE' | 'FEMALE' | 'MIXED',
-    courtType: (facilities.court_size_type === 'REGULAR' ? 'indoor' : 'outdoor') as 'indoor' | 'outdoor',
 
     // 팀/호스트 정보: team_id가 없으면 개인 주최
-    teamName: row.team_id  
+    teamId: row.team_id || undefined,
+    manualTeamName: row.manual_team_name || undefined,
+    teamName: row.team_id
       ? (row.team?.name || row.manual_team_name || '팀')
       : (row.manual_team_name || ` ${row.host?.nickname || ''}`),
     teamLogo: row.team_id ? (row.team?.logo_url || undefined) : undefined,
     isPersonalHost: !row.team_id,
+    hostId: row.host_id || undefined,
+
+    // 연락처 정보 (operation_info에서 추출)
+    contactInfo: buildContactInfo(row.operation_info as OperationInfo),
 
     positions,
     recruitmentType: recruitmentSetup.type as 'ANY' | 'POSITION',
@@ -268,13 +314,25 @@ export function guestListMatchToMatch(data: GuestListMatch): Match {
     priceNum: priceAmount,
     gender: data.gender,
     matchFormat: data.matchFormat,
-    courtType: (data.courtType ?? 'indoor') as 'indoor' | 'outdoor',
     ageRange: data.ageMin && data.ageMax ? `${data.ageMin}대 ~ ${data.ageMax}대` : undefined,
     level: data.level,
+    levelMin: data.levelMin,
+    levelMax: data.levelMax,
+
+    // 팀/호스트 정보
+    hostId: data.hostId,
     hostName: data.hostName || '호스트',
     hostImage: '',
+    teamId: data.teamId,
+    manualTeamName: data.manualTeamName,
     teamName: data.teamName,
     teamLogo: data.teamLogo || '',
+    contactInfo: data.contactInfo,
+
+    // 위치 정보
+    latitude: data.location.latitude,
+    longitude: data.location.longitude,
+
     hostMessage: data.hostNotice,
     cancelPolicy: '시작 24시간 전 환불 불가',
     facilities: {

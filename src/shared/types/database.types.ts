@@ -84,64 +84,6 @@ export type Database = {
           },
         ]
       }
-      notifications: {
-        Row: {
-          id: string
-          user_id: string
-          type: Database["public"]["Enums"]["notification_type"]
-          reference_id: string
-          reference_type: string
-          match_id: string | null
-          actor_id: string | null
-          is_read: boolean
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          type: Database["public"]["Enums"]["notification_type"]
-          reference_id: string
-          reference_type: string
-          match_id?: string | null
-          actor_id?: string | null
-          is_read?: boolean
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          type?: Database["public"]["Enums"]["notification_type"]
-          reference_id?: string
-          reference_type?: string
-          match_id?: string | null
-          actor_id?: string | null
-          is_read?: boolean
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "notifications_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "notifications_match_id_fkey"
-            columns: ["match_id"]
-            isOneToOne: false
-            referencedRelation: "matches"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "notifications_actor_id_fkey"
-            columns: ["actor_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       gyms: {
         Row: {
           address: string
@@ -190,7 +132,6 @@ export type Database = {
           gym_id: string
           host_id: string
           id: string
-          level_limit: string | null
           level_range: Json | null
           manual_team_name: string
           match_format: string
@@ -215,7 +156,6 @@ export type Database = {
           gym_id: string
           host_id: string
           id?: string
-          level_limit?: string | null
           level_range?: Json | null
           manual_team_name: string
           match_format?: string
@@ -235,13 +175,11 @@ export type Database = {
           cost_amount?: number | null
           cost_type?: string
           created_at?: string | null
-          current_players_count?: number | null
           end_time?: string
           gender_rule?: string
           gym_id?: string
           host_id?: string
           id?: string
-          level_limit?: string | null
           level_range?: Json | null
           manual_team_name?: string
           match_format?: string
@@ -275,6 +213,64 @@ export type Database = {
             columns: ["team_id"]
             isOneToOne: false
             referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          id: string
+          is_read: boolean
+          match_id: string | null
+          reference_id: string
+          reference_type: string
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          match_id?: string | null
+          reference_id: string
+          reference_type: string
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          match_id?: string | null
+          reference_id?: string
+          reference_type?: string
+          type?: Database["public"]["Enums"]["notification_type"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -385,38 +381,30 @@ export type Database = {
       }
       user_settings: {
         Row: {
-          user_id: string
+          created_at: string
           notify_application: boolean
           notify_match: boolean
           notify_payment: boolean
-          created_at: string
           updated_at: string
+          user_id: string
         }
         Insert: {
-          user_id: string
+          created_at?: string
           notify_application?: boolean
           notify_match?: boolean
           notify_payment?: boolean
-          created_at?: string
           updated_at?: string
+          user_id: string
         }
         Update: {
-          user_id?: string
+          created_at?: string
           notify_application?: boolean
           notify_match?: boolean
           notify_payment?: boolean
-          created_at?: string
           updated_at?: string
+          user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "user_settings_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       users: {
         Row: {
@@ -474,7 +462,34 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      cancel_application_with_count: {
+        Args: { p_application_id: string; p_positions?: string[] }
+        Returns: {
+          application_id: string
+          new_status: string
+          recruitment_setup: Json
+        }[]
+      }
+      confirm_application_with_count: {
+        Args: { p_application_id: string; p_positions?: string[] }
+        Returns: {
+          application_id: string
+          new_status: string
+          recruitment_setup: Json
+        }[]
+      }
+      increment_position_count: {
+        Args: { p_delta?: number; p_match_id: string; p_position_key: string }
+        Returns: Json
+      }
+      increment_recruitment_total: {
+        Args: { p_delta?: number; p_match_id: string }
+        Returns: Json
+      }
+      should_notify: {
+        Args: { p_setting: string; p_user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       application_status:
@@ -485,10 +500,7 @@ export type Database = {
         | "PAYMENT_PENDING"
         | "LATE"
         | "NOT_ATTENDING"
-      cancel_type:
-        | "USER_REQUEST"
-        | "PAYMENT_TIMEOUT"
-        | "FRAUDULENT_PAYMENT"
+      cancel_type: "USER_REQUEST" | "PAYMENT_TIMEOUT" | "FRAUDULENT_PAYMENT"
       notification_type:
         | "APPLICATION_APPROVED"
         | "APPLICATION_REJECTED"
@@ -634,6 +646,18 @@ export const Constants = {
         "PAYMENT_PENDING",
         "LATE",
         "NOT_ATTENDING",
+      ],
+      cancel_type: ["USER_REQUEST", "PAYMENT_TIMEOUT", "FRAUDULENT_PAYMENT"],
+      notification_type: [
+        "APPLICATION_APPROVED",
+        "APPLICATION_REJECTED",
+        "APPLICATION_CANCELED_USER_REQUEST",
+        "APPLICATION_CANCELED_PAYMENT_TIMEOUT",
+        "APPLICATION_CANCELED_FRAUDULENT_PAYMENT",
+        "MATCH_CANCELED",
+        "NEW_APPLICATION",
+        "GUEST_CANCELED",
+        "GUEST_PAYMENT_CONFIRMED",
       ],
     },
   },

@@ -1,18 +1,36 @@
 'use client';
 
 import React from 'react';
-import { cn } from '@/shared/lib/utils';
+import { toast } from 'sonner';
 import { Match } from '@/features/match/model/types';
-import { GENDER_LABELS, GenderValue } from '@/shared/config/constants';
 
 interface HeroSectionProps {
   match: Match;
 }
 
 export function HeroSection({ match }: HeroSectionProps) {
-  const genderLabel = GENDER_LABELS[match.gender as GenderValue] || match.gender;
+  // 주소 복사 핸들러
+  const handleCopyAddress = async () => {
+    try {
+      await navigator.clipboard.writeText(match.address);
+      toast.success('주소가 복사되었습니다.');
+    } catch {
+      toast.error('주소 복사에 실패했습니다.');
+    }
+  };
 
-  const isClosed = match.positions.all?.status === 'closed';
+  // 카카오맵 열기 핸들러
+  const handleOpenMap = () => {
+    if (match.latitude && match.longitude) {
+      // 길찾기 URL (현재 위치 → 목적지)
+      const mapUrl = `https://map.kakao.com/link/to/${encodeURIComponent(match.location)},${match.latitude},${match.longitude}`;
+      window.open(mapUrl, '_blank', 'noopener,noreferrer');
+    } else {
+      // 좌표가 없으면 주소 검색으로 fallback
+      const searchUrl = `https://map.kakao.com/link/search/${encodeURIComponent(match.address)}`;
+      window.open(searchUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
 
   return (
     <div className="bg-white px-5 pt-6 pb-6 relative">
@@ -56,15 +74,16 @@ export function HeroSection({ match }: HeroSectionProps) {
       <div className="flex items-center flex-wrap gap-x-2 text-[13px] mb-4">
           <span className="text-slate-500">{match.address}</span>
           <span className="text-slate-300">|</span>
-          <button 
-            onClick={() => {
-                navigator.clipboard.writeText(match.address);
-            }}
+          <button
+            onClick={handleCopyAddress}
             className="text-slate-400 hover:text-slate-600 underline decoration-slate-300 underline-offset-2"
           >
               주소복사
           </button>
-          <button className="text-slate-400 hover:text-slate-600 underline decoration-slate-300 underline-offset-2">
+          <button
+            onClick={handleOpenMap}
+            className="text-slate-400 hover:text-slate-600 underline decoration-slate-300 underline-offset-2"
+          >
               지도보기
           </button>
       </div>
