@@ -27,12 +27,6 @@ export const MATCH_STATUS_FILTER_OPTIONS: FilterOption<'waiting' | 'confirmed' |
   { value: 'ended', label: '종료/취소' },
 ];
 
-// 지난 경기 필터 옵션
-export const PAST_MATCH_FILTER_OPTIONS: FilterOption<'hide' | 'show'>[] = [
-  { value: 'hide', label: '숨기기' },
-  { value: 'show', label: '보이기' },
-];
-
 // 경기 타입별 레이블
 export const MATCH_TYPE_LABELS: Record<MatchType, string> = {
   guest: '게스트',

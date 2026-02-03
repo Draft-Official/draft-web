@@ -10,13 +10,13 @@ import type { ClientNotification } from "@/features/notification/model/types";
 import type { NotificationTypeValue } from "@/shared/config/constants";
 import { FilterDropdown } from "./components/filter-dropdown";
 import { MatchCard } from "./components/match-card";
+import { Toggle } from "@/shared/ui/shadcn/toggle";
 import { useHostedMatches, useParticipatingMatches, useConfirmPaymentByGuest } from "../api";
 import type { MatchType, ManagedMatch } from "../model/types";
 import {
   MATCH_TYPE_FILTER_OPTIONS,
   HOST_TYPE_FILTER_OPTIONS,
   MATCH_STATUS_FILTER_OPTIONS,
-  PAST_MATCH_FILTER_OPTIONS,
   PAST_MATCH_STATUSES,
 } from "../config/constants";
 import { cn } from "@/shared/lib/utils";
@@ -195,12 +195,10 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
     return `${MATCH_STATUS_FILTER_OPTIONS.find((opt) => opt.value === value[0])?.label} 외 ${value.length - 1}`;
   };
 
-  const getPastFilterDisplayLabel = (value: "hide" | "show") => {
-    return value === "show" ? "지난경기: 보이기" : "지난경기: 숨기기";
-  };
+  const showPast = showPastMatches === "show";
 
   // Check if any filter is active
-  const isFilterActive = guestTypeFilter.length > 0 || hostTypeFilter.length > 0 || statusFilter.length > 0 || showPastMatches === "show";
+  const isFilterActive = guestTypeFilter.length > 0 || hostTypeFilter.length > 0 || statusFilter.length > 0 || showPast;
 
   // Reset all filters
   const handleResetFilters = () => {
@@ -282,13 +280,20 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
             multiSelect
           />
 
-          {/* Past Matches Filter (Single-select) */}
-          <FilterDropdown
-            options={PAST_MATCH_FILTER_OPTIONS}
-            value={showPastMatches}
-            onChange={setShowPastMatches}
-            getDisplayLabel={getPastFilterDisplayLabel}
-          />
+          {/* Past Matches Toggle */}
+          <Toggle
+            variant="outline"
+            pressed={showPast}
+            onPressedChange={(pressed) => setShowPastMatches(pressed ? "show" : "hide")}
+            className={cn(
+              "rounded-full h-8 px-3 text-xs font-bold border transition-all",
+              showPast
+                ? "border-primary text-primary bg-orange-50 data-[state=on]:bg-orange-50 data-[state=on]:text-primary"
+                : "border-slate-200 text-slate-600"
+            )}
+          >
+            지난 경기
+          </Toggle>
 
           {/* Reset Filter Button - Right aligned */}
           {isFilterActive && (

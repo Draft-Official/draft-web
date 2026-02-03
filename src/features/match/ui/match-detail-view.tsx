@@ -209,6 +209,8 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
         isCanceling={cancelMutation.isPending}
         statusText={getStatusText()}
         isMatchEnded={isMatchEnded}
+        isHost={isHost}
+        onManage={() => router.push(`/matches/${match.id}/manage`)}
       />
 
       {/* 4. Apply Modal */}
