@@ -13,6 +13,8 @@ import { PaymentConfirmDialog } from './payment-confirm-dialog';
 import { cn } from '@/shared/lib/utils';
 import { toast } from 'sonner';
 import type { ManagedMatch } from '../../model/types';
+import type { ClientNotification } from '@/features/notification/model/types';
+import { NOTIFICATION_TYPE_DESCRIPTIONS } from '@/shared/config/constants';
 import {
   MATCH_TYPE_LABELS,
   MATCH_TYPE_COLORS,
@@ -23,11 +25,12 @@ import {
 
 interface MatchCardProps {
   match: ManagedMatch;
+  notifications?: ClientNotification[];
   onClick: (matchId: string) => void;
   onConfirmPayment?: (applicationId: string, matchId: string) => void;
 }
 
-export function MatchCard({ match, onClick, onConfirmPayment }: MatchCardProps) {
+export function MatchCard({ match, notifications, onClick, onConfirmPayment }: MatchCardProps) {
   const isPastMatch = PAST_MATCH_STATUSES.includes(match.status);
   const [copied, setCopied] = useState(false);
   const [isPaymentConfirmOpen, setIsPaymentConfirmOpen] = useState(false);
@@ -67,6 +70,21 @@ export function MatchCard({ match, onClick, onConfirmPayment }: MatchCardProps) 
         isPastMatch && 'opacity-50 grayscale'
       )}
     >
+      {/* Notification Badge */}
+      {!isPastMatch && notifications && notifications.length > 0 && (
+        <div className="bg-orange-50 px-4 py-2 flex items-center gap-2">
+          <span className="inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold text-white bg-primary rounded leading-none shrink-0">
+            new
+          </span>
+          <span className="text-xs font-medium text-slate-600 truncate">
+            {NOTIFICATION_TYPE_DESCRIPTIONS[notifications[0].type]}
+          </span>
+          {notifications.length > 1 && (
+            <span className="text-xs text-slate-400 shrink-0">외 {notifications.length - 1}건</span>
+          )}
+        </div>
+      )}
+
       <div className="p-4 space-y-3">
         {/* Top Section - Type Badge (Left) + Status Badge (Right) */}
         <div className="flex items-center justify-between">

@@ -97,7 +97,9 @@ export interface Participant {
 export interface Guest extends Participant {
   status: GuestStatus;
   paymentVerified?: boolean; // 호스트 내부 관리용 입금 확인 여부
+  teamName?: string; // 신청 시 선택한 팀
   companions?: CompanionInfo[];
+  appliedAt?: string; // 신청 시간 (ISO timestamp)
   matchHistory?: {
     count: number;
     lastDate?: string;
