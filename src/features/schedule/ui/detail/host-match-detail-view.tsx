@@ -456,7 +456,7 @@ export function HostMatchDetailView() {
                               handleApprove(guest);
                             }}
                             variant="outline"
-                            className="h-8 px-3 text-xs"
+                            className="h-8 px-3 text-xs border-slate-200"
                           >
                             승인
                           </Button>
@@ -482,7 +482,7 @@ export function HostMatchDetailView() {
                               handleConfirmPayment(guest);
                             }}
                             variant="outline"
-                            className="h-8 px-3 text-xs"
+                            className="h-8 px-3 text-xs border-slate-200"
                           >
                             입금확인
                           </Button>
@@ -510,7 +510,7 @@ export function HostMatchDetailView() {
                                 verifyPaymentMutation.mutate({ applicationId: guest.id, matchId });
                               }}
                               variant="outline"
-                              className="h-8 px-3 text-xs"
+                              className="h-8 px-3 text-xs border-slate-200"
                             >
                               입금확인
                             </Button>
