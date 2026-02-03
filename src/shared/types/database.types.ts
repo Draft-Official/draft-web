@@ -383,6 +383,41 @@ export type Database = {
           },
         ]
       }
+      user_settings: {
+        Row: {
+          user_id: string
+          notify_application: boolean
+          notify_match: boolean
+          notify_payment: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          user_id: string
+          notify_application?: boolean
+          notify_match?: boolean
+          notify_payment?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          user_id?: string
+          notify_application?: boolean
+          notify_match?: boolean
+          notify_payment?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_settings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           account_info: Json | null
@@ -616,6 +651,7 @@ export type Match = Database['public']['Tables']['matches']['Row'];
 export type Application = Database['public']['Tables']['applications']['Row'];
 export type Notification = Database['public']['Tables']['notifications']['Row'];
 export type TeamMember = Database['public']['Tables']['team_members']['Row'];
+export type UserSettings = Database['public']['Tables']['user_settings']['Row'];
 
 // Insert types
 export type UserInsert = Database['public']['Tables']['users']['Insert'];
@@ -629,6 +665,7 @@ export type UserUpdate = Database['public']['Tables']['users']['Update'];
 export type TeamUpdate = Database['public']['Tables']['teams']['Update'];
 export type MatchUpdate = Database['public']['Tables']['matches']['Update'];
 export type ApplicationUpdate = Database['public']['Tables']['applications']['Update'];
+export type UserSettingsUpdate = Database['public']['Tables']['user_settings']['Update'];
 
 // Legacy aliases (for backward compatibility)
 export type Profile = User;
