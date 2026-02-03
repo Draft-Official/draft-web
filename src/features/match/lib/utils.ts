@@ -152,31 +152,33 @@ export const filterMatches = (
         filtered = filtered.filter(m => m.price.amount <= options.priceMax!);
     }
 
-    // 6. Hide Closed / Min Vacancy Filter
-    if (options.minVacancy && options.minVacancy > 0) {
-        filtered = filtered.filter(m => {
-            if (m.isClosed) return false;
-
-            // Calculate total vacancy
-            let totalVacancy = 0;
-            const p = m.positionsUI;
-
-            // Helper to add vacancy (max - current = remaining spots)
-            const add = (pos?: { status: string, max: number, current: number }) => {
-                if (pos && pos.status === 'open') totalVacancy += (pos.max - pos.current);
-            };
-
-            // Sum up positions
-            add(p.all);
-            add(p.g);
-            add(p.f);
-            add(p.c);
-
-            return totalVacancy >= options.minVacancy!;
-        });
-    } else if (options.hideClosed) {
+    // 6. Hide Closed Filter (독립적으로 적용)
+    if (options.hideClosed) {
         filtered = filtered.filter(m => !m.isClosed);
     }
+
+    // 디버깅에 방해되므로 추후에 다시 확인
+    // // 7. Min Vacancy Filter (hideClosed와 독립적으로 적용)
+    // if (options.minVacancy && options.minVacancy > 0) {
+    //     filtered = filtered.filter(m => {
+    //         // Calculate total vacancy
+    //         let totalVacancy = 0;
+    //         const p = m.positionsUI;
+
+    //         // Helper to add vacancy (max - current = remaining spots)
+    //         const add = (pos?: { status: string, max: number, current: number }) => {
+    //             if (pos && pos.status === 'open') totalVacancy += (pos.max - pos.current);
+    //         };
+
+    //         // Sum up positions
+    //         add(p.all);
+    //         add(p.g);
+    //         add(p.f);
+    //         add(p.c);
+
+    //         return totalVacancy >= options.minVacancy!;
+    //     });
+    // }
 
     // 7. Detailed Filters (Gender, Age, GameFormat)
     if (options.genders && options.genders.length > 0) {
