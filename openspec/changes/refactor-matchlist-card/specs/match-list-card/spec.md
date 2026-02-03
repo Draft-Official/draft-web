@@ -15,7 +15,7 @@
 │ 강남구민회관 · 📍 서울 강남구                          │
 ├─────────────────────────────────────────────────────────┤
 │ [팀 로고/이모지] [팀 이름]                              │
-│ [🏀 또는 팀로고] 강남픽업                              │
+│ [🛡️ 또는 팀로고] 강남픽업                              │
 ├─────────────────────────────────────────────────────────┤
 │ [포지션] [성별] [게임방식]                  [액션버튼]  │
 │ [포지션 무관] [남성] [5:5]                [신청하기]   │
@@ -43,7 +43,7 @@ interface MatchListItemProps {
 
     teamName?: string;         // 팀 이름 또는 manual_team_name
     teamLogo?: string;         // 팀 로고 URL
-    isPersonalHost?: boolean;  // 개인 주최 여부 (🏀 표시용)
+    isPersonalHost?: boolean;  // 개인 주최 여부 (🛡️ 표시용)
 
     gender: 'MALE' | 'FEMALE' | 'MIXED';
     matchFormat: MatchFormatValue;  // 'FIVE_ON_FIVE' | 'THREE_ON_THREE' etc.
@@ -86,7 +86,7 @@ interface PositionStatusUI {
 
 ### 팀 정보 표시
 - `team_id` 있음: 팀 로고 이미지 + 팀 이름
-- `team_id` 없음 (개인 주최): 🏀 이모지 + `manual_team_name`
+- `team_id` 없음 (개인 주최): 🛡️ 기본 로고 + `manual_team_name`
 - 팀 로고 없음: 팀 이름 첫 글자로 fallback
 
 ### 포지션 표시

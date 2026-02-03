@@ -6,11 +6,55 @@ import {
 import {
   GuestListMatch,
   MatchOptionsUI,
+  PositionsUI,
+  PositionStatusUI,
 } from '@/features/match/model/types';
 import type { CostTypeValue, PositionValue, PlayStyleValue, RefereeTypeValue, MatchTypeValue, MatchFormatValue } from '@/shared/config/constants';
 
 // Alias for backward compatibility
 type Position = PositionValue;
+
+/**
+ * 가격 표시 문자열 생성
+ */
+function formatPriceDisplay(costType: CostTypeValue, amount: number): string {
+  if (costType === 'FREE') return '무료';
+  if (costType === 'BEVERAGE') return `음료수 ${amount}병`;
+  return `${amount.toLocaleString()}원`;
+}
+
+/**
+ * PositionStatus → PositionStatusUI 변환
+ */
+function toPositionStatusUI(pos: { open: number; closed: number }): PositionStatusUI {
+  return {
+    status: pos.open > 0 ? 'open' : 'closed',
+    max: pos.open + pos.closed,
+    current: pos.closed,
+  };
+}
+
+/**
+ * positions 데이터를 UI 친화적 구조로 변환
+ */
+function buildPositionsUI(
+  positions: Partial<Record<Position, { open: number; closed: number }>>,
+  recruitmentType: 'ANY' | 'POSITION'
+): PositionsUI {
+  if (recruitmentType === 'ANY' && positions.G) {
+    // ANY 타입: "포지션 무관"으로 표시
+    return {
+      all: toPositionStatusUI(positions.G),
+    };
+  }
+
+  // POSITION 타입: 개별 포지션 표시
+  const result: PositionsUI = {};
+  if (positions.G) result.g = toPositionStatusUI(positions.G);
+  if (positions.F) result.f = toPositionStatusUI(positions.F);
+  if (positions.C) result.c = toPositionStatusUI(positions.C);
+  return result;
+}
 
 /**
  * 주소에서 시/구까지만 추출
@@ -158,8 +202,6 @@ export function matchRowToGuestListMatch(row: any): GuestListMatch {
       type: costType,
       amount: costAmount,
       providesBeverage: row.provides_beverage || false,
-      base: costAmount,
-      final: costAmount,
     },
 
     facilities,
@@ -172,12 +214,16 @@ export function matchRowToGuestListMatch(row: any): GuestListMatch {
     // 팀/호스트 정보: team_id가 없으면 개인 주최
     teamName: row.team_id
       ? (row.team?.name || row.manual_team_name || '팀')
-      : `호스트 ${row.host?.nickname || ''}`,
+      : (row.manual_team_name || `호스트 ${row.host?.nickname || ''}`),
     teamLogo: row.team_id ? (row.team?.logo_url || undefined) : undefined,
     isPersonalHost: !row.team_id,
 
     positions,
     recruitmentType: recruitmentSetup.type as 'ANY' | 'POSITION',
+
+    // === UI 전용 필드 ===
+    priceDisplay: formatPriceDisplay(costType, costAmount),
+    positionsUI: buildPositionsUI(positions, recruitmentSetup.type as 'ANY' | 'POSITION'),
 
     // 상세 페이지 전용 필드
     hostNotice: (row.operation_info as OperationInfo)?.notice || undefined,
@@ -187,5 +233,8 @@ export function matchRowToGuestListMatch(row: any): GuestListMatch {
 
     // NEW 뱃지용
     createdAt: row.created_at || undefined,
+
+    // 마감 여부 (status가 CLOSED일 때)
+    isClosed: row.status === 'CLOSED',
   };
 }

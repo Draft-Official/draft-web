@@ -1,6 +1,10 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { Database } from '@/shared/types/database.types';
 import { logRequest, logResponse, logSupabaseQuery, logSupabaseResult } from '@/shared/lib/logger';
+import type { MatchStatusValue } from '@/shared/config/constants';
+
+// 리스트에 표시할 status 값들 (CANCELED 제외)
+const VISIBLE_STATUSES: MatchStatusValue[] = ['RECRUITING', 'CLOSED'];
 
 export class MatchService {
   private readonly SERVICE_NAME = 'MatchService';
@@ -73,10 +77,8 @@ export class MatchService {
   async getRecruitingMatchesPaginated(pageParam: number = 0, pageSize: number = 20) {
     logRequest(this.SERVICE_NAME, 'getRecruitingMatchesPaginated', { pageParam, pageSize });
 
-    // 오늘 날짜 (한국 시간)
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayISO = today.toISOString().split('T')[0];
+    // 오늘 날짜 (한국 시간 기준)
+    const todayISO = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' });
 
     logSupabaseQuery('matches', 'SELECT', undefined, {
       status: 'RECRUITING',
@@ -92,9 +94,9 @@ export class MatchService {
         host:users!host_id (*),
         team:teams!team_id (*)
       `)
-      .eq('status', 'RECRUITING')
+      .in('status', VISIBLE_STATUSES) // CANCELED 제외
       .gte('start_time', todayISO) // 오늘 이후 매치만
-      .order('start_time', { ascending: true })
+      .order('created_at', { ascending: false })
       .range(pageParam, pageParam + pageSize - 1);
 
     logSupabaseResult('matches', 'SELECT', { count: data?.length ?? 0 }, error);

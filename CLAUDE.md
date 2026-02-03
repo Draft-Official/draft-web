@@ -121,6 +121,39 @@ Features DO NOT import from other features
 - `ui/layout/`: Header, Sidebar, BottomNav
 - `lib/`, `config/`, `types/`
 
+### Component Type Definition Rules
+
+**도메인 컴포넌트** → `model/types.ts` import
+- 특정 비즈니스 엔티티를 표현하는 컴포넌트
+- 예: `MatchListItem`, `TeamCard`, `ApplicationRow`
+
+**순수 UI 컴포넌트** → 로컬 props interface 정의
+- 도메인과 무관한 재사용 가능한 컴포넌트
+- 예: `PositionChip`, `Badge`, `RegionFilterModal`
+- feature 내부(`features/*/ui/`)든 전역(`shared/ui/`)이든 동일
+
+**판단 기준:**
+- "이 컴포넌트가 특정 도메인 엔티티(Match, Team 등) 전용인가?" → Yes면 model import
+- "다른 feature에서도 쓰일 수 있나?" → Yes면 로컬 props
+
+**변환은 한 곳에서만:**
+- DB → Client 변환은 `mapper`에서 한 번만
+- 컴포넌트 전달 전 추가 변환 금지 (`adaptMatch` 같은 패턴 지양)
+
+```typescript
+// ✅ 도메인 컴포넌트 - model import
+import { GuestListMatch } from '@/features/match/model/types';
+export function MatchListItem({ match }: { match: GuestListMatch }) { ... }
+
+// ✅ 순수 UI 컴포넌트 - 로컬 props
+interface PositionChipProps {
+  label: string;
+  max: number;
+  current: number;
+}
+export function PositionChip({ label, max, current }: PositionChipProps) { ... }
+```
+
 ### File Naming Convention
 
 **ALL FILES MUST USE kebab-case:**

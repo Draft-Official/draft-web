@@ -7,80 +7,10 @@ import { MatchListItem } from '@/features/match/ui/match-list-item';
 import { useRecruitingMatchesInfinite } from '@/features/match/api/queries';
 import { filterMatches, groupMatchesByDate } from '@/features/match/lib/utils';
 import { useLocalStorage } from '@/shared/lib/hooks/use-local-storage';
-import { GuestListMatch } from '@/features/match/model/types';
 import { NotificationBell } from '@/features/notification/ui/notification-bell';
 import { useAuth } from '@/features/auth';
 import { useUserApplications } from '@/features/application/api';
 import type { ApplicationStatusValue } from '@/shared/config/constants';
-
-// Gender는 DB와 동일하게 대문자 사용 (MALE, FEMALE, MIXED)
-
-// Adapter to convert GuestListMatch to MatchListItem props
-function adaptMatch(match: GuestListMatch) {
-  // 새 스키마: amount 사용, 하위 호환: final
-  const priceAmount = match.price.amount ?? match.price.final ?? 0;
-
-  // 가격 표시 문자열
-  const getPriceDisplay = () => {
-    if (match.price.type === 'FREE') return '무료';
-    if (match.price.type === 'BEVERAGE') return `음료수 ${priceAmount}병`;
-    return `${priceAmount.toLocaleString()}원`;
-  };
-
-  // 포지션 매핑 (ANY 타입이면 positions.all 사용)
-  const buildPositions = () => {
-    if (match.recruitmentType === 'ANY' && match.positions.G) {
-      // ANY 타입: "포지션 무관"으로 표시
-      return {
-        all: {
-          status: match.positions.G.open > 0 ? 'open' as const : 'closed' as const,
-          max: match.positions.G.closed + match.positions.G.open,
-          current: match.positions.G.closed,
-        },
-      };
-    }
-    // POSITION 타입: 개별 포지션 표시
-    return {
-      g: match.positions.G && {
-        status: match.positions.G.open > 0 ? 'open' as const : 'closed' as const,
-        max: match.positions.G.closed + match.positions.G.open,
-        current: match.positions.G.closed,
-      },
-      f: match.positions.F && {
-        status: match.positions.F.open > 0 ? 'open' as const : 'closed' as const,
-        max: match.positions.F.closed + match.positions.F.open,
-        current: match.positions.F.closed,
-      },
-      c: match.positions.C && {
-        status: match.positions.C.open > 0 ? 'open' as const : 'closed' as const,
-        max: match.positions.C.closed + match.positions.C.open,
-        current: match.positions.C.closed,
-      },
-    };
-  };
-
-  return {
-    id: match.id,
-    dateISO: match.dateISO,
-    startTime: match.startTime,
-    endTime: match.endTime,
-    price: getPriceDisplay(),
-    priceNum: priceAmount,
-    title: match.title,
-    location: match.location.address, // 시/구 주소 표시
-    address: match.location.address,
-    gender: match.gender, // 대문자 그대로 사용: 'MALE' | 'FEMALE' | 'MIXED'
-    matchFormat: match.matchFormat,
-    ageRange: match.ageMin && match.ageMax ? `${match.ageMin}대 ~ ${match.ageMax}대` : undefined,
-    // 팀/호스트 정보
-    teamName: match.teamName,
-    teamLogo: match.isPersonalHost ? '🏀' : match.teamLogo, // 개인 주최면 농구공 이모지
-    isPersonalHost: match.isPersonalHost,
-    positions: buildPositions(),
-    // NEW 뱃지용
-    createdAt: match.createdAt,
-  };
-}
 
 export default function GuestMatchListPage() {
   const { user } = useAuth();
@@ -95,9 +25,10 @@ export default function GuestMatchListPage() {
   const { data: userApplications } = useUserApplications(user?.id);
 
   // Flatten pages into single array
-  const rawMatches = data?.pages.flatMap(page => page.matches) ?? [];
-
-  const matches = useMemo(() => rawMatches.map(adaptMatch), [rawMatches]);
+  const matches = useMemo(() =>
+    data?.pages.flatMap(page => page.matches) ?? [],
+    [data?.pages]
+  );
 
   // 사용자 신청 상태 Map (matchId → status)
   const applicationStatusMap = useMemo(() => {

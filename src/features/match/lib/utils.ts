@@ -1,4 +1,4 @@
-import { Match } from '../model/types';
+import { GuestListMatch } from '../model/types';
 
 // --- Date Utils ---
 
@@ -85,9 +85,9 @@ export interface FilterOptions {
 }
 
 export const filterMatches = (
-    matches: Match[],
+    matches: GuestListMatch[],
     options: FilterOptions
-): Match[] => {
+): GuestListMatch[] => {
     let filtered = [...matches];
 
     // 1. Date Filter
@@ -98,7 +98,7 @@ export const filterMatches = (
     // 2. Location Filter
     if (options.locations.length > 0) {
         filtered = filtered.filter(m => {
-            const matchAddress = m.address || '';
+            const matchAddress = m.location.address || '';
             return options.locations.some(selectedLoc => {
                 if (selectedLoc.includes('전체')) {
                     const region = selectedLoc.split(' ')[0];
@@ -125,7 +125,7 @@ export const filterMatches = (
         filtered = filtered.filter(m => {
             if (options.positions.includes('포지션 무관')) return true;
 
-            const posMap: Record<string, keyof Match['positions']> = {
+            const posMap: Record<string, keyof GuestListMatch['positionsUI']> = {
                 '가드': 'g',
                 '포워드': 'f',
                 '센터': 'c',
@@ -134,66 +134,62 @@ export const filterMatches = (
             return options.positions.some(posLabel => {
                 const posKey = posMap[posLabel];
                 if (!posKey) return false;
-                
-                const posData = m.positions[posKey];
+
+                const posData = m.positionsUI[posKey];
                 // Check specific position
                 if (posData && posData.status === 'open') return true;
 
-                // Check "All"
-                if (m.positions.all && m.positions.all.status === 'open') return true;
-
-                // Check "Bigman" for F/C
-                if ((posKey === 'f' || posKey === 'c') && m.positions.bigman && m.positions.bigman.status === 'open') {
-                    return true;
-                }
+                // Check "All" (포지션 무관)
+                if (m.positionsUI.all && m.positionsUI.all.status === 'open') return true;
 
                 return false;
             });
         });
     }
 
-    // 4. Price Filter
+    // 5. Price Filter
     if (options.priceMax !== null && options.priceMax !== undefined) {
-        filtered = filtered.filter(m => m.priceNum <= options.priceMax!);
+        filtered = filtered.filter(m => m.price.amount <= options.priceMax!);
     }
 
-    // 5. Hide Closed / Min Vacancy Filter
+    // 6. Hide Closed / Min Vacancy Filter
     if (options.minVacancy && options.minVacancy > 0) {
         filtered = filtered.filter(m => {
             if (m.isClosed) return false;
 
             // Calculate total vacancy
             let totalVacancy = 0;
-            const p = m.positions;
-            
-            // Helper to add vacancy
-            const add = (pos?: { status: string, max: number }) => {
-                if (pos && pos.status === 'open') totalVacancy += pos.max;
+            const p = m.positionsUI;
+
+            // Helper to add vacancy (max - current = remaining spots)
+            const add = (pos?: { status: string, max: number, current: number }) => {
+                if (pos && pos.status === 'open') totalVacancy += (pos.max - pos.current);
             };
 
-            // Sum up standard positions
+            // Sum up positions
             add(p.all);
             add(p.g);
             add(p.f);
             add(p.c);
-            add(p.bigman);
-         
+
             return totalVacancy >= options.minVacancy!;
         });
     } else if (options.hideClosed) {
         filtered = filtered.filter(m => !m.isClosed);
     }
 
-    // 6. Detailed Filters (Gender, Age, GameFormat)
+    // 7. Detailed Filters (Gender, Age, GameFormat)
     if (options.genders && options.genders.length > 0) {
          filtered = filtered.filter(m => m.gender && options.genders!.includes(m.gender));
     }
 
     if (options.ages && options.ages.length > 0) {
         filtered = filtered.filter(m => {
-            if (!m.ageRange) return false;
+            // ageMin/ageMax로 ageRange 계산
+            if (!m.ageMin || !m.ageMax) return false;
             if (options.ages!.includes('any')) return true;
-            return options.ages!.some(age => m.ageRange!.includes(age));
+            const ageRange = `${m.ageMin}대 ~ ${m.ageMax}대`;
+            return options.ages!.some(age => ageRange.includes(age));
         });
     }
 
@@ -204,8 +200,8 @@ export const filterMatches = (
     return filtered;
 };
 
-export const groupMatchesByDate = (matches: Match[]): Record<string, Match[]> => {
-    const grouped: Record<string, Match[]> = {};
+export const groupMatchesByDate = (matches: GuestListMatch[]): Record<string, GuestListMatch[]> => {
+    const grouped: Record<string, GuestListMatch[]> = {};
     matches.forEach(match => {
         if (!grouped[match.dateISO]) grouped[match.dateISO] = [];
         grouped[match.dateISO].push(match);

@@ -660,6 +660,102 @@ export function useCreateMatch() {
 
 ## 🔄 타입 시스템
 
+### 컴포넌트 타입 정의 원칙
+
+컴포넌트의 props 타입을 정의할 때, **역할에 따라** 다른 전략을 사용합니다.
+
+#### 1. 도메인 컴포넌트 → `model/types.ts` import
+
+특정 비즈니스 엔티티를 표현하는 컴포넌트는 해당 feature의 `model/types.ts`에서 타입을 import합니다.
+
+```typescript
+// features/match/ui/match-list-item.tsx
+import { GuestListMatch } from '@/features/match/model/types';
+
+// ✅ 도메인 타입 직접 사용
+export function MatchListItem({ match }: { match: GuestListMatch }) {
+  return (
+    <div>
+      <h3>{match.title}</h3>
+      <span>{match.location.address}</span>
+      {/* match의 모든 필드에 타입 안전하게 접근 */}
+    </div>
+  );
+}
+```
+
+**해당하는 컴포넌트:**
+- `MatchListItem`, `MatchDetailCard` - Match 엔티티 전용
+- `TeamCard`, `TeamMemberRow` - Team 엔티티 전용
+- `ApplicationRow`, `ApplicationStatusBadge` - Application 엔티티 전용
+
+#### 2. 순수 UI 컴포넌트 → 로컬 props interface 정의
+
+도메인과 무관하게 재사용 가능한 프레젠테이션 컴포넌트는 로컬에서 props를 정의합니다.
+
+```typescript
+// features/match/ui/position-chip.tsx (또는 shared/ui/base/)
+
+// ✅ 로컬 props 정의 - 도메인 타입 의존 없음
+interface PositionChipProps {
+  label: string;
+  max: number;
+  current: number;
+  status?: 'open' | 'closed';
+}
+
+export function PositionChip({ label, max, current, status }: PositionChipProps) {
+  return (
+    <div className={status === 'closed' ? 'opacity-50' : ''}>
+      {label}: {current}/{max}
+    </div>
+  );
+}
+```
+
+**해당하는 컴포넌트:**
+- `PositionChip` - 숫자와 라벨만 받음
+- `RegionFilterModal` - 지역 문자열 배열만 받음
+- `Badge`, `Chip`, `Avatar` - 범용 UI 요소
+
+#### 3. 판단 기준
+
+| 질문 | 답변 | 타입 전략 |
+|------|------|----------|
+| 이 컴포넌트가 특정 도메인 엔티티 전용인가? | Yes | `model/types.ts` import |
+| 다른 feature에서도 사용 가능한가? | Yes | 로컬 props 정의 |
+| 원시값(string, number 등)만 받으면 되는가? | Yes | 로컬 props 정의 |
+
+#### 4. 변환은 Mapper에서 한 번만
+
+```
+DB Row → Mapper → ClientType → UI Component
+         ↑
+      변환은 여기서만!
+```
+
+```typescript
+// ❌ 잘못된 패턴 - 컴포넌트 전달 전 추가 변환
+// page.tsx
+function adaptMatch(match: GuestListMatch) {  // ❌ 중간 변환 함수
+  return { ...match, price: formatPrice(match.price) };
+}
+const adapted = matches.map(adaptMatch);
+<MatchListItem match={adapted} />
+
+// ✅ 올바른 패턴 - Mapper에서 완성된 타입 제공
+// match-mapper.ts
+export function matchRowToGuestListMatch(row: MatchRow): GuestListMatch {
+  return {
+    ...row,
+    priceDisplay: formatPrice(row.cost_amount),  // UI용 필드 포함
+  };
+}
+
+// page.tsx
+<MatchListItem match={match} />  // 변환 없이 직접 전달
+```
+
 ### DB 타입 vs 클라이언트 타입
 
 ```
