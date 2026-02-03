@@ -216,7 +216,7 @@ export function matchRowToGuestListMatch(row: any): GuestListMatch {
     // 팀/호스트 정보: team_id가 없으면 개인 주최
     teamName: row.team_id  
       ? (row.team?.name || row.manual_team_name || '팀')
-      : (row.manual_team_name || `${row.host?.nickname || ''}`),
+      : (row.manual_team_name || ` ${row.host?.nickname || ''}`),
     teamLogo: row.team_id ? (row.team?.logo_url || undefined) : undefined,
     isPersonalHost: !row.team_id,
 
@@ -268,6 +268,7 @@ export function guestListMatchToMatch(data: GuestListMatch): Match {
     priceNum: priceAmount,
     gender: data.gender,
     matchFormat: data.matchFormat,
+    courtType: (data.courtType ?? 'indoor') as 'indoor' | 'outdoor',
     ageRange: data.ageMin && data.ageMax ? `${data.ageMin}대 ~ ${data.ageMax}대` : undefined,
     level: data.level,
     hostName: data.hostName || '호스트',

@@ -179,6 +179,7 @@ export interface Match {
 
   // Detail Fields
   gender: GenderValue;
+  courtType?: 'indoor' | 'outdoor';
 
   // Guest Detail View Fields
   level?: string; // e.g., "중수 (B) 이상"
