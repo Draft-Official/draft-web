@@ -19,6 +19,9 @@ import {
   SelectValue,
 } from '@/shared/ui/base/select';
 import { Switch } from '@/shared/ui/base/switch';
+import { Checkbox } from '@/shared/ui/shadcn/checkbox';
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/shared/ui/shadcn/accordion';
+import { Alert, AlertDescription } from '@/shared/ui/shadcn/alert';
 import { cn } from '@/shared/lib/utils';
 import { useAuth } from '@/features/auth/model/auth-context';
 import { useUpdateProfile } from '@/features/auth/api/mutations';
@@ -27,6 +30,7 @@ import { useUserTeams } from '../api/queries';
 import type { ParticipantInfo, Profile, UserMetadata, UserUpdate, Json } from '@/shared/types/database.types';
 import { POSITION_OPTIONS, POSITION_DEFAULT, PositionValue } from '@/shared/config/constants';
 import { SKILL_LEVELS } from '@/shared/config/skill-constants';
+import { AlertTriangle } from 'lucide-react';
 
 const MAX_COMPANIONS = 9;
 
@@ -133,6 +137,7 @@ export function ApplyModal({
   });
   const [hasCompanions, setHasCompanions] = useState(false);
   const [companions, setCompanions] = useState<CompanionFormData[]>([]);
+  const [isAgreed, setIsAgreed] = useState(false);
 
   // 프로필 데이터로 폼 초기화
   useEffect(() => {
@@ -524,10 +529,57 @@ export function ApplyModal({
             </Select>
           </div>
 
+          {/* Guest Essential Reading */}
+          <div className="space-y-4">
+            <Accordion type="single" collapsible className="w-full border border-slate-200 rounded-xl">
+              <AccordionItem value="guest-rules">
+                <AccordionTrigger className="px-4 text-base font-bold text-slate-900">
+                  게스트 필독 수칙 및 법적 고지
+                </AccordionTrigger>
+                <AccordionContent className="px-4 pb-4">
+                  <ul className="space-y-3 text-sm text-slate-700">
+                    <li>
+                      <strong>입금 확인 주의:</strong> '입금 완료' 버튼을 누르면 자동 확정 처리됩니다. <span className="text-red-600">실제 입금 없이 허위로 버튼을 누를 경우</span>, 즉시 계정이 영구 정지되며 형법상 사기죄 및 업무방해죄로 형사 고소될 수 있습니다.
+                    </li>
+                    <li>
+                      <strong>매너 준수:</strong> 당일 노쇼(No-Show), 폭언, 비매너 플레이 적발 시 서비스 이용이 제한됩니다.
+                    </li>
+                    <li>
+                      <strong>부상 및 면책:</strong> 본 플랫폼은 매칭 중개자로서, 경기 중 발생한 부상 및 사고에 대해 플랫폼과 호스트는 <strong>일체의 법적 책임을 지지 않습니다</strong>. (개인 상해 보험 가입 권장)
+                    </li>
+                    <li>
+                      <strong>문의 채널:</strong> 환불 지연 등 특별한 문제가 발생할 경우 아래 채널로 문의해주세요.
+                      <br />
+                      <a href="https://open.kakao.com/o/sEjOL3Yg" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                        카카오톡 고객센터 바로가기
+                      </a>
+                    </li>
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+
+            {/* Agreement Checkbox */}
+            <div className="flex items-start space-x-3">
+              <Checkbox
+                id="agree-terms"
+                checked={isAgreed}
+                onCheckedChange={(checked) => setIsAgreed(checked === true)}
+                className="mt-1"
+              />
+              <label
+                htmlFor="agree-terms"
+                className="text-sm text-slate-700 leading-relaxed cursor-pointer"
+              >
+                위 내용을 모두 확인하였으며, <strong>취소 및 환불 규정, 법적 책임 면제 사항</strong>에 동의합니다.
+              </label>
+            </div>
+          </div>
+
           {/* 신청하기 버튼 */}
           <Button
             type="submit"
-            disabled={!isFormValid() || createApplication.isPending || updateProfile.isPending}
+            disabled={!isFormValid() || !isAgreed || createApplication.isPending || updateProfile.isPending}
             className="w-full h-12 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl disabled:bg-slate-300 disabled:text-slate-500"
           >
             {createApplication.isPending || updateProfile.isPending ? '신청 중...' : '신청하기'}

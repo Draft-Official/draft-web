@@ -11,6 +11,7 @@ import { MatchInfoSection } from './components/detail/match-info-section';
 import { MatchRuleSection } from './components/detail/match-rule-section';
 import { FacilitySection } from './components/detail/facility-section';
 import { HostSection } from './components/detail/host-section';
+import { PolicySection } from './components/detail/policy-section';
 import { MatchDetailBottomBar } from './components/detail/bottom-bar';
 import { ShareModal } from './components/detail/share-modal';
 import { KebabMenu } from './components/detail/kebab-menu';
@@ -191,6 +192,10 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
         <div className="h-px bg-slate-100 mx-5" />
 
         <FacilitySection match={match} id="facility-section" />
+
+        <div className="h-px bg-slate-100 mx-5" />
+
+        <PolicySection />
       </main>
 
       {/* 3. Bottom Bar */}

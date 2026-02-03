@@ -4,9 +4,10 @@ import React, { useState } from 'react';
 import { Match } from '@/features/match/model/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/base/avatar';
 import { Button } from '@/shared/ui/base/button';
-import { MessageCircle, Users } from 'lucide-react';
+import { MessageCircle, Users, Info } from 'lucide-react';
 import { ContactModal } from './contact-modal';
 import { toast } from 'sonner';
+import { Alert, AlertDescription } from '@/shared/ui/shadcn/alert';
 
 // 기본 팀 로고 (팀이 없을 때 사용)
 const DEFAULT_TEAM_LOGO = '/default-team-logo.jpg';
@@ -70,6 +71,16 @@ export function HostSection({ match }: HostSectionProps) {
           </p>
         </div>
       )}
+
+      {/* Draft Mediator Notice */}
+      <div className="mt-4">
+        <Alert className="bg-blue-50 border-blue-200">
+          <Info className="h-4 w-4 text-blue-600" />
+          <AlertDescription className="text-xs text-blue-900">
+            Draft는 중개자로서 경기진행과 운영은 호스트가 담당합니다.
+          </AlertDescription>
+        </Alert>
+      </div>
 
       {/* Contact Modal */}
       {match.contactInfo && (
