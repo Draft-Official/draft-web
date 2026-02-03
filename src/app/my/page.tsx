@@ -1,15 +1,16 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { CreditCard, LogOut, Settings } from 'lucide-react';
-import { Button } from '@/shared/ui/base/button';
-import { Card } from '@/shared/ui/base/card';
 import { ProfileCard } from '@/features/my/ui/profile-card';
 import { ProfileSetupModal } from '@/features/my/ui/profile-setup-modal';
+import { SupportSection } from '@/features/my/ui/support-section';
+import { NotificationSettingsSection } from '@/features/my/ui/notification-settings-section';
+import { AccountSection } from '@/features/my/ui/account-section';
+import { PaymentSection } from '@/features/my/ui/payment-section';
+import { MyPageFooter } from '@/features/my/ui/my-page-footer';
 import { ProfileData } from '@/features/my/model/types';
 import { useAuth } from '@/features/auth/model/auth-context';
 import { useUpdateProfile } from '@/features/auth/api/mutations';
-import { useRouter } from 'next/navigation';
 import type { Profile, UserUpdate, UserMetadata } from '@/shared/types/database.types';
 
 // DB Profile → UI ProfileData 변환
@@ -83,22 +84,9 @@ export default function MyPage() {
     setIsModalOpen(true);
   };
 
-  const { signOut } = useAuth();
-  const router = useRouter();
-
   // 사용자 이름과 이니셜
   const userName = dbProfile?.nickname || dbProfile?.real_name || user?.email?.split('@')[0] || '사용자';
   const userInitials = userName.slice(0, 2);
-
-  const handleLogout = async () => {
-    try {
-      await signOut();
-      localStorage.removeItem('profileSkipped');
-      router.push('/');
-    } catch (error) {
-      console.error('Logout failed:', error);
-    }
-  };
 
   return (
     <div className="bg-background min-h-full p-4 space-y-6 pb-24">
@@ -113,33 +101,17 @@ export default function MyPage() {
         onEditClick={handleEditClick}
       />
 
-      <div className="space-y-4">
-        <h2 className="font-bold text-lg text-foreground">설정</h2>
+      <SupportSection />
 
-        <Card className="p-0 overflow-hidden border-border">
-          <div className="divide-y divide-border">
-            <Button variant="ghost" className="w-full justify-start p-4 h-auto rounded-none font-normal">
-              <CreditCard className="mr-3 h-5 w-5 text-muted-foreground" />
-              결제 내역
-            </Button>
-            <Button variant="ghost" className="w-full justify-start p-4 h-auto rounded-none font-normal">
-              <Settings className="mr-3 h-5 w-5 text-muted-foreground" />
-              일반
-            </Button>
-          </div>
-        </Card>
+      <NotificationSettingsSection />
 
-        {user && (
-          <Button
-            variant="outline"
-            className="w-full justify-start p-4 h-auto text-destructive hover:text-destructive hover:bg-destructive/10"
-            onClick={handleLogout}
-          >
-            <LogOut className="mr-3 h-5 w-5" />
-            로그아웃
-          </Button>
-        )}
-      </div>
+      {user && (
+        <>
+          <AccountSection />
+          <PaymentSection />
+          <MyPageFooter />
+        </>
+      )}
 
       <ProfileSetupModal
         open={isModalOpen}
