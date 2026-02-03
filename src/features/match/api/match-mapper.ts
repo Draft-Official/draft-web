@@ -249,6 +249,8 @@ export function matchRowToGuestListMatch(row: any): GuestListMatch {
 
     matchFormat: (row.match_format || 'FIVE_ON_FIVE') as MatchFormatValue, // 경기 방식 ('FIVE_ON_FIVE' 등)
     level: formatLevelRange(row.level_range as LevelRange | null),
+    levelMin: (row.level_range as LevelRange | null)?.min,
+    levelMax: (row.level_range as LevelRange | null)?.max,
     gender: (row.gender_rule || 'MALE') as 'MALE' | 'FEMALE' | 'MIXED',
 
     // 팀/호스트 정보: team_id가 없으면 개인 주최
@@ -314,6 +316,8 @@ export function guestListMatchToMatch(data: GuestListMatch): Match {
     matchFormat: data.matchFormat,
     ageRange: data.ageMin && data.ageMax ? `${data.ageMin}대 ~ ${data.ageMax}대` : undefined,
     level: data.level,
+    levelMin: data.levelMin,
+    levelMax: data.levelMax,
 
     // 팀/호스트 정보
     hostId: data.hostId,

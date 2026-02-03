@@ -142,6 +142,8 @@ export interface GuestListMatch extends BaseMatch {
   positions: Partial<Record<PositionValue, PositionStatus>>; // max가 0인 포지션은 제외
   recruitmentType?: 'ANY' | 'POSITION'; // 모집 타입 (ANY = 포지션 무관)
   level: string;
+  levelMin?: number; // 1-7 (레벨 범위 최소값)
+  levelMax?: number; // 1-7 (레벨 범위 최대값)
   gender: GenderValue;
   ageMin?: number;
   ageMax?: number;
@@ -196,6 +198,8 @@ export interface Match {
 
   // Guest Detail View Fields
   level?: string; // e.g., "중수 (B) 이상"
+  levelMin?: number; // 1-7 (레벨 범위 최소값)
+  levelMax?: number; // 1-7 (레벨 범위 최대값)
   matchFormat: MatchFormatValue; // e.g., "FIVE_ON_FIVE"
   ageRange?: string; // e.g., "20대 ~ 30대"
 

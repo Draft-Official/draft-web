@@ -8,8 +8,8 @@ import { MessageCircle, Users } from 'lucide-react';
 import { ContactModal } from './contact-modal';
 import { toast } from 'sonner';
 
-// 기본 팀 로고 (이니셜 기반)
-const DEFAULT_TEAM_LOGO = undefined;
+// 기본 팀 로고 (팀이 없을 때 사용)
+const DEFAULT_TEAM_LOGO = '/default-team-logo.jpg';
 
 interface HostSectionProps {
   match: Match;
@@ -21,8 +21,8 @@ export function HostSection({ match }: HostSectionProps) {
   // 팀명: teamId가 있으면 teamName, 없으면 manualTeamName
   const displayTeamName = match.teamId ? match.teamName : (match.manualTeamName || match.teamName || '팀');
 
-  // 팀 로고: teamLogo가 있으면 사용, 없으면 기본 로고
-  const teamLogoUrl = match.teamLogo || DEFAULT_TEAM_LOGO;
+  // 팀 로고: teamId가 있으면 teamLogo, 없으면 기본 로고
+  const teamLogoUrl = match.teamId ? (match.teamLogo || undefined) : DEFAULT_TEAM_LOGO;
 
   // 팀 이니셜 (Fallback)
   const teamInitial = displayTeamName?.substring(0, 2) || 'TM';
@@ -37,7 +37,7 @@ export function HostSection({ match }: HostSectionProps) {
 
   return (
     <section className="px-5 py-6">
-      <div className="flex items-center justify-between mb-4">
+      <div className={`flex items-center justify-between ${match.hostMessage ? 'mb-4' : ''}`}>
         <div className="flex items-center gap-3">
           <Avatar className="w-10 h-10 border border-slate-100">
             {teamLogoUrl ? (
