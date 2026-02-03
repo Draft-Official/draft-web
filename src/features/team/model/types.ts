@@ -9,7 +9,6 @@ export type { PositionValue as Position };
 
 // Re-export from other features
 export type { Applicant } from '@/features/application/model/types';
-export type { HostDashboardMatch } from '@/features/match/model/types';
 
 // Re-export status values as objects for compatibility
 export const MatchStatus = {
@@ -19,6 +18,8 @@ export const MatchStatus = {
   FINISHED: 'FINISHED',
   CANCELED: 'CANCELED',
 } as const;
+
+
 
 export const ApplicantStatus = {
   PENDING: 'PENDING',

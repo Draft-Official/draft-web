@@ -24,7 +24,7 @@ export function Sidebar({ notificationSlot }: SidebarProps) {
   return (
     <div className="flex flex-col h-full">
       {/* Logo + Notification */}
-      <div className="h-14 flex items-center justify-between mb-6">
+      <div className="h-14 flex items-center justify-between px-6 pt-6 mb-6">
         <Link href="/" className="text-2xl font-black italic tracking-tighter text-slate-900">
           DRAFT.
         </Link>
@@ -32,7 +32,7 @@ export function Sidebar({ notificationSlot }: SidebarProps) {
       </div>
 
       {/* Menu */}
-      <nav className="flex-1 space-y-2">
+      <nav className="flex-1 space-y-1">
         {NAV_ITEMS.map((item) => {
           const isActive = pathname === item.href;
           return (
@@ -40,7 +40,7 @@ export function Sidebar({ notificationSlot }: SidebarProps) {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-4 px-4 py-3 rounded-full text-xl font-medium transition-colors hover:bg-slate-100",
+                "flex items-center gap-4 px-6 py-3 rounded-sm text-xl font-medium transition-colors hover:bg-slate-100 w-full",
                 isActive ? "font-bold text-slate-900" : "text-slate-600"
               )}
             >
@@ -53,9 +53,9 @@ export function Sidebar({ notificationSlot }: SidebarProps) {
 
       {/* Action Button - Only visible on Home Tab (Match List) */}
       {pathname === '/' && (
-        <div className="mt-auto pb-6">
+        <div className="mt-auto px-6 pb-6">
           <Link href="/matches/create" className="block w-full">
-            <Button 
+            <Button
               className="w-full h-14 rounded-full bg-[#FF6600] hover:bg-[#FF6600]/90 text-white text-lg font-bold shadow-lg shadow-orange-200"
             >
               경기 개설하기

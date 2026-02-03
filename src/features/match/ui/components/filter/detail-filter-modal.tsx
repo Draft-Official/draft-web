@@ -1,91 +1,116 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { User } from 'lucide-react';
+import { Minus, Plus } from 'lucide-react';
 import { Button } from '@/shared/ui/base/button';
 import { Chip } from '@/shared/ui/base/chip';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/base/dialog";
 import { ScrollArea } from "@/shared/ui/base/scroll-area";
-import { cn } from '@/shared/lib/utils';
 import { GENDER_OPTIONS, MATCH_FORMAT_OPTIONS } from '@/shared/config/constants';
+import { cn } from '@/shared/lib/utils';
 
 interface DetailedFilterModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   // Current States
-  selectedPriceMax: number | null;
+  selectedPositions?: string[];
+  onPositionsChange?: (positions: string[]) => void;
+  minVacancy?: number | null;
+  onMinVacancyChange?: (vacancy: number | null) => void;
   selectedGenders: string[];
   selectedAges: string[];
   selectedGameFormats: string[];
+  hideClosed?: boolean;
+  onHideClosedChange?: (hide: boolean) => void;
   // Handlers
   onApply: (filters: {
-    priceMax: number | null;
+    positions?: string[];
+    minVacancy?: number | null;
     genders: string[];
     ages: string[];
     gameFormats: string[];
+    hideClosed?: boolean;
   }) => void;
 }
 
-// Separate constants for filter options
-
-
-const AGE_FILTER_OPTIONS = [
-  { value: '20', label: '20대' },
-  { value: '30', label: '30대' },
-  { value: '40', label: '40대' },
-  { value: '50', label: '50대 이상' },
-];
+const POSITION_OPTIONS = ['포지션 무관', '가드', '포워드', '센터'];
 
 export function DetailedFilterModal({
   open,
   onOpenChange,
-  selectedPriceMax,
+  selectedPositions = [],
+  onPositionsChange,
+  minVacancy = null,
+  onMinVacancyChange,
   selectedGenders,
   selectedAges,
   selectedGameFormats,
+  hideClosed = true,
+  onHideClosedChange,
   onApply,
 }: DetailedFilterModalProps) {
   // Temp States
-  const [tempPriceMax, setTempPriceMax] = useState<number | null>(null);
+  const [tempPositions, setTempPositions] = useState<string[]>([]);
+  const [tempMinVacancy, setTempMinVacancy] = useState<number>(1);
   const [tempGenders, setTempGenders] = useState<string[]>([]);
   const [tempAges, setTempAges] = useState<string[]>([]);
   const [tempGameFormats, setTempGameFormats] = useState<string[]>([]);
+  const [tempHideClosed, setTempHideClosed] = useState<boolean>(true);
 
   // Sync state when opening
   useEffect(() => {
     if (open) {
-      setTempPriceMax(selectedPriceMax);
+      setTempPositions([...selectedPositions]);
+      setTempMinVacancy(minVacancy || 1);
       setTempGenders([...selectedGenders]);
       setTempAges([...selectedAges]);
       setTempGameFormats([...selectedGameFormats]);
+      setTempHideClosed(hideClosed);
     }
-  }, [open, selectedPriceMax, selectedGenders, selectedAges, selectedGameFormats]);
+  }, [open, selectedPositions, minVacancy, selectedGenders, selectedAges, selectedGameFormats, hideClosed]);
 
   const toggleSelection = (list: string[], item: string, setList: (l: string[]) => void) => {
     setList(list.includes(item) ? list.filter(i => i !== item) : [...list, item]);
   };
 
-  const applyMyAge = () => {
-    // TODO: Fetch user's actual age from profile
-    const myAgeGroup = '20'; 
-    setTempAges([myAgeGroup]);
+  const toggleTempPosition = (pos: string) => {
+    if (pos === '포지션 무관') {
+      setTempPositions(prev => prev.includes('포지션 무관') ? [] : ['포지션 무관']);
+    } else {
+      setTempPositions(prev => {
+        let next = prev.filter(p => p !== '포지션 무관');
+        return next.includes(pos) ? next.filter(p => p !== pos) : [...next, pos];
+      });
+    }
+  };
+
+  const handleVacancyIncrement = () => {
+    setTempMinVacancy(prev => Math.min(prev + 1, 7));
+  };
+  
+  const handleVacancyDecrement = () => {
+    setTempMinVacancy(prev => Math.max(prev - 1, 1));
   };
 
   const handleApply = () => {
     onApply({
-      priceMax: tempPriceMax,
+      positions: onPositionsChange ? tempPositions : undefined,
+      minVacancy: onMinVacancyChange ? tempMinVacancy : undefined,
       genders: tempGenders,
       ages: tempAges,
       gameFormats: tempGameFormats,
+      hideClosed: onHideClosedChange ? tempHideClosed : undefined,
     });
     onOpenChange(false);
   };
 
   const handleReset = () => {
-    setTempPriceMax(null);
+    setTempPositions([]);
+    setTempMinVacancy(1);
     setTempGenders([]);
     setTempAges([]);
     setTempGameFormats([]);
+    setTempHideClosed(true);
   };
 
   return (
@@ -97,7 +122,70 @@ export function DetailedFilterModal({
         <ScrollArea className="max-h-[60vh]">
           <div className="py-4 flex flex-col gap-8 px-1">
             
-            {/* 1. Gender Section */}
+            {/* 1. Position Filter (if enabled) */}
+            {onPositionsChange && (
+              <div className="space-y-3">
+                <h3 className="text-sm font-bold text-slate-900">포지션</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {POSITION_OPTIONS.map(pos => {
+                    const isSelected = tempPositions.includes(pos);
+                    return (
+                      <button
+                        key={pos}
+                        onClick={() => toggleTempPosition(pos)}
+                        className={cn(
+                          "h-12 rounded-xl border font-bold text-sm transition-all",
+                          isSelected
+                            ? "border-[#FF6600] bg-orange-50 text-[#FF6600]"
+                            : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                        )}
+                      >
+                        {pos}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* 2. Vacancy Filter (if enabled) */}
+            {onMinVacancyChange && (
+              <div className="space-y-3">
+                <h3 className="text-sm font-bold text-slate-900">인원 수</h3>
+                <div className="py-2 flex flex-col items-center justify-center gap-3">
+                  <div className="flex items-center gap-4">
+                    <Button 
+                      size="icon" 
+                      type="button"
+                      variant="outline" 
+                      className="h-10 w-10 rounded-full border-slate-200"
+                      onClick={handleVacancyDecrement}
+                      disabled={tempMinVacancy <= 1}
+                    >
+                      <Minus className="w-4 h-4 text-slate-600" />
+                    </Button>
+                    <span className="text-2xl font-bold text-slate-900 min-w-[50px] text-center">
+                      {`${tempMinVacancy}명`}
+                    </span>
+                    <Button 
+                      size="icon" 
+                      type="button"
+                      variant="outline" 
+                      className="h-10 w-10 rounded-full border-slate-200"
+                      onClick={handleVacancyIncrement}
+                      disabled={tempMinVacancy >= 7}
+                    >
+                      <Plus className="w-4 h-4 text-slate-600" />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-slate-500 text-center">
+                    {`${tempMinVacancy}명 이상 지원 가능한 경기를 찾습니다`}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* 3. Gender Section */}
             <div className="space-y-3">
               <h3 className="text-sm font-bold text-slate-900">성별</h3>
               <div className="flex gap-2">
@@ -114,14 +202,14 @@ export function DetailedFilterModal({
               </div>
             </div>
 
-            {/* 2. Game Format Section */}
+            {/* 4. Game Format Section */}
             <div className="space-y-3">
               <h3 className="text-sm font-bold text-slate-900">경기 방식</h3>
               <div className="flex flex-wrap gap-2">
                 {MATCH_FORMAT_OPTIONS.map((bg) => (
-                  <Chip 
-                    key={bg.value} 
-                    label={bg.label} 
+                  <Chip
+                    key={bg.value}
+                    label={bg.label}
                     variant="orange"
                     isActive={tempGameFormats.includes(bg.value)}
                     showCheckIcon={false}
@@ -131,49 +219,34 @@ export function DetailedFilterModal({
               </div>
             </div>
 
-            {/* 3. Age Section */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-slate-900">연령대</h3>
-                <button onClick={applyMyAge} className="text-xs font-bold text-[#FF6600] flex items-center gap-1 active:scale-95 transition-transform">
-                  <User className="w-3 h-3" />
-                  내 나이 추천
-                </button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {AGE_FILTER_OPTIONS.map((age) => (
-                  <Chip 
-                    key={age.value} 
-                    label={age.label} 
-                    variant="orange"
-                    isActive={tempAges.includes(age.value)}
-                    showCheckIcon={false}
-                    onClick={() => toggleSelection(tempAges, age.value, setTempAges)}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* 4. Price Section */}
-            <div className="space-y-3">
-              <h3 className="text-sm font-bold text-slate-900">참가비 (최대)</h3>
-              <div className="grid grid-cols-3 gap-2">
-                {[null, 10000, 20000].map((price) => (
+            {/* 5. Hide Closed Toggle (if enabled) */}
+            {onHideClosedChange && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-slate-900">마감된 경기 가리기</h3>
                   <button
-                    key={price ?? 'all'}
-                    onClick={() => setTempPriceMax(price)}
+                    type="button"
+                    role="switch"
+                    aria-checked={tempHideClosed}
+                    onClick={() => setTempHideClosed(!tempHideClosed)}
                     className={cn(
-                      "h-10 rounded-lg text-sm font-bold border transition-all",
-                      tempPriceMax === price
-                        ? "bg-slate-900 text-white border-slate-900"
-                        : "bg-white text-slate-600 border-slate-200"
+                      "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors",
+                      tempHideClosed ? "bg-[#FF6600]" : "bg-slate-200"
                     )}
                   >
-                    {price === null ? "제한없음" : `${(price/10000).toFixed(0)}만원`}
+                    <span
+                      className={cn(
+                        "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition-transform",
+                        tempHideClosed ? "translate-x-5" : "translate-x-0"
+                      )}
+                    />
                   </button>
-                ))}
+                </div>
+                <p className="text-xs text-slate-500">
+                  모집이 마감된 경기를 목록에서 숨깁니다
+                </p>
               </div>
-            </div>
+            )}
 
           </div>
         </ScrollArea>

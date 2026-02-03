@@ -9,9 +9,10 @@ import { GuestListMatch } from '@/features/match/model/types';
 import { CostType } from '@/shared/config/constants';
 import { Loader2 } from 'lucide-react';
 
-// Adapter: GuestListMatch -> Match (Mock Type)
+// Adapter: GuestListMatch -> Match (상세 페이지 UI용)
+// TODO: MatchDetailView도 GuestListMatch를 직접 사용하도록 리팩토링 필요
 function adaptToDetailMatch(data: GuestListMatch): Match {
-  const priceAmount = data.price.amount ?? data.price.final ?? 0;
+  const priceAmount = data.price.amount ?? 0;
 
   const getPriceDisplay = () => {
     if (data.price.type === CostType.FREE) return '무료';

@@ -1,104 +1,40 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Search, ArrowDown } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Search, ArrowDown, Loader2 } from 'lucide-react';
 import { FilterBar } from '@/features/match/ui/filter-bar';
 import { MatchListItem } from '@/features/match/ui/match-list-item';
-import { useRecruitingMatches } from '@/features/match/api/queries';
-import { filterMatches, groupMatchesByDate, getDayLabel } from '@/features/match/lib/utils';
-import { cn } from '@/shared/lib/utils';
+import { useRecruitingMatchesInfinite } from '@/features/match/api/queries';
+import { filterMatches, groupMatchesByDate } from '@/features/match/lib/utils';
 import { useLocalStorage } from '@/shared/lib/hooks/use-local-storage';
-import { GuestListMatch } from '@/features/match/model/types';
 import { NotificationBell } from '@/features/notification/ui/notification-bell';
-
-// Gender는 DB와 동일하게 대문자 사용 (MALE, FEMALE, MIXED)
-
-// Adapter to convert GuestListMatch to MatchListItem props
-function adaptMatch(match: GuestListMatch) {
-  // 새 스키마: amount 사용, 하위 호환: final
-  const priceAmount = match.price.amount ?? match.price.final ?? 0;
-
-  // 가격 표시 문자열
-  const getPriceDisplay = () => {
-    if (match.price.type === 'FREE') return '무료';
-    if (match.price.type === 'BEVERAGE') return `음료수 ${priceAmount}병`;
-    return `${priceAmount.toLocaleString()}원`;
-  };
-
-  return {
-    id: match.id,
-    dateISO: match.dateISO,
-    startTime: match.startTime,
-    endTime: match.endTime,
-    price: getPriceDisplay(),
-    priceNum: priceAmount,
-    title: match.title,
-    location: match.location.address, // 시/구 주소 표시
-    address: match.location.address,
-    gender: match.gender, // 대문자 그대로 사용: 'MALE' | 'FEMALE' | 'MIXED'
-    matchFormat: match.matchFormat,
-    ageRange: match.ageMin && match.ageMax ? `${match.ageMin}대 ~ ${match.ageMax}대` : undefined,
-    // 팀/호스트 정보
-    teamName: match.teamName,
-    teamLogo: match.isPersonalHost ? '🏀' : match.teamLogo, // 개인 주최면 농구공 이모지
-    isPersonalHost: match.isPersonalHost,
-    positions: {
-      g: match.positions.G && {
-        status: match.positions.G.open > 0 ? 'open' as const : 'closed' as const,
-        max: match.positions.G.closed + match.positions.G.open,
-        current: match.positions.G.closed,
-      },
-      f: match.positions.F && {
-        status: match.positions.F.open > 0 ? 'open' as const : 'closed' as const,
-        max: match.positions.F.closed + match.positions.F.open,
-        current: match.positions.F.closed,
-      },
-      c: match.positions.C && {
-        status: match.positions.C.open > 0 ? 'open' as const : 'closed' as const,
-        max: match.positions.C.closed + match.positions.C.open,
-        current: match.positions.C.closed,
-      },
-    }
-  };
-}
-
-// Hook to detect scroll with hysteresis to prevent flickering
-const useScrollDirection = () => {
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  useEffect(() => {
-    const SCROLL_DOWN_THRESHOLD = 60; // Hide header when scrolling down past this
-    const SCROLL_UP_THRESHOLD = 20;   // Show header when scrolling up below this
-
-    const updateScrollDirection = () => {
-      const scrollY = window.scrollY;
-
-      if (!isScrolled && scrollY > SCROLL_DOWN_THRESHOLD) {
-        // Scrolled down past threshold - hide header
-        setIsScrolled(true);
-      } else if (isScrolled && scrollY < SCROLL_UP_THRESHOLD) {
-        // Scrolled up below threshold - show header
-        setIsScrolled(false);
-      }
-    };
-
-    window.addEventListener("scroll", updateScrollDirection, { passive: true });
-    return () => window.removeEventListener("scroll", updateScrollDirection);
-  }, [isScrolled]);
-
-  return isScrolled;
-};
+import { useAuth } from '@/features/auth';
+import { useUserApplications } from '@/features/application/api';
+import type { ApplicationStatusValue } from '@/shared/config/constants';
 
 export default function GuestMatchListPage() {
-  const router = useRouter();
-  const { data: rawMatches = [], isLoading, error, status } = useRecruitingMatches();
+  const { user } = useAuth();
+  const {
+    data,
+    isLoading,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useRecruitingMatchesInfinite();
+  const { data: userApplications } = useUserApplications(user?.id);
 
+  // Flatten pages into single array
+  const matches = useMemo(() =>
+    data?.pages.flatMap(page => page.matches) ?? [],
+    [data?.pages]
+  );
 
-
-  const matches = useMemo(() => rawMatches.map(adaptMatch), [rawMatches]);
-  
-  const isScrolled = useScrollDirection();
+  // 사용자 신청 상태 Map (matchId → status)
+  const applicationStatusMap = useMemo(() => {
+    if (!userApplications) return new Map<string, ApplicationStatusValue>();
+    return new Map(userApplications.map(app => [app.match_id, app.status]));
+  }, [userApplications]);
 
   // --- State (Persisted) ---
   const [selectedPositions, setSelectedPositions] = useLocalStorage<string[]>('filter_positions', []);
@@ -110,6 +46,8 @@ export default function GuestMatchListPage() {
   const [selectedGenders, setSelectedGenders] = useLocalStorage<string[]>('filter_genders', []);
   const [selectedAges, setSelectedAges] = useLocalStorage<string[]>('filter_ages', []);
   const [selectedGameFormats, setSelectedGameFormats] = useLocalStorage<string[]>('filter_game_formats', []);
+  const [startTimeRange, setStartTimeRange] = useLocalStorage<[number, number] | null>('filter_start_time', null);
+  const [hideClosed, setHideClosed] = useLocalStorage<boolean>('filter_hide_closed', true);
 
   // --- State (Transient) ---
   const [selectedDateISO, setSelectedDateISO] = useState<string | null>(null);
@@ -120,16 +58,19 @@ export default function GuestMatchListPage() {
       dateISO: selectedDateISO,
       positions: selectedPositions,
       locations: selectedLocations,
+      startTimeRange: startTimeRange,
       priceMax: selectedPriceMax,
       minVacancy: minVacancy,
       genders: selectedGenders,
       ages: selectedAges,
       gameFormats: selectedGameFormats,
+      hideClosed: hideClosed,
     });
   }, [
-      matches, 
-      selectedDateISO, selectedPositions, selectedLocations, selectedPriceMax, 
-      minVacancy, selectedGenders, selectedAges, selectedGameFormats
+      matches,
+      selectedDateISO, selectedPositions, selectedLocations, startTimeRange,
+      selectedPriceMax, minVacancy, selectedGenders, selectedAges, selectedGameFormats,
+      hideClosed
   ]);
 
   // Group by Date
@@ -149,6 +90,8 @@ export default function GuestMatchListPage() {
           onPositionsChange={setSelectedPositions}
           selectedLocations={selectedLocations}
           onLocationsChange={setSelectedLocations}
+          startTimeRange={startTimeRange}
+          onStartTimeRangeChange={setStartTimeRange}
           selectedPriceMax={selectedPriceMax}
           onPriceMaxChange={setSelectedPriceMax}
           minVacancy={minVacancy}
@@ -159,6 +102,8 @@ export default function GuestMatchListPage() {
           onAgesChange={setSelectedAges}
           selectedGameFormats={selectedGameFormats}
           onGameFormatsChange={setSelectedGameFormats}
+          hideClosed={hideClosed}
+          onHideClosedChange={setHideClosed}
           notificationSlot={<NotificationBell />}
         />
 
@@ -203,26 +148,33 @@ export default function GuestMatchListPage() {
               </div>
             </div>
           ) : (
-            // Match List Grouped by Date
-            Object.entries(groupedMatches).map(([dateISO, groupMatches]) => (
-              <div key={dateISO} className="relative">
-                {/* Date Divider (Sticky) */}
-                {!selectedDateISO && (
-                  <div className={cn(
-                    "sticky z-10 bg-slate-50/95 backdrop-blur-sm py-2 px-4 border-b border-slate-100 text-xs font-bold text-slate-500 flex items-center gap-2 transition-all duration-300",
-                    isScrolled ? "top-[110px]" : "top-[165px]"
-                  )}>
-                    {getDayLabel(dateISO)}
-                  </div>
-                )}
-
-                <div>
+            // Match List (각 카드에 날짜가 포함되어 있으므로 sticky header 불필요)
+            <>
+              {Object.entries(groupedMatches).map(([dateISO, groupMatches]) => (
+                <div key={dateISO}>
                   {groupMatches.map((match) => (
-                    <MatchListItem key={match.id} match={match} />
+                    <MatchListItem
+                      key={match.id}
+                      match={match}
+                      applicationStatus={applicationStatusMap.get(match.id)}
+                    />
                   ))}
                 </div>
-              </div>
-            ))
+              ))}
+              {/* 더 보기 버튼 */}
+              {hasNextPage && (
+                <div className="flex justify-center py-6">
+                  <button
+                    onClick={() => fetchNextPage()}
+                    disabled={isFetchingNextPage}
+                    className="flex items-center gap-2 px-6 py-3 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isFetchingNextPage && <Loader2 className="w-4 h-4 animate-spin" />}
+                    더 보기
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
 

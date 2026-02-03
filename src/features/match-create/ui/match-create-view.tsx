@@ -714,7 +714,7 @@ export function MatchCreateView() {
 
   return (
     <FormProvider {...methods}>
-        <div className="min-h-screen bg-slate-50 pb-[120px] max-w-[760px] mx-auto relative font-sans">
+        <div className="min-h-screen bg-slate-100 max-w-[760px] mx-auto relative font-sans">
 
         {/* Header */}
         <header className="bg-white px-4 h-14 flex items-center justify-between border-b border-slate-100 sticky top-0 z-30">
@@ -758,7 +758,7 @@ export function MatchCreateView() {
 
         {/* Onboarding Tip Banner - 수정 모드에서는 숨김 */}
         {showTip && !isEditMode && (
-            <div className="mx-5 mt-4 p-3 bg-orange-50 rounded-xl flex items-center gap-3 relative animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="mx-3 mt-3 p-3 bg-orange-50 rounded-xl flex items-center gap-3 relative animate-in fade-in slide-in-from-top-2 duration-300">
                 <Zap className="w-5 h-5 text-[#FF6600] flex-shrink-0 fill-orange-500" />
                 <p className="text-sm font-bold text-orange-800 pr-6">
                     딱 한 번만 작성하세요! 다음부턴 '불러오기'로 3초만에 개설가능!
@@ -772,7 +772,7 @@ export function MatchCreateView() {
             </div>
         )}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 p-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-2 px-3 pt-3">
 
             {/* SECTION 1: Basic Info & Facilities */}
             <div id="section-basic-info">
@@ -854,7 +854,7 @@ export function MatchCreateView() {
             </div>
 
             {/* Submit Button - inside form */}
-            <div className="pt-4">
+            <div className="bg-white px-5 pt-6 pb-[120px] ">
                 <Button
                     type="submit"
                     disabled={isPending || isLoadingEditData}

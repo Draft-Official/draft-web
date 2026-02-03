@@ -15,6 +15,13 @@ const badgeVariants = cva(
         destructive:
           "border-transparent bg-red-500 text-slate-50 hover:bg-red-500/80",
         outline: "text-slate-950",
+        // 신청 상태용 variants
+        warning:
+          "border-transparent bg-yellow-100 text-yellow-700 hover:bg-yellow-100/80",
+        info:
+          "border-transparent bg-blue-100 text-blue-700 hover:bg-blue-100/80",
+        success:
+          "border-transparent bg-green-100 text-green-700 hover:bg-green-100/80",
       },
     },
     defaultVariants: {

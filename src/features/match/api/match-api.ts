@@ -1,6 +1,10 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { Database } from '@/shared/types/database.types';
 import { logRequest, logResponse, logSupabaseQuery, logSupabaseResult } from '@/shared/lib/logger';
+import type { MatchStatusValue } from '@/shared/config/constants';
+
+// 리스트에 표시할 status 값들 (CANCELED 제외)
+const VISIBLE_STATUSES: MatchStatusValue[] = ['RECRUITING', 'CLOSED'];
 
 export class MatchService {
   private readonly SERVICE_NAME = 'MatchService';
@@ -63,6 +67,57 @@ export class MatchService {
 
     logResponse(this.SERVICE_NAME, 'getMatchDetail', data);
     return data;
+  }
+
+  /**
+   * 모집 중인 경기 목록 조회 (페이지네이션)
+   * @param pageParam 시작 인덱스
+   * @param pageSize 페이지 크기 (기본 20)
+   */
+  async getRecruitingMatchesPaginated(pageParam: number = 0, pageSize: number = 20) {
+    logRequest(this.SERVICE_NAME, 'getRecruitingMatchesPaginated', { pageParam, pageSize });
+
+    // 오늘 날짜 (한국 시간 기준)
+    const todayISO = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' });
+
+    logSupabaseQuery('matches', 'SELECT', undefined, {
+      status: 'RECRUITING',
+      date: `>= ${todayISO}`,
+      range: `${pageParam}-${pageParam + pageSize - 1}`
+    });
+
+    const { data, error } = await this.supabase
+      .from('matches')
+      .select(`
+        *,
+        gym:gyms!gym_id (*),
+        host:users!host_id (*),
+        team:teams!team_id (*)
+      `)
+      .in('status', VISIBLE_STATUSES) // CANCELED 제외
+      .gte('start_time', todayISO) // 오늘 이후 매치만
+      .order('created_at', { ascending: false })
+      .range(pageParam, pageParam + pageSize - 1);
+
+    logSupabaseResult('matches', 'SELECT', { count: data?.length ?? 0 }, error);
+
+    if (error) {
+      logResponse(this.SERVICE_NAME, 'getRecruitingMatchesPaginated', undefined, error);
+      throw error;
+    }
+
+    const hasMore = data?.length === pageSize;
+    const nextCursor = hasMore ? pageParam + pageSize : undefined;
+
+    logResponse(this.SERVICE_NAME, 'getRecruitingMatchesPaginated', {
+      count: data?.length ?? 0,
+      nextCursor
+    });
+
+    return {
+      matches: data ?? [],
+      nextCursor,
+    };
   }
 
   /**

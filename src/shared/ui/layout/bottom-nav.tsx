@@ -27,7 +27,7 @@ export function BottomNav() {
   return (
     <div 
       className={cn(
-        "fixed bottom-0 left-0 w-full h-[60px] bg-white border-t border-slate-100 flex items-center justify-around z-50 md:hidden pb-safe transition-transform duration-300 ease-in-out",
+        "fixed bottom-0 left-0 w-full h-[60px] bg-white border-t border-slate-100 flex items-center justify-around z-50 lg:hidden pb-safe transition-transform duration-300 ease-in-out",
         isScrolledDown ? "translate-y-full" : "translate-y-0"
       )}
     >

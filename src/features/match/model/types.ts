@@ -42,10 +42,6 @@ export interface PriceInfo {
   type: CostTypeValue;
   amount: number; // 금액(원) 또는 음료 개수(병)
   providesBeverage?: boolean; // 음료 제공 여부 (뱃지용)
-  /** @deprecated Use amount instead - 하위 호환성용 */
-  base?: number;
-  /** @deprecated Use amount instead - 하위 호환성용 */
-  final?: number;
 }
 
 /**
@@ -114,6 +110,18 @@ export interface MatchOptionsUI {
 }
 
 /**
+ * 포지션 UI 구조 (리스트 표시용)
+ * - all: 포지션 무관 (recruitmentType === 'ANY')
+ * - g/f/c: 개별 포지션 (recruitmentType === 'POSITION')
+ */
+export interface PositionsUI {
+  all?: PositionStatusUI;
+  g?: PositionStatusUI;
+  f?: PositionStatusUI;
+  c?: PositionStatusUI;
+}
+
+/**
  * Guest 매치 리스트/상세용 Match
  */
 export interface GuestListMatch extends BaseMatch {
@@ -121,11 +129,18 @@ export interface GuestListMatch extends BaseMatch {
   teamLogo?: string; // 팀 로고 URL (개인 주최 시 undefined)
   isPersonalHost?: boolean; // 개인 주최 여부
   positions: Partial<Record<PositionValue, PositionStatus>>; // max가 0인 포지션은 제외
+  recruitmentType?: 'ANY' | 'POSITION'; // 모집 타입 (ANY = 포지션 무관)
   level: string;
   gender: GenderValue;
   courtType?: string;
   ageMin?: number;
   ageMax?: number;
+  createdAt?: string; // ISO timestamp - NEW 뱃지용
+  isClosed?: boolean; // 마감 여부 (status === 'CLOSED')
+
+  // === UI 전용 필드 (mapper에서 생성) ===
+  priceDisplay: string; // "10,000원", "무료", "음료수 2병"
+  positionsUI: PositionsUI; // UI 친화적 포지션 구조
 
   // 상세 페이지 전용 필드
   hostNotice?: string; // 호스트 메시지
