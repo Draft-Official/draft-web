@@ -24,7 +24,7 @@ import { cn } from "@/shared/lib/utils";
 type ViewMode = "guest" | "host";
 type GuestTypeFilterValue = Exclude<MatchType, "host">;
 type HostTypeFilterValue = Exclude<MatchType, "guest">;
-type StatusFilterValue = "waiting" | "confirmed" | "ongoing" | "ended";
+type StatusFilterValue = "waiting" | "confirmed" | "ongoing" | "ended" | "cancelled";
 
 interface MatchManagementViewProps {
   notificationSlot?: React.ReactNode;
@@ -114,8 +114,12 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
         if (statusFilter.includes("ongoing") && m.status === "ongoing") {
           return true;
         }
-        // 종료/취소: ended, cancelled, rejected
-        if (statusFilter.includes("ended") && (m.status === "ended" || m.status === "cancelled" || m.status === "rejected")) {
+        // 종료: ended
+        if (statusFilter.includes("ended") && m.status === "ended") {
+          return true;
+        }
+        // 취소: cancelled, rejected
+        if (statusFilter.includes("cancelled") && (m.status === "cancelled" || m.status === "rejected")) {
           return true;
         }
         return false;

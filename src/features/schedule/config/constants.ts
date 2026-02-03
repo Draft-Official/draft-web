@@ -20,11 +20,12 @@ export const HOST_TYPE_FILTER_OPTIONS: FilterOption<Exclude<MatchType, 'guest'>>
 ];
 
 // 경기 상태 필터 옵션 (중복선택용)
-export const MATCH_STATUS_FILTER_OPTIONS: FilterOption<'waiting' | 'confirmed' | 'ongoing' | 'ended'>[] = [
+export const MATCH_STATUS_FILTER_OPTIONS: FilterOption<'waiting' | 'confirmed' | 'ongoing' | 'ended' | 'cancelled'>[] = [
   { value: 'waiting', label: '대기 중' },
   { value: 'confirmed', label: '경기 확정' },
   { value: 'ongoing', label: '경기 중' },
-  { value: 'ended', label: '종료/취소' },
+  { value: 'ended', label: '종료' },
+  { value: 'cancelled', label: '취소' },
 ];
 
 // 경기 타입별 레이블
