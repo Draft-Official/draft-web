@@ -1,23 +1,20 @@
 'use client';
 
 import Link from 'next/link';
-import { Phone, Mail, KeyRound, Link2, ChevronRight } from 'lucide-react';
+import { Landmark, ChevronRight } from 'lucide-react';
 import { Card } from '@/shared/ui/base/card';
 
-const ACCOUNT_MENUS = [
-  { label: '전화번호 변경', href: '/my/account/phone', icon: Phone },
-  { label: '이메일 변경', href: '/my/account/email', icon: Mail },
-  { label: '비밀번호 재설정', href: '/my/account/password', icon: KeyRound },
-  { label: '연동된 소셜 계정 관리', href: '/my/account/social', icon: Link2 },
+const PAYMENT_MENUS = [
+  { label: '계좌 관리', href: '/my/payment/bank-account', icon: Landmark },
 ] as const;
 
-export function AccountSection() {
+export function PaymentSection() {
   return (
     <div className="space-y-3">
-      <h2 className="font-bold text-lg text-foreground">계정</h2>
+      <h2 className="font-bold text-lg text-foreground">결제</h2>
       <Card className="p-0 overflow-hidden border-border">
         <div className="divide-y divide-border">
-          {ACCOUNT_MENUS.map(({ label, href, icon: Icon }) => (
+          {PAYMENT_MENUS.map(({ label, href, icon: Icon }) => (
             <Link
               key={href}
               href={href}

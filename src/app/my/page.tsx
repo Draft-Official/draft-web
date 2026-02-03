@@ -6,6 +6,8 @@ import { ProfileSetupModal } from '@/features/my/ui/profile-setup-modal';
 import { SupportSection } from '@/features/my/ui/support-section';
 import { NotificationSettingsSection } from '@/features/my/ui/notification-settings-section';
 import { AccountSection } from '@/features/my/ui/account-section';
+import { PaymentSection } from '@/features/my/ui/payment-section';
+import { MyPageFooter } from '@/features/my/ui/my-page-footer';
 import { ProfileData } from '@/features/my/model/types';
 import { useAuth } from '@/features/auth/model/auth-context';
 import { useUpdateProfile } from '@/features/auth/api/mutations';
@@ -103,7 +105,13 @@ export default function MyPage() {
 
       <NotificationSettingsSection />
 
-      {user && <AccountSection />}
+      {user && (
+        <>
+          <AccountSection />
+          <PaymentSection />
+          <MyPageFooter />
+        </>
+      )}
 
       <ProfileSetupModal
         open={isModalOpen}

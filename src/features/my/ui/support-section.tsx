@@ -5,8 +5,6 @@ import {
   HelpCircle,
   MessageSquare,
   Megaphone,
-  FileText,
-  Shield,
   ChevronRight,
 } from 'lucide-react';
 import { Card } from '@/shared/ui/base/card';
@@ -15,8 +13,6 @@ const SUPPORT_MENUS = [
   { label: 'FAQ', href: '/my/faq', icon: HelpCircle },
   { label: '문의하기', href: '/my/contact', icon: MessageSquare },
   { label: '공지사항', href: '/my/notices', icon: Megaphone },
-  { label: '서비스 이용약관', href: '/my/terms', icon: FileText },
-  { label: '개인정보 처리 방침', href: '/my/privacy', icon: Shield },
 ] as const;
 
 export function SupportSection() {

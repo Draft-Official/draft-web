@@ -7,3 +7,5 @@ export * from './placeholder-page-view';
 export * from './support-section';
 export * from './notification-settings-section';
 export * from './account-section';
+export * from './payment-section';
+export * from './my-page-footer';
