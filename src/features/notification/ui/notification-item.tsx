@@ -21,7 +21,8 @@ export function NotificationItem({ notification }: NotificationItemProps) {
 
   const icon = NOTIFICATION_TYPE_ICONS[notification.type];
   const label = NOTIFICATION_TYPE_LABELS[notification.type];
-  const description = NOTIFICATION_TYPE_DESCRIPTIONS[notification.type];
+  const description = notification.announcementMessage
+    ?? NOTIFICATION_TYPE_DESCRIPTIONS[notification.type];
 
   function handleClick() {
     // 읽음 처리
