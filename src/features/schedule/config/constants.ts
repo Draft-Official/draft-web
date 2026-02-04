@@ -19,11 +19,22 @@ export const HOST_TYPE_FILTER_OPTIONS: FilterOption<Exclude<MatchType, 'guest'>>
   { value: 'tournament', label: '대회' },
 ];
 
-// 경기 상태 필터 옵션 (중복선택용)
-export const MATCH_STATUS_FILTER_OPTIONS: FilterOption<'waiting' | 'confirmed' | 'ongoing' | 'ended' | 'cancelled'>[] = [
-  { value: 'waiting', label: '대기 중' },
+// 경기 상태 필터 옵션 - 참여 모드 (중복선택용)
+export const GUEST_STATUS_FILTER_OPTIONS: FilterOption<'pending' | 'payment_waiting' | 'voting' | 'confirmed' | 'ended' | 'cancelled'>[] = [
+  { value: 'pending', label: '승인 대기' },
+  { value: 'payment_waiting', label: '결제 대기' },
+  { value: 'voting', label: '투표 중' },
+  { value: 'confirmed', label: '확정' },
+  { value: 'ended', label: '종료' },
+  { value: 'cancelled', label: '취소/거절' },
+];
+
+// 경기 상태 필터 옵션 - 관리 모드 (중복선택용)
+export const HOST_STATUS_FILTER_OPTIONS: FilterOption<'recruiting' | 'closed' | 'voting' | 'confirmed' | 'ended' | 'cancelled'>[] = [
+  { value: 'recruiting', label: '모집 중' },
+  { value: 'closed', label: '모집 마감' },
+  { value: 'voting', label: '투표 중' },
   { value: 'confirmed', label: '경기 확정' },
-  { value: 'ongoing', label: '경기 중' },
   { value: 'ended', label: '종료' },
   { value: 'cancelled', label: '취소' },
 ];

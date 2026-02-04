@@ -16,7 +16,8 @@ import type { MatchType, ManagedMatch } from "../model/types";
 import {
   MATCH_TYPE_FILTER_OPTIONS,
   HOST_TYPE_FILTER_OPTIONS,
-  MATCH_STATUS_FILTER_OPTIONS,
+  GUEST_STATUS_FILTER_OPTIONS,
+  HOST_STATUS_FILTER_OPTIONS,
   PAST_MATCH_STATUSES,
 } from "../config/constants";
 import { cn } from "@/shared/lib/utils";
@@ -24,7 +25,8 @@ import { cn } from "@/shared/lib/utils";
 type ViewMode = "guest" | "host";
 type GuestTypeFilterValue = Exclude<MatchType, "host">;
 type HostTypeFilterValue = Exclude<MatchType, "guest">;
-type StatusFilterValue = "waiting" | "confirmed" | "ongoing" | "ended" | "cancelled";
+type GuestStatusFilterValue = "pending" | "payment_waiting" | "voting" | "confirmed" | "ended" | "cancelled";
+type HostStatusFilterValue = "recruiting" | "closed" | "voting" | "confirmed" | "ended" | "cancelled";
 
 interface MatchManagementViewProps {
   notificationSlot?: React.ReactNode;
@@ -36,7 +38,8 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
   const [viewMode, setViewMode] = useLocalStorage<ViewMode>("schedule_view_mode", "guest");
   const [guestTypeFilter, setGuestTypeFilter] = useLocalStorage<GuestTypeFilterValue[]>("schedule_guest_type_filter", []);
   const [hostTypeFilter, setHostTypeFilter] = useLocalStorage<HostTypeFilterValue[]>("schedule_host_type_filter", []);
-  const [statusFilter, setStatusFilter] = useLocalStorage<StatusFilterValue[]>("schedule_status_filter", []);
+  const [guestStatusFilter, setGuestStatusFilter] = useLocalStorage<GuestStatusFilterValue[]>("schedule_guest_status_filter", []);
+  const [hostStatusFilter, setHostStatusFilter] = useLocalStorage<HostStatusFilterValue[]>("schedule_host_status_filter", []);
   const [showPastMatches, setShowPastMatches] = useLocalStorage<"hide" | "show">("schedule_past_matches", "hide");
 
   // Fetch data from Supabase
@@ -99,29 +102,26 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
       filtered = filtered.filter((m) => hostTypeFilter.includes(m.type as HostTypeFilterValue));
     }
 
-    // Status filter - Multi-select
-    if (statusFilter.length > 0) {
+    // Status filter - Multi-select (탭별 분리)
+    if (viewMode === "guest" && guestStatusFilter.length > 0) {
       filtered = filtered.filter((m) => {
-        // 대기 중: recruiting, closed, waiting, scheduled, payment_waiting, voting, pending (모집 중/모집 마감 포함)
-        if (statusFilter.includes("waiting") && (m.status === "recruiting" || m.status === "closed" || m.status === "waiting" || m.status === "scheduled" || m.status === "payment_waiting" || m.status === "voting" || m.status === "pending")) {
-          return true;
-        }
-        // 경기 확정: confirmed
-        if (statusFilter.includes("confirmed") && m.status === "confirmed") {
-          return true;
-        }
-        // 경기 중: ongoing
-        if (statusFilter.includes("ongoing") && m.status === "ongoing") {
-          return true;
-        }
-        // 종료: ended
-        if (statusFilter.includes("ended") && m.status === "ended") {
-          return true;
-        }
-        // 취소: cancelled, rejected
-        if (statusFilter.includes("cancelled") && (m.status === "cancelled" || m.status === "rejected")) {
-          return true;
-        }
+        if (guestStatusFilter.includes("pending") && (m.status === "waiting" || m.status === "pending")) return true;
+        if (guestStatusFilter.includes("payment_waiting") && m.status === "payment_waiting") return true;
+        if (guestStatusFilter.includes("voting") && m.status === "voting") return true;
+        if (guestStatusFilter.includes("confirmed") && (m.status === "confirmed" || m.status === "scheduled" || m.status === "ongoing")) return true;
+        if (guestStatusFilter.includes("ended") && m.status === "ended") return true;
+        if (guestStatusFilter.includes("cancelled") && (m.status === "cancelled" || m.status === "rejected")) return true;
+        return false;
+      });
+    }
+    if (viewMode === "host" && hostStatusFilter.length > 0) {
+      filtered = filtered.filter((m) => {
+        if (hostStatusFilter.includes("recruiting") && m.status === "recruiting") return true;
+        if (hostStatusFilter.includes("closed") && m.status === "closed") return true;
+        if (hostStatusFilter.includes("voting") && m.status === "voting") return true;
+        if (hostStatusFilter.includes("confirmed") && (m.status === "confirmed" || m.status === "scheduled" || m.status === "ongoing")) return true;
+        if (hostStatusFilter.includes("ended") && m.status === "ended") return true;
+        if (hostStatusFilter.includes("cancelled") && m.status === "cancelled") return true;
         return false;
       });
     }
@@ -132,19 +132,18 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
     }
 
     // 진행 중/예정 → 종료/취소 순, 각 그룹 내에서 가까운 시간순
-    const parseDate = (m: ManagedMatch) =>
-      new Date(`${m.date.split(" ")[0].replace(/\./g, "-")}T${m.time}`);
+    const getTime = (m: ManagedMatch) => new Date(m.startTimeISO).getTime();
 
     const active = filtered.filter((m) => !PAST_MATCH_STATUSES.includes(m.status));
     const past = filtered.filter((m) => PAST_MATCH_STATUSES.includes(m.status));
 
-    active.sort((a, b) => parseDate(a).getTime() - parseDate(b).getTime());
-    past.sort((a, b) => parseDate(b).getTime() - parseDate(a).getTime());
+    active.sort((a, b) => getTime(a) - getTime(b));
+    past.sort((a, b) => getTime(b) - getTime(a));
 
     filtered = [...active, ...past];
 
     return filtered;
-  }, [allMatches, viewMode, guestTypeFilter, hostTypeFilter, statusFilter, showPastMatches]);
+  }, [allMatches, viewMode, guestTypeFilter, hostTypeFilter, guestStatusFilter, hostStatusFilter, showPastMatches]);
 
   const handleCardClick = (matchId: string) => {
     // Mark unread notifications for this match as read
@@ -191,24 +190,33 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
     return `${HOST_TYPE_FILTER_OPTIONS.find((opt) => opt.value === value[0])?.label} 외 ${value.length - 1}`;
   };
 
-  const getStatusFilterDisplayLabel = (value: StatusFilterValue[]) => {
+  const getGuestStatusFilterDisplayLabel = (value: GuestStatusFilterValue[]) => {
     if (value.length === 0) return "진행상태";
     if (value.length === 1) {
-      return MATCH_STATUS_FILTER_OPTIONS.find((opt) => opt.value === value[0])?.label || "";
+      return GUEST_STATUS_FILTER_OPTIONS.find((opt) => opt.value === value[0])?.label || "";
     }
-    return `${MATCH_STATUS_FILTER_OPTIONS.find((opt) => opt.value === value[0])?.label} 외 ${value.length - 1}`;
+    return `${GUEST_STATUS_FILTER_OPTIONS.find((opt) => opt.value === value[0])?.label} 외 ${value.length - 1}`;
+  };
+
+  const getHostStatusFilterDisplayLabel = (value: HostStatusFilterValue[]) => {
+    if (value.length === 0) return "진행상태";
+    if (value.length === 1) {
+      return HOST_STATUS_FILTER_OPTIONS.find((opt) => opt.value === value[0])?.label || "";
+    }
+    return `${HOST_STATUS_FILTER_OPTIONS.find((opt) => opt.value === value[0])?.label} 외 ${value.length - 1}`;
   };
 
   const showPast = showPastMatches === "show";
 
   // Check if any filter is active
-  const isFilterActive = guestTypeFilter.length > 0 || hostTypeFilter.length > 0 || statusFilter.length > 0 || showPast;
+  const isFilterActive = guestTypeFilter.length > 0 || hostTypeFilter.length > 0 || guestStatusFilter.length > 0 || hostStatusFilter.length > 0 || showPast;
 
   // Reset all filters
   const handleResetFilters = () => {
     setGuestTypeFilter([]);
     setHostTypeFilter([]);
-    setStatusFilter([]);
+    setGuestStatusFilter([]);
+    setHostStatusFilter([]);
     setShowPastMatches("hide");
   };
 
@@ -275,14 +283,24 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
             />
           )}
 
-          {/* Status Filter (Multi-select) */}
-          <FilterDropdown
-            options={MATCH_STATUS_FILTER_OPTIONS}
-            value={statusFilter}
-            onChange={setStatusFilter}
-            getDisplayLabel={getStatusFilterDisplayLabel}
-            multiSelect
-          />
+          {/* Status Filter (Multi-select) - 탭별 분리 */}
+          {viewMode === "guest" ? (
+            <FilterDropdown
+              options={GUEST_STATUS_FILTER_OPTIONS}
+              value={guestStatusFilter}
+              onChange={setGuestStatusFilter}
+              getDisplayLabel={getGuestStatusFilterDisplayLabel}
+              multiSelect
+            />
+          ) : (
+            <FilterDropdown
+              options={HOST_STATUS_FILTER_OPTIONS}
+              value={hostStatusFilter}
+              onChange={setHostStatusFilter}
+              getDisplayLabel={getHostStatusFilterDisplayLabel}
+              multiSelect
+            />
+          )}
 
           {/* Past Matches Toggle */}
           <Toggle
