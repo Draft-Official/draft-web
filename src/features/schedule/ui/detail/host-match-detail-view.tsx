@@ -37,10 +37,12 @@ import {
   useCancelParticipation,
   useUpdateMatchStatus,
   useUpdateRecruitmentSetup,
+  useCreateAnnouncement,
 } from '../../api';
 import { GuestProfileDialog } from './guest-profile-dialog';
 import { EditQuotaDialog } from './edit-quota-dialog';
 import { CancelConfirmDialog } from './cancel-confirm-dialog';
+import { AnnouncementDialog } from './announcement-dialog';
 
 // 탭 설정
 const GUEST_TABS: { status: GuestStatus; label: string }[] = [
@@ -68,6 +70,7 @@ export function HostMatchDetailView() {
   const cancelMutation = useCancelParticipation();
   const statusMutation = useUpdateMatchStatus();
   const recruitmentMutation = useUpdateRecruitmentSetup();
+  const announcementMutation = useCreateAnnouncement();
 
   // Local state
   const [selectedTab, setSelectedTab] = useState<GuestStatus>('pending');
@@ -76,6 +79,7 @@ export function HostMatchDetailView() {
   const [isEditQuotaOpen, setIsEditQuotaOpen] = useState(false);
   const [isCancelConfirmOpen, setIsCancelConfirmOpen] = useState(false);
   const [guestToCancel, setGuestToCancel] = useState<Guest | null>(null);
+  const [isAnnouncementOpen, setIsAnnouncementOpen] = useState(false);
 
   const isLoading = isLoadingMatch || isLoadingGuests;
 
@@ -231,6 +235,9 @@ export function HostMatchDetailView() {
                 추가 모집하기
               </DropdownMenuItem>
             )}
+            <DropdownMenuItem onClick={() => setIsAnnouncementOpen(true)}>
+              공지하기
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => router.push(`/matches/create?edit=${match.id}`)}>
               경기 수정
             </DropdownMenuItem>
@@ -580,6 +587,15 @@ export function HostMatchDetailView() {
               },
             }
           );
+        }}
+      />
+
+      {/* 공지하기 Dialog */}
+      <AnnouncementDialog
+        open={isAnnouncementOpen}
+        onOpenChange={setIsAnnouncementOpen}
+        onSubmit={(message) => {
+          announcementMutation.mutate({ matchId, message });
         }}
       />
 

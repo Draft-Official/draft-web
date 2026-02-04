@@ -5,9 +5,10 @@ export interface ClientNotification {
   userId: string;
   type: NotificationTypeValue;
   referenceId: string;
-  referenceType: 'APPLICATION' | 'MATCH';
+  referenceType: 'APPLICATION' | 'MATCH' | 'ANNOUNCEMENT';
   matchId: string | null;
   actorId: string | null;
   isRead: boolean;
   createdAt: string;
+  announcementMessage?: string;
 }
