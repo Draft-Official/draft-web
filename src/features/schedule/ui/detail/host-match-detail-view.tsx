@@ -21,7 +21,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/shared/ui/base/dropdown-menu';
-import { toast } from 'sonner';
 import type { CancelTypeValue } from '@/shared/config/constants';
 import type {
   Guest,
@@ -38,11 +37,13 @@ import {
   useUpdateMatchStatus,
   useUpdateRecruitmentSetup,
   useCreateAnnouncement,
+  useCancelMatchFlow,
 } from '../../api';
 import { GuestProfileDialog } from './guest-profile-dialog';
 import { EditQuotaDialog } from './edit-quota-dialog';
 import { CancelConfirmDialog } from './cancel-confirm-dialog';
 import { AnnouncementDialog } from './announcement-dialog';
+import { MatchCancelDialog } from './match-cancel-dialog';
 
 // 탭 설정
 const GUEST_TABS: { status: GuestStatus; label: string }[] = [
@@ -71,6 +72,7 @@ export function HostMatchDetailView() {
   const statusMutation = useUpdateMatchStatus();
   const recruitmentMutation = useUpdateRecruitmentSetup();
   const announcementMutation = useCreateAnnouncement();
+  const cancelMatchFlowMutation = useCancelMatchFlow();
 
   // Local state
   const [selectedTab, setSelectedTab] = useState<GuestStatus>('pending');
@@ -80,6 +82,7 @@ export function HostMatchDetailView() {
   const [isCancelConfirmOpen, setIsCancelConfirmOpen] = useState(false);
   const [guestToCancel, setGuestToCancel] = useState<Guest | null>(null);
   const [isAnnouncementOpen, setIsAnnouncementOpen] = useState(false);
+  const [isMatchCancelOpen, setIsMatchCancelOpen] = useState(false);
 
   const isLoading = isLoadingMatch || isLoadingGuests;
 
@@ -247,9 +250,18 @@ export function HostMatchDetailView() {
             <DropdownMenuItem
               className="text-red-600"
               onClick={() => {
-                if (confirm('경기를 취소하시겠습니까?')) {
-                  toast.error('경기가 취소되었습니다.');
-                  router.back();
+                const confirmedCount = guests.filter(
+                  (g) => g.status === 'confirmed'
+                ).length;
+                if (confirmedCount === 0) {
+                  if (confirm('경기를 취소하시겠습니까?')) {
+                    statusMutation.mutate(
+                      { matchId, status: 'CANCELED' },
+                      { onSuccess: () => router.back() }
+                    );
+                  }
+                } else {
+                  setIsMatchCancelOpen(true);
                 }
               }}
             >
@@ -610,6 +622,19 @@ export function HostMatchDetailView() {
           if (guestToCancel) {
             handleCancel(guestToCancel, cancelType);
           }
+        }}
+      />
+
+      {/* 경기 취소 Dialog (확정자 있는 경우) */}
+      <MatchCancelDialog
+        open={isMatchCancelOpen}
+        onOpenChange={setIsMatchCancelOpen}
+        confirmedCount={guests.filter((g) => g.status === 'confirmed').length}
+        onConfirm={(message) => {
+          cancelMatchFlowMutation.mutate(
+            { matchId, message },
+            { onSuccess: () => router.back() }
+          );
         }}
       />
 
