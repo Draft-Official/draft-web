@@ -23,7 +23,7 @@ export function notificationRowToClient(row: NotificationRow): ClientNotificatio
     userId: row.user_id,
     type: row.type as NotificationTypeValue,
     referenceId: row.reference_id,
-    referenceType: row.reference_type as 'APPLICATION' | 'MATCH',
+    referenceType: row.reference_type as 'APPLICATION' | 'MATCH' | 'ANNOUNCEMENT',
     matchId: row.match_id,
     actorId: row.actor_id,
     isRead: row.is_read,

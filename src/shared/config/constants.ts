@@ -444,6 +444,7 @@ export const NOTIFICATION_TYPE_VALUES = [
   'NEW_APPLICATION',
   'GUEST_CANCELED',
   'GUEST_PAYMENT_CONFIRMED',
+  'HOST_ANNOUNCEMENT',
 ] as const;
 export type NotificationTypeValue = (typeof NOTIFICATION_TYPE_VALUES)[number];
 
@@ -457,6 +458,7 @@ export const NOTIFICATION_TYPE_LABELS: Record<NotificationTypeValue, string> = {
   NEW_APPLICATION: '새 신청',
   GUEST_CANCELED: '게스트 취소',
   GUEST_PAYMENT_CONFIRMED: '송금 완료',
+  HOST_ANNOUNCEMENT: '호스트 공지',
 };
 
 export const NOTIFICATION_TYPE_DESCRIPTIONS: Record<NotificationTypeValue, string> = {
@@ -469,6 +471,7 @@ export const NOTIFICATION_TYPE_DESCRIPTIONS: Record<NotificationTypeValue, strin
   NEW_APPLICATION: '새로운 경기 신청이 접수되었습니다.',
   GUEST_CANCELED: '게스트가 신청을 취소했습니다.',
   GUEST_PAYMENT_CONFIRMED: '게스트가 송금 완료를 알렸습니다.',
+  HOST_ANNOUNCEMENT: '호스트가 공지를 등록했습니다.',
 };
 
 export const NOTIFICATION_TYPE_ICONS: Record<NotificationTypeValue, string> = {
@@ -481,4 +484,5 @@ export const NOTIFICATION_TYPE_ICONS: Record<NotificationTypeValue, string> = {
   NEW_APPLICATION: '🏀',
   GUEST_CANCELED: '👋',
   GUEST_PAYMENT_CONFIRMED: '💰',
+  HOST_ANNOUNCEMENT: '📢',
 };

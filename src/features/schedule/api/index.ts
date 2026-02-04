@@ -22,4 +22,5 @@ export {
   useCancelParticipation,
   useUpdateMatchStatus,
   useUpdateRecruitmentSetup,
+  useCreateAnnouncement,
 } from './mutations';
