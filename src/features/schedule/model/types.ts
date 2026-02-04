@@ -30,6 +30,7 @@ export interface ManagedMatch {
   teamName: string;
   date: string;       // YYYY. MM. DD (Day)
   time: string;       // HH:mm
+  startTimeISO: string; // ISO timestamp (정렬용)
   location: string;
   locationUrl?: string;
 

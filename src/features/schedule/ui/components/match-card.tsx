@@ -198,8 +198,8 @@ export function MatchCard({ match, notifications, onClick, onConfirmPayment }: M
                   송금 완료
                 </Button>
               </div>
-            ) : match.bankInfo ? (
-              // 그 외 상태: 기존 송금 정보 팝오버
+            ) : match.bankInfo && match.status !== 'pending' && match.status !== 'waiting' && match.status !== 'cancelled' && match.status !== 'rejected' ? (
+              // 승인 이후 상태: 송금 정보 팝오버
               <Popover>
                 <PopoverTrigger asChild onClick={(e) => e.stopPropagation()}>
                   <Button

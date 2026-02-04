@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Minus, Plus } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { Button } from '@/shared/ui/base/button';
@@ -23,6 +23,10 @@ interface EditQuotaDialogProps {
   onSave: (setup: RecruitmentSetup) => void;
 }
 
+function getQuotaMax(match: HostMatchDetail, position: string): number {
+  return match.positionQuotas?.find(q => q.position === position)?.max ?? 0;
+}
+
 export function EditQuotaDialog({
   open,
   onOpenChange,
@@ -32,12 +36,35 @@ export function EditQuotaDialog({
   const [editMode, setEditMode] = useState<RecruitmentMode>('position');
   const [isFlexBigman, setIsFlexBigman] = useState(false);
   const [editPositions, setEditPositions] = useState({
-    guard: 2,
-    forward: 2,
-    center: 1,
-    bigman: 3,
-    total: 5,
+    guard: 0,
+    forward: 0,
+    center: 0,
+    bigman: 0,
+    total: 0,
   });
+
+  useEffect(() => {
+    if (!open) return;
+    setEditMode(match.recruitmentMode);
+
+    if (match.recruitmentMode === 'total') {
+      setIsFlexBigman(false);
+      setEditPositions({
+        guard: 0, forward: 0, center: 0, bigman: 0,
+        total: match.totalQuota?.max ?? 0,
+      });
+    } else {
+      const hasBigman = match.positionQuotas?.some(q => q.position === 'B');
+      setIsFlexBigman(!!hasBigman);
+      setEditPositions({
+        guard: getQuotaMax(match, 'G'),
+        forward: getQuotaMax(match, 'F'),
+        center: getQuotaMax(match, 'C'),
+        bigman: getQuotaMax(match, 'B'),
+        total: 0,
+      });
+    }
+  }, [open, match]);
 
   const updatePosition = (
     pos: 'guard' | 'forward' | 'center' | 'bigman' | 'total',

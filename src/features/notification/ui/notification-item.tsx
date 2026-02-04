@@ -24,15 +24,23 @@ export function NotificationItem({ notification }: NotificationItemProps) {
   const description = notification.announcementMessage
     ?? NOTIFICATION_TYPE_DESCRIPTIONS[notification.type];
 
+  // 호스트가 받는 알림 → manage 페이지로 라우팅
+  const HOST_NOTIFICATION_TYPES = new Set([
+    'NEW_APPLICATION',
+    'GUEST_CANCELED',
+    'GUEST_PAYMENT_CONFIRMED',
+  ]);
+
   function handleClick() {
-    // 읽음 처리
     if (!notification.isRead) {
       markAsRead.mutate({ notificationId: notification.id });
     }
 
-    // 네비게이션
     if (notification.matchId) {
-      router.push(`/matches/${notification.matchId}`);
+      const path = HOST_NOTIFICATION_TYPES.has(notification.type)
+        ? `/matches/${notification.matchId}/manage`
+        : `/matches/${notification.matchId}`;
+      router.push(path);
     }
   }
 

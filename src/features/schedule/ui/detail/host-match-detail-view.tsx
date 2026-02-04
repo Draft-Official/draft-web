@@ -230,6 +230,9 @@ export function HostMatchDetailView() {
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-40">
+            <DropdownMenuItem onClick={() => router.push(`/matches/${match.id}`)}>
+              상세페이지 보기
+            </DropdownMenuItem>
             {(isClosed || isConfirmed) && (
               <DropdownMenuItem onClick={handleResumeRecruiting}>
                 추가 모집하기
@@ -337,7 +340,7 @@ export function HostMatchDetailView() {
           {match.recruitmentMode === 'total' && match.totalQuota && (
             <div className="space-y-1">
               <div className="flex items-center justify-between text-sm">
-                <span className="font-medium text-slate-700">전체</span>
+                <span className="font-medium text-slate-700">포지션 무관</span>
                 <span
                   className={cn(
                     'font-bold',
@@ -460,7 +463,7 @@ export function HostMatchDetailView() {
                               handleApprove(guest);
                             }}
                             variant="outline"
-                            className="h-8 px-3 text-xs"
+                            className="h-8 px-3 text-xs border-slate-200"
                           >
                             승인
                           </Button>
@@ -486,7 +489,7 @@ export function HostMatchDetailView() {
                               handleConfirmPayment(guest);
                             }}
                             variant="outline"
-                            className="h-8 px-3 text-xs"
+                            className="h-8 px-3 text-xs border-slate-200"
                           >
                             입금확인
                           </Button>
@@ -514,7 +517,7 @@ export function HostMatchDetailView() {
                                 verifyPaymentMutation.mutate({ applicationId: guest.id, matchId });
                               }}
                               variant="outline"
-                              className="h-8 px-3 text-xs"
+                              className="h-8 px-3 text-xs border-slate-200"
                             >
                               입금확인
                             </Button>

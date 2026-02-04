@@ -16,6 +16,8 @@ interface BottomBarProps {
   isCanceling?: boolean;
   statusText?: string;
   isMatchEnded?: boolean;
+  isHost?: boolean;
+  onManage?: () => void;
 }
 
 export function MatchDetailBottomBar({
@@ -28,8 +30,27 @@ export function MatchDetailBottomBar({
   isCanceling = false,
   statusText,
   isMatchEnded = false,
+  isHost = false,
+  onManage,
 }: BottomBarProps) {
   const isClosed = match.isClosed || match.positions.all?.status === 'closed';
+
+  // 호스트인 경우 - 경기 관리하기
+  if (isHost) {
+    return (
+      <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none md:pl-[240px]">
+        <div className="max-w-[760px] mx-auto bg-white border-t border-slate-100 px-5 pt-4 pb-8 pointer-events-auto shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+          <Button
+            size="lg"
+            className="w-full text-lg font-bold h-12 rounded-xl bg-[#FF6600] hover:bg-[#FF6600]/90 text-white"
+            onClick={onManage}
+          >
+            경기 관리하기
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   // 로딩 중
   if (isLoading) {

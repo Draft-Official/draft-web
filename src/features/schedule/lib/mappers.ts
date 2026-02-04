@@ -162,6 +162,7 @@ export function matchToManagedMatch(
     teamName: match.team?.name || match.manual_team_name || '팀명 미정',
     date: formatMatchDate(match.start_time),
     time: formatMatchTime(match.start_time),
+    startTimeISO: match.start_time || '',
     location: match.gym?.name || '장소 미정',
     locationUrl: match.gym?.kakao_place_id
       ? `https://map.kakao.com/link/map/${match.gym.kakao_place_id}`
