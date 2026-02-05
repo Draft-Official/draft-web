@@ -1,15 +1,41 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import {
+  CheckCircle,
+  XCircle,
+  Handshake,
+  Clock,
+  AlertTriangle,
+  Ban,
+  UserPlus,
+  UserMinus,
+  Banknote,
+  Megaphone,
+  type LucideIcon,
+} from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import {
   NOTIFICATION_TYPE_LABELS,
   NOTIFICATION_TYPE_DESCRIPTIONS,
-  NOTIFICATION_TYPE_ICONS,
+  type NotificationTypeValue,
 } from '@/shared/config/constants';
 import { useMarkNotificationAsRead } from '../api/mutations';
 import { formatRelativeTime } from '../lib/format-time';
 import type { ClientNotification } from '../model/types';
+
+const NOTIFICATION_ICONS: Record<NotificationTypeValue, LucideIcon> = {
+  APPLICATION_APPROVED: CheckCircle,
+  APPLICATION_REJECTED: XCircle,
+  APPLICATION_CANCELED_USER_REQUEST: Handshake,
+  APPLICATION_CANCELED_PAYMENT_TIMEOUT: Clock,
+  APPLICATION_CANCELED_FRAUDULENT_PAYMENT: AlertTriangle,
+  MATCH_CANCELED: Ban,
+  NEW_APPLICATION: UserPlus,
+  GUEST_CANCELED: UserMinus,
+  GUEST_PAYMENT_CONFIRMED: Banknote,
+  HOST_ANNOUNCEMENT: Megaphone,
+};
 
 interface NotificationItemProps {
   notification: ClientNotification;
@@ -19,7 +45,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
   const router = useRouter();
   const markAsRead = useMarkNotificationAsRead();
 
-  const icon = NOTIFICATION_TYPE_ICONS[notification.type];
+  const Icon = NOTIFICATION_ICONS[notification.type];
   const label = NOTIFICATION_TYPE_LABELS[notification.type];
   const description = notification.announcementMessage
     ?? NOTIFICATION_TYPE_DESCRIPTIONS[notification.type];
@@ -54,9 +80,9 @@ export function NotificationItem({ notification }: NotificationItemProps) {
       )}
     >
       {/* Icon */}
-      <span className="flex-shrink-0 text-xl mt-0.5" aria-hidden>
-        {icon}
-      </span>
+      <div className="flex-shrink-0 w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center mt-0.5">
+        <Icon className="w-5 h-5 text-slate-600" aria-hidden />
+      </div>
 
       {/* Content */}
       <div className="flex-1 min-w-0">

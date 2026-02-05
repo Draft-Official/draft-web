@@ -59,9 +59,11 @@ export const POSITION_OPTIONS = POSITION_VALUES.map(value => ({
 
 export const POSITION_DEFAULT: PositionValue = 'G';
 
-export function getPositionLabel(value: string, type: 'short' | 'full' = 'full'): string {
+export function getPositionLabel(value: string, type: 'short' | 'full' | 'combined' = 'full'): string {
   const labels = POSITION_LABELS[value as PositionValue];
-  return labels ? labels[type] : value;
+  if (!labels) return value;
+  if (type === 'combined') return `${labels.full} (${labels.short})`;
+  return labels[type];
 }
 
 // ============================================
@@ -474,15 +476,3 @@ export const NOTIFICATION_TYPE_DESCRIPTIONS: Record<NotificationTypeValue, strin
   HOST_ANNOUNCEMENT: '호스트가 공지를 등록했습니다.',
 };
 
-export const NOTIFICATION_TYPE_ICONS: Record<NotificationTypeValue, string> = {
-  APPLICATION_APPROVED: '✅',
-  APPLICATION_REJECTED: '❌',
-  APPLICATION_CANCELED_USER_REQUEST: '🤝',
-  APPLICATION_CANCELED_PAYMENT_TIMEOUT: '⏰',
-  APPLICATION_CANCELED_FRAUDULENT_PAYMENT: '🚨',
-  MATCH_CANCELED: '🚫',
-  NEW_APPLICATION: '🏀',
-  GUEST_CANCELED: '👋',
-  GUEST_PAYMENT_CONFIRMED: '💰',
-  HOST_ANNOUNCEMENT: '📢',
-};

@@ -214,6 +214,23 @@ export interface GuestMatchPosition {
 }
 
 // ============================================
+// Query 응답 타입
+// ============================================
+
+// Participating matches query에서 사용하는 match row 타입
+export interface ParticipatingMatchRow {
+  id: string;
+  manual_team_name: string;
+  start_time: string;
+  end_time: string;
+  cost_type: string;
+  cost_amount: number;
+  status: string;
+  account_info: { bank?: string; number?: string; holder?: string } | null;
+  gym: { name: string; address: string; kakao_place_id: string | null } | null;
+}
+
+// ============================================
 // 관리 페이지 타입 정의
 // ============================================
 
