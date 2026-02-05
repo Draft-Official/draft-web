@@ -14,6 +14,7 @@ import type {
 import type { AccountInfo } from '@/shared/types/jsonb.types';
 import { formatMatchDate, formatMatchTime } from '@/shared/lib/date';
 import { SKILL_LEVEL_NAMES } from '@/shared/config/skill-constants';
+import { getPositionLabel } from '@/shared/config/constants';
 import type {
   ManagedMatch,
   MatchType,
@@ -103,7 +104,7 @@ export function applicationToGuest(
 ): Guest {
   const participants = (app.participants_info as ParticipantInfo[] | null) || [];
   const position = participants[0]?.position || 'G';
-  const positionLabel = getPositionLabel(position);
+  const positionLabel = getPositionLabel(position, 'combined');
 
   // User metadata에서 height, age, skill_level 추출 (있는 경우)
   const userMetadata = app.user?.metadata as { height?: number; age?: number; skill_level?: number } | null;
@@ -115,7 +116,7 @@ export function applicationToGuest(
     .filter((p) => p.type === 'GUEST')
     .map((p) => ({
       name: p.name,
-      position: getPositionLabel(p.position),
+      position: getPositionLabel(p.position, 'combined'),
       height: p.height ? `${p.height}cm` : undefined,
       age: p.age ? `${p.age}세` : undefined,
       skillLevel: p.skillLevel ? (SKILL_LEVEL_NAMES[p.skillLevel] || `Lv.${p.skillLevel}`) : undefined,
@@ -233,15 +234,6 @@ export function matchToHostMatchDetail(match: MatchWithRelations): HostMatchDeta
 // Helper Functions
 // ============================================
 
-function getPositionLabel(position: string): string {
-  const labels: Record<string, string> = {
-    G: '가드 (G)',
-    F: '포워드 (F)',
-    C: '센터 (C)',
-    B: '빅맨 (F/C)',
-  };
-  return labels[position] || position;
-}
 
 function getLevelLabel(mannerScore: number): string {
   // manner_score를 레벨로 변환 (임시 로직)

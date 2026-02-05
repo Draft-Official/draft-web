@@ -7,7 +7,7 @@ import { Button } from '@/shared/ui/base/button';
 import { PaymentConfirmDialog } from './payment-confirm-dialog';
 import { cn } from '@/shared/lib/utils';
 import type { ManagedMatch } from '../../model/types';
-import type { ClientNotification } from '@/features/notification/model/types';
+import type { ClientNotification } from '@/shared/types/notification.types';
 import { NOTIFICATION_TYPE_DESCRIPTIONS } from '@/shared/config/constants';
 import {
   MATCH_TYPE_LABELS,

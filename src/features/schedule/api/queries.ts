@@ -8,6 +8,7 @@ import { createMatchService } from '@/features/match/api/match-api';
 import { createApplicationService } from '@/features/application/api/application-api';
 import { useAuth } from '@/features/auth';
 import { formatMatchDate, formatMatchTime } from '@/shared/lib/date';
+import { getPositionLabel } from '@/shared/config/constants';
 import { matchManagementKeys } from './keys';
 import {
   matchToManagedMatch,
@@ -129,13 +130,6 @@ export function useParticipatingMatches() {
           const companionCount = companions.length;
           const totalCount = participants.length || 1;
 
-          // 포지션 라벨 변환
-          const positionLabels: Record<string, string> = {
-            G: '가드 (G)',
-            F: '포워드 (F)',
-            C: '센터 (C)',
-            B: '빅맨 (F/C)',
-          };
           const position = mainParticipant?.position || 'G';
 
           return {
@@ -161,11 +155,11 @@ export function useParticipatingMatches() {
                 }
               : undefined,
             applicationInfo: {
-              position: positionLabels[position] || position,
+              position: getPositionLabel(position, 'combined'),
               appliedAt: app.created_at || '',
               companions: companions.length > 0 ? companions.map((c) => ({
                 name: c.name,
-                position: positionLabels[c.position] || c.position,
+                position: getPositionLabel(c.position, 'combined'),
               })) : undefined,
               cancelReason: app.cancel_reason || undefined,
             },

@@ -6,7 +6,7 @@ import { Calendar, RotateCcw, Loader2 } from "lucide-react";
 import { useLocalStorage } from "@/shared/lib/hooks/use-local-storage";
 import { useAuth } from "@/features/auth/model/auth-context";
 import { useUnreadNotifications, useMarkNotificationsAsReadByMatch } from "@/features/notification/api";
-import type { ClientNotification } from "@/features/notification/model/types";
+import type { ClientNotification } from "@/shared/types/notification.types";
 import type { NotificationTypeValue } from "@/shared/config/constants";
 import { FilterDropdown } from "./components/filter-dropdown";
 import { MatchCard } from "./components/match-card";
