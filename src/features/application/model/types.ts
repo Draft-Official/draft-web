@@ -6,6 +6,10 @@ import type {
   PositionValue,
   ApplicationStatusValue,
 } from '@/shared/config/constants';
+import type { ApplicationSourceValue } from '@/shared/config/team-constants';
+
+// Re-export for convenience
+export type { ApplicationSourceValue } from '@/shared/config/team-constants';
 
 /**
  * 신청자 정보

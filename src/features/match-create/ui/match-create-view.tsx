@@ -26,7 +26,7 @@ import { useMyRecentMatches } from '@/features/match-create/api/queries';
 import { MatchCreateFormData } from '@/features/match-create/model/schema';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { createAuthService } from '@/features/auth/api/auth-api';
-import { createTeamService } from '@/features/team/api/team-api';
+import { createTeamService } from '@/features/team/api';
 import { createMatchService } from '@/features/match/api/match-api';
 import {
   GENDER_DEFAULT,

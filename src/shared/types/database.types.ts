@@ -21,10 +21,12 @@ export type Database = {
           cancel_type: Database["public"]["Enums"]["cancel_type"] | null
           canceled_by: string | null
           created_at: string | null
+          description: string | null
           id: string
           match_id: string
           participants_info: Json | null
           payment_verified_at: string | null
+          source: Database["public"]["Enums"]["application_source"] | null
           status: Database["public"]["Enums"]["application_status"] | null
           team_id: string | null
           updated_at: string | null
@@ -36,10 +38,12 @@ export type Database = {
           cancel_type?: Database["public"]["Enums"]["cancel_type"] | null
           canceled_by?: string | null
           created_at?: string | null
+          description?: string | null
           id?: string
           match_id: string
           participants_info?: Json | null
           payment_verified_at?: string | null
+          source?: Database["public"]["Enums"]["application_source"] | null
           status?: Database["public"]["Enums"]["application_status"] | null
           team_id?: string | null
           updated_at?: string | null
@@ -51,10 +55,12 @@ export type Database = {
           cancel_type?: Database["public"]["Enums"]["cancel_type"] | null
           canceled_by?: string | null
           created_at?: string | null
+          description?: string | null
           id?: string
           match_id?: string
           participants_info?: Json | null
           payment_verified_at?: string | null
+          source?: Database["public"]["Enums"]["application_source"] | null
           status?: Database["public"]["Enums"]["application_status"] | null
           team_id?: string | null
           updated_at?: string | null
@@ -144,6 +150,7 @@ export type Database = {
           start_time: string
           status: string | null
           team_id: string | null
+          voting_closed_at: string | null
         }
         Insert: {
           account_info?: Json | null
@@ -168,6 +175,7 @@ export type Database = {
           start_time: string
           status?: string | null
           team_id?: string | null
+          voting_closed_at?: string | null
         }
         Update: {
           account_info?: Json | null
@@ -192,6 +200,7 @@ export type Database = {
           start_time?: string
           status?: string | null
           team_id?: string | null
+          voting_closed_at?: string | null
         }
         Relationships: [
           {
@@ -317,9 +326,68 @@ export type Database = {
           },
         ]
       }
+      team_fees: {
+        Row: {
+          id: string
+          team_id: string
+          user_id: string
+          year_month: string
+          is_paid: boolean
+          paid_at: string | null
+          updated_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          team_id: string
+          user_id: string
+          year_month: string
+          is_paid?: boolean
+          paid_at?: string | null
+          updated_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          team_id?: string
+          user_id?: string
+          year_month?: string
+          is_paid?: boolean
+          paid_at?: string | null
+          updated_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_fees_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_fees_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_fees_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       teams: {
         Row: {
           account_info: Json | null
+          code: string | null
           created_at: string | null
           description: string | null
           home_gym_id: string | null
@@ -330,13 +398,17 @@ export type Database = {
           operation_info: Json | null
           region_depth1: string | null
           region_depth2: string | null
+          regular_day: string | null
           regular_schedules: Json | null
+          regular_time: string | null
+          short_intro: string | null
           team_avg_age: string | null
           team_avg_level: string | null
           team_gender: string | null
         }
         Insert: {
           account_info?: Json | null
+          code?: string | null
           created_at?: string | null
           description?: string | null
           home_gym_id?: string | null
@@ -347,13 +419,17 @@ export type Database = {
           operation_info?: Json | null
           region_depth1?: string | null
           region_depth2?: string | null
+          regular_day?: string | null
           regular_schedules?: Json | null
+          regular_time?: string | null
+          short_intro?: string | null
           team_avg_age?: string | null
           team_avg_level?: string | null
           team_gender?: string | null
         }
         Update: {
           account_info?: Json | null
+          code?: string | null
           created_at?: string | null
           description?: string | null
           home_gym_id?: string | null
@@ -364,7 +440,10 @@ export type Database = {
           operation_info?: Json | null
           region_depth1?: string | null
           region_depth2?: string | null
+          regular_day?: string | null
           regular_schedules?: Json | null
+          regular_time?: string | null
+          short_intro?: string | null
           team_avg_age?: string | null
           team_avg_level?: string | null
           team_gender?: string | null
@@ -492,6 +571,7 @@ export type Database = {
       }
     }
     Enums: {
+      application_source: "GUEST_APPLICATION" | "TEAM_VOTE"
       application_status:
         | "PENDING"
         | "CONFIRMED"
@@ -638,6 +718,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      application_source: ["GUEST_APPLICATION", "TEAM_VOTE"],
       application_status: [
         "PENDING",
         "CONFIRMED",
@@ -676,6 +757,7 @@ export type Application = Database['public']['Tables']['applications']['Row'];
 export type Notification = Database['public']['Tables']['notifications']['Row'];
 export type TeamMember = Database['public']['Tables']['team_members']['Row'];
 export type UserSettings = Database['public']['Tables']['user_settings']['Row'];
+export type TeamFee = Database['public']['Tables']['team_fees']['Row'];
 
 // Insert types
 export type UserInsert = Database['public']['Tables']['users']['Insert'];
@@ -683,6 +765,7 @@ export type TeamInsert = Database['public']['Tables']['teams']['Insert'];
 export type GymInsert = Database['public']['Tables']['gyms']['Insert'];
 export type MatchInsert = Database['public']['Tables']['matches']['Insert'];
 export type ApplicationInsert = Database['public']['Tables']['applications']['Insert'];
+export type TeamFeeInsert = Database['public']['Tables']['team_fees']['Insert'];
 
 // Update types
 export type UserUpdate = Database['public']['Tables']['users']['Update'];
@@ -690,6 +773,7 @@ export type TeamUpdate = Database['public']['Tables']['teams']['Update'];
 export type MatchUpdate = Database['public']['Tables']['matches']['Update'];
 export type ApplicationUpdate = Database['public']['Tables']['applications']['Update'];
 export type UserSettingsUpdate = Database['public']['Tables']['user_settings']['Update'];
+export type TeamFeeUpdate = Database['public']['Tables']['team_fees']['Update'];
 
 // Legacy aliases (for backward compatibility)
 export type Profile = User;
@@ -705,6 +789,7 @@ export interface UserMetadata {
 
 // Enum types
 export type ApplicationStatus = Database['public']['Enums']['application_status'];
+export type ApplicationSource = Database['public']['Enums']['application_source'];
 export type PositionType = 'G' | 'F' | 'C' | 'B';
 
 // ============================================
