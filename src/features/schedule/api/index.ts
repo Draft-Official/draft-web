@@ -17,9 +17,11 @@ export {
 export {
   useApproveApplication,
   useConfirmPaymentByGuest,
+  useConfirmPaymentByHost,
   useVerifyPayment,
   useRejectApplication,
   useCancelParticipation,
+  useCancelApplicationByGuest,
   useUpdateMatchStatus,
   useUpdateRecruitmentSetup,
   useCancelMatchFlow,

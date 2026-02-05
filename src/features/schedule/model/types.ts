@@ -45,6 +45,16 @@ export interface ManagedMatch {
     account: string;
     holder: string;
   };
+  // 신청 정보 (바텀시트용)
+  applicationInfo?: {
+    position: string;
+    appliedAt: string;
+    companions?: {
+      name: string;
+      position: string;
+    }[];
+    cancelReason?: string; // 거절/취소 사유
+  };
 
   // Host specific
   applicants?: number;
@@ -101,6 +111,11 @@ export interface Guest extends Participant {
   teamName?: string; // 신청 시 선택한 팀
   companions?: CompanionInfo[];
   appliedAt?: string; // 신청 시간 (ISO timestamp)
+  accountInfo?: {
+    bank?: string;
+    number?: string;
+    holder?: string;
+  };
   matchHistory?: {
     count: number;
     lastDate?: string;

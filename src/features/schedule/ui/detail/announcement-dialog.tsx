@@ -38,7 +38,7 @@ export function AnnouncementDialog({
         <DialogHeader>
           <DialogTitle>공지하기</DialogTitle>
           <DialogDescription className="text-slate-600 pt-2">
-            신청자들에게 공지를 보냅니다.
+            확정자들에게 공지를 보냅니다.
           </DialogDescription>
         </DialogHeader>
 
@@ -50,7 +50,7 @@ export function AnnouncementDialog({
                 setMessage(e.target.value);
               }
             }}
-            placeholder="신청자들에게 전달할 내용을 입력해주세요."
+            placeholder="확정자들에게 전달할 내용을 입력해주세요."
             className="w-full min-h-[120px] rounded-xl border border-slate-200 p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
           />
           <p className="text-xs text-slate-400 text-right">
