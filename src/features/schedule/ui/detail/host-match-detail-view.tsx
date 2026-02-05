@@ -11,6 +11,7 @@ import {
   Shield,
   Users,
   Loader2,
+  Megaphone,
 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { Badge } from '@/shared/ui/base/badge';
@@ -226,55 +227,62 @@ export function HostMatchDetailView() {
 
         <h1 className="font-bold text-lg text-slate-900">경기 상세</h1>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="p-2 -mr-2 hover:bg-slate-50 rounded-lg transition-colors">
-              <MoreVertical className="w-6 h-6 text-slate-700" />
+        <div className="flex items-center gap-1">
+          {/* 공지하기 버튼 */}
+          {!isEnded && (
+            <button
+              onClick={() => setIsAnnouncementOpen(true)}
+              className="p-2 hover:bg-slate-50 rounded-lg transition-colors"
+            >
+              <Megaphone className="w-5 h-5 text-slate-700" />
             </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-40">
-            <DropdownMenuItem onClick={() => router.push(`/matches/${match.id}`)}>
-              상세페이지 보기
-            </DropdownMenuItem>
-            {!isEnded && (isClosed || isConfirmed) && (
-              <DropdownMenuItem onClick={handleResumeRecruiting}>
-                추가 모집하기
+          )}
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="p-2 -mr-2 hover:bg-slate-50 rounded-lg transition-colors">
+                <MoreVertical className="w-6 h-6 text-slate-700" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-40">
+              <DropdownMenuItem onClick={() => router.push(`/matches/${match.id}`)}>
+                상세페이지 보기
               </DropdownMenuItem>
-            )}
-            {!isEnded && (
-              <DropdownMenuItem onClick={() => setIsAnnouncementOpen(true)}>
-                공지하기
-              </DropdownMenuItem>
-            )}
-            {!isEnded && (
-              <DropdownMenuItem onClick={() => router.push(`/matches/create?edit=${match.id}`)}>
-                경기 수정
-              </DropdownMenuItem>
-            )}
-            {!isEnded && (
-              <DropdownMenuItem
-                className="text-red-600"
-                onClick={() => {
-                  const confirmedCount = guests.filter(
-                    (g) => g.status === 'confirmed'
-                  ).length;
-                  if (confirmedCount === 0) {
-                    if (confirm('경기를 취소하시겠습니까?')) {
-                      statusMutation.mutate(
-                        { matchId, status: 'CANCELED' },
-                        { onSuccess: () => router.back() }
-                      );
+              {!isEnded && (isClosed || isConfirmed) && (
+                <DropdownMenuItem onClick={handleResumeRecruiting}>
+                  추가 모집하기
+                </DropdownMenuItem>
+              )}
+              {!isEnded && (
+                <DropdownMenuItem onClick={() => router.push(`/matches/create?edit=${match.id}`)}>
+                  경기 수정
+                </DropdownMenuItem>
+              )}
+              {!isEnded && (
+                <DropdownMenuItem
+                  className="text-red-600"
+                  onClick={() => {
+                    const confirmedCount = guests.filter(
+                      (g) => g.status === 'confirmed'
+                    ).length;
+                    if (confirmedCount === 0) {
+                      if (confirm('경기를 취소하시겠습니까?')) {
+                        statusMutation.mutate(
+                          { matchId, status: 'CANCELED' },
+                          { onSuccess: () => router.back() }
+                        );
+                      }
+                    } else {
+                      setIsMatchCancelOpen(true);
                     }
-                  } else {
-                    setIsMatchCancelOpen(true);
-                  }
-                }}
-              >
-                경기 취소
-              </DropdownMenuItem>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
+                  }}
+                >
+                  경기 취소
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </header>
 
       <div className="max-w-[760px] mx-auto p-4 space-y-4">
