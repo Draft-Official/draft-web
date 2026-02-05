@@ -202,7 +202,7 @@ export function useHostMatchDetail(matchId: string) {
 /**
  * 경기 신청자 목록 조회
  * @param matchId 경기 ID
- * @returns Guest[] 형태로 변환된 신청자 목록
+ * @returns Guest[] 형태로 변환된 신청자 목록 (팀 참여 이력 포함)
  */
 export function useMatchApplicants(matchId: string) {
   return useQuery({
@@ -213,10 +213,66 @@ export function useMatchApplicants(matchId: string) {
       const supabase = getSupabaseBrowserClient();
       const applicationService = createApplicationService(supabase);
 
-      const applications = await applicationService.getApplicationsByMatch(matchId);
+      // 1. 현재 경기의 team_id 조회
+      const { data: match } = await supabase
+        .from('matches')
+        .select('team_id')
+        .eq('id', matchId)
+        .single();
 
-      // DB Application -> UI Guest 변환
-      return applications.map(applicationToGuest);
+      // team_id가 없으면 이력 조회 불가
+      if (!match?.team_id) {
+        const applications = await applicationService.getApplicationsByMatch(matchId);
+        return applications.map((app) => applicationToGuest(app));
+      }
+
+      // 2. 신청자 목록 조회
+      const applications = await applicationService.getApplicationsByMatch(matchId);
+      if (applications.length === 0) return [];
+
+      // 3. 각 신청자의 팀 참여 이력 조회 (현재 경기 제외, CONFIRMED만)
+      const userIds = applications.map((app) => app.user_id);
+      const { data: historyData } = await supabase
+        .from('applications')
+        .select(`
+          user_id,
+          created_at,
+          match:matches!match_id (id, team_id)
+        `)
+        .in('user_id', userIds)
+        .eq('status', 'CONFIRMED')
+        .neq('match_id', matchId);
+
+      // 4. 유저별 이력 집계 (같은 team의 경기만)
+      const historyMap = new Map<string, { count: number; lastDate?: string }>();
+      if (historyData) {
+        for (const row of historyData) {
+          const rowMatch = row.match as { id: string; team_id: string | null } | null;
+          if (rowMatch?.team_id !== match.team_id) continue;
+
+          const existing = historyMap.get(row.user_id);
+          if (existing) {
+            existing.count += 1;
+            if (row.created_at && (!existing.lastDate || row.created_at > existing.lastDate)) {
+              existing.lastDate = row.created_at;
+            }
+          } else {
+            historyMap.set(row.user_id, {
+              count: 1,
+              lastDate: row.created_at || undefined,
+            });
+          }
+        }
+      }
+
+      // 5. DB Application -> UI Guest 변환 (이력 포함)
+      return applications.map((app) => {
+        const history = historyMap.get(app.user_id);
+        return applicationToGuest(app, history ? {
+          count: history.count,
+          lastDate: history.lastDate ? formatMatchDate(history.lastDate) : undefined,
+        } : undefined);
+      });
     },
     enabled: !!matchId,
   });

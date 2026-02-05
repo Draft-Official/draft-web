@@ -95,8 +95,12 @@ export function getGuestStatus(application: Application): GuestStatus {
 
 /**
  * DB Application → UI Guest 변환
+ * @param matchHistory 팀 참여 이력 (별도 쿼리로 조회됨)
  */
-export function applicationToGuest(app: ApplicationWithUser): Guest {
+export function applicationToGuest(
+  app: ApplicationWithUser,
+  matchHistory?: { count: number; lastDate?: string }
+): Guest {
   const participants = (app.participants_info as ParticipantInfo[] | null) || [];
   const position = participants[0]?.position || 'G';
   const positionLabel = getPositionLabel(position);
@@ -139,7 +143,7 @@ export function applicationToGuest(app: ApplicationWithUser): Guest {
     companions: companions.length > 0 ? companions : undefined,
     appliedAt: app.created_at || undefined,
     accountInfo,
-    // matchHistory는 별도 쿼리 필요 (추후 구현)
+    matchHistory,
   };
 }
 
