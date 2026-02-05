@@ -53,7 +53,8 @@ export class ApplicationService {
           avatar_url,
           positions,
           manner_score,
-          metadata
+          metadata,
+          account_info
         ),
         team:teams!team_id (
           name

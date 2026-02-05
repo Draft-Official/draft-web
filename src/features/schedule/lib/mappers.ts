@@ -11,6 +11,7 @@ import type {
   RecruitmentSetup,
   ParticipantInfo,
 } from '@/shared/types/database.types';
+import type { AccountInfo } from '@/shared/types/jsonb.types';
 import { formatMatchDate, formatMatchTime } from '@/shared/lib/date';
 import { SKILL_LEVEL_NAMES } from '@/shared/config/skill-constants';
 import type {
@@ -50,7 +51,7 @@ function getTotalCurrentFromSetup(setup: RecruitmentSetup | null | undefined): n
 }
 
 type ApplicationWithUser = Application & {
-  user: Pick<User, 'id' | 'nickname' | 'avatar_url' | 'positions' | 'manner_score' | 'metadata'>;
+  user: Pick<User, 'id' | 'nickname' | 'avatar_url' | 'positions' | 'manner_score' | 'metadata' | 'account_info'>;
   team?: Pick<Team, 'name'> | null;
 };
 
@@ -116,6 +117,12 @@ export function applicationToGuest(app: ApplicationWithUser): Guest {
       skillLevel: p.skillLevel ? (SKILL_LEVEL_NAMES[p.skillLevel] || `Lv.${p.skillLevel}`) : undefined,
     }));
 
+  // 계좌 정보 추출
+  const accountRaw = app.user?.account_info as unknown as AccountInfo | null;
+  const accountInfo = accountRaw
+    ? { bank: accountRaw.bank, number: accountRaw.number, holder: accountRaw.holder }
+    : undefined;
+
   return {
     id: app.id,
     name: app.user.nickname || '이름 없음',
@@ -131,6 +138,7 @@ export function applicationToGuest(app: ApplicationWithUser): Guest {
     teamName: app.team?.name || undefined,
     companions: companions.length > 0 ? companions : undefined,
     appliedAt: app.created_at || undefined,
+    accountInfo,
     // matchHistory는 별도 쿼리 필요 (추후 구현)
   };
 }

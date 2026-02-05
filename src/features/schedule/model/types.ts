@@ -101,6 +101,11 @@ export interface Guest extends Participant {
   teamName?: string; // 신청 시 선택한 팀
   companions?: CompanionInfo[];
   appliedAt?: string; // 신청 시간 (ISO timestamp)
+  accountInfo?: {
+    bank?: string;
+    number?: string;
+    holder?: string;
+  };
   matchHistory?: {
     count: number;
     lastDate?: string;

@@ -19,6 +19,7 @@ interface GuestProfileDialogProps {
   onReject: (guest: Guest) => void;
   onConfirmPayment: (guest: Guest) => void;
   onCancel: (guest: Guest) => void;
+  isEnded?: boolean;
 }
 
 export function GuestProfileDialog({
@@ -29,6 +30,7 @@ export function GuestProfileDialog({
   onReject,
   onConfirmPayment,
   onCancel,
+  isEnded = false,
 }: GuestProfileDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -133,53 +135,55 @@ export function GuestProfileDialog({
               )}
             </div>
 
-            {/* 액션 버튼 */}
-            <div className="w-full flex gap-2 pt-2">
-              {guest.status === 'pending' && (
-                <>
-                  <Button
-                    onClick={() => onApprove(guest)}
-                    variant="outline"
-                    className="flex-1 h-12 rounded-xl"
-                  >
-                    승인
-                  </Button>
-                  <Button
-                    onClick={() => onReject(guest)}
-                    className="flex-1 bg-red-100 hover:bg-red-200 text-red-600 border border-red-200 h-12 rounded-xl"
-                  >
-                    거절
-                  </Button>
-                </>
-              )}
+            {/* 액션 버튼 - 종료/취소된 경기에서는 숨김 */}
+            {!isEnded && (
+              <div className="w-full flex gap-2 pt-2">
+                {guest.status === 'pending' && (
+                  <>
+                    <Button
+                      onClick={() => onApprove(guest)}
+                      variant="outline"
+                      className="flex-1 h-12 rounded-xl"
+                    >
+                      승인
+                    </Button>
+                    <Button
+                      onClick={() => onReject(guest)}
+                      className="flex-1 bg-red-100 hover:bg-red-200 text-red-600 border border-red-200 h-12 rounded-xl"
+                    >
+                      거절
+                    </Button>
+                  </>
+                )}
 
-              {guest.status === 'payment_waiting' && (
-                <>
-                  <Button
-                    onClick={() => onConfirmPayment(guest)}
-                    variant="outline"
-                    className="flex-1 h-12 rounded-xl"
-                  >
-                    입금확인
-                  </Button>
+                {guest.status === 'payment_waiting' && (
+                  <>
+                    <Button
+                      onClick={() => onConfirmPayment(guest)}
+                      variant="outline"
+                      className="flex-1 h-12 rounded-xl"
+                    >
+                      입금확인
+                    </Button>
+                    <Button
+                      onClick={() => onCancel(guest)}
+                      className="flex-1 bg-red-100 hover:bg-red-200 text-red-600 border border-red-200 h-12 rounded-xl"
+                    >
+                      취소
+                    </Button>
+                  </>
+                )}
+
+                {guest.status === 'confirmed' && (
                   <Button
                     onClick={() => onCancel(guest)}
-                    className="flex-1 bg-red-100 hover:bg-red-200 text-red-600 border border-red-200 h-12 rounded-xl"
+                    className="w-full bg-red-100 hover:bg-red-200 text-red-600 border border-red-200 h-12 rounded-xl"
                   >
                     취소
                   </Button>
-                </>
-              )}
-
-              {guest.status === 'confirmed' && (
-                <Button
-                  onClick={() => onCancel(guest)}
-                  className="w-full bg-red-100 hover:bg-red-200 text-red-600 border border-red-200 h-12 rounded-xl"
-                >
-                  취소
-                </Button>
-              )}
-            </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </DialogContent>

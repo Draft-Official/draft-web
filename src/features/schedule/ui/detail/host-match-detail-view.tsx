@@ -236,37 +236,43 @@ export function HostMatchDetailView() {
             <DropdownMenuItem onClick={() => router.push(`/matches/${match.id}`)}>
               상세페이지 보기
             </DropdownMenuItem>
-            {(isClosed || isConfirmed) && (
+            {!isEnded && (isClosed || isConfirmed) && (
               <DropdownMenuItem onClick={handleResumeRecruiting}>
                 추가 모집하기
               </DropdownMenuItem>
             )}
-            <DropdownMenuItem onClick={() => setIsAnnouncementOpen(true)}>
-              공지하기
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => router.push(`/matches/create?edit=${match.id}`)}>
-              경기 수정
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="text-red-600"
-              onClick={() => {
-                const confirmedCount = guests.filter(
-                  (g) => g.status === 'confirmed'
-                ).length;
-                if (confirmedCount === 0) {
-                  if (confirm('경기를 취소하시겠습니까?')) {
-                    statusMutation.mutate(
-                      { matchId, status: 'CANCELED' },
-                      { onSuccess: () => router.back() }
-                    );
+            {!isEnded && (
+              <DropdownMenuItem onClick={() => setIsAnnouncementOpen(true)}>
+                공지하기
+              </DropdownMenuItem>
+            )}
+            {!isEnded && (
+              <DropdownMenuItem onClick={() => router.push(`/matches/create?edit=${match.id}`)}>
+                경기 수정
+              </DropdownMenuItem>
+            )}
+            {!isEnded && (
+              <DropdownMenuItem
+                className="text-red-600"
+                onClick={() => {
+                  const confirmedCount = guests.filter(
+                    (g) => g.status === 'confirmed'
+                  ).length;
+                  if (confirmedCount === 0) {
+                    if (confirm('경기를 취소하시겠습니까?')) {
+                      statusMutation.mutate(
+                        { matchId, status: 'CANCELED' },
+                        { onSuccess: () => router.back() }
+                      );
+                    }
+                  } else {
+                    setIsMatchCancelOpen(true);
                   }
-                } else {
-                  setIsMatchCancelOpen(true);
-                }
-              }}
-            >
-              경기 취소
-            </DropdownMenuItem>
+                }}
+              >
+                경기 취소
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </header>
@@ -304,12 +310,14 @@ export function HostMatchDetailView() {
               <Users className="w-5 h-5 text-primary" />
               <h2 className="font-bold text-lg text-slate-900">모집 현황</h2>
             </div>
-            <button
-              onClick={() => setIsEditQuotaOpen(true)}
-              className="text-primary font-medium text-sm hover:underline"
-            >
-              수정
-            </button>
+            {!isEnded && (
+              <button
+                onClick={() => setIsEditQuotaOpen(true)}
+                className="text-primary font-medium text-sm hover:underline"
+              >
+                수정
+              </button>
+            )}
           </div>
 
           {/* 포지션별 모집 */}
@@ -464,90 +472,92 @@ export function HostMatchDetailView() {
                       </p>
                     </div>
 
-                    {/* Actions */}
-                    <div className="flex gap-2 flex-shrink-0">
-                      {guest.status === 'pending' && (
-                        <>
-                          <Button
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleApprove(guest);
-                            }}
-                            variant="outline"
-                            className="h-8 px-3 text-xs border-slate-200"
-                          >
-                            승인
-                          </Button>
-                          <Button
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleReject(guest);
-                            }}
-                            className="bg-red-100 hover:bg-red-200 text-red-600 border border-red-200 h-8 px-3 text-xs"
-                          >
-                            거절
-                          </Button>
-                        </>
-                      )}
-
-                      {guest.status === 'payment_waiting' && (
-                        <>
-                          <Button
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleConfirmPayment(guest);
-                            }}
-                            variant="outline"
-                            className="h-8 px-3 text-xs border-slate-200"
-                          >
-                            입금확인
-                          </Button>
-                          <Button
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setGuestToCancel(guest);
-                              setIsCancelConfirmOpen(true);
-                            }}
-                            className="bg-red-100 hover:bg-red-200 text-red-600 border border-red-200 h-8 px-3 text-xs"
-                          >
-                            취소
-                          </Button>
-                        </>
-                      )}
-
-                      {guest.status === 'confirmed' && (
-                        <>
-                          {!guest.paymentVerified && (
+                    {/* Actions - 종료/취소된 경기에서는 액션 버튼 숨김 */}
+                    {!isEnded && (
+                      <div className="flex gap-2 flex-shrink-0">
+                        {guest.status === 'pending' && (
+                          <>
                             <Button
                               size="sm"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                verifyPaymentMutation.mutate({ applicationId: guest.id, matchId });
+                                handleApprove(guest);
+                              }}
+                              variant="outline"
+                              className="h-8 px-3 text-xs border-slate-200"
+                            >
+                              승인
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleReject(guest);
+                              }}
+                              className="bg-red-100 hover:bg-red-200 text-red-600 border border-red-200 h-8 px-3 text-xs"
+                            >
+                              거절
+                            </Button>
+                          </>
+                        )}
+
+                        {guest.status === 'payment_waiting' && (
+                          <>
+                            <Button
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleConfirmPayment(guest);
                               }}
                               variant="outline"
                               className="h-8 px-3 text-xs border-slate-200"
                             >
                               입금확인
                             </Button>
-                          )}
-                          <Button
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setGuestToCancel(guest);
-                              setIsCancelConfirmOpen(true);
-                            }}
-                            className="bg-red-100 hover:bg-red-200 text-red-600 border border-red-200 h-8 px-3 text-xs"
-                          >
-                            취소
-                          </Button>
-                        </>
-                      )}
-                    </div>
+                            <Button
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setGuestToCancel(guest);
+                                setIsCancelConfirmOpen(true);
+                              }}
+                              className="bg-red-100 hover:bg-red-200 text-red-600 border border-red-200 h-8 px-3 text-xs"
+                            >
+                              취소
+                            </Button>
+                          </>
+                        )}
+
+                        {guest.status === 'confirmed' && (
+                          <>
+                            {!guest.paymentVerified && (
+                              <Button
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  verifyPaymentMutation.mutate({ applicationId: guest.id, matchId });
+                                }}
+                                variant="outline"
+                                className="h-8 px-3 text-xs border-slate-200"
+                              >
+                                입금확인
+                              </Button>
+                            )}
+                            <Button
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setGuestToCancel(guest);
+                                setIsCancelConfirmOpen(true);
+                              }}
+                              className="bg-red-100 hover:bg-red-200 text-red-600 border border-red-200 h-8 px-3 text-xs"
+                            >
+                              취소
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {/* 동반인 서브리스트 */}
@@ -586,6 +596,7 @@ export function HostMatchDetailView() {
           setGuestToCancel(guest);
           setIsCancelConfirmOpen(true);
         }}
+        isEnded={isEnded}
       />
 
       {/* 모집 인원 수정 Dialog */}
@@ -618,6 +629,8 @@ export function HostMatchDetailView() {
       <CancelConfirmDialog
         open={isCancelConfirmOpen}
         onOpenChange={setIsCancelConfirmOpen}
+        guestName={guestToCancel?.name}
+        guestAccountInfo={guestToCancel?.accountInfo}
         onConfirm={(cancelType) => {
           if (guestToCancel) {
             handleCancel(guestToCancel, cancelType);
@@ -629,7 +642,7 @@ export function HostMatchDetailView() {
       <MatchCancelDialog
         open={isMatchCancelOpen}
         onOpenChange={setIsMatchCancelOpen}
-        confirmedCount={guests.filter((g) => g.status === 'confirmed').length}
+        confirmedGuests={guests.filter((g) => g.status === 'confirmed')}
         onConfirm={(message) => {
           cancelMatchFlowMutation.mutate(
             { matchId, message },

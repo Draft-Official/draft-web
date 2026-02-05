@@ -22,21 +22,40 @@ interface CancelConfirmDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: (cancelType: CancelTypeValue) => void;
+  guestName?: string;
+  guestAccountInfo?: {
+    bank?: string;
+    number?: string;
+    holder?: string;
+  };
 }
 
 export function CancelConfirmDialog({
   open,
   onOpenChange,
   onConfirm,
+  guestName,
+  guestAccountInfo,
 }: CancelConfirmDialogProps) {
   const [selectedType, setSelectedType] = useState<CancelTypeValue>('USER_REQUEST');
+  const [settlementAcknowledged, setSettlementAcknowledged] = useState(false);
 
   const handleOpenChange = (isOpen: boolean) => {
     if (!isOpen) {
       setSelectedType('USER_REQUEST');
+      setSettlementAcknowledged(false);
     }
     onOpenChange(isOpen);
   };
+
+  const handleTypeChange = (value: string) => {
+    setSelectedType(value as CancelTypeValue);
+    setSettlementAcknowledged(false);
+  };
+
+  const isUserRequest = selectedType === 'USER_REQUEST';
+  const hasAccount = guestAccountInfo?.bank && guestAccountInfo?.number;
+  const isConfirmDisabled = isUserRequest && !settlementAcknowledged;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -50,7 +69,7 @@ export function CancelConfirmDialog({
 
         <RadioGroup
           value={selectedType}
-          onValueChange={(value) => setSelectedType(value as CancelTypeValue)}
+          onValueChange={handleTypeChange}
           className="space-y-3 pt-2"
         >
           {CANCEL_TYPE_VALUES.map((type) => (
@@ -72,6 +91,39 @@ export function CancelConfirmDialog({
           </div>
         )}
 
+        {/* USER_REQUEST 선택 시 계좌 정보 + 정산 체크박스 */}
+        {isUserRequest && (
+          <div className="space-y-3 mt-1">
+            {/* 게스트 계좌 정보 */}
+            <div className="rounded-lg border border-slate-200 p-3">
+              <p className="text-sm font-medium text-slate-900">
+                {guestName || '게스트'} 계좌 정보
+              </p>
+              {hasAccount ? (
+                <p className="text-xs text-slate-500 mt-1">
+                  {guestAccountInfo!.bank} {guestAccountInfo!.number}
+                  {guestAccountInfo!.holder && ` (${guestAccountInfo!.holder})`}
+                </p>
+              ) : (
+                <p className="text-xs text-slate-400 mt-1">계좌 미등록</p>
+              )}
+            </div>
+
+            {/* 정산 확인 체크박스 */}
+            <label className="flex items-start gap-3 cursor-pointer rounded-lg border border-slate-200 p-3 hover:bg-slate-50 transition-colors">
+              <input
+                type="checkbox"
+                checked={settlementAcknowledged}
+                onChange={(e) => setSettlementAcknowledged(e.target.checked)}
+                className="w-4 h-4 mt-0.5 rounded border-slate-300 accent-primary flex-shrink-0"
+              />
+              <span className="text-sm text-slate-700 font-medium leading-snug">
+                참가비 정산을 완료했습니다.
+              </span>
+            </label>
+          </div>
+        )}
+
         <div className="flex gap-2 pt-4">
           <Button
             onClick={() => handleOpenChange(false)}
@@ -85,6 +137,7 @@ export function CancelConfirmDialog({
               onConfirm(selectedType);
               handleOpenChange(false);
             }}
+            disabled={isConfirmDisabled}
             className="flex-1 bg-red-100 hover:bg-red-200 text-red-600 border border-red-200 h-12 rounded-xl font-bold"
           >
             취소하기
