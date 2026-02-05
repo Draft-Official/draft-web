@@ -50,9 +50,9 @@ export function PaymentConfirmDialog({
       >
         <DialogHeader>
           <DialogTitle>송금을 완료하셨나요?</DialogTitle>
-          <DialogDescription className="text-slate-600 pt-2">
-            실제로 송금하지 않고 완료 버튼을 누르면 호스트에게 확인되지 않아
-            참가가 취소될 수 있습니다. 반드시 송금 후 눌러주세요.
+          <DialogDescription className="text-red-600 pt-2 font-medium">
+            입금 없이 허위로 &apos;송금 완료&apos; 버튼을 누를 경우,
+            즉시 서비스 정지 및 법적 처벌을 받을 수 있습니다.
           </DialogDescription>
         </DialogHeader>
 

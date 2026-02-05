@@ -30,7 +30,7 @@ import {
   useHostMatchDetail,
   useMatchApplicants,
   useApproveApplication,
-  useConfirmPaymentByGuest,
+  useConfirmPaymentByHost,
   useVerifyPayment,
   useRejectApplication,
   useCancelParticipation,
@@ -65,7 +65,7 @@ export function HostMatchDetailView() {
 
   // Mutations
   const approveMutation = useApproveApplication();
-  const confirmMutation = useConfirmPaymentByGuest();
+  const confirmMutation = useConfirmPaymentByHost();
   const verifyPaymentMutation = useVerifyPayment();
   const rejectMutation = useRejectApplication();
   const cancelMutation = useCancelParticipation();

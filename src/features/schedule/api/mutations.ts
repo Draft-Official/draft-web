@@ -63,6 +63,7 @@ export function useApproveApplication() {
  * 게스트 자가 확정 (송금 완료 → CONFIRMED)
  * 게스트가 직접 "송금 완료" 버튼을 누르면 바로 CONFIRMED 상태로 전환
  * recruitment_setup의 current 값도 업데이트
+ * 호스트에게 알림 발송됨
  */
 export function useConfirmPaymentByGuest() {
   const queryClient = useQueryClient();
@@ -78,7 +79,8 @@ export function useConfirmPaymentByGuest() {
       const applicationService = createApplicationService(supabase);
 
       // RPC confirm_application_with_count가 상태 변경 + recruitment_setup 갱신을 원자적으로 처리
-      return applicationService.confirmApplication(applicationId);
+      // confirmedBy: 'GUEST'로 호스트에게 알림 발송
+      return applicationService.confirmApplication(applicationId, 'GUEST');
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
@@ -100,6 +102,47 @@ export function useConfirmPaymentByGuest() {
     onError: (error: Error) => {
       console.error('Confirm payment by guest error:', error);
       toast.error(`확정 실패: ${error.message}`);
+    },
+  });
+}
+
+/**
+ * 호스트 입금 확인 (송금 완료 → CONFIRMED)
+ * 호스트가 게스트의 입금을 확인하고 직접 확정 처리
+ * 호스트에게 알림이 발송되지 않음
+ */
+export function useConfirmPaymentByHost() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      applicationId,
+    }: {
+      applicationId: string;
+      matchId: string;
+    }) => {
+      const supabase = getSupabaseBrowserClient();
+      const applicationService = createApplicationService(supabase);
+
+      // confirmedBy: 'HOST'로 알림 스킵
+      return applicationService.confirmApplication(applicationId, 'HOST');
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: matchManagementKeys.applicants(variables.matchId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: matchManagementKeys.matchDetail(variables.matchId),
+      });
+      // 홈탭 경기 목록 갱신 (빈자리 반영)
+      queryClient.invalidateQueries({
+        queryKey: matchKeys.lists(),
+      });
+      toast.success('입금이 확인되었습니다.');
+    },
+    onError: (error: Error) => {
+      console.error('Confirm payment by host error:', error);
+      toast.error(`입금 확인 실패: ${error.message}`);
     },
   });
 }
