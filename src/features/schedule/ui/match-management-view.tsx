@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Calendar, RotateCcw, Loader2 } from "lucide-react";
 import { useLocalStorage } from "@/shared/lib/hooks/use-local-storage";
@@ -10,8 +10,9 @@ import type { ClientNotification } from "@/features/notification/model/types";
 import type { NotificationTypeValue } from "@/shared/config/constants";
 import { FilterDropdown } from "./components/filter-dropdown";
 import { MatchCard } from "./components/match-card";
+import { ApplicationInfoDialog } from "./components/application-info-dialog";
 import { Toggle } from "@/shared/ui/shadcn/toggle";
-import { useHostedMatches, useParticipatingMatches, useConfirmPaymentByGuest } from "../api";
+import { useHostedMatches, useParticipatingMatches, useConfirmPaymentByGuest, useCancelApplicationByGuest } from "../api";
 import type { MatchType, ManagedMatch } from "../model/types";
 import {
   MATCH_TYPE_FILTER_OPTIONS,
@@ -41,6 +42,10 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
   const [guestStatusFilter, setGuestStatusFilter] = useLocalStorage<GuestStatusFilterValue[]>("schedule_guest_status_filter", []);
   const [hostStatusFilter, setHostStatusFilter] = useLocalStorage<HostStatusFilterValue[]>("schedule_host_status_filter", []);
   const [showPastMatches, setShowPastMatches] = useLocalStorage<"hide" | "show">("schedule_past_matches", "hide");
+
+  // Bottom sheet state for guest application info
+  const [selectedMatch, setSelectedMatch] = useState<ManagedMatch | null>(null);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   // Fetch data from Supabase
   const { data: hostedMatches = [], isLoading: isLoadingHosted } = useHostedMatches();
@@ -80,11 +85,16 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
     return map;
   }, [unreadNotifications, viewMode]);
 
-  // Mutation for confirming payment by guest
+  // Mutations for guest actions
   const confirmPaymentMutation = useConfirmPaymentByGuest();
+  const cancelApplicationMutation = useCancelApplicationByGuest();
 
   const handleConfirmPayment = (applicationId: string, matchId: string) => {
     confirmPaymentMutation.mutate({ applicationId, matchId });
+  };
+
+  const handleCancelApplication = (applicationId: string, matchId: string) => {
+    cancelApplicationMutation.mutate({ applicationId, matchId });
   };
 
   const isLoading = viewMode === "host" ? isLoadingHosted : isLoadingParticipating;
@@ -155,21 +165,32 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
     const match = allMatches.find((m) => m.id === matchId);
     if (!match) return;
 
+    // 참여 탭에서 guest 타입 클릭 시 바텀시트 표시
+    if (viewMode === "guest" && match.type === "guest") {
+      setSelectedMatch(match);
+      setIsSheetOpen(true);
+      return;
+    }
+
     // Navigate based on match type and view mode
+    navigateToMatchDetail(match);
+  };
+
+  const navigateToMatchDetail = (match: ManagedMatch) => {
     if (match.type === "tournament") {
       // 대회는 별도 라우트
       if (viewMode === "host") {
-        router.push(`/tournaments/${matchId}/manage`);
+        router.push(`/tournaments/${match.id}/manage`);
       } else {
-        router.push(`/tournaments/${matchId}`);
+        router.push(`/tournaments/${match.id}`);
       }
     } else {
       // host, team, guest 모두 matches로 통합
       if (viewMode === "host" || match.type === "host") {
-        router.push(`/matches/${matchId}/manage`);
+        router.push(`/matches/${match.id}/manage`);
       } else {
         // 참여 탭에서 들어가는 경우 from=schedule 파라미터 추가
-        router.push(`/matches/${matchId}?from=schedule`);
+        router.push(`/matches/${match.id}?from=schedule`);
       }
     }
   };
@@ -360,6 +381,19 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
           ))
         )}
       </section>
+
+      {/* Guest Application Info Dialog */}
+      <ApplicationInfoDialog
+        match={selectedMatch}
+        open={isSheetOpen}
+        onOpenChange={setIsSheetOpen}
+        onViewDetail={(matchId) => {
+          const match = allMatches.find((m) => m.id === matchId);
+          if (match) navigateToMatchDetail(match);
+        }}
+        onConfirmPayment={handleConfirmPayment}
+        onCancelApplication={handleCancelApplication}
+      />
     </div>
   );
 }

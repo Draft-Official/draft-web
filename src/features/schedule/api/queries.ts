@@ -120,10 +120,23 @@ export function useParticipatingMatches() {
                                     app.status === 'PENDING' && app.approved_at ? '결제 대기' :
                                     '승인 대기';
 
-          // 동반인 수 계산
-          const participants = (app.participants_info as { type: string }[] | null) || [];
-          const companionCount = participants.filter((p) => p.type === 'GUEST').length;
+          // 참가자 정보 파싱
+          const participants = (app.participants_info as { type: string; name?: string; position?: string }[] | null) || [];
+          const mainParticipant = participants.find((p) => p.type === 'MAIN');
+          const companions = participants
+            .filter((p) => p.type === 'GUEST')
+            .map((p) => ({ name: p.name || '', position: p.position || '' }));
+          const companionCount = companions.length;
           const totalCount = participants.length || 1;
+
+          // 포지션 라벨 변환
+          const positionLabels: Record<string, string> = {
+            G: '가드 (G)',
+            F: '포워드 (F)',
+            C: '센터 (C)',
+            B: '빅맨 (F/C)',
+          };
+          const position = mainParticipant?.position || 'G';
 
           return {
             id: match.id,
@@ -147,6 +160,15 @@ export function useParticipatingMatches() {
                   holder: match.account_info.holder,
                 }
               : undefined,
+            applicationInfo: {
+              position: positionLabels[position] || position,
+              appliedAt: app.created_at || '',
+              companions: companions.length > 0 ? companions.map((c) => ({
+                name: c.name,
+                position: positionLabels[c.position] || c.position,
+              })) : undefined,
+              cancelReason: app.cancel_reason || undefined,
+            },
           } as ManagedMatch;
         });
     },

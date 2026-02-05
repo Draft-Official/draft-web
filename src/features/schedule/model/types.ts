@@ -45,6 +45,16 @@ export interface ManagedMatch {
     account: string;
     holder: string;
   };
+  // 신청 정보 (바텀시트용)
+  applicationInfo?: {
+    position: string;
+    appliedAt: string;
+    companions?: {
+      name: string;
+      position: string;
+    }[];
+    cancelReason?: string; // 거절/취소 사유
+  };
 
   // Host specific
   applicants?: number;

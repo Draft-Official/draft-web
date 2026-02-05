@@ -187,6 +187,48 @@ export function useRejectApplication() {
 }
 
 /**
+ * 게스트 자가 취소 (게스트가 직접 신청 취소)
+ * 대기 중 또는 입금대기 상태에서만 가능
+ */
+export function useCancelApplicationByGuest() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      applicationId,
+      matchId,
+    }: {
+      applicationId: string;
+      matchId: string;
+    }) => {
+      const supabase = getSupabaseBrowserClient();
+      const applicationService = createApplicationService(supabase);
+
+      return applicationService.cancelApplication(applicationId, {
+        canceledBy: 'GUEST',
+        cancelType: 'USER_REQUEST',
+      });
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: matchManagementKeys.participatingMatches(''),
+      });
+      queryClient.invalidateQueries({
+        queryKey: matchManagementKeys.all,
+      });
+      queryClient.invalidateQueries({
+        queryKey: matchKeys.lists(),
+      });
+      toast.success('신청이 취소되었습니다.');
+    },
+    onError: (error: Error) => {
+      console.error('Cancel application by guest error:', error);
+      toast.error(`취소 실패: ${error.message}`);
+    },
+  });
+}
+
+/**
  * 참가 취소 (확정된 게스트 취소 → CANCELED)
  * 취소 시 recruitment_setup의 current 값도 감소
  */

@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Button } from '@/shared/ui/base/button';
 import {
   Dialog,
@@ -8,13 +9,19 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/shared/ui/base/dialog';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Copy, Check } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface PaymentConfirmDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
   isPending?: boolean;
+  bankInfo?: {
+    bank: string;
+    account: string;
+    holder: string;
+  };
 }
 
 export function PaymentConfirmDialog({
@@ -22,7 +29,19 @@ export function PaymentConfirmDialog({
   onOpenChange,
   onConfirm,
   isPending,
+  bankInfo,
 }: PaymentConfirmDialogProps) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyBankInfo = () => {
+    if (!bankInfo) return;
+    const text = `${bankInfo.bank} ${bankInfo.account}`;
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    toast.success('계좌 정보가 복사되었습니다');
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -37,7 +56,27 @@ export function PaymentConfirmDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex gap-2 pt-4">
+        {/* 계좌 정보 */}
+        {bankInfo && (
+          <div className="bg-slate-50 rounded-xl p-4 space-y-2">
+            <p className="text-sm font-medium text-slate-700">입금 계좌</p>
+            <button
+              onClick={handleCopyBankInfo}
+              className="flex items-center gap-2 text-sm text-slate-900 hover:text-slate-700"
+            >
+              <span>
+                {bankInfo.bank} {bankInfo.account} ({bankInfo.holder})
+              </span>
+              {copied ? (
+                <Check className="w-4 h-4 text-green-500 shrink-0" />
+              ) : (
+                <Copy className="w-4 h-4 text-slate-400 shrink-0" />
+              )}
+            </button>
+          </div>
+        )}
+
+        <div className="flex gap-2 pt-2">
           <Button
             onClick={() => onOpenChange(false)}
             variant="outline"
