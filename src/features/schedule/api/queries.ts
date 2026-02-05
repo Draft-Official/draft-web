@@ -15,7 +15,8 @@ import {
   applicationToGuest,
   matchToHostMatchDetail,
 } from '../lib/mappers';
-import type { ManagedMatch, Guest, HostMatchDetail } from '../model/types';
+import { GUEST_APPROVAL_STATUS_TEXT } from '../config/constants';
+import type { ManagedMatch, Guest, HostMatchDetail, ParticipatingMatchRow } from '../model/types';
 
 /**
  * 내가 주최한 경기 목록 조회
@@ -83,17 +84,7 @@ export function useParticipatingMatches() {
       return applications
         .filter((app) => app.match) // match가 있는 것만
         .map((app) => {
-          const match = app.match as {
-            id: string;
-            manual_team_name: string;
-            start_time: string;
-            end_time: string;
-            cost_type: string;
-            cost_amount: number;
-            status: string;
-            account_info: { bank?: string; number?: string; holder?: string } | null;
-            gym: { name: string; address: string; kakao_place_id: string | null } | null;
-          };
+          const match = app.match as ParticipatingMatchRow;
 
           // 경기 시간 기반 종료 판정
           const now = new Date();
@@ -115,11 +106,12 @@ export function useParticipatingMatches() {
                     'waiting';
           }
 
-          const approvalStatusText = app.status === 'CONFIRMED' ? '경기 확정' :
-                                    app.status === 'REJECTED' ? '종료/취소' :
-                                    app.status === 'CANCELED' ? '종료/취소' :
-                                    app.status === 'PENDING' && app.approved_at ? '결제 대기' :
-                                    '승인 대기';
+          const approvalStatusText =
+            app.status === 'CONFIRMED' ? GUEST_APPROVAL_STATUS_TEXT.CONFIRMED :
+            app.status === 'REJECTED' ? GUEST_APPROVAL_STATUS_TEXT.REJECTED :
+            app.status === 'CANCELED' ? GUEST_APPROVAL_STATUS_TEXT.CANCELED :
+            app.status === 'PENDING' && app.approved_at ? GUEST_APPROVAL_STATUS_TEXT.PAYMENT_WAITING :
+            GUEST_APPROVAL_STATUS_TEXT.PENDING;
 
           // 참가자 정보 파싱
           const participants = (app.participants_info as { type: string; name?: string; position?: string }[] | null) || [];

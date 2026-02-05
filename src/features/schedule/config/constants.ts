@@ -91,3 +91,17 @@ export const MATCH_STATUS_COLORS: Record<MatchStatus, string> = {
 
 // 지난 경기로 간주되는 상태
 export const PAST_MATCH_STATUSES: MatchStatus[] = ['ended', 'cancelled', 'rejected'];
+
+// ============================================
+// 게스트 신청 상태 텍스트 (게스트 뷰용)
+// ============================================
+
+// Application DB status → UI text mapping for guest view
+// Note: Uses combined statuses different from host view
+export const GUEST_APPROVAL_STATUS_TEXT = {
+  CONFIRMED: '경기 확정',
+  REJECTED: '종료/취소',
+  CANCELED: '종료/취소',
+  PAYMENT_WAITING: '결제 대기',  // PENDING + approved_at
+  PENDING: '승인 대기',
+} as const;
