@@ -40,10 +40,11 @@
 
 ## 6. Routing & Pages
 
-- [ ] 6.1 app/team/[code]/page.tsx 생성 (팀 프로필 페이지)
-- [ ] 6.2 app/team/[code]/join/page.tsx 생성 (초대 링크 가입 페이지)
-- [ ] 6.3 app/team/[code]/manage/page.tsx 생성 (팀 관리 페이지 - 팀장/매니저용)
-- [ ] 6.4 app/team/create/page.tsx 생성 (팀 생성 페이지)
+- [ ] 6.1 app/team/page.tsx 리팩토링 (내 팀 / 팀 찾기 탭 구조, Empty State)
+- [ ] 6.2 app/team/create/page.tsx 생성 (팀 생성 페이지)
+- [ ] 6.3 app/team/[code]/page.tsx 생성 (팀 프로필 페이지)
+- [ ] 6.4 app/team/[code]/join/page.tsx 생성 (초대 링크 가입 페이지)
+- [ ] 6.5 app/team/[code]/manage/page.tsx 생성 (팀 관리 페이지 - 팀장/매니저용)
 
 ## 7. Team UI Components
 
