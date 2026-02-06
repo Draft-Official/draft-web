@@ -244,7 +244,7 @@ export interface TeamProfileCardData {
 }
 
 /**
- * 팀 목록 아이템용 타입
+ * 팀 목록 아이템용 타입 (나의 팀 카드에 표시)
  */
 export interface TeamListItem {
   id: string;
@@ -252,6 +252,9 @@ export interface TeamListItem {
   name: string;
   logoUrl: string | null;
   role: TeamRoleValue;
+  regularDay: RegularDayValue | null;
+  regularTime: string | null;
+  homeGymName: string | null;
 }
 
 // ============================================

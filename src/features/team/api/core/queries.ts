@@ -9,6 +9,7 @@ import { teamKeys } from '../keys';
 import { getTeam, getTeamByCode, getMyTeams, checkTeamCodeExists } from './api';
 import { teamRowToClient } from '../mapper';
 import type { ClientTeam, TeamListItem } from '../../model/types';
+import type { RegularDayValue } from '@/shared/config/team-constants';
 
 /**
  * 팀 ID로 팀 정보 조회
@@ -58,6 +59,9 @@ export function useMyTeams(userId: string | null | undefined) {
         name: row.name,
         logoUrl: row.logo_url,
         role: row.role,
+        regularDay: row.regular_day as RegularDayValue | null,
+        regularTime: row.regular_time,
+        homeGymName: null, // TODO: gym join 필요시 추가
       }));
     },
     enabled: !!userId,

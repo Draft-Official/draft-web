@@ -1,8 +1,7 @@
 'use client';
 
-import React from 'react';
-import { HostDashboardView } from '@/features/team/ui/host-dashboard-view';
+import { TeamPageTabs } from '@/features/team/ui';
 
 export default function TeamPage() {
-  return <HostDashboardView />;
+  return <TeamPageTabs />;
 }

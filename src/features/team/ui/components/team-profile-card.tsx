@@ -1,0 +1,129 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
+import { MapPin, Calendar } from 'lucide-react';
+import { Card } from '@/shared/ui/base/card';
+import { cn } from '@/shared/lib/utils';
+import {
+  TEAM_ROLE_LABELS,
+  REGULAR_DAY_LABELS,
+  type TeamRoleValue,
+  type RegularDayValue,
+} from '@/shared/config/team-constants';
+
+interface TeamProfileCardProps {
+  id: string;
+  code: string;
+  name: string;
+  logoUrl: string | null;
+  role: TeamRoleValue;
+  regularDay: RegularDayValue | null;
+  regularTime: string | null;
+  homeGymName: string | null;
+  className?: string;
+}
+
+/**
+ * 팀 프로필 카드 컴포넌트
+ * - /team 페이지의 나의 팀 목록에서 사용
+ * - /team/[code] 페이지에서도 재사용 가능
+ */
+export function TeamProfileCard({
+  code,
+  name,
+  logoUrl,
+  role,
+  regularDay,
+  regularTime,
+  homeGymName,
+  className,
+}: TeamProfileCardProps) {
+  const router = useRouter();
+
+  const handleClick = () => {
+    router.push(`/team/${code}`);
+  };
+
+  // 팀 로고: logoUrl이 있으면 사용, 없으면 첫 글자로 대체
+  const logoChar = name.charAt(0);
+  const logoColors = [
+    'bg-purple-500',
+    'bg-blue-500',
+    'bg-green-500',
+    'bg-orange-500',
+    'bg-pink-500',
+  ];
+  const logoColorIndex = name.charCodeAt(0) % logoColors.length;
+  const logoBgColor = logoColors[logoColorIndex];
+
+  // 정기운동 정보 포맷
+  const scheduleText =
+    regularDay && regularTime
+      ? `${REGULAR_DAY_LABELS[regularDay]} ${regularTime}`
+      : regularDay
+        ? REGULAR_DAY_LABELS[regularDay]
+        : null;
+
+  return (
+    <Card
+      onClick={handleClick}
+      className={cn(
+        'w-[160px] min-w-[160px] p-4 cursor-pointer',
+        'hover:shadow-md active:scale-[0.98] transition-all',
+        'border border-slate-200 rounded-2xl',
+        className
+      )}
+    >
+      {/* 팀 로고 */}
+      <div className="flex justify-center mb-3">
+        <div
+          className={cn(
+            'w-14 h-14 rounded-full flex items-center justify-center',
+            'text-white text-xl font-bold',
+            logoBgColor
+          )}
+        >
+          {logoUrl ? (
+            // TODO: 실제 로고 이미지 지원 시 구현
+            logoChar
+          ) : (
+            logoChar
+          )}
+        </div>
+      </div>
+
+      {/* 팀 이름 */}
+      <h3 className="text-center font-bold text-slate-900 text-sm truncate mb-1">
+        {name}
+      </h3>
+
+      {/* 역할 */}
+      <p className="text-center text-xs text-primary font-medium underline underline-offset-2 mb-3">
+        {TEAM_ROLE_LABELS[role]}
+      </p>
+
+      {/* 구분선 + 정기운동 */}
+      <div className="border-t border-slate-100 pt-3 space-y-1.5">
+        <p className="text-[10px] text-slate-400 text-center">정기운동</p>
+
+        {homeGymName && (
+          <div className="flex items-center gap-1 text-xs text-slate-600">
+            <MapPin className="w-3 h-3 text-slate-400 flex-shrink-0" />
+            <span className="truncate">{homeGymName}</span>
+          </div>
+        )}
+
+        {scheduleText && (
+          <div className="flex items-center gap-1 text-xs text-slate-600">
+            <Calendar className="w-3 h-3 text-slate-400 flex-shrink-0" />
+            <span>{scheduleText}</span>
+          </div>
+        )}
+
+        {!homeGymName && !scheduleText && (
+          <p className="text-xs text-slate-400 text-center">미설정</p>
+        )}
+      </div>
+    </Card>
+  );
+}
