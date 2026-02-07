@@ -60,8 +60,8 @@ export function useMyTeams(userId: string | null | undefined) {
         logoUrl: row.logo_url,
         role: row.role,
         regularDay: row.regular_day as RegularDayValue | null,
-        regularTime: row.regular_time,
-        homeGymName: null, // TODO: gym join 필요시 추가
+        regularTime: row.regular_start_time?.slice(0, 5) ?? null,
+        homeGymName: row.home_gym_name,
       }));
     },
     enabled: !!userId,

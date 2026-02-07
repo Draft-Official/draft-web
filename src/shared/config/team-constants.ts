@@ -113,23 +113,51 @@ export function getApplicationSourceLabel(value: string): string {
 // Team Vote Status (팀 투표 상태) - Application Status 기반
 // ============================================
 
-export const TEAM_VOTE_STATUS_VALUES = ['CONFIRMED', 'NOT_ATTENDING', 'PENDING'] as const;
+export const TEAM_VOTE_STATUS_VALUES = [
+  'CONFIRMED',
+  'LATE',
+  'MAYBE',
+  'NOT_ATTENDING',
+  'PENDING',
+] as const;
 export type TeamVoteStatusValue = (typeof TEAM_VOTE_STATUS_VALUES)[number];
 
 export const TEAM_VOTE_STATUS_LABELS: Record<TeamVoteStatusValue, string> = {
   CONFIRMED: '참석',
+  LATE: '늦참',
+  MAYBE: '미정',
   NOT_ATTENDING: '불참',
-  PENDING: '미정',
+  PENDING: '미투표',
+};
+
+export const TEAM_VOTE_STATUS_DESCRIPTIONS: Record<TeamVoteStatusValue, string> = {
+  CONFIRMED: '경기에 참석합니다',
+  LATE: '늦은 참석입니다',
+  MAYBE: '참석 여부가 불확실합니다',
+  NOT_ATTENDING: '경기에 참석하지 않습니다',
+  PENDING: '아직 투표하지 않았습니다',
 };
 
 export const TEAM_VOTE_STATUS_STYLES: Record<
   TeamVoteStatusValue,
-  { color: string; bgColor: string }
+  { color: string; bgColor: string; borderColor: string; icon: 'check' | 'clock' | 'x' | 'circle' }
 > = {
-  CONFIRMED: { color: 'text-green-600', bgColor: 'bg-green-50' },
-  NOT_ATTENDING: { color: 'text-red-600', bgColor: 'bg-red-50' },
-  PENDING: { color: 'text-gray-600', bgColor: 'bg-gray-100' },
+  CONFIRMED: { color: 'text-green-600', bgColor: 'bg-green-50', borderColor: 'border-green-500', icon: 'check' },
+  LATE: { color: 'text-yellow-600', bgColor: 'bg-yellow-50', borderColor: 'border-yellow-500', icon: 'clock' },
+  MAYBE: { color: 'text-slate-600', bgColor: 'bg-slate-50', borderColor: 'border-slate-300', icon: 'circle' },
+  NOT_ATTENDING: { color: 'text-red-600', bgColor: 'bg-red-50', borderColor: 'border-red-300', icon: 'x' },
+  PENDING: { color: 'text-gray-600', bgColor: 'bg-gray-100', borderColor: 'border-gray-300', icon: 'circle' },
 };
+
+// 투표 선택 옵션 (PENDING 제외 - 사용자가 선택할 수 있는 옵션만)
+export const TEAM_VOTE_OPTIONS = (['CONFIRMED', 'LATE', 'MAYBE', 'NOT_ATTENDING'] as const).map(
+  (value) => ({
+    value,
+    label: TEAM_VOTE_STATUS_LABELS[value],
+    description: TEAM_VOTE_STATUS_DESCRIPTIONS[value],
+    ...TEAM_VOTE_STATUS_STYLES[value],
+  })
+);
 
 export function getTeamVoteStatusLabel(value: string): string {
   return TEAM_VOTE_STATUS_LABELS[value as TeamVoteStatusValue] || value;
