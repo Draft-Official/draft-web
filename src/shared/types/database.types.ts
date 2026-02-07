@@ -14,17 +14,62 @@ export type Database = {
   }
   public: {
     Tables: {
+      announcements: {
+        Row: {
+          author_id: string
+          created_at: string
+          deleted_at: string | null
+          id: string
+          message: string
+          target_id: string
+          target_type: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          message: string
+          target_id: string
+          target_type: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          message?: string
+          target_id?: string
+          target_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "announcements_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       applications: {
         Row: {
           approved_at: string | null
           cancel_reason: string | null
           cancel_type: Database["public"]["Enums"]["cancel_type"] | null
           canceled_by: string | null
+          confirmed_by: string | null
           created_at: string | null
+          description: string | null
           id: string
           match_id: string
           participants_info: Json | null
           payment_verified_at: string | null
+          refund_completed_at: string | null
+          source: string | null
           status: Database["public"]["Enums"]["application_status"] | null
           team_id: string | null
           updated_at: string | null
@@ -35,11 +80,15 @@ export type Database = {
           cancel_reason?: string | null
           cancel_type?: Database["public"]["Enums"]["cancel_type"] | null
           canceled_by?: string | null
+          confirmed_by?: string | null
           created_at?: string | null
+          description?: string | null
           id?: string
           match_id: string
           participants_info?: Json | null
           payment_verified_at?: string | null
+          refund_completed_at?: string | null
+          source?: string | null
           status?: Database["public"]["Enums"]["application_status"] | null
           team_id?: string | null
           updated_at?: string | null
@@ -50,11 +99,15 @@ export type Database = {
           cancel_reason?: string | null
           cancel_type?: Database["public"]["Enums"]["cancel_type"] | null
           canceled_by?: string | null
+          confirmed_by?: string | null
           created_at?: string | null
+          description?: string | null
           id?: string
           match_id?: string
           participants_info?: Json | null
           payment_verified_at?: string | null
+          refund_completed_at?: string | null
+          source?: string | null
           status?: Database["public"]["Enums"]["application_status"] | null
           team_id?: string | null
           updated_at?: string | null
@@ -275,6 +328,64 @@ export type Database = {
           },
         ]
       }
+      team_fees: {
+        Row: {
+          created_at: string
+          id: string
+          is_paid: boolean
+          paid_at: string | null
+          team_id: string
+          updated_at: string
+          updated_by: string | null
+          user_id: string
+          year_month: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_paid?: boolean
+          paid_at?: string | null
+          team_id: string
+          updated_at?: string
+          updated_by?: string | null
+          user_id: string
+          year_month: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_paid?: boolean
+          paid_at?: string | null
+          team_id?: string
+          updated_at?: string
+          updated_by?: string | null
+          user_id?: string
+          year_month?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_fees_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_fees_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_fees_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       team_members: {
         Row: {
           id: string
@@ -320,53 +431,65 @@ export type Database = {
       teams: {
         Row: {
           account_info: Json | null
+          age_range: Json | null
+          code: string | null
           created_at: string | null
           description: string | null
           home_gym_id: string | null
           id: string
           is_recruiting: boolean | null
+          level_range: Json | null
           logo_url: string | null
           name: string
           operation_info: Json | null
           region_depth1: string | null
           region_depth2: string | null
-          regular_schedules: Json | null
-          team_avg_age: string | null
-          team_avg_level: string | null
+          regular_day: string | null
+          regular_end_time: string | null
+          regular_start_time: string | null
+          short_intro: string | null
           team_gender: string | null
         }
         Insert: {
           account_info?: Json | null
+          age_range?: Json | null
+          code?: string | null
           created_at?: string | null
           description?: string | null
           home_gym_id?: string | null
           id?: string
           is_recruiting?: boolean | null
+          level_range?: Json | null
           logo_url?: string | null
           name: string
           operation_info?: Json | null
           region_depth1?: string | null
           region_depth2?: string | null
-          regular_schedules?: Json | null
-          team_avg_age?: string | null
-          team_avg_level?: string | null
+          regular_day?: string | null
+          regular_end_time?: string | null
+          regular_start_time?: string | null
+          short_intro?: string | null
           team_gender?: string | null
         }
         Update: {
           account_info?: Json | null
+          age_range?: Json | null
+          code?: string | null
           created_at?: string | null
           description?: string | null
           home_gym_id?: string | null
           id?: string
           is_recruiting?: boolean | null
+          level_range?: Json | null
           logo_url?: string | null
           name?: string
           operation_info?: Json | null
           region_depth1?: string | null
           region_depth2?: string | null
-          regular_schedules?: Json | null
-          team_avg_age?: string | null
-          team_avg_level?: string | null
+          regular_day?: string | null
+          regular_end_time?: string | null
+          regular_start_time?: string | null
+          short_intro?: string | null
           team_gender?: string | null
         }
         Relationships: [
@@ -382,6 +505,7 @@ export type Database = {
       user_settings: {
         Row: {
           created_at: string
+          notify_announcement: boolean
           notify_application: boolean
           notify_match: boolean
           notify_payment: boolean
@@ -390,6 +514,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          notify_announcement?: boolean
           notify_application?: boolean
           notify_match?: boolean
           notify_payment?: boolean
@@ -398,6 +523,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          notify_announcement?: boolean
           notify_application?: boolean
           notify_match?: boolean
           notify_payment?: boolean
@@ -470,14 +596,23 @@ export type Database = {
           recruitment_setup: Json
         }[]
       }
-      confirm_application_with_count: {
-        Args: { p_application_id: string; p_positions?: string[] }
-        Returns: {
-          application_id: string
-          new_status: string
-          recruitment_setup: Json
-        }[]
-      }
+      confirm_application_with_count:
+        | {
+            Args: { p_application_id: string; p_positions?: string[] }
+            Returns: {
+              application_id: string
+              new_status: string
+              recruitment_setup: Json
+            }[]
+          }
+        | {
+            Args: {
+              p_application_id: string
+              p_confirmed_by?: string
+              p_positions?: string[]
+            }
+            Returns: undefined
+          }
       increment_position_count: {
         Args: { p_delta?: number; p_match_id: string; p_position_key: string }
         Returns: Json
@@ -486,6 +621,7 @@ export type Database = {
         Args: { p_delta?: number; p_match_id: string }
         Returns: Json
       }
+      is_recruitment_full: { Args: { p_setup: Json }; Returns: boolean }
       should_notify: {
         Args: { p_setting: string; p_user_id: string }
         Returns: boolean
@@ -511,6 +647,7 @@ export type Database = {
         | "NEW_APPLICATION"
         | "GUEST_CANCELED"
         | "GUEST_PAYMENT_CONFIRMED"
+        | "HOST_ANNOUNCEMENT"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -658,6 +795,7 @@ export const Constants = {
         "NEW_APPLICATION",
         "GUEST_CANCELED",
         "GUEST_PAYMENT_CONFIRMED",
+        "HOST_ANNOUNCEMENT",
       ],
     },
   },
@@ -676,6 +814,7 @@ export type Application = Database['public']['Tables']['applications']['Row'];
 export type Notification = Database['public']['Tables']['notifications']['Row'];
 export type TeamMember = Database['public']['Tables']['team_members']['Row'];
 export type UserSettings = Database['public']['Tables']['user_settings']['Row'];
+export type TeamFee = Database['public']['Tables']['team_fees']['Row'];
 
 // Insert types
 export type UserInsert = Database['public']['Tables']['users']['Insert'];
@@ -683,6 +822,7 @@ export type TeamInsert = Database['public']['Tables']['teams']['Insert'];
 export type GymInsert = Database['public']['Tables']['gyms']['Insert'];
 export type MatchInsert = Database['public']['Tables']['matches']['Insert'];
 export type ApplicationInsert = Database['public']['Tables']['applications']['Insert'];
+export type TeamFeeInsert = Database['public']['Tables']['team_fees']['Insert'];
 
 // Update types
 export type UserUpdate = Database['public']['Tables']['users']['Update'];
@@ -690,6 +830,7 @@ export type TeamUpdate = Database['public']['Tables']['teams']['Update'];
 export type MatchUpdate = Database['public']['Tables']['matches']['Update'];
 export type ApplicationUpdate = Database['public']['Tables']['applications']['Update'];
 export type UserSettingsUpdate = Database['public']['Tables']['user_settings']['Update'];
+export type TeamFeeUpdate = Database['public']['Tables']['team_fees']['Update'];
 
 // Legacy aliases (for backward compatibility)
 export type Profile = User;

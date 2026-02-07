@@ -52,10 +52,8 @@ export function SkillRangeSlider({ minValue, maxValue, onChange }: SkillRangeSli
   return (
     <div className="space-y-4">
       {/* Range Display */}
-      <div className="text-center">
-        <span className="text-sm font-medium text-slate-700">
-          권장 실력: <span className="text-[#FF6600]">{getRangeDisplayText()}</span>
-        </span>
+      <div className="flex justify-center">
+        <span className="text-sm font-medium text-slate-900">{getRangeDisplayText()}</span>
       </div>
 
       {/* Slider Track */}
