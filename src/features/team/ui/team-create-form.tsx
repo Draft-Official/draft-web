@@ -220,6 +220,9 @@ export function TeamCreateForm() {
 
   // Submit handler
   const onSubmit = async (data: TeamCreateFormData) => {
+    // 마지막 step이 아니면 submit 무시 (Enter 키로 인한 의도치 않은 submit 방지)
+    if (currentStep !== totalSteps) return;
+
     if (!user) {
       toast.error('로그인이 필요합니다');
       return;
@@ -388,6 +391,7 @@ export function TeamCreateForm() {
 
             {currentStep < totalSteps ? (
               <Button
+                key="next-button"
                 type="button"
                 onClick={handleNext}
                 disabled={isNextDisabled}
@@ -398,6 +402,7 @@ export function TeamCreateForm() {
               </Button>
             ) : (
               <Button
+                key="submit-button"
                 type="submit"
                 disabled={isCreating}
                 className="flex-1 h-14 text-base font-bold bg-[#FF6600] hover:bg-[#FF6600]/90"

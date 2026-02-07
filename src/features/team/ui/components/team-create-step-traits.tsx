@@ -51,7 +51,7 @@ export function TeamCreateStepTraits({
 
       {/* 나이 */}
       <div className="space-y-3">
-        <Label className="text-sm font-bold text-slate-700">권장 나이</Label>
+        <Label className="text-sm font-bold text-slate-700">평균 나이</Label>
         <AgeSelector
           selectedAges={selectedAges}
           onSelect={onAgeSelection}
@@ -61,7 +61,7 @@ export function TeamCreateStepTraits({
 
       {/* 실력 */}
       <div className="space-y-3">
-        <Label className="text-sm font-bold text-slate-700">권장 실력</Label>
+        <Label className="text-sm font-bold text-slate-700">평균 실력</Label>
         <SkillRangeSlider
           minValue={levelMin}
           maxValue={levelMax}

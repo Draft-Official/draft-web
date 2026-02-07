@@ -134,6 +134,7 @@ export function TeamCreateStepSchedule({
               placeholder="체육관 검색 (예: 서초종합체육관)"
               value={location}
               onChange={(e) => onLocationSearch(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
               className="pl-10 h-12"
             />
             {showLocationDropdown && locationSearchResults.length > 0 && (
