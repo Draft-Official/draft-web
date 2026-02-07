@@ -8,7 +8,6 @@ import type {
   Team,
   TeamInsert,
   TeamUpdate,
-  TeamMember,
 } from '@/shared/types/database.types';
 import type { AccountInfo, OperationInfo } from '@/shared/types/jsonb.types';
 import { handleSupabaseError } from '@/shared/lib/errors';
@@ -79,14 +78,14 @@ export async function checkTeamCodeExists(
 
 /**
  * 팀 생성
- * @returns 생성된 팀 정보와 팀원 레코드
+ * DB Trigger(trg_add_team_leader)가 자동으로 생성자를 LEADER로 추가함
+ * @returns 생성된 팀 정보
  */
 export async function createTeam(
   supabase: SupabaseClient<Database>,
-  userId: string,
+  _userId: string, // Trigger가 auth.uid()로 처리하므로 사용하지 않음
   input: CreateTeamInput
-): Promise<{ team: Team; membership: TeamMember }> {
-  // 1. 팀 생성
+): Promise<Team> {
   const teamInsert: TeamInsert = {
     code: input.code,
     name: input.name,
@@ -99,8 +98,8 @@ export async function createTeam(
     regular_day: input.regularDay,
     regular_time: input.regularTime,
     team_gender: input.teamGender,
-    team_avg_level: input.teamAvgLevel,
-    team_avg_age: input.teamAvgAge,
+    level_range: input.levelRange as unknown as Database['public']['Tables']['teams']['Insert']['level_range'],
+    age_range: input.ageRange as unknown as Database['public']['Tables']['teams']['Insert']['age_range'],
     account_info: input.accountInfo as unknown as Database['public']['Tables']['teams']['Insert']['account_info'],
     operation_info: input.operationInfo as unknown as Database['public']['Tables']['teams']['Insert']['operation_info'],
   };
@@ -113,26 +112,8 @@ export async function createTeam(
 
   if (teamError) handleSupabaseError(teamError, '팀 생성');
 
-  // 2. 생성자를 LEADER로 추가
-  const { data: membership, error: memberError } = await supabase
-    .from('team_members')
-    .insert({
-      team_id: team!.id,
-      user_id: userId,
-      role: 'LEADER',
-      status: 'ACCEPTED',
-      joined_at: new Date().toISOString(),
-    })
-    .select()
-    .single();
-
-  if (memberError) {
-    // 롤백: 팀 삭제
-    await supabase.from('teams').delete().eq('id', team!.id);
-    handleSupabaseError(memberError, '팀원 추가');
-  }
-
-  return { team: team!, membership: membership! };
+  // Trigger가 자동으로 team_members에 LEADER로 추가함
+  return team!;
 }
 
 /**
@@ -155,8 +136,12 @@ export async function updateTeam(
   if (input.regularDay !== undefined) teamUpdate.regular_day = input.regularDay;
   if (input.regularTime !== undefined) teamUpdate.regular_time = input.regularTime;
   if (input.teamGender !== undefined) teamUpdate.team_gender = input.teamGender;
-  if (input.teamAvgLevel !== undefined) teamUpdate.team_avg_level = input.teamAvgLevel;
-  if (input.teamAvgAge !== undefined) teamUpdate.team_avg_age = input.teamAvgAge;
+  if (input.levelRange !== undefined) {
+    teamUpdate.level_range = input.levelRange as unknown as TeamUpdate['level_range'];
+  }
+  if (input.ageRange !== undefined) {
+    teamUpdate.age_range = input.ageRange as unknown as TeamUpdate['age_range'];
+  }
   if (input.isRecruiting !== undefined) teamUpdate.is_recruiting = input.isRecruiting;
   if (input.accountInfo !== undefined) {
     teamUpdate.account_info = input.accountInfo as unknown as TeamUpdate['account_info'];

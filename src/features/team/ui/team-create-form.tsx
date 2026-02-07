@@ -18,7 +18,6 @@ import { StepProgressBar } from './components/step-progress-bar';
 import { TeamCreateStepInfo } from './components/team-create-step-info';
 import { TeamCreateStepSchedule } from './components/team-create-step-schedule';
 import { TeamCreateStepTraits } from './components/team-create-step-traits';
-import { TeamCreateStepOperations } from './components/team-create-step-operations';
 
 import {
   TEAM_CODE_REGEX,
@@ -27,6 +26,8 @@ import {
 } from '@/shared/config/team-constants';
 import type { GenderValue } from '@/shared/config/constants';
 import type { CreateTeamInput } from '@/features/team/model/types';
+import type { LevelRange, AgeRange } from '@/shared/types/jsonb.types';
+import { parseRegionFromAddress } from '@/shared/lib/parse-region';
 
 interface TeamCreateFormData {
   // Step 1: 팀 정보
@@ -45,21 +46,13 @@ interface TeamCreateFormData {
   selectedAges: string[];
   levelMin: number;
   levelMax: number;
-
-  // Step 4: 운영 정보
-  bankName: string;
-  accountNumber: string;
-  accountHolder: string;
-  contactType: 'PHONE' | 'KAKAO_OPEN_CHAT';
-  phoneNumber: string;
-  kakaoLink: string;
 }
 
 export function TeamCreateForm() {
   const router = useRouter();
   const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 4;
+  const totalSteps = 3;
 
   const methods = useForm<TeamCreateFormData>({
     defaultValues: {
@@ -74,12 +67,6 @@ export function TeamCreateForm() {
       selectedAges: ['any'],
       levelMin: 1,
       levelMax: 7,
-      bankName: '',
-      accountNumber: '',
-      accountHolder: '',
-      contactType: 'PHONE',
-      phoneNumber: '',
-      kakaoLink: '',
     },
   });
 
@@ -114,7 +101,6 @@ export function TeamCreateForm() {
   const selectedAges = watch('selectedAges');
   const levelMin = watch('levelMin');
   const levelMax = watch('levelMax');
-  const contactType = watch('contactType');
 
   // Step별 다음 버튼 disabled 여부
   const isStep1Valid = Boolean(
@@ -212,7 +198,6 @@ export function TeamCreateForm() {
         return true;
       }
       case 3:
-      case 4:
         return true;
       default:
         return true;
@@ -261,29 +246,40 @@ export function TeamCreateForm() {
       }
     }
 
+    // Region 파싱
+    const region = locationData?.address
+      ? parseRegionFromAddress(locationData.address)
+      : { depth1: null, depth2: null };
+
+    // Level Range 변환
+    const levelRange: LevelRange = {
+      min: data.levelMin,
+      max: data.levelMax,
+    };
+
+    // Age Range 변환: selectedAges에서 min/max 추출
+    let ageRange: AgeRange | undefined;
+    if (!data.selectedAges.includes('any') && data.selectedAges.length > 0) {
+      const ages = data.selectedAges.map(a => parseInt(a, 10)).sort((a, b) => a - b);
+      ageRange = {
+        min: ages[0],
+        max: ages[ages.length - 1],
+      };
+    }
+
     const input: CreateTeamInput = {
       code: data.code,
       name: data.name,
       shortIntro: data.shortIntro || undefined,
       logoUrl: data.logoId,
+      regionDepth1: region.depth1 || undefined,
+      regionDepth2: region.depth2 || undefined,
       regularDay: data.regularDay || undefined,
       regularTime: data.regularTime || undefined,
       teamGender: data.gender,
-      teamAvgLevel: `${data.levelMin}-${data.levelMax}`,
-      teamAvgAge: data.selectedAges.includes('any') ? undefined : data.selectedAges.join(','),
+      levelRange,
+      ageRange,
       homeGymId,
-      accountInfo: data.bankName ? {
-        bank: data.bankName,
-        number: data.accountNumber,
-        holder: data.accountHolder,
-      } : undefined,
-      operationInfo: data.contactType === 'PHONE' && data.phoneNumber ? {
-        type: 'PHONE',
-        phone: data.phoneNumber,
-      } : data.contactType === 'KAKAO_OPEN_CHAT' && data.kakaoLink ? {
-        type: 'KAKAO_OPEN_CHAT',
-        url: data.kakaoLink,
-      } : undefined,
     };
 
     createTeam(
@@ -358,11 +354,6 @@ export function TeamCreateForm() {
                 levelMax={levelMax}
                 onAgeSelection={handleAgeSelection}
               />
-            )}
-
-            {/* Step 4: 운영 정보 */}
-            {currentStep === 4 && (
-              <TeamCreateStepOperations contactType={contactType} />
             )}
           </div>
 

@@ -100,6 +100,7 @@ export function TimePickerSelect({
             <div className="px-2 py-2 text-sm font-semibold text-slate-700">시간대 선택</div>
             <div className="space-y-1">
               <button
+                type="button"
                 onClick={() => handlePeriodSelect('AM')}
                 className="w-full rounded-md px-3 py-2.5 text-left text-sm hover:bg-slate-100 transition-colors"
               >
@@ -107,6 +108,7 @@ export function TimePickerSelect({
                 <div className="text-xs text-slate-600">00:00 ~ 11:30</div>
               </button>
               <button
+                type="button"
                 onClick={() => handlePeriodSelect('PM')}
                 className="w-full rounded-md px-3 py-2.5 text-left text-sm hover:bg-slate-100 transition-colors"
               >
@@ -138,6 +140,7 @@ export function TimePickerSelect({
                   return (
                     <button
                       key={opt.value}
+                      type="button"
                       onClick={() => handleTimeSelect(opt.value)}
                       className={cn(
                         "rounded-md px-3 py-2 text-sm font-medium transition-colors",

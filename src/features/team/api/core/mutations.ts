@@ -25,8 +25,8 @@ export function useCreateTeam() {
       input: CreateTeamInput;
     }): Promise<ClientTeam> => {
       const supabase = getSupabaseBrowserClient();
-      const result = await createTeam(supabase, userId, input);
-      return teamRowToClient(result.team);
+      const team = await createTeam(supabase, userId, input);
+      return teamRowToClient(team);
     },
     onSuccess: (data, { userId }) => {
       // 내 팀 목록 갱신

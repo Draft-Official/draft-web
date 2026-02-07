@@ -8,7 +8,7 @@ import type {
   RegularDayValue,
   TeamVoteStatusValue,
 } from '@/shared/config/team-constants';
-import type { AccountInfo, OperationInfo } from '@/shared/types/jsonb.types';
+import type { AccountInfo, OperationInfo, LevelRange, AgeRange } from '@/shared/types/jsonb.types';
 
 // ============================================
 // Team (팀)
@@ -31,8 +31,8 @@ export interface ClientTeam {
   regularDay: RegularDayValue | null;
   regularTime: string | null;
   teamGender: string | null;
-  teamAvgLevel: string | null;
-  teamAvgAge: string | null;
+  levelRange: LevelRange | null;
+  ageRange: AgeRange | null;
   isRecruiting: boolean;
   accountInfo: AccountInfo | null;
   operationInfo: OperationInfo | null;
@@ -54,8 +54,8 @@ export interface CreateTeamInput {
   regularDay?: RegularDayValue;
   regularTime?: string;
   teamGender?: string;
-  teamAvgLevel?: string;
-  teamAvgAge?: string;
+  levelRange?: LevelRange;
+  ageRange?: AgeRange;
   accountInfo?: AccountInfo;
   operationInfo?: OperationInfo;
 }
@@ -74,8 +74,8 @@ export interface UpdateTeamInput {
   regularDay?: RegularDayValue | null;
   regularTime?: string | null;
   teamGender?: string | null;
-  teamAvgLevel?: string | null;
-  teamAvgAge?: string | null;
+  levelRange?: LevelRange | null;
+  ageRange?: AgeRange | null;
   isRecruiting?: boolean;
   accountInfo?: AccountInfo | null;
   operationInfo?: OperationInfo | null;

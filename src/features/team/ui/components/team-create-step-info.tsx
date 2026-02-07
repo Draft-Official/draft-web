@@ -59,13 +59,13 @@ export function TeamCreateStepInfo({
           한줄 소개 <span className="text-red-500">*</span>
         </Label>
         <Input
-          {...register('shortIntro', { required: true, maxLength: 20 })}
-          placeholder="예: 매주 수요일 상암에서!"
+          {...register('shortIntro', { required: true, maxLength: 10 })}
+          placeholder="예: 매주 수요일에 봐요"
           className="h-12"
-          maxLength={20}
+          maxLength={10}
         />
         <p className="text-xs text-slate-400 text-right">
-          {watch('shortIntro')?.length || 0}/20
+          {watch('shortIntro')?.length || 0}/10
         </p>
       </div>
 

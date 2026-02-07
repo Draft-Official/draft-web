@@ -4,7 +4,7 @@
  */
 
 import type { Team, TeamMember, TeamFee } from '@/shared/types/database.types';
-import type { AccountInfo, OperationInfo } from '@/shared/types/jsonb.types';
+import type { AccountInfo, OperationInfo, LevelRange, AgeRange } from '@/shared/types/jsonb.types';
 import type {
   TeamRoleValue,
   TeamMemberStatusValue,
@@ -29,8 +29,8 @@ export function teamRowToClient(row: Team): ClientTeam {
     regularDay: row.regular_day as RegularDayValue | null,
     regularTime: row.regular_time,
     teamGender: row.team_gender,
-    teamAvgLevel: row.team_avg_level,
-    teamAvgAge: row.team_avg_age,
+    levelRange: (row.level_range as unknown as LevelRange) || null,
+    ageRange: (row.age_range as unknown as AgeRange) || null,
     isRecruiting: row.is_recruiting ?? false,
     accountInfo: (row.account_info as unknown as AccountInfo) || null,
     operationInfo: (row.operation_info as unknown as OperationInfo) || null,
