@@ -184,15 +184,15 @@ export async function deleteTeam(
 // ============================================
 
 /**
- * 현재 사용자가 속한 팀 목록 조회 (역할 정보 포함)
+ * 현재 사용자가 속한 팀 목록 조회 (역할 정보 + 체육관 정보 포함)
  */
 export async function getMyTeams(
   supabase: SupabaseClient<Database>,
   userId: string
-): Promise<(Team & { role: TeamRoleValue })[]> {
+): Promise<(Team & { role: TeamRoleValue; home_gym_name: string | null })[]> {
   const { data, error } = await supabase
     .from('team_members')
-    .select('role, teams(*)')
+    .select('role, teams(*, gyms(name))')
     .eq('user_id', userId)
     .eq('status', 'ACCEPTED');
 
@@ -200,10 +200,14 @@ export async function getMyTeams(
 
   return (data || [])
     .filter((item) => item.teams !== null)
-    .map((item) => ({
-      ...item.teams!,
-      role: (item.role as TeamRoleValue) || 'MEMBER',
-    }));
+    .map((item) => {
+      const team = item.teams as Team & { gyms?: { name: string } | null };
+      return {
+        ...team,
+        role: (item.role as TeamRoleValue) || 'MEMBER',
+        home_gym_name: team.gyms?.name ?? null,
+      };
+    });
 }
 
 // ============================================

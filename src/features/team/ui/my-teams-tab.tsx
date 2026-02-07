@@ -1,15 +1,13 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { Users, Calendar, MapPin, Loader2 } from 'lucide-react';
-import { Card } from '@/shared/ui/base/card';
-import { Badge } from '@/shared/ui/base/badge';
+import { Users, Loader2 } from 'lucide-react';
 import { Button } from '@/shared/ui/base/button';
 import { ScrollArea, ScrollBar } from '@/shared/ui/base/scroll-area';
 import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/shadcn/alert';
 import { useAuth } from '@/features/auth/model/auth-context';
 import { useMyTeams } from '../api/core/queries';
 import { TeamProfileCard } from './components/team-profile-card';
+import { TeamMatchItem } from './components/team-match-item';
 
 /**
  * 나의 팀 탭
@@ -18,7 +16,6 @@ import { TeamProfileCard } from './components/team-profile-card';
  * - 팀 없음 Empty State
  */
 export function MyTeamsTab() {
-  const router = useRouter();
   const { user } = useAuth();
   const { data: teams, isLoading } = useMyTeams(user?.id);
 
@@ -107,23 +104,35 @@ function PendingVoteMatches({ teamIds }: { teamIds: string[] }) {
   const mockMatches = [
     {
       id: '1',
+      teamId: teamIds[0] || '',
       teamName: 'PoK',
-      date: '2026. 02. 07 (토)',
-      time: '13:00',
+      teamLogoUrl: null,
+      date: '2026. 02. 08 (일)',
+      time: '19:00',
       gymName: '서초종합체육관',
-      attending: 7,
-      notAttending: 2,
-      pending: 3,
+      status: 'RECRUITING' as const,
+      hasVoted: false,
+      votingSummary: {
+        attending: 7,
+        notAttending: 2,
+        pending: 3,
+      },
     },
     {
       id: '2',
+      teamId: teamIds[0] || '',
       teamName: 'PoK',
-      date: '2026. 02. 14 (토)',
-      time: '13:00',
+      teamLogoUrl: null,
+      date: '2026. 02. 15 (일)',
+      time: '19:00',
       gymName: '서초종합체육관',
-      attending: 0,
-      notAttending: 0,
-      pending: 12,
+      status: 'CLOSING_SOON' as const,
+      hasVoted: false,
+      votingSummary: {
+        attending: 0,
+        notAttending: 0,
+        pending: 12,
+      },
     },
   ];
 
@@ -138,48 +147,19 @@ function PendingVoteMatches({ teamIds }: { teamIds: string[] }) {
   return (
     <div className="space-y-3">
       {mockMatches.map((match) => (
-        <Card
+        <TeamMatchItem
           key={match.id}
-          className="p-4 border border-slate-200 rounded-xl cursor-pointer hover:shadow-sm transition-shadow"
-        >
-          {/* 투표중 뱃지 */}
-          <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-100 border-0 mb-3 text-xs font-bold">
-            투표중
-          </Badge>
-
-          {/* 경기 정보 */}
-          <div className="space-y-1.5 mb-3">
-            <div className="flex items-center gap-2 text-sm text-slate-900">
-              <Calendar className="w-4 h-4 text-slate-400" />
-              <span className="font-medium">
-                {match.date} {match.time}
-              </span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-slate-600">
-              <MapPin className="w-4 h-4 text-slate-400" />
-              <span>{match.gymName}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-slate-500">
-              <div className="w-4 h-4 rounded-full bg-slate-200 flex items-center justify-center text-[10px]">
-                {match.teamName.charAt(0)}
-              </div>
-              <span>{match.teamName}</span>
-            </div>
-          </div>
-
-          {/* 투표 현황 */}
-          <div className="flex items-center gap-4 pt-3 border-t border-slate-100 text-sm">
-            <span>
-              참석 <strong className="text-green-600">{match.attending}명</strong>
-            </span>
-            <span>
-              불참 <strong className="text-red-500">{match.notAttending}명</strong>
-            </span>
-            <span>
-              미투표 <strong className="text-slate-600">{match.pending}명</strong>
-            </span>
-          </div>
-        </Card>
+          id={match.id}
+          teamId={match.teamId}
+          teamName={match.teamName}
+          teamLogoUrl={match.teamLogoUrl}
+          date={match.date}
+          time={match.time}
+          gymName={match.gymName}
+          status={match.status}
+          hasVoted={match.hasVoted}
+          votingSummary={match.votingSummary}
+        />
       ))}
     </div>
   );

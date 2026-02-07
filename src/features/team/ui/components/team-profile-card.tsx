@@ -2,14 +2,19 @@
 
 import { useRouter } from 'next/navigation';
 import { MapPin, Calendar } from 'lucide-react';
-import { Card } from '@/shared/ui/base/card';
+import { Card } from '@/shared/ui/shadcn/card';
 import { cn } from '@/shared/lib/utils';
 import {
-  TEAM_ROLE_LABELS,
   REGULAR_DAY_LABELS,
   type TeamRoleValue,
   type RegularDayValue,
 } from '@/shared/config/team-constants';
+
+const ROLE_LABELS_EN: Record<TeamRoleValue, string> = {
+  LEADER: 'Leader',
+  MANAGER: 'Manager',
+  MEMBER: 'Member',
+};
 
 interface TeamProfileCardProps {
   id: string;
@@ -70,26 +75,29 @@ export function TeamProfileCard({
       className={cn(
         'w-[160px] min-w-[160px] p-4 cursor-pointer',
         'hover:shadow-md active:scale-[0.98] transition-all',
-        'border border-slate-200 rounded-2xl',
+        'ring-slate-200 rounded-2xl gap-0',
         className
       )}
     >
       {/* 팀 로고 */}
-      <div className="flex justify-center mb-3">
-        <div
-          className={cn(
-            'w-14 h-14 rounded-full flex items-center justify-center',
-            'text-white text-xl font-bold',
-            logoBgColor
-          )}
-        >
-          {logoUrl ? (
-            // TODO: 실제 로고 이미지 지원 시 구현
-            logoChar
-          ) : (
-            logoChar
-          )}
-        </div>
+      <div className="flex justify-center mb-1">
+        {logoUrl ? (
+          <img
+            src={logoUrl}
+            alt={`${name} 로고`}
+            className="w-14 h-14 rounded-full object-cover"
+          />
+        ) : (
+          <div
+            className={cn(
+              'w-14 h-14 rounded-full flex items-center justify-center',
+              'text-white text-xl font-bold',
+              logoBgColor
+            )}
+          >
+            {logoChar}
+          </div>
+        )}
       </div>
 
       {/* 팀 이름 */}
@@ -98,8 +106,8 @@ export function TeamProfileCard({
       </h3>
 
       {/* 역할 */}
-      <p className="text-center text-xs text-primary font-medium underline underline-offset-2 mb-3">
-        {TEAM_ROLE_LABELS[role]}
+      <p className="text-center text-xs text-blue-500 font-medium mb-1">
+        {ROLE_LABELS_EN[role]}
       </p>
 
       {/* 구분선 + 정기운동 */}
@@ -107,14 +115,14 @@ export function TeamProfileCard({
         <p className="text-[10px] text-slate-400 text-center">정기운동</p>
 
         {homeGymName && (
-          <div className="flex items-center gap-1 text-xs text-slate-600">
+          <div className="flex items-center justify-center gap-1 text-xs text-slate-600">
             <MapPin className="w-3 h-3 text-slate-400 flex-shrink-0" />
             <span className="truncate">{homeGymName}</span>
           </div>
         )}
 
         {scheduleText && (
-          <div className="flex items-center gap-1 text-xs text-slate-600">
+          <div className="flex items-center justify-center gap-1 text-xs text-slate-600">
             <Calendar className="w-3 h-3 text-slate-400 flex-shrink-0" />
             <span>{scheduleText}</span>
           </div>
