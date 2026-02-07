@@ -174,7 +174,7 @@ export const MatchListItem = React.memo(function MatchListItem({ match, applicat
             <Avatar className="w-6 h-6">
               {match.isPersonalHost ? (
                 <>
-                  <AvatarImage src="/default-team-logo.jpg" alt="기본 팀 로고" />
+                  <AvatarImage src="/logos/preset/logo-01.webp" alt="기본 팀 로고" />
                   <AvatarFallback className="bg-slate-200 text-xs text-slate-500 font-bold">
                     {match.teamName.slice(0, 1)}
                   </AvatarFallback>

@@ -1,6 +1,7 @@
 'use client';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/base/tabs';
+import { Plus } from 'lucide-react';
 import { MyTeamsTab } from './my-teams-tab';
 import { TeamCreateTab } from './team-create-tab';
 
@@ -26,7 +27,10 @@ export function TeamPageTabs() {
               value="create-team"
               className="flex-1 h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary font-bold"
             >
-              팀 생성하기+
+              <span className="flex items-center gap-1">
+                팀 생성하기
+                <Plus className="w-4 h-4" />
+              </span>
             </TabsTrigger>
           </TabsList>
         </div>

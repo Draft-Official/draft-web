@@ -29,7 +29,8 @@ export interface ClientTeam {
   regionDepth2: string | null;
   homeGymId: string | null;
   regularDay: RegularDayValue | null;
-  regularTime: string | null;
+  regularStartTime: string | null; // 시작 시간 (예: "20:00")
+  regularEndTime: string | null; // 종료 시간 (예: "22:00")
   teamGender: string | null;
   levelRange: LevelRange | null;
   ageRange: AgeRange | null;
@@ -52,7 +53,8 @@ export interface CreateTeamInput {
   regionDepth2?: string;
   homeGymId?: string;
   regularDay?: RegularDayValue;
-  regularTime?: string;
+  regularStartTime?: string; // 시작 시간 (예: "20:00")
+  regularEndTime?: string; // 종료 시간 (예: "22:00")
   teamGender?: string;
   levelRange?: LevelRange;
   ageRange?: AgeRange;
@@ -72,7 +74,8 @@ export interface UpdateTeamInput {
   regionDepth2?: string | null;
   homeGymId?: string | null;
   regularDay?: RegularDayValue | null;
-  regularTime?: string | null;
+  regularStartTime?: string | null;
+  regularEndTime?: string | null;
   teamGender?: string | null;
   levelRange?: LevelRange | null;
   ageRange?: AgeRange | null;

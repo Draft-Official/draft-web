@@ -15,7 +15,7 @@ import { SelectedLocationCard } from '@/features/match-create/ui/components/sele
 import { REGULAR_DAY_OPTIONS, type RegularDayValue } from '@/shared/config/team-constants';
 import type { LocationData } from '@/features/match-create/model/types';
 
-// 진행 시간 옵션 (match-create와 동일)
+// 진행 시간 옵션
 const DURATION_OPTIONS = [
   { label: '1시간', value: '1' },
   { label: '1시간 30분', value: '1.5' },
@@ -68,9 +68,9 @@ export function TeamCreateStepSchedule({
               type="button"
               onClick={() => setValue('regularDay', regularDay === day.value ? '' : day.value)}
               className={cn(
-                'aspect-square rounded-lg flex items-center justify-center text-sm font-bold transition-all border',
+                'aspect-square rounded-lg flex items-center justify-center text-base font-bold transition-all border',
                 regularDay === day.value
-                  ? 'bg-primary text-white border-primary'
+                  ? 'bg-slate-800 text-white border-slate-800'
                   : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
               )}
             >

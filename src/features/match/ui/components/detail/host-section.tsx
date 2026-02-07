@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 import { Alert, AlertDescription } from '@/shared/ui/shadcn/alert';
 
 // 기본 팀 로고 (팀이 없을 때 사용)
-const DEFAULT_TEAM_LOGO = '/default-team-logo.jpg';
+const DEFAULT_TEAM_LOGO = '/logos/preset/logo-01.webp';
 
 interface HostSectionProps {
   match: Match;

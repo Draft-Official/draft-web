@@ -14,20 +14,21 @@ interface BenefitItem {
 const TEAM_BENEFITS: BenefitItem[] = [
   {
     icon: <Users className="w-6 h-6" />,
-    title: '팀원 관리',
-    description: '팀원들의 정기운동 참석과 회비를 관리하세요',
+    title: '팀원 현황을 한눈에 확인하세요',
+    description:
+      '정기 운동 참석 여부와 회비 현황을 쉽게 관리할 수 있습니다.\n일일이 묻지 않아도, 팀이 더 체계적으로 운영됩니다.',
   },
   {
     icon: <Calendar className="w-6 h-6" />,
-    title: '정기운동 생성',
+    title: '매주 운동 일정, 자동으로 준비됩니다',
     description:
-      '주간 운동을 자동으로 생성하고 팀원들의 참석/불참 투표를 진행해요. 인원이 부족하면 게스트 모집으로 전환할 수 있습니다.',
+      '주간 운동을 자동 생성하고 참석 투표를 진행하세요.\n인원이 부족하면 게스트 모집으로 전환해 안정적으로 운영할 수 있습니다.',
   },
   {
     icon: <Link2 className="w-6 h-6" />,
-    title: '초대 링크 공유',
+    title: '팀원 모집도 간편하게',
     description:
-      '팀 생성 후 카카오톡으로 초대 링크를 공유하여 팀원을 쉽게 모집할 수 있습니다.',
+      '카카오톡 초대 링크로 새로운 팀원을 쉽게 초대하세요.\n함께 뛰는 사람이 늘어날수록 팀은 더 단단해집니다.',
   },
 ];
 
@@ -47,11 +48,13 @@ export function TeamCreateTab() {
     <div className="p-4 pb-20">
       {/* 헤더 */}
       <div className="mb-6">
-        <h2 className="text-xl font-bold text-slate-900 mb-1">
-          팀을 만들면 이런 기능을 써요
+        <h2 className="text-xl font-bold text-slate-900 mb-2">
+          팀 운영이 더 쉬워집니다
         </h2>
-        <p className="text-sm text-slate-500">
-          농구 팀 운영에 필요한 모든 기능을 제공합니다
+        <p className="text-sm text-slate-500 leading-relaxed">
+          팀원 한 명,한 명을 더 잘 챙길 수 있도록,
+          <br />
+          농구 팀 운영에 필요한 기능을 모두 담았습니다.
         </p>
       </div>
 
@@ -60,17 +63,17 @@ export function TeamCreateTab() {
         {TEAM_BENEFITS.map((benefit, index) => (
           <Card
             key={index}
-            className="p-4 border border-slate-200 rounded-xl flex gap-4"
+            className="p-4 border border-slate-200 rounded-xl"
           >
-            <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-primary flex-shrink-0">
-              {benefit.icon}
+            <div className="flex gap-3 items-center mb-2">
+              <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-primary flex-shrink-0">
+                {benefit.icon}
+              </div>
+              <h3 className="font-bold text-slate-900">{benefit.title}</h3>
             </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="font-bold text-slate-900 mb-1">{benefit.title}</h3>
-              <p className="text-sm text-slate-500 leading-relaxed">
-                {benefit.description}
-              </p>
-            </div>
+            <p className="text-sm text-slate-500 leading-relaxed">
+              {benefit.description}
+            </p>
           </Card>
         ))}
       </div>

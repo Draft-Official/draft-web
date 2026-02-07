@@ -2,6 +2,7 @@
 
 import { useFormContext } from 'react-hook-form';
 import { Flag, Loader2, Check } from 'lucide-react';
+import Image from 'next/image';
 
 import { Input } from '@/shared/ui/base/input';
 import { Label } from '@/shared/ui/base/label';
@@ -10,17 +11,21 @@ import { cn } from '@/shared/lib/utils';
 import { StepHeader } from './step-header';
 import { TEAM_CODE_ERROR_MESSAGE } from '@/shared/config/team-constants';
 
-// 팀 로고 옵션
+// 프리셋 로고 옵션 (8개: 2개 로고 x 4 반복)
+const PRESET_LOGOS = [
+  { id: '01', url: '/logos/preset/logo-01.webp' },
+  { id: '02', url: '/logos/preset/logo-02.webp' },
+] as const;
+
 const TEAM_LOGO_OPTIONS = [
-  { id: 'basketball', emoji: '🏀', label: '농구공' },
-  { id: 'fire', emoji: '🔥', label: '불꽃' },
-  { id: 'star', emoji: '⭐', label: '별' },
-  { id: 'lightning', emoji: '⚡', label: '번개' },
-  { id: 'trophy', emoji: '🏆', label: '트로피' },
-  { id: 'eagle', emoji: '🦅', label: '독수리' },
-  { id: 'lion', emoji: '🦁', label: '사자' },
-  { id: 'dragon', emoji: '🐉', label: '용' },
-];
+  ...PRESET_LOGOS,
+  ...PRESET_LOGOS,
+  ...PRESET_LOGOS,
+  ...PRESET_LOGOS,
+].map((logo, index) => ({
+  id: `logo-${String(index + 1).padStart(2, '0')}`,
+  url: logo.url,
+}));
 
 interface TeamCreateStepInfoProps {
   logoId: string;
@@ -59,13 +64,21 @@ export function TeamCreateStepInfo({
           한줄 소개 <span className="text-red-500">*</span>
         </Label>
         <Input
-          {...register('shortIntro', { required: true, maxLength: 10 })}
+          {...register('shortIntro', { required: true, maxLength: 15 })}
           placeholder="예: 매주 수요일에 봐요"
           className="h-12"
-          maxLength={10}
+          maxLength={15}
+          onChange={(e) => {
+            // 이모티콘 제거: 기본 한글/영문/숫자/일반 문장부호만 허용
+            const value = e.target.value.replace(
+              /[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F000}-\u{1F02F}\u{1F0A0}-\u{1F0FF}\u{1F100}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{FE00}-\u{FE0F}]/gu,
+              ''
+            );
+            setValue('shortIntro', value);
+          }}
         />
         <p className="text-xs text-slate-400 text-right">
-          {watch('shortIntro')?.length || 0}/10
+          {watch('shortIntro')?.length || 0}/15
         </p>
       </div>
 
@@ -112,20 +125,26 @@ export function TeamCreateStepInfo({
       {/* 팀 로고 */}
       <div className="space-y-3">
         <Label className="text-sm font-bold text-slate-700">팀 로고</Label>
-        <div className="flex flex-wrap gap-2">
+        <div className="grid grid-cols-4 gap-2">
           {TEAM_LOGO_OPTIONS.map((logo) => (
             <button
               key={logo.id}
               type="button"
-              onClick={() => setValue('logoId', logo.id)}
+              onClick={() => setValue('logoId', logo.url)}
               className={cn(
-                'w-12 h-12 rounded-xl flex items-center justify-center text-xl transition-all border-2',
-                logoId === logo.id
+                'aspect-square rounded-xl flex items-center justify-center overflow-hidden transition-all border-2',
+                logoId === logo.url
                   ? 'border-[#FF6600] bg-orange-50'
                   : 'border-slate-200 bg-white hover:border-slate-300'
               )}
             >
-              {logo.emoji}
+              <Image
+                src={logo.url}
+                alt={`로고 ${logo.id}`}
+                width={60}
+                height={60}
+                className="object-cover w-3/4 h-3/4"
+              />
             </button>
           ))}
         </div>

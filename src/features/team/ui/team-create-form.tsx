@@ -59,7 +59,7 @@ export function TeamCreateForm() {
       name: '',
       shortIntro: '',
       code: '',
-      logoId: 'basketball',
+      logoId: '/logos/preset/logo-01.webp',
       regularDay: '',
       regularTime: '20:00',
       duration: '2',
@@ -267,6 +267,20 @@ export function TeamCreateForm() {
       };
     }
 
+    // 종료 시간 계산: 시작 시간 + 진행 시간
+    const calculateEndTime = (startTime: string, durationHours: string): string => {
+      const [hours, minutes] = startTime.split(':').map(Number);
+      const duration = parseFloat(durationHours);
+      const totalMinutes = hours * 60 + minutes + duration * 60;
+      const endHours = Math.floor(totalMinutes / 60) % 24;
+      const endMinutes = totalMinutes % 60;
+      return `${String(endHours).padStart(2, '0')}:${String(endMinutes).padStart(2, '0')}`;
+    };
+
+    const regularEndTime = data.regularTime && data.duration
+      ? calculateEndTime(data.regularTime, data.duration)
+      : undefined;
+
     const input: CreateTeamInput = {
       code: data.code,
       name: data.name,
@@ -275,7 +289,8 @@ export function TeamCreateForm() {
       regionDepth1: region.depth1 || undefined,
       regionDepth2: region.depth2 || undefined,
       regularDay: data.regularDay || undefined,
-      regularTime: data.regularTime || undefined,
+      regularStartTime: data.regularTime || undefined,
+      regularEndTime,
       teamGender: data.gender,
       levelRange,
       ageRange,

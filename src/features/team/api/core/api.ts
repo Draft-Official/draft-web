@@ -86,7 +86,7 @@ export async function createTeam(
   _userId: string, // Trigger가 auth.uid()로 처리하므로 사용하지 않음
   input: CreateTeamInput
 ): Promise<Team> {
-  const teamInsert: TeamInsert = {
+  const teamInsert = {
     code: input.code,
     name: input.name,
     short_intro: input.shortIntro,
@@ -96,13 +96,14 @@ export async function createTeam(
     region_depth2: input.regionDepth2,
     home_gym_id: input.homeGymId,
     regular_day: input.regularDay,
-    regular_time: input.regularTime,
+    regular_start_time: input.regularStartTime,
+    regular_end_time: input.regularEndTime,
     team_gender: input.teamGender,
-    level_range: input.levelRange as unknown as Database['public']['Tables']['teams']['Insert']['level_range'],
-    age_range: input.ageRange as unknown as Database['public']['Tables']['teams']['Insert']['age_range'],
-    account_info: input.accountInfo as unknown as Database['public']['Tables']['teams']['Insert']['account_info'],
-    operation_info: input.operationInfo as unknown as Database['public']['Tables']['teams']['Insert']['operation_info'],
-  };
+    level_range: input.levelRange,
+    age_range: input.ageRange,
+    account_info: input.accountInfo,
+    operation_info: input.operationInfo,
+  } as TeamInsert;
 
   const { data: team, error: teamError } = await supabase
     .from('teams')
@@ -134,7 +135,12 @@ export async function updateTeam(
   if (input.regionDepth2 !== undefined) teamUpdate.region_depth2 = input.regionDepth2;
   if (input.homeGymId !== undefined) teamUpdate.home_gym_id = input.homeGymId;
   if (input.regularDay !== undefined) teamUpdate.regular_day = input.regularDay;
-  if (input.regularTime !== undefined) teamUpdate.regular_time = input.regularTime;
+  if (input.regularStartTime !== undefined) {
+    (teamUpdate as Record<string, unknown>).regular_start_time = input.regularStartTime;
+  }
+  if (input.regularEndTime !== undefined) {
+    (teamUpdate as Record<string, unknown>).regular_end_time = input.regularEndTime;
+  }
   if (input.teamGender !== undefined) teamUpdate.team_gender = input.teamGender;
   if (input.levelRange !== undefined) {
     teamUpdate.level_range = input.levelRange as unknown as TeamUpdate['level_range'];

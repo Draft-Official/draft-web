@@ -27,7 +27,8 @@ export function teamRowToClient(row: Team): ClientTeam {
     regionDepth2: row.region_depth2,
     homeGymId: row.home_gym_id,
     regularDay: row.regular_day as RegularDayValue | null,
-    regularTime: row.regular_time,
+    regularStartTime: row.regular_start_time ?? null,
+    regularEndTime: row.regular_end_time ?? null,
     teamGender: row.team_gender,
     levelRange: (row.level_range as unknown as LevelRange) || null,
     ageRange: (row.age_range as unknown as AgeRange) || null,
@@ -101,7 +102,8 @@ export function formatRegion(regionDepth1: string | null, regionDepth2: string |
  */
 export function formatRegularSchedule(
   regularDay: string | null,
-  regularTime: string | null
+  regularStartTime: string | null,
+  regularEndTime?: string | null
 ): string | null {
   if (!regularDay) return null;
 
@@ -116,6 +118,18 @@ export function formatRegularSchedule(
   };
 
   const day = dayLabels[regularDay] || regularDay;
-  const time = regularTime ? ` ${regularTime.slice(0, 5)}` : '';
-  return `매주 ${day}요일${time}`;
+
+  // 시작~종료 시간 포맷
+  let timeStr = '';
+  if (regularStartTime) {
+    const start = regularStartTime.slice(0, 5);
+    if (regularEndTime) {
+      const end = regularEndTime.slice(0, 5);
+      timeStr = ` ${start}~${end}`;
+    } else {
+      timeStr = ` ${start}`;
+    }
+  }
+
+  return `매주 ${day}요일${timeStr}`;
 }
