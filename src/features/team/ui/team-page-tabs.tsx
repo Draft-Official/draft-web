@@ -44,11 +44,11 @@ export function TeamPageTabs() {
         </div>
 
         {/* 탭 콘텐츠 */}
-        <TabsContent value="my-teams" className="mt-0">
+        <TabsContent value="my-teams" className="mt-4">
           <MyTeamsTab />
         </TabsContent>
 
-        <TabsContent value="create-team" className="mt-0">
+        <TabsContent value="create-team" className="mt-4">
           <TeamCreateTab />
         </TabsContent>
       </Tabs>

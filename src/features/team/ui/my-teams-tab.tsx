@@ -12,7 +12,7 @@ import { TeamMatchItem } from './components/team-match-item';
 /**
  * 나의 팀 탭
  * - 소속 팀 카드 (가로 스크롤)
- * - 미투표 경기 목록
+ * - 팀 정기운동 목록
  * - 팀 없음 Empty State
  */
 export function MyTeamsTab() {
@@ -83,9 +83,9 @@ export function MyTeamsTab() {
         </ScrollArea>
       </section>
 
-      {/* 미투표 경기 섹션 */}
+      {/* 팀 정기운동 섹션 */}
       <section className="px-4">
-        <h2 className="font-bold text-slate-900 text-lg mb-3">미투표 경기</h2>
+        <h2 className="font-bold text-slate-900 text-lg mb-3">팀 정기운동</h2>
         <PendingVoteMatches teamIds={teams.map((t) => t.id)} />
       </section>
     </div>
@@ -93,7 +93,7 @@ export function MyTeamsTab() {
 }
 
 /**
- * 미투표 경기 목록 컴포넌트
+ * 팀 정기운동 목록 컴포넌트
  * TODO: useMyPendingVoteMatches 쿼리 구현 후 연동
  */
 function PendingVoteMatches({ teamIds }: { teamIds: string[] }) {
@@ -111,7 +111,7 @@ function PendingVoteMatches({ teamIds }: { teamIds: string[] }) {
       time: '19:00',
       gymName: '서초종합체육관',
       status: 'RECRUITING' as const,
-      hasVoted: false,
+      myVote: 'PENDING' as const,
       votingSummary: {
         attending: 7,
         notAttending: 2,
@@ -127,7 +127,7 @@ function PendingVoteMatches({ teamIds }: { teamIds: string[] }) {
       time: '19:00',
       gymName: '서초종합체육관',
       status: 'CLOSING_SOON' as const,
-      hasVoted: false,
+      myVote: 'PENDING' as const,
       votingSummary: {
         attending: 0,
         notAttending: 0,
@@ -157,7 +157,7 @@ function PendingVoteMatches({ teamIds }: { teamIds: string[] }) {
           time={match.time}
           gymName={match.gymName}
           status={match.status}
-          hasVoted={match.hasVoted}
+          myVote={match.myVote}
           votingSummary={match.votingSummary}
         />
       ))}
