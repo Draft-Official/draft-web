@@ -123,8 +123,6 @@ export function MatchCreateView() {
   const [levelMin, setLevelMin] = useState(1); // Default: 전체 범위
   const [levelMax, setLevelMax] = useState(7);
   const [selectedAges, setSelectedAges] = useState<string[]>(['any']);
-  const [hasShoes, setHasShoes] = useState(true);
-  const [hasJersey, setHasJersey] = useState(true);
 
   // Game Format (Optional) - + 클릭했을 때만 서버 전송
   const [gameFormatType, setGameFormatType] = useState<PlayStyleValue | undefined>(undefined);
@@ -367,8 +365,6 @@ export function MatchCreateView() {
     setRuleQuarters,
     setRuleGames,
     setRefereeType,
-    setHasShoes,
-    setHasJersey,
   });
 
   // Edit mode: Load existing match data
@@ -589,11 +585,8 @@ export function MatchCreateView() {
         // Bigman 옵션 (포지션 모집 시)
         isFlexBigman: isPositionMode ? isFlexBigman : false,
 
-        // 준비물
-        requirements: [
-            ...(hasShoes ? ['INDOOR_SHOES'] : []),
-            ...(hasJersey ? ['WHITE_BLACK_JERSEY'] : []),
-        ],
+        // 준비물 (현재 미사용)
+        requirements: [],
 
         // 참가비 타입
         costInputType: feeType === 'cost' ? 'money' : 'beverage',
@@ -827,8 +820,6 @@ export function MatchCreateView() {
                   levelMin={levelMin} levelMax={levelMax} onLevelChange={handleLevelChange}
                   selectedAges={selectedAges} handleAgeSelection={handleAgeSelection}
                   handleAgeRangeUpdate={handleAgeRangeUpdate}
-                  hasShoes={hasShoes} setHasShoes={setHasShoes}
-                  hasJersey={hasJersey} setHasJersey={setHasJersey}
               />
             </div>
 

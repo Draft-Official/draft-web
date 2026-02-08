@@ -2,8 +2,8 @@
 
 import React from 'react';
 import { Match } from '@/features/match/model/types';
-import { Trophy, User, Swords, Calendar, Shirt } from 'lucide-react';
-import { getLevelLabel, getRequirementLabels, GENDER_LABELS, MATCH_FORMAT_LABELS, GenderValue } from '@/shared/config/constants';
+import { Trophy, User, Swords, Calendar } from 'lucide-react';
+import { getLevelLabel, GENDER_LABELS, MATCH_FORMAT_LABELS, GenderValue } from '@/shared/config/constants';
 import { SKILL_LEVELS } from '@/shared/config/skill-constants';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/shared/ui/shadcn/accordion';
 
@@ -18,11 +18,6 @@ export function MatchInfoSection({ match }: MatchInfoSectionProps) {
       ? getLevelLabel(match.level)
       : match.level
     : '무관';
-
-  // 준비물 표시 (구분자: · )
-  const requirementsDisplay = match.requirements?.length
-    ? getRequirementLabels(match.requirements).join(' · ')
-    : null;
 
   return (
     <section className="px-5 py-6">
@@ -112,20 +107,6 @@ export function MatchInfoSection({ match }: MatchInfoSectionProps) {
           </div>
         </div>
 
-        {/* Supplies (5th) - 준비물이 있을 때만 표시 */}
-        {requirementsDisplay && (
-          <div className="flex items-start gap-3 col-span-2">
-              <div className="w-9 h-9 rounded-full bg-indigo-50 flex items-center justify-center shrink-0">
-                  <Shirt className="w-4 h-4 text-indigo-600" />
-              </div>
-              <div>
-                  <div className="text-xs font-bold text-slate-400 mb-0.5">준비물</div>
-                  <div className="text-[13px] font-bold text-slate-900">
-                      {requirementsDisplay}
-                  </div>
-              </div>
-          </div>
-        )}
       </div>
     </section>
   );

@@ -216,8 +216,8 @@ export function toMatchInsertDataV3(
     recruitment_setup: recruitmentSetup as unknown as Json,
     match_rule: matchRule ? (matchRule as unknown as Json) : null,
 
-    // 준비물
-    requirements: form.requirements || [],
+    // 준비물 (현재 미사용 - 빈 배열)
+    requirements: [],
 
     status: 'RECRUITING',
   };

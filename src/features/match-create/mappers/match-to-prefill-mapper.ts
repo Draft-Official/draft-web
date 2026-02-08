@@ -32,7 +32,6 @@ export class MatchToPrefillMapper {
       recruitment: this.mapRecruitment(),
       specs: this.mapSpecs(),
       gameFormat: this.mapGameFormat(),
-      requirements: this.mapRequirements(),
     };
   }
 
@@ -208,14 +207,4 @@ export class MatchToPrefillMapper {
     };
   }
 
-  /**
-   * 준비물 매핑
-   */
-  mapRequirements() {
-    const reqs = this.match.requirements || [];
-    return {
-      hasShoes: reqs.includes('INDOOR_SHOES'),
-      hasJersey: reqs.includes('WHITE_BLACK_JERSEY'),
-    };
-  }
 }

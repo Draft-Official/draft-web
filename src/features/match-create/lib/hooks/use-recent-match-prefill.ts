@@ -48,8 +48,6 @@ export function useRecentMatchPrefill(params: {
   setRuleQuarters: (v: string) => void;
   setRuleGames: (v: string) => void;
   setRefereeType: (v: any) => void;
-  setHasShoes: (v: boolean) => void;
-  setHasJersey: (v: boolean) => void;
 }) {
   const {
     setValue,
@@ -69,8 +67,6 @@ export function useRecentMatchPrefill(params: {
     setRuleQuarters,
     setRuleGames,
     setRefereeType,
-    setHasShoes,
-    setHasJersey,
   } = params;
 
   const fillFromRecentMatch = useCallback(async (match: MatchWithRelations) => {
@@ -148,9 +144,7 @@ export function useRecentMatchPrefill(params: {
       if (data.gameFormat.refereeType) setRefereeType(data.gameFormat.refereeType);
     }
 
-    // 11. 준비물
-    setHasShoes(data.requirements.hasShoes);
-    setHasJersey(data.requirements.hasJersey);
+    // 11. 준비물 - 현재 미사용
   }, [
     setValue,
     handleLocationSelect,
@@ -169,8 +163,6 @@ export function useRecentMatchPrefill(params: {
     setRuleQuarters,
     setRuleGames,
     setRefereeType,
-    setHasShoes,
-    setHasJersey,
   ]);
 
   return { fillFromRecentMatch };
