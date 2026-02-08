@@ -11,7 +11,7 @@ import type {
   ParticipantInfo,
   Json,
 } from '@/shared/types/database.types';
-import type { CancelTypeValue, CanceledByValue } from '@/shared/config/constants';
+import type { CancelTypeValue, CanceledByValue } from "@/src/shared/config/application-constants";
 import { handleSupabaseError, NotFoundError, ValidationError } from '@/shared/lib/errors';
 
 export interface CancelOptions {

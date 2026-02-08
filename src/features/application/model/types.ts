@@ -4,8 +4,8 @@
 
 import type {
   PositionValue,
-  ApplicationStatusValue,
 } from '@/shared/config/constants';
+import type { ApplicationStatusValue } from "@/src/shared/config/application-constants";
 import type { ApplicationSourceValue } from '@/shared/config/team-constants';
 
 // Re-export for convenience

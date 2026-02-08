@@ -15,6 +15,7 @@ import {
   leaveTeam,
   transferLeadership,
 } from './api';
+import { createVotesForNewMember } from '../match/api';
 import { teamMemberRowToClient } from '../mapper';
 import type { ClientTeamMember } from '../../model/types';
 import type { TeamRoleValue } from '@/shared/config/team-constants';
@@ -53,6 +54,7 @@ export function useJoinTeam() {
 
 /**
  * 가입 신청 승인
+ * - 승인 후 진행 중인 경기들에 대해 투표(application) 생성
  */
 export function useApproveJoin() {
   const queryClient = useQueryClient();
@@ -67,7 +69,12 @@ export function useApproveJoin() {
     }): Promise<ClientTeamMember> => {
       const supabase = getSupabaseBrowserClient();
       const row = await approveJoinRequest(supabase, membershipId);
-      return teamMemberRowToClient(row);
+      const member = teamMemberRowToClient(row);
+
+      // 새 팀원에게 진행 중인 경기들의 투표 생성
+      await createVotesForNewMember(supabase, teamId, member.userId);
+
+      return member;
     },
     onSuccess: (data, { teamId }) => {
       // 대기자 목록 갱신

@@ -12,7 +12,7 @@ import type {
 import { handleSupabaseError } from '@/shared/lib/errors';
 import type { CreateTeamMatchInput, VoteInput, VotingSummary } from '../../model/types';
 import type { TeamVoteStatusValue } from '@/shared/config/team-constants';
-import { getTeamMemberCount } from '../membership/api';
+import { getTeamMembers } from '../membership/api';
 
 // ============================================
 // Team Match CRUD
@@ -20,6 +20,7 @@ import { getTeamMemberCount } from '../membership/api';
 
 /**
  * 팀 매치 생성
+ * - 매치 생성 후 모든 팀원에게 PENDING 상태의 투표(application) 생성
  */
 export async function createTeamMatch(
   supabase: SupabaseClient<Database>,
@@ -55,7 +56,71 @@ export async function createTeamMatch(
     .single();
 
   if (error) handleSupabaseError(error, '팀 운동 생성');
-  return data!;
+
+  const match = data!;
+
+  // 모든 팀원에게 PENDING 상태의 투표 생성
+  await createVotesForAllMembers(supabase, match.id, input.teamId);
+
+  return match;
+}
+
+/**
+ * 특정 경기에 모든 팀원의 투표(application) 생성
+ */
+async function createVotesForAllMembers(
+  supabase: SupabaseClient<Database>,
+  matchId: string,
+  teamId: string
+): Promise<void> {
+  const members = await getTeamMembers(supabase, teamId);
+
+  if (members.length === 0) return;
+
+  const applications = members.map((member) => ({
+    match_id: matchId,
+    user_id: member.user_id,
+    source: 'TEAM_VOTE' as const,
+    status: 'PENDING' as const,
+  }));
+
+  const { error } = await supabase.from('applications').insert(applications);
+
+  if (error) handleSupabaseError(error, '팀원 투표 생성');
+}
+
+/**
+ * 새 팀원에게 진행 중인 경기들의 투표(application) 생성
+ * - 팀원 가입 승인 시 호출
+ */
+export async function createVotesForNewMember(
+  supabase: SupabaseClient<Database>,
+  teamId: string,
+  userId: string
+): Promise<void> {
+  // 진행 중인(미래) 팀 경기 조회
+  const { data: upcomingMatches, error: matchError } = await supabase
+    .from('matches')
+    .select('id')
+    .eq('team_id', teamId)
+    .eq('match_type', 'TEAM_MATCH')
+    .gte('start_time', new Date().toISOString());
+
+  if (matchError) handleSupabaseError(matchError, '진행 중 경기 조회');
+
+  if (!upcomingMatches || upcomingMatches.length === 0) return;
+
+  // 각 경기에 대해 투표 생성
+  const applications = upcomingMatches.map((match) => ({
+    match_id: match.id,
+    user_id: userId,
+    source: 'TEAM_VOTE' as const,
+    status: 'PENDING' as const,
+  }));
+
+  const { error } = await supabase.from('applications').insert(applications);
+
+  if (error) handleSupabaseError(error, '새 팀원 투표 생성');
 }
 
 /**
@@ -133,22 +198,25 @@ export async function upsertTeamVote(
     .eq('source', 'TEAM_VOTE')
     .single();
 
-  // 투표 마감 여부 확인
+  // 투표 마감 여부 확인 (match.status === 'CLOSED' 기준)
   const { data: match } = await supabase
     .from('matches')
-    .select('voting_closed_at')
+    .select('status')
     .eq('id', input.matchId)
     .single();
 
-  if (match?.voting_closed_at) {
+  if (match?.status === 'CLOSED') {
     throw new Error('투표가 마감되었습니다');
   }
 
   // 상태 매핑: TeamVoteStatus -> ApplicationStatus
+  // 팀 투표는 MAYBE 상태를 그대로 저장 (게스트 신청과 다름)
   const statusMap: Record<TeamVoteStatusValue, string> = {
-    CONFIRMED: 'CONFIRMED',
-    NOT_ATTENDING: 'NOT_ATTENDING',
     PENDING: 'PENDING',
+    CONFIRMED: 'CONFIRMED',
+    LATE: 'LATE',
+    NOT_ATTENDING: 'NOT_ATTENDING',
+    MAYBE: 'MAYBE',
   };
 
   const applicationStatus = statusMap[input.status];
@@ -231,16 +299,14 @@ export async function getTeamVotes(
 
 /**
  * 투표 현황 요약 조회
+ * - 모든 팀원에게 application이 존재하므로 application만 집계
  */
 export async function getVotingSummary(
   supabase: SupabaseClient<Database>,
   matchId: string,
-  teamId: string
+  _teamId?: string // 하위 호환성 유지, 더 이상 사용하지 않음
 ): Promise<VotingSummary> {
-  // 팀원 수 조회
-  const totalMembers = await getTeamMemberCount(supabase, teamId);
-
-  // 투표 현황 조회
+  // 투표 현황 조회 (applications 기반)
   const { data: votes, error } = await supabase
     .from('applications')
     .select('status')
@@ -249,25 +315,43 @@ export async function getVotingSummary(
 
   if (error) handleSupabaseError(error, '투표 현황');
 
-  const voteCounts = (votes || []).reduce(
-    (acc, vote) => {
-      if (vote.status === 'CONFIRMED') acc.attending++;
-      else if (vote.status === 'NOT_ATTENDING') acc.notAttending++;
-      else if (vote.status === 'PENDING') acc.undecided++;
-      return acc;
-    },
-    { attending: 0, notAttending: 0, undecided: 0 }
-  );
+  const initialCounts = {
+    pending: 0,
+    attending: 0,
+    late: 0,
+    maybe: 0,
+    notAttending: 0,
+  };
+
+  const voteCounts = (votes || []).reduce((acc, vote) => {
+    switch (vote.status) {
+      case 'PENDING':
+        acc.pending++;
+        break;
+      case 'CONFIRMED':
+        acc.attending++;
+        break;
+      case 'LATE':
+        acc.late++;
+        break;
+      case 'MAYBE':
+        acc.maybe++;
+        break;
+      case 'NOT_ATTENDING':
+        acc.notAttending++;
+        break;
+    }
+    return acc;
+  }, initialCounts);
 
   return {
     ...voteCounts,
-    noResponse: totalMembers - (voteCounts.attending + voteCounts.notAttending + voteCounts.undecided),
-    totalMembers,
+    totalMembers: votes?.length || 0,
   };
 }
 
 /**
- * 투표 마감
+ * 투표 마감 (status를 CLOSED로 변경)
  */
 export async function closeVoting(
   supabase: SupabaseClient<Database>,
@@ -276,7 +360,7 @@ export async function closeVoting(
   const { data, error } = await supabase
     .from('matches')
     .update({
-      voting_closed_at: new Date().toISOString(),
+      status: 'CLOSED',
     })
     .eq('id', matchId)
     .eq('match_type', 'TEAM_MATCH')

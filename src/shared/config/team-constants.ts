@@ -4,6 +4,9 @@
  * 규칙:
  * - 서버(DB)와 클라이언트 값은 동일하게 대문자(UPPER_SNAKE_CASE) 사용
  * - 모든 매핑은 이 파일에서 단일 관리 (Single Source of Truth)
+ *
+ * NOTE: 팀 투표 상태(TEAM_VOTE_STATUS)는 application-constants.ts에 정의
+ * (applications 테이블 기반이므로)
  */
 
 // ============================================
@@ -94,76 +97,6 @@ export function getRegularDayLabel(value: string, type: 'full' | 'short' = 'full
 }
 
 // ============================================
-// Application Source (신청 출처)
-// ============================================
-
-export const APPLICATION_SOURCE_VALUES = ['GUEST_APPLICATION', 'TEAM_VOTE'] as const;
-export type ApplicationSourceValue = (typeof APPLICATION_SOURCE_VALUES)[number];
-
-export const APPLICATION_SOURCE_LABELS: Record<ApplicationSourceValue, string> = {
-  GUEST_APPLICATION: '게스트 신청',
-  TEAM_VOTE: '팀 투표',
-};
-
-export function getApplicationSourceLabel(value: string): string {
-  return APPLICATION_SOURCE_LABELS[value as ApplicationSourceValue] || value;
-}
-
-// ============================================
-// Team Vote Status (팀 투표 상태) - Application Status 기반
-// ============================================
-
-export const TEAM_VOTE_STATUS_VALUES = [
-  'CONFIRMED',
-  'LATE',
-  'MAYBE',
-  'NOT_ATTENDING',
-  'PENDING',
-] as const;
-export type TeamVoteStatusValue = (typeof TEAM_VOTE_STATUS_VALUES)[number];
-
-export const TEAM_VOTE_STATUS_LABELS: Record<TeamVoteStatusValue, string> = {
-  CONFIRMED: '참석',
-  LATE: '늦참',
-  MAYBE: '미정',
-  NOT_ATTENDING: '불참',
-  PENDING: '미투표',
-};
-
-export const TEAM_VOTE_STATUS_DESCRIPTIONS: Record<TeamVoteStatusValue, string> = {
-  CONFIRMED: '경기에 참석합니다',
-  LATE: '늦은 참석입니다',
-  MAYBE: '참석 여부가 불확실합니다',
-  NOT_ATTENDING: '경기에 참석하지 않습니다',
-  PENDING: '아직 투표하지 않았습니다',
-};
-
-export const TEAM_VOTE_STATUS_STYLES: Record<
-  TeamVoteStatusValue,
-  { color: string; bgColor: string; borderColor: string; icon: 'check' | 'clock' | 'x' | 'circle' }
-> = {
-  CONFIRMED: { color: 'text-green-600', bgColor: 'bg-green-50', borderColor: 'border-green-500', icon: 'check' },
-  LATE: { color: 'text-yellow-600', bgColor: 'bg-yellow-50', borderColor: 'border-yellow-500', icon: 'clock' },
-  MAYBE: { color: 'text-slate-600', bgColor: 'bg-slate-50', borderColor: 'border-slate-300', icon: 'circle' },
-  NOT_ATTENDING: { color: 'text-red-600', bgColor: 'bg-red-50', borderColor: 'border-red-300', icon: 'x' },
-  PENDING: { color: 'text-gray-600', bgColor: 'bg-gray-100', borderColor: 'border-gray-300', icon: 'circle' },
-};
-
-// 투표 선택 옵션 (PENDING 제외 - 사용자가 선택할 수 있는 옵션만)
-export const TEAM_VOTE_OPTIONS = (['CONFIRMED', 'LATE', 'MAYBE', 'NOT_ATTENDING'] as const).map(
-  (value) => ({
-    value,
-    label: TEAM_VOTE_STATUS_LABELS[value],
-    description: TEAM_VOTE_STATUS_DESCRIPTIONS[value],
-    ...TEAM_VOTE_STATUS_STYLES[value],
-  })
-);
-
-export function getTeamVoteStatusLabel(value: string): string {
-  return TEAM_VOTE_STATUS_LABELS[value as TeamVoteStatusValue] || value;
-}
-
-// ============================================
 // Team Code Validation
 // ============================================
 
@@ -179,3 +112,24 @@ export function isValidTeamCode(code: string): boolean {
 }
 
 export const TEAM_CODE_ERROR_MESSAGE = '영문 소문자, 숫자, 하이픈만 사용 가능합니다 (3-30자)';
+
+// ============================================
+// Re-exports from application-constants
+// ============================================
+// 팀 투표 관련 상수는 application-constants.ts에서 관리
+// 기존 import 호환성을 위해 re-export
+export {
+  // Application Source
+  APPLICATION_SOURCE_VALUES,
+  APPLICATION_SOURCE_LABELS,
+  getApplicationSourceLabel,
+  type ApplicationSourceValue,
+  // Team Vote Status
+  TEAM_VOTE_STATUS_VALUES,
+  TEAM_VOTE_STATUS_LABELS,
+  TEAM_VOTE_STATUS_DESCRIPTIONS,
+  TEAM_VOTE_STATUS_STYLES,
+  TEAM_VOTE_OPTIONS,
+  getTeamVoteStatusLabel,
+  type TeamVoteStatusValue,
+} from './application-constants';

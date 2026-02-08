@@ -2,8 +2,8 @@
 
 import React from 'react';
 import { Match } from '@/features/match/model/types';
-import { Trophy, User, Swords, Calendar, Shirt } from 'lucide-react';
-import { getLevelLabel, getRequirementLabels, GENDER_LABELS, MATCH_FORMAT_LABELS, GenderValue } from '@/shared/config/constants';
+import { Trophy, User, Swords, Calendar } from 'lucide-react';
+import { getLevelLabel, GENDER_LABELS, MATCH_FORMAT_LABELS, GenderValue } from '@/shared/config/constants';
 import { SKILL_LEVELS } from '@/shared/config/skill-constants';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/shared/ui/shadcn/accordion';
 
@@ -19,11 +19,6 @@ export function MatchInfoSection({ match }: MatchInfoSectionProps) {
       : match.level
     : '무관';
 
-  // 준비물 표시 (구분자: · )
-  const requirementsDisplay = match.requirements?.length
-    ? getRequirementLabels(match.requirements).join(' · ')
-    : null;
-
   return (
     <section className="px-5 py-6">
       <h3 className="text-lg font-bold text-slate-900 mb-4">매치 조건</h3>
@@ -34,8 +29,8 @@ export function MatchInfoSection({ match }: MatchInfoSectionProps) {
             <Swords className="w-4 h-4 text-red-500" />
           </div>
           <div>
-            <div className="text-xs font-bold text-slate-400 mb-0.5">매치 타입</div>
-            <div className="text-[13px] font-bold text-slate-900">{MATCH_FORMAT_LABELS[match.matchFormat] || match.matchFormat}</div>
+            <div className="text-xs font-normal text-slate-500 mb-0.5">매치 타입</div>
+            <div className="text-sm font-medium text-slate-900">{MATCH_FORMAT_LABELS[match.matchFormat] || match.matchFormat}</div>
           </div>
         </div>
 
@@ -45,8 +40,8 @@ export function MatchInfoSection({ match }: MatchInfoSectionProps) {
             <User className="w-4 h-4 text-blue-600" />
           </div>
           <div>
-            <div className="text-xs font-bold text-slate-400 mb-0.5">성별</div>
-            <div className="text-[13px] font-bold text-slate-900">
+            <div className="text-xs font-normal text-slate-500 mb-0.5">성별</div>
+            <div className="text-sm font-medium text-slate-900">
               {GENDER_LABELS[match.gender as GenderValue] || match.gender}
             </div>
           </div>
@@ -58,12 +53,12 @@ export function MatchInfoSection({ match }: MatchInfoSectionProps) {
             <Trophy className="w-4 h-4 text-[#FF6600]" />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-xs font-bold text-slate-400 mb-0.5">레벨</div>
+            <div className="text-xs font-normal text-slate-500 mb-0.5">레벨</div>
             {match.levelMin && match.levelMax ? (
               <Accordion type="single" collapsible className="w-full -mt-0.5">
                 <AccordionItem value="level" className="border-0">
                   <AccordionTrigger className="py-0 hover:no-underline justify-start gap-1">
-                    <span className="text-[13px] font-bold text-slate-900">{levelDisplay}</span>
+                    <span className="text-sm font-medium text-slate-900">{levelDisplay}</span>
                   </AccordionTrigger>
                   <AccordionContent className="pt-3 pb-0">
                     <div className="space-y-3">
@@ -71,7 +66,7 @@ export function MatchInfoSection({ match }: MatchInfoSectionProps) {
                       <div className="border-b border-slate-100 pb-3">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="text-xs text-slate-400">최소</span>
-                          <span className="text-[13px] font-bold text-slate-900">
+                          <span className="text-sm font-medium text-slate-900">
                             {SKILL_LEVELS.find(l => l.level === match.levelMin)?.name}
                           </span>
                         </div>
@@ -83,7 +78,7 @@ export function MatchInfoSection({ match }: MatchInfoSectionProps) {
                       <div>
                         <div className="flex items-center gap-2 mb-1">
                           <span className="text-xs text-slate-400">최대</span>
-                          <span className="text-[13px] font-bold text-slate-900">
+                          <span className="text-sm font-medium text-slate-900">
                             {SKILL_LEVELS.find(l => l.level === match.levelMax)?.name}
                           </span>
                         </div>
@@ -96,7 +91,7 @@ export function MatchInfoSection({ match }: MatchInfoSectionProps) {
                 </AccordionItem>
               </Accordion>
             ) : (
-              <div className="text-[13px] font-bold text-slate-900">{levelDisplay}</div>
+              <div className="text-sm font-medium text-slate-900">{levelDisplay}</div>
             )}
           </div>
         </div>
@@ -107,25 +102,11 @@ export function MatchInfoSection({ match }: MatchInfoSectionProps) {
             <Calendar className="w-4 h-4 text-green-600" />
           </div>
           <div>
-            <div className="text-xs font-bold text-slate-400 mb-0.5">나이</div>
-            <div className="text-[13px] font-bold text-slate-900">{match.ageRange || '무관'}</div>
+            <div className="text-xs font-normal text-slate-500 mb-0.5">나이</div>
+            <div className="text-sm font-medium text-slate-900">{match.ageRange || '무관'}</div>
           </div>
         </div>
 
-        {/* Supplies (5th) - 준비물이 있을 때만 표시 */}
-        {requirementsDisplay && (
-          <div className="flex items-start gap-3 col-span-2">
-              <div className="w-9 h-9 rounded-full bg-indigo-50 flex items-center justify-center shrink-0">
-                  <Shirt className="w-4 h-4 text-indigo-600" />
-              </div>
-              <div>
-                  <div className="text-xs font-bold text-slate-400 mb-0.5">준비물</div>
-                  <div className="text-[13px] font-bold text-slate-900">
-                      {requirementsDisplay}
-                  </div>
-              </div>
-          </div>
-        )}
       </div>
     </section>
   );

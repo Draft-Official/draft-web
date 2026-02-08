@@ -636,6 +636,7 @@ export type Database = {
         | "PAYMENT_PENDING"
         | "LATE"
         | "NOT_ATTENDING"
+        | "MAYBE"
       cancel_type: "USER_REQUEST" | "PAYMENT_TIMEOUT" | "FRAUDULENT_PAYMENT"
       notification_type:
         | "APPLICATION_APPROVED"
@@ -783,6 +784,7 @@ export const Constants = {
         "PAYMENT_PENDING",
         "LATE",
         "NOT_ATTENDING",
+        "MAYBE",
       ],
       cancel_type: ["USER_REQUEST", "PAYMENT_TIMEOUT", "FRAUDULENT_PAYMENT"],
       notification_type: [

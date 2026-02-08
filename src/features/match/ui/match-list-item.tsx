@@ -7,7 +7,7 @@ import { Button } from '@/shared/ui/base/button';
 import { Badge } from '@/shared/ui/base/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/base/avatar';
 import { cn } from '@/shared/lib/utils';
-import { ApplicationStatusValue } from '@/shared/config/constants';
+import { ApplicationStatusValue } from "@/src/shared/config/application-constants";
 import { getDayLabel, isNewMatch } from '@/features/match/lib/utils';
 import { GuestListMatch } from '@/features/match/model/types';
 

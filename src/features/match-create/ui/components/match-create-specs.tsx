@@ -21,10 +21,6 @@ interface MatchCreateSpecsProps {
   selectedAges: string[];
   handleAgeSelection: (age: string) => void;
   handleAgeRangeUpdate: (ages: string[]) => void;
-  hasShoes: boolean;
-  setHasShoes: (v: boolean) => void;
-  hasJersey: boolean;
-  setHasJersey: (v: boolean) => void;
 }
 
 export function MatchCreateSpecs({
@@ -33,8 +29,6 @@ export function MatchCreateSpecs({
   levelMin, levelMax, onLevelChange,
   selectedAges, handleAgeSelection,
   handleAgeRangeUpdate,
-  hasShoes, setHasShoes,
-  hasJersey, setHasJersey
 }: MatchCreateSpecsProps) {
   
   return (
@@ -76,27 +70,6 @@ export function MatchCreateSpecs({
                             onClick={() => setGender(g.value)}
                         />
                     ))}
-                </div>
-            </div>
-
-            {/* Preparation Items */}
-            <div className="space-y-2">
-                <Label className="text-sm font-bold text-slate-600">준비물</Label>
-                <div className="flex gap-2">
-                    <Chip
-                        label="실내 농구화"
-                        variant="navy"
-                        isActive={hasShoes}
-                        showCheckIcon={false}
-                        onClick={() => setHasShoes(!hasShoes)}
-                    />
-                    <Chip
-                        label="흰색/검은색 상의"
-                        variant="navy"
-                        isActive={hasJersey}
-                        showCheckIcon={false}
-                        onClick={() => setHasJersey(!hasJersey)}
-                    />
                 </div>
             </div>
 

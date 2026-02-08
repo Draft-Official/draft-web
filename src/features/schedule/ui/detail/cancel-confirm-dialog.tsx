@@ -15,8 +15,8 @@ import {
   CANCEL_TYPE_VALUES,
   CANCEL_TYPE_LABELS,
   CANCEL_TYPE_DESCRIPTIONS,
-  type CancelTypeValue,
-} from '@/shared/config/constants';
+  type CancelTypeValue
+} from "@/src/shared/config/application-constants";
 
 interface CancelConfirmDialogProps {
   open: boolean;

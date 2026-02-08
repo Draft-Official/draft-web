@@ -172,12 +172,14 @@ export interface TeamMatchWithVoting {
 
 /**
  * 투표 현황 요약
+ * - 모든 팀원에게 application이 존재하므로 noResponse 불필요
  */
 export interface VotingSummary {
-  attending: number;
-  notAttending: number;
-  undecided: number;
-  noResponse: number;
+  pending: number; // 미투표 (PENDING 상태)
+  attending: number; // 참석 (CONFIRMED)
+  late: number; // 늦참 (LATE)
+  maybe: number; // 미정 (MAYBE - 실제로는 PENDING으로 저장되지만 별도 추적 필요시)
+  notAttending: number; // 불참 (NOT_ATTENDING)
   totalMembers: number;
 }
 
