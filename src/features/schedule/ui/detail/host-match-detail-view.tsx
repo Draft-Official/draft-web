@@ -18,7 +18,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/shared/ui/base/dropdown-menu';
-import type { CancelTypeValue } from '@/shared/config/constants';
+import type { CancelTypeValue } from "@/src/shared/config/application-constants";
 import type { Guest, GuestStatus } from '../../model/types';
 import {
   useHostMatchDetail,

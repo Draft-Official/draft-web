@@ -10,7 +10,7 @@ import { useLocalStorage } from '@/shared/lib/hooks/use-local-storage';
 import { NotificationBell } from '@/features/notification/ui/notification-bell';
 import { useAuth } from '@/features/auth';
 import { useUserApplications } from '@/features/application/api';
-import type { ApplicationStatusValue } from '@/shared/config/constants';
+import type { ApplicationStatusValue } from "../shared/config/application-constants";
 
 export default function GuestMatchListPage() {
   const { user } = useAuth();
