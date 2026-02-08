@@ -64,7 +64,7 @@ export function VoteDialog({
           <RadioGroup
             value={selectedVote}
             onValueChange={(value) => setSelectedVote(value as TeamVoteStatusValue)}
-            className="space-y-3"
+            className="space-y-1"
           >
             {TEAM_VOTE_OPTIONS.map((option) => {
               const isSelected = selectedVote === option.value;
@@ -83,7 +83,7 @@ export function VoteDialog({
                     }
                   }}
                   className={cn(
-                    'flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-all',
+                    'flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all',
                     isSelected
                       ? 'border-slate-900 bg-white'
                       : 'border-slate-200 hover:border-slate-300'
@@ -93,7 +93,6 @@ export function VoteDialog({
                     <p className="font-semibold text-slate-900">
                       {option.label}
                     </p>
-                    <p className="text-sm text-slate-500">{option.description}</p>
                   </div>
                   <div
                     className={cn(

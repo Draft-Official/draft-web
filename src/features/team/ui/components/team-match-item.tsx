@@ -121,25 +121,25 @@ export function TeamMatchItem({
         </div>
 
         {/* 날짜 및 시간 */}
-        <div className="flex items-center gap-2 mb-2">
-          <Calendar className="w-5 h-5 text-slate-400" />
-          <span className="font-semibold text-xl text-slate-900">{date}</span>
-          <Clock className="w-5 h-5 text-slate-400 ml-2" />
-          <span className="font-semibold text-xl text-slate-900">{time}</span>
+        <div className="flex items-center gap-1.5 mb-1">
+          <Calendar className="w-4 h-4 text-slate-400" />
+          <span className="font-semibold text-lg text-slate-900">{date}</span>
+          <Clock className="w-4 h-4 text-slate-400 ml-1" />
+          <span className="font-semibold text-lg text-slate-900">{time}</span>
         </div>
 
         {/* 체육관 정보 */}
-        <div className="flex items-center gap-2 mb-2">
-          <MapPin className="w-5 h-5 text-slate-400 shrink-0" />
-          <span className="text-lg font-medium text-slate-900">{gymName}</span>
+        <div className="flex items-center gap-1.5 mb-1">
+          <MapPin className="w-4 h-4 text-slate-400 shrink-0" />
+          <span className="text-base font-medium text-slate-900">{gymName}</span>
           {gymAddress && (
-            <Navigation className="w-4 h-4 text-slate-400" />
+            <Navigation className="w-3.5 h-3.5 text-slate-400" />
           )}
         </div>
 
         {/* 팀 정보 */}
-        <div className="flex items-center gap-1.5 text-lg text-slate-500">
-          <Shield className="w-5 h-5" />
+        <div className="flex items-center gap-1 text-base text-slate-500 mb-2">
+          <Shield className="w-4 h-4" />
           <span>{teamName}</span>
         </div>
 
