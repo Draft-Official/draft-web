@@ -9,3 +9,5 @@ export * from './notification-settings-section';
 export * from './account-section';
 export * from './payment-section';
 export * from './my-page-footer';
+export * from './bank-account-form';
+export * from './notices-list';
