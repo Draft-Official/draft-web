@@ -1,5 +1,10 @@
-import { PlaceholderPageView } from '@/features/my/ui/placeholder-page-view';
+import { SubPageHeader, PhoneVerificationForm } from '@/features/my';
 
-export default function PhoneChangePage() {
-  return <PlaceholderPageView title="전화번호 변경" />;
+export default function PhoneVerificationPage() {
+  return (
+    <>
+      <SubPageHeader title="전화번호 인증" />
+      <PhoneVerificationForm />
+    </>
+  );
 }

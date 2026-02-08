@@ -11,3 +11,4 @@ export * from './payment-section';
 export * from './my-page-footer';
 export * from './bank-account-form';
 export * from './notices-list';
+export * from './phone-verification-form';
