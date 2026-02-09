@@ -6,6 +6,7 @@ import { settingsKeys } from './keys';
 import type { UserSettings } from '@/shared/types/database.types';
 
 const DEFAULT_SETTINGS: Omit<UserSettings, 'user_id' | 'created_at' | 'updated_at'> = {
+  notify_announcement: true,
   notify_application: true,
   notify_match: true,
   notify_payment: true,
