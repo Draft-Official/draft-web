@@ -28,16 +28,20 @@ export function useTeam(teamId: string | null | undefined) {
 }
 
 /**
- * 팀 코드로 팀 정보 조회
+ * 팀 코드로 팀 정보 조회 (homeGymName 포함)
  */
 export function useTeamByCode(code: string | null | undefined) {
   return useQuery({
     queryKey: teamKeys.detailByCode(code || ''),
-    queryFn: async (): Promise<ClientTeam | null> => {
+    queryFn: async (): Promise<(ClientTeam & { homeGymName: string | null }) | null> => {
       if (!code) return null;
       const supabase = getSupabaseBrowserClient();
       const row = await getTeamByCode(supabase, code);
-      return row ? teamRowToClient(row) : null;
+      if (!row) return null;
+      return {
+        ...teamRowToClient(row),
+        homeGymName: row.gyms?.name ?? null,
+      };
     },
     enabled: !!code,
   });

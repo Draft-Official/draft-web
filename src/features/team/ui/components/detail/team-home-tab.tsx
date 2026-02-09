@@ -1,0 +1,135 @@
+'use client';
+
+import {
+  MapPin,
+  Home,
+  Clock,
+  Users,
+  Trophy,
+  Globe,
+  User,
+} from 'lucide-react';
+import { formatRegion, formatRegularSchedule } from '@/features/team/api/mapper';
+import { LEVEL_LABELS } from '@/shared/config/constants';
+import type { ClientTeam } from '@/features/team/model/types';
+
+interface TeamHomeTabProps {
+  team: ClientTeam;
+  homeGymName: string | null;
+  memberCount: number;
+}
+
+/**
+ * 팀 홈 탭 - 팀 정보 대시보드
+ */
+export function TeamHomeTab({ team, homeGymName, memberCount }: TeamHomeTabProps) {
+  // 지역 정보
+  const regionText = formatRegion(team.regionDepth1, team.regionDepth2);
+
+  // 정기운동 스케줄
+  const scheduleText = formatRegularSchedule(
+    team.regularDay,
+    team.regularStartTime,
+    team.regularEndTime
+  );
+
+  // 평균 나이 (ageRange에서 계산)
+  const avgAge = team.ageRange
+    ? team.ageRange.max
+      ? Math.round((team.ageRange.min + team.ageRange.max) / 2)
+      : team.ageRange.min // max가 null이면 min만 표시 ("이상")
+    : null;
+
+  // 레벨 (levelRange에서 표시)
+  const levelText = team.levelRange
+    ? team.levelRange.min === team.levelRange.max
+      ? LEVEL_LABELS[String(team.levelRange.min) as keyof typeof LEVEL_LABELS] || `레벨 ${team.levelRange.min}`
+      : `${LEVEL_LABELS[String(team.levelRange.min) as keyof typeof LEVEL_LABELS] || `레벨 ${team.levelRange.min}`} ~ ${LEVEL_LABELS[String(team.levelRange.max) as keyof typeof LEVEL_LABELS] || `레벨 ${team.levelRange.max}`}`
+    : null;
+
+  const infoItems = [
+    {
+      icon: MapPin,
+      label: '지역',
+      value: regionText,
+      valueColor: 'text-primary',
+    },
+    {
+      icon: Home,
+      label: '홈 구장',
+      value: homeGymName,
+      valueColor: 'text-primary',
+    },
+    {
+      icon: Clock,
+      label: '모임 시간',
+      value: scheduleText,
+      valueColor: 'text-slate-900',
+    },
+    {
+      icon: User,
+      label: '평균 나이',
+      value: avgAge ? `${avgAge}세` : null,
+      valueColor: 'text-slate-900',
+    },
+    {
+      icon: Globe,
+      label: '웹사이트',
+      value: null, // 추후 추가
+      valueColor: 'text-primary',
+    },
+    {
+      icon: Users,
+      label: '멤버',
+      value: `${memberCount}명`,
+      valueColor: 'text-slate-900',
+    },
+    {
+      icon: Trophy,
+      label: '레벨',
+      value: levelText,
+      valueColor: 'text-slate-900',
+    },
+  ];
+
+  return (
+    <div className="bg-white">
+      {/* 팀 정보 섹션 */}
+      <section className="px-5 py-6">
+        <h2 className="text-lg font-bold text-slate-900 mb-4">팀 정보</h2>
+
+        <div className="space-y-4">
+          {infoItems.map((item, index) => (
+            <div key={index} className="flex items-center justify-between">
+              <div className="flex items-center gap-3 text-slate-500">
+                <item.icon className="w-5 h-5" />
+                <span className="text-base">{item.label}</span>
+              </div>
+              <span className={`text-base font-medium ${item.valueColor}`}>
+                {item.value || '-'}
+              </span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* 최근 전적 섹션 (Placeholder) */}
+      <section className="px-5 py-6 border-t border-slate-100">
+        <h2 className="text-lg font-bold text-slate-900 mb-4">최근 전적</h2>
+        <div className="flex items-center justify-center py-8 text-slate-400 text-sm">
+          전적 정보가 없습니다
+        </div>
+      </section>
+
+      {/* 팀 소개 */}
+      {team.description && (
+        <section className="px-5 py-6 border-t border-slate-100">
+          <h2 className="text-lg font-bold text-slate-900 mb-4">팀 소개</h2>
+          <p className="text-base text-slate-600 whitespace-pre-wrap">
+            {team.description}
+          </p>
+        </section>
+      )}
+    </div>
+  );
+}
