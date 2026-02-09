@@ -1,14 +1,5 @@
 import { ImapFlow } from 'imapflow';
-
-const CARRIER_DOMAINS = [
-  'sktelecom.com',
-  'sms.sktelecom.com',
-  'kt.com',
-  'sms.kt.com',
-  'lguplus.co.kr',
-  'sms.lguplus.co.kr',
-  'mmsmail.uplus.co.kr',
-];
+import { PHONE_REGEX } from '@/shared/lib/phone-utils';
 
 interface ImapCheckResult {
   found: boolean;
@@ -78,23 +69,16 @@ export async function checkVerificationEmail(
         const fromAddress = msg.envelope?.from?.[0]?.address;
         if (!fromAddress) continue;
 
-        const [localPart, domain] = fromAddress.split('@');
-        if (!domain) continue;
-
-        const isCarrier = CARRIER_DOMAINS.some(
-          (d) => domain.toLowerCase() === d
-        );
-        if (!isCarrier) continue;
+        const [localPart] = fromAddress.split('@');
+        const digits = localPart.replace(/[^0-9]/g, '');
+        if (!PHONE_REGEX.test(digits)) continue;
 
         const source = msg.source?.toString() || '';
         const bodyText = extractBodyText(source);
 
         if (!bodyText.includes(code)) continue;
 
-        const digits = localPart.replace(/[^0-9]/g, '');
-        if (/^01[0-9]\d{7,8}$/.test(digits)) {
-          result = { found: true, phoneNumber: digits };
-        }
+        result = { found: true, phoneNumber: digits };
       }
     } finally {
       lock.release();
