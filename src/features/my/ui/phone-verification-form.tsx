@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { CheckCircle2, Info, Smartphone } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useAuth } from '@/features/auth';
+import { useIsMobile } from '@/shared/lib/hooks/use-is-mobile';
 import { Input } from '@/shared/ui/base/input';
 import { Label } from '@/shared/ui/base/label';
 import { Button } from '@/shared/ui/base/button';
@@ -35,11 +36,7 @@ export function PhoneVerificationForm() {
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // 데스크탑 여부
-  const [isDesktop, setIsDesktop] = useState(false);
-  useEffect(() => {
-    setIsDesktop(window.innerWidth > 768);
-  }, []);
+  const isMobile = useIsMobile();
 
   // 타이머 & 폴링 정리
   const clearTimers = useCallback(() => {
@@ -219,14 +216,14 @@ export function PhoneVerificationForm() {
         </div>
 
         {/* 모바일: SMS 링크 버튼 */}
-        {!isDesktop && (
+        {isMobile && (
           <Button className="w-full" asChild disabled={isExpired}>
             <a href={smsUri}>문자 보내기</a>
           </Button>
         )}
 
         {/* 데스크탑: QR 코드 */}
-        {isDesktop && (
+        {!isMobile && (
           <div className="flex flex-col items-center gap-3">
             <p className="text-sm text-slate-500">
               휴대폰으로 QR을 스캔하세요
