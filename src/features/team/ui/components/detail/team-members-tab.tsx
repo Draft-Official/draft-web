@@ -35,7 +35,7 @@ export function TeamMembersTab({
   const isAdmin = myRole === 'LEADER' || myRole === 'MANAGER';
 
   const handleJoinRequestsClick = () => {
-    router.push(`/team/${teamCode}/manage/requests`);
+    router.push(`/team/${teamCode}/members/pending`);
   };
 
   if (isLoading) {

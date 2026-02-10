@@ -1,8 +1,8 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { MapPin, Clock, Settings } from 'lucide-react';
-import { Button } from '@/shared/ui/shadcn/button';
+import { MapPin, Clock, MoreHorizontal } from 'lucide-react';
+import { toast } from 'sonner';
 import { cn } from '@/shared/lib/utils';
 import { formatRegularSchedule } from '@/features/team/api/mapper';
 import type { ClientTeam, ClientTeamMember } from '@/features/team/model/types';
@@ -16,7 +16,7 @@ interface TeamDetailHeaderProps {
 /**
  * 팀 상세 페이지 헤더 섹션
  * - 팀 로고, 이름, 기본 정보
- * - 운동 생성 / 팀 설정 버튼 (역할 기반)
+ * - 팀 설정 / 공유 버튼 (세그먼트 컨트롤 스타일)
  */
 export function TeamDetailHeader({ team, membership, homeGymName }: TeamDetailHeaderProps) {
   const router = useRouter();
@@ -42,14 +42,19 @@ export function TeamDetailHeader({ team, membership, homeGymName }: TeamDetailHe
 
   // 역할 기반 버튼 노출
   const isMember = !!membership;
-  const isLeaderOrManager = membership?.role === 'LEADER' || membership?.role === 'MANAGER';
-
-  const handleCreateMatch = () => {
-    router.push(`/team/${team.code}/match/create`);
-  };
 
   const handleSettings = () => {
     router.push(`/team/${team.code}/settings`);
+  };
+
+  const handleShare = async () => {
+    const shareUrl = `${window.location.origin}/team/${team.code}`;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      toast.success('팀 링크가 복사되었습니다');
+    } catch {
+      toast.error('링크 복사에 실패했습니다');
+    }
   };
 
   return (
@@ -99,25 +104,27 @@ export function TeamDetailHeader({ team, membership, homeGymName }: TeamDetailHe
         </div>
       </div>
 
-      {/* 액션 버튼 */}
+      {/* 세그먼트 컨트롤 스타일 버튼 (팀 설정 / 공유) */}
       {isMember && (
-        <div className="flex gap-3">
-          {/* 운동 생성 버튼 - 팀원 이상 */}
-          <Button
-            onClick={handleCreateMatch}
-            className="flex-1 bg-primary hover:bg-primary/90 text-white font-semibold h-11"
-          >
-            이번 주 운동 생성
-          </Button>
-
+        <div className="flex rounded-xl bg-slate-100 p-1">
           {/* 팀 설정 버튼 */}
-          <Button
-            variant="outline"
+          <button
             onClick={handleSettings}
-            className="w-11 h-11 p-0 border-slate-200"
+            className="flex-1 py-2.5 px-4 text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors rounded-lg"
           >
-            <Settings className="w-5 h-5 text-slate-600" />
-          </Button>
+            팀 설정
+          </button>
+
+          {/* 구분선 */}
+          <div className="w-px bg-slate-200 my-2" />
+
+          {/* 공유 버튼 (...) */}
+          <button
+            onClick={handleShare}
+            className="px-4 py-2.5 text-slate-500 hover:text-slate-700 transition-colors rounded-lg"
+          >
+            <MoreHorizontal className="w-5 h-5" />
+          </button>
         </div>
       )}
     </div>

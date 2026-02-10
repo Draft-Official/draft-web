@@ -7,7 +7,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { cn } from '@/shared/lib/utils';
 import { useTeamByCode } from '@/features/team/api/core/queries';
-import { useMyMembership } from '@/features/team/api/membership/queries';
+import { useMyMembership, useTeamMembers } from '@/features/team/api/membership/queries';
 import { useAuth } from '@/features/auth/model/auth-context';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { deleteTeam } from '@/features/team/api/core/api';
@@ -23,6 +23,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/shared/ui/shadcn/alert-dialog';
+import { AccountEditDialog } from './account-edit-dialog';
+import { DelegateLeaderDialog } from './delegate-leader-dialog';
 
 interface TeamSettingsViewProps {
   code: string;
@@ -40,6 +42,8 @@ export function TeamSettingsView({ code }: TeamSettingsViewProps) {
 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showLeaveDialog, setShowLeaveDialog] = useState(false);
+  const [showAccountDialog, setShowAccountDialog] = useState(false);
+  const [showDelegateDialog, setShowDelegateDialog] = useState(false);
 
   // 팀 정보 조회
   const { data: team, isLoading: isLoadingTeam } = useTeamByCode(code);
@@ -49,6 +53,9 @@ export function TeamSettingsView({ code }: TeamSettingsViewProps) {
     team?.id,
     user?.id
   );
+
+  // 팀원 목록 (위임용)
+  const { data: members = [] } = useTeamMembers(team?.id);
 
   // 역할 확인
   const isLeader = membership?.role === 'LEADER';
@@ -183,13 +190,13 @@ export function TeamSettingsView({ code }: TeamSettingsViewProps) {
               label="환불 계좌"
               value={team.accountInfo?.bank ? `${team.accountInfo.bank} ${team.accountInfo.number || ''}` : '-'}
               action="수정"
-              onAction={() => router.push(`/team/${code}/settings/account`)}
+              onAction={() => setShowAccountDialog(true)}
             />
 
             {/* 팀 소유자 위임 */}
             <MenuItem
               label="팀 소유자 위임"
-              onClick={() => router.push(`/team/${code}/settings/delegate`)}
+              onClick={() => setShowDelegateDialog(true)}
             />
 
             {/* 구분선 */}
@@ -262,6 +269,24 @@ export function TeamSettingsView({ code }: TeamSettingsViewProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* 환불 계좌 수정 다이얼로그 */}
+      <AccountEditDialog
+        open={showAccountDialog}
+        onOpenChange={setShowAccountDialog}
+        teamId={team.id}
+        currentAccount={team.accountInfo}
+      />
+
+      {/* 팀 소유자 위임 다이얼로그 */}
+      <DelegateLeaderDialog
+        open={showDelegateDialog}
+        onOpenChange={setShowDelegateDialog}
+        teamId={team.id}
+        currentLeaderId={user?.id || ''}
+        members={members}
+        onSuccess={() => router.push(`/team/${code}`)}
+      />
     </div>
   );
 }

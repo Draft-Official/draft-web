@@ -13,6 +13,7 @@ import {
   TeamHomeTab,
   TeamScheduleTab,
   TeamMembersTab,
+  TeamFab,
 } from './components/detail';
 
 interface TeamDetailViewProps {
@@ -165,6 +166,9 @@ export function TeamDetailView({ code }: TeamDetailViewProps) {
           />
         </TabsContent>
       </Tabs>
+
+      {/* FAB - 팀원만 표시 */}
+      {membership && <TeamFab teamCode={code} />}
     </div>
   );
 }

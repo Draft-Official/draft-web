@@ -6,11 +6,11 @@ import {
   Clock,
   Users,
   Trophy,
-  Globe,
   User,
+  Users2,
 } from 'lucide-react';
 import { formatRegion, formatRegularSchedule } from '@/features/team/api/mapper';
-import { LEVEL_LABELS } from '@/shared/config/constants';
+import { LEVEL_LABELS, GENDER_LABELS, type GenderValue } from '@/shared/config/constants';
 import type { ClientTeam } from '@/features/team/model/types';
 
 interface TeamHomeTabProps {
@@ -47,6 +47,11 @@ export function TeamHomeTab({ team, homeGymName, memberCount }: TeamHomeTabProps
       : `${LEVEL_LABELS[String(team.levelRange.min) as keyof typeof LEVEL_LABELS] || `레벨 ${team.levelRange.min}`} ~ ${LEVEL_LABELS[String(team.levelRange.max) as keyof typeof LEVEL_LABELS] || `레벨 ${team.levelRange.max}`}`
     : null;
 
+  // 성별 라벨
+  const genderText = team.teamGender
+    ? GENDER_LABELS[team.teamGender as GenderValue] || team.teamGender
+    : null;
+
   const infoItems = [
     {
       icon: MapPin,
@@ -67,16 +72,16 @@ export function TeamHomeTab({ team, homeGymName, memberCount }: TeamHomeTabProps
       valueColor: 'text-slate-900',
     },
     {
+      icon: Users2,
+      label: '성별',
+      value: genderText,
+      valueColor: 'text-slate-900',
+    },
+    {
       icon: User,
       label: '평균 나이',
       value: avgAge ? `${avgAge}세` : null,
       valueColor: 'text-slate-900',
-    },
-    {
-      icon: Globe,
-      label: '웹사이트',
-      value: null, // 추후 추가
-      valueColor: 'text-primary',
     },
     {
       icon: Users,

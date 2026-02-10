@@ -226,6 +226,45 @@ export function useLeaveTeam() {
 }
 
 /**
+ * 가입 신청 승인 (간편 버전 - teamId 고정)
+ */
+export function useApproveJoinRequest(teamId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (membershipId: string): Promise<ClientTeamMember> => {
+      const supabase = getSupabaseBrowserClient();
+      const row = await approveJoinRequest(supabase, membershipId);
+      const member = teamMemberRowToClient(row);
+      await createVotesForNewMember(supabase, teamId, member.userId);
+      return member;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: teamMemberKeys.pending(teamId) });
+      queryClient.invalidateQueries({ queryKey: teamMemberKeys.byTeam(teamId) });
+    },
+  });
+}
+
+/**
+ * 가입 신청 거절 (간편 버전 - teamId 고정)
+ */
+export function useRejectJoinRequest(teamId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (membershipId: string): Promise<ClientTeamMember> => {
+      const supabase = getSupabaseBrowserClient();
+      const row = await rejectJoinRequest(supabase, membershipId);
+      return teamMemberRowToClient(row);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: teamMemberKeys.pending(teamId) });
+    },
+  });
+}
+
+/**
  * 팀장 권한 이전
  */
 export function useTransferLeadership() {
