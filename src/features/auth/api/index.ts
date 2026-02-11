@@ -6,4 +6,5 @@ export {
   useSignInWithGoogle,
   useSignInWithEmail,
   useSignOut,
+  useDeleteAccount,
 } from './mutations';

@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { LogOut, UserX } from 'lucide-react';
+import { LogOut, UserX, AlertTriangle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/shared/ui/base/button';
 import {
@@ -15,11 +15,44 @@ import {
   DialogFooter,
 } from '@/shared/ui/base/dialog';
 import { useAuth } from '@/features/auth/model/auth-context';
+import { useDeleteAccount } from '@/features/auth/api/mutations';
 
 export function MyPageFooter() {
   const { signOut } = useAuth();
   const router = useRouter();
   const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const [confirmedCount, setConfirmedCount] = useState<number | null>(null);
+  const [loadingCheck, setLoadingCheck] = useState(false);
+  const [settlementAcknowledged, setSettlementAcknowledged] = useState(false);
+  const deleteAccount = useDeleteAccount();
+
+  // 다이얼로그 열릴 때 확정자 수 조회
+  useEffect(() => {
+    if (!withdrawOpen) {
+      setConfirmedCount(null);
+      setSettlementAcknowledged(false);
+      return;
+    }
+
+    const fetchConfirmedCount = async () => {
+      setLoadingCheck(true);
+      try {
+        const res = await fetch('/api/account/delete');
+        if (res.ok) {
+          const data = await res.json();
+          setConfirmedCount(data.confirmedCount ?? 0);
+        } else {
+          setConfirmedCount(0);
+        }
+      } catch {
+        setConfirmedCount(0);
+      } finally {
+        setLoadingCheck(false);
+      }
+    };
+
+    fetchConfirmedCount();
+  }, [withdrawOpen]);
 
   const handleLogout = async () => {
     try {
@@ -31,10 +64,22 @@ export function MyPageFooter() {
     }
   };
 
-  const handleWithdraw = () => {
-    setWithdrawOpen(false);
-    toast.info('준비 중인 기능입니다');
+  const handleWithdraw = async () => {
+    try {
+      await deleteAccount.mutateAsync();
+      localStorage.removeItem('profileSkipped');
+      setWithdrawOpen(false);
+      toast.success('탈퇴가 완료되었습니다.');
+      router.push('/');
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : '탈퇴 처리 중 오류가 발생했습니다.',
+      );
+    }
   };
+
+  const hasConfirmed = confirmedCount !== null && confirmedCount > 0;
+  const canSubmit = hasConfirmed ? settlementAcknowledged : true;
 
   return (
     <div className="space-y-4">
@@ -72,25 +117,74 @@ export function MyPageFooter() {
           <DialogHeader>
             <DialogTitle>정말 탈퇴하시겠습니까?</DialogTitle>
             <DialogDescription>
-              탈퇴하면 모든 데이터가 삭제되며 복구할 수 없습니다.
+              탈퇴하면 모든 개인정보가 삭제되며 복구할 수 없습니다.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="flex-row gap-2">
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={() => setWithdrawOpen(false)}
-            >
-              취소
-            </Button>
-            <Button
-              variant="destructive"
-              className="flex-1"
-              onClick={handleWithdraw}
-            >
-              탈퇴하기
-            </Button>
-          </DialogFooter>
+
+          {loadingCheck ? (
+            <div className="flex items-center justify-center py-4">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <>
+              {hasConfirmed && (
+                <>
+                  <div className="rounded-lg bg-red-50 border border-red-200 p-4 space-y-2">
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+                      <p className="text-sm text-red-700 font-bold">
+                        현재 입금 완료된 확정자 {confirmedCount}명이 있습니다.
+                      </p>
+                    </div>
+                    <p className="text-xs text-red-600 leading-relaxed">
+                      모든 확정자에게 참가비를 환불해야 할 책임이 호스트에게
+                      있습니다. 환불 없는 탈퇴 시 제재를 받을 수 있습니다.
+                    </p>
+                  </div>
+
+                  <label className="flex items-start gap-3 cursor-pointer rounded-lg border border-slate-200 p-3 hover:bg-slate-50 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={settlementAcknowledged}
+                      onChange={(e) =>
+                        setSettlementAcknowledged(e.target.checked)
+                      }
+                      className="w-4 h-4 mt-0.5 rounded border-slate-300 accent-primary flex-shrink-0"
+                    />
+                    <span className="text-sm text-slate-700 font-medium leading-snug">
+                      모든 확정자에 대한 참가비 정산을 완료했습니다.
+                    </span>
+                  </label>
+                </>
+              )}
+
+              <DialogFooter className="flex-row gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => setWithdrawOpen(false)}
+                  disabled={deleteAccount.isPending}
+                >
+                  취소
+                </Button>
+                <Button
+                  variant="destructive"
+                  className="flex-1"
+                  onClick={handleWithdraw}
+                  disabled={!canSubmit || deleteAccount.isPending}
+                >
+                  {deleteAccount.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      처리 중...
+                    </>
+                  ) : (
+                    '탈퇴하기'
+                  )}
+                </Button>
+              </DialogFooter>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </div>
