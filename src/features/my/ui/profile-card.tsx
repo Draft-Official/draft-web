@@ -140,12 +140,10 @@ export function ProfileCard({
           <span className="text-sm text-slate-500">실력</span>
           <span className="text-sm font-bold text-slate-900">{SKILL_LEVEL_NAMES[profile.skillLevel]}</span>
         </div>
-        {teamName && (
-          <div className="flex justify-between items-center py-2">
-            <span className="text-sm text-slate-500">팀</span>
-            <span className="text-sm font-bold text-slate-900">팀 {teamName}</span>
-          </div>
-        )}
+        <div className="flex justify-between items-center py-2">
+          <span className="text-sm text-slate-500">팀</span>
+          <span className="text-sm font-bold text-slate-900">{teamName ? `팀 ${teamName}` : '-'}</span>
+        </div>
       </div>
     </Card>
   );

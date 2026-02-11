@@ -532,6 +532,44 @@ export type Database = {
         }
         Relationships: []
       }
+      phone_verifications: {
+        Row: {
+          id: string
+          user_id: string
+          phone_number: string
+          code: string
+          created_at: string
+          expires_at: string
+          verified: boolean
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          phone_number: string
+          code: string
+          created_at?: string
+          expires_at: string
+          verified?: boolean
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          phone_number?: string
+          code?: string
+          created_at?: string
+          expires_at?: string
+          verified?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "phone_verifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           account_info: Json | null
