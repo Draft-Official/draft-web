@@ -1,67 +1,67 @@
 ## 1. API Layer
 
-- [ ] 1.1 Add `useTeamMatch` query for single team match detail with gym join
-- [ ] 1.2 Add `useReopenVoting` mutation to change match status back to RECRUITING
-- [ ] 1.3 Add `useUpdateMemberVote` mutation for admin to change other member's vote
-- [ ] 1.4 Add `useUpdateTeamMatch` mutation for match time/location edit
-- [ ] 1.5 Add `useCancelTeamMatch` mutation to cancel a team match
-- [ ] 1.6 Verify `createVotesForNewMember` is called in `useApproveJoin` (already exists)
+- [x] 1.1 Add `useTeamMatch` query for single team match detail with gym join
+- [x] 1.2 Add `useReopenVoting` mutation to change match status back to RECRUITING
+- [x] 1.3 Add `useUpdateMemberVote` mutation for admin to change other member's vote
+- [x] 1.4 Add `useUpdateTeamMatch` mutation for match time/location edit
+- [x] 1.5 Add `useCancelTeamMatch` mutation to cancel a team match
+- [x] 1.6 Verify `createVotesForNewMember` is called in `useApproveJoin` (already exists)
 
 ## 2. Team Match Creation Page
 
-- [ ] 2.1 Create `/team/[code]/match/create/page.tsx` route file
-- [ ] 2.2 Create `team-match-create-form.tsx` component in `features/team/ui/components/match/`
-- [ ] 2.3 Implement auto-fill logic for team defaults (regularDay, time, homeGym)
-- [ ] 2.4 Add date picker with next regular day pre-selected
-- [ ] 2.5 Add time range inputs with team defaults
-- [ ] 2.6 Add gym selector with home gym pre-selected
-- [ ] 2.7 Add form validation (date, start time, end time, gym required)
-- [ ] 2.8 Connect form submit to `useCreateTeamMatch` mutation
-- [ ] 2.9 Redirect to match detail page on successful creation
-- [ ] 2.10 Add access control: only Leader/Manager can access
+- [x] 2.1 Create `/team/[code]/match/create/page.tsx` route file
+- [x] 2.2 Create `team-match-create-form.tsx` component in `features/team/ui/components/match/`
+- [x] 2.3 Implement auto-fill logic for team defaults (regularDay, time, homeGym)
+- [x] 2.4 Add date picker with next regular day pre-selected
+- [x] 2.5 Add time range inputs with team defaults
+- [x] 2.6 Add gym selector with home gym pre-selected
+- [x] 2.7 Add form validation (date, start time, end time, gym required)
+- [x] 2.8 Connect form submit to `useCreateTeamMatch` mutation
+- [x] 2.9 Redirect to match detail page on successful creation
+- [x] 2.10 Add access control: only Leader/Manager can access
 
 ## 3. Team Match Detail Page
 
-- [ ] 3.1 Create `/team/[code]/matches/[matchId]/page.tsx` route file
-- [ ] 3.2 Create `team-match-detail-view.tsx` component in `features/team/ui/components/match/`
-- [ ] 3.3 Display match info header (date, time, location)
-- [ ] 3.4 Add access control: only team members can view
+- [x] 3.1 Create `/team/[code]/matches/[matchId]/page.tsx` route file
+- [x] 3.2 Create `team-match-detail-view.tsx` component in `features/team/ui/components/match/`
+- [x] 3.3 Display match info header (date, time, location)
+- [x] 3.4 Add access control: only team members can view
 
 ## 4. Voting Status Card
 
-- [ ] 4.1 Create `voting-status-card.tsx` component
-- [ ] 4.2 Display vote counts by status (참석, 늦참, 불참, 미응답)
-- [ ] 4.3 Display total member count
-- [ ] 4.4 Connect to `useVotingStatus` query with refetch on vote
+- [x] 4.1 Create `voting-status-card.tsx` component (→ voting-accordion.tsx)
+- [x] 4.2 Display vote counts by status (참석, 늦참, 불참, 미응답)
+- [x] 4.3 Display total member count
+- [x] 4.4 Connect to `useVotingStatus` query with refetch on vote
 
 ## 5. Voter List
 
-- [ ] 5.1 Create `voter-list.tsx` component
-- [ ] 5.2 Display each voter's avatar, nickname, and vote status
-- [ ] 5.3 Group voters by status sections
-- [ ] 5.4 Handle withdrawn member display ("알 수 없음")
-- [ ] 5.5 Add badge/chip for vote status styling
+- [x] 5.1 Create `voter-list.tsx` component (→ voting-accordion.tsx)
+- [x] 5.2 Display each voter's avatar, nickname, and vote status
+- [x] 5.3 Group voters by status sections
+- [x] 5.4 Handle withdrawn member display ("알 수 없음")
+- [x] 5.5 Add badge/chip for vote status styling
 
 ## 6. Voting Flow
 
-- [ ] 6.1 Integrate existing `vote-dialog.tsx` with match detail page
-- [ ] 6.2 Add "투표하기" button that opens vote dialog
-- [ ] 6.3 Show current vote status on button (변경하기 if already voted)
-- [ ] 6.4 Disable vote button when voting is closed
-- [ ] 6.5 Connect dialog submit to `useVote` mutation
-- [ ] 6.6 Show toast on successful vote
-- [ ] 6.7 Invalidate voting status query on vote success
+- [x] 6.1 Integrate existing `vote-dialog.tsx` with match detail page
+- [x] 6.2 Add "투표하기" button that opens vote dialog
+- [x] 6.3 Show current vote status on button (변경하기 if already voted)
+- [x] 6.4 Disable vote button when voting is closed
+- [x] 6.5 Connect dialog submit to `useVote` mutation
+- [x] 6.6 Show toast on successful vote
+- [x] 6.7 Invalidate voting status query on vote success
 
 ## 7. Admin Actions
 
-- [ ] 7.1 Create `admin-actions.tsx` component for Leader/Manager
-- [ ] 7.2 Add "투표 마감" button (Leader/Manager)
-- [ ] 7.3 Connect to `useCloseVoting` mutation
-- [ ] 7.4 Add "투표 재오픈" button (Leader only)
-- [ ] 7.5 Connect to `useReopenVoting` mutation
-- [ ] 7.6 Add "투표 변경" option in voter list for each member (Leader/Manager)
-- [ ] 7.7 Create dialog for admin to change member's vote
-- [ ] 7.8 Connect to `useUpdateMemberVote` mutation
+- [x] 7.1 Create `admin-actions.tsx` component for Leader/Manager (→ header kebab menu)
+- [x] 7.2 Add "투표 마감" button (Leader/Manager)
+- [x] 7.3 Connect to `useCloseVoting` mutation
+- [x] 7.4 Add "투표 재오픈" button (Leader only)
+- [x] 7.5 Connect to `useReopenVoting` mutation
+- [x] 7.6 Add "투표 변경" option in voter list for each member (Leader/Manager)
+- [x] 7.7 Create dialog for admin to change member's vote
+- [x] 7.8 Connect to `useUpdateMemberVote` mutation
 
 ## 8. Team Detail - Non-Member View
 

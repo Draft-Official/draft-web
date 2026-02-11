@@ -16,7 +16,8 @@ import { useTeamByCode } from '@/features/team/api/core/queries';
 import { useUpdateTeam } from '@/features/team/api/core/mutations';
 import { useMyMembership } from '@/features/team/api/membership/queries';
 import { useAuth } from '@/features/auth/model/auth-context';
-import { GENDER_OPTIONS, REGULAR_DAY_OPTIONS } from '@/shared/config/team-constants';
+import { GENDER_OPTIONS } from '@/shared/config/constants';
+import { REGULAR_DAY_OPTIONS } from '@/shared/config/team-constants';
 
 const schema = z.object({
   name: z.string().min(1, '팀 이름을 입력해주세요'),

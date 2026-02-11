@@ -372,6 +372,118 @@ export async function closeVoting(
 }
 
 /**
+ * 투표 재오픈 (status를 RECRUITING으로 변경)
+ * - Leader만 사용 가능
+ */
+export async function reopenVoting(
+  supabase: SupabaseClient<Database>,
+  matchId: string
+): Promise<Match> {
+  const { data, error } = await supabase
+    .from('matches')
+    .update({
+      status: 'RECRUITING',
+    })
+    .eq('id', matchId)
+    .eq('match_type', 'TEAM_MATCH')
+    .select()
+    .single();
+
+  if (error) handleSupabaseError(error, '투표 재오픈');
+  return data!;
+}
+
+/**
+ * 관리자가 팀원의 투표를 대신 변경
+ * - 마감 후에도 변경 가능
+ */
+export async function updateMemberVote(
+  supabase: SupabaseClient<Database>,
+  matchId: string,
+  memberId: string,
+  status: TeamVoteStatusValue,
+  description?: string
+): Promise<Application> {
+  const statusMap: Record<TeamVoteStatusValue, string> = {
+    PENDING: 'PENDING',
+    CONFIRMED: 'CONFIRMED',
+    LATE: 'LATE',
+    NOT_ATTENDING: 'NOT_ATTENDING',
+    MAYBE: 'MAYBE',
+  };
+
+  const applicationStatus = statusMap[status];
+
+  const { data, error } = await supabase
+    .from('applications')
+    .update({
+      status: applicationStatus as Application['status'],
+      description: status === 'NOT_ATTENDING' ? description : null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('match_id', matchId)
+    .eq('user_id', memberId)
+    .eq('source', 'TEAM_VOTE')
+    .select()
+    .single();
+
+  if (error) handleSupabaseError(error, '투표 변경');
+  return data!;
+}
+
+/**
+ * 팀 매치 수정 (시간, 장소)
+ */
+export async function updateTeamMatch(
+  supabase: SupabaseClient<Database>,
+  matchId: string,
+  input: {
+    startTime?: string;
+    endTime?: string;
+    gymId?: string;
+    operationInfo?: Record<string, unknown>;
+  }
+): Promise<Match> {
+  const updateData: Record<string, unknown> = {};
+  if (input.startTime) updateData.start_time = input.startTime;
+  if (input.endTime) updateData.end_time = input.endTime;
+  if (input.gymId) updateData.gym_id = input.gymId;
+  if (input.operationInfo) updateData.operation_info = input.operationInfo;
+
+  const { data, error } = await supabase
+    .from('matches')
+    .update(updateData)
+    .eq('id', matchId)
+    .eq('match_type', 'TEAM_MATCH')
+    .select('*, gyms(*)')
+    .single();
+
+  if (error) handleSupabaseError(error, '팀 매치 수정');
+  return data!;
+}
+
+/**
+ * 팀 매치 취소
+ */
+export async function cancelTeamMatch(
+  supabase: SupabaseClient<Database>,
+  matchId: string
+): Promise<Match> {
+  const { data, error } = await supabase
+    .from('matches')
+    .update({
+      status: 'CANCELED',
+    })
+    .eq('id', matchId)
+    .eq('match_type', 'TEAM_MATCH')
+    .select()
+    .single();
+
+  if (error) handleSupabaseError(error, '팀 매치 취소');
+  return data!;
+}
+
+/**
  * 게스트 모집으로 전환
  */
 export async function openGuestRecruitment(
