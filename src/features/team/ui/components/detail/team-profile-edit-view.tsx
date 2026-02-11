@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { ArrowLeft } from 'lucide-react';
+import Image from 'next/image';
 import { toast } from 'sonner';
 import { cn } from '@/shared/lib/utils';
 import { Button } from '@/shared/ui/shadcn/button';
@@ -18,6 +19,12 @@ import { useMyMembership } from '@/features/team/api/membership/queries';
 import { useAuth } from '@/features/auth/model/auth-context';
 import { GENDER_OPTIONS } from '@/shared/config/constants';
 import { REGULAR_DAY_OPTIONS } from '@/shared/config/team-constants';
+
+// 프리셋 로고 옵션
+const PRESET_LOGOS = [
+  '/logos/preset/logo-01.webp',
+  '/logos/preset/logo-02.webp',
+] as const;
 
 const schema = z.object({
   name: z.string().min(1, '팀 이름을 입력해주세요'),
@@ -45,6 +52,9 @@ export function TeamProfileEditView({ code }: TeamProfileEditViewProps) {
   const { data: membership } = useMyMembership(team?.id, user?.id);
   const updateMutation = useUpdateTeam();
 
+  // 로고 상태
+  const [selectedLogo, setSelectedLogo] = useState<string | null>(null);
+
   const isLeader = membership?.role === 'LEADER';
 
   const {
@@ -69,6 +79,7 @@ export function TeamProfileEditView({ code }: TeamProfileEditViewProps) {
         regularEndTime: team.regularEndTime || '',
         teamGender: team.teamGender || '',
       });
+      setSelectedLogo(team.logoUrl || null);
     }
   }, [team, reset]);
 
@@ -82,6 +93,7 @@ export function TeamProfileEditView({ code }: TeamProfileEditViewProps) {
           name: data.name,
           shortIntro: data.shortIntro || null,
           description: data.description || null,
+          logoUrl: selectedLogo,
           regionDepth1: data.regionDepth1 || null,
           regionDepth2: data.regionDepth2 || null,
           regularDay: data.regularDay || null,
@@ -126,6 +138,35 @@ export function TeamProfileEditView({ code }: TeamProfileEditViewProps) {
       <Header onBack={() => router.back()} title="팀 프로필 수정" />
 
       <form onSubmit={handleSubmit(onSubmit)} className="px-5 py-6 space-y-6">
+        {/* 팀 로고 */}
+        <div className="space-y-3">
+          <Label>팀 로고</Label>
+          <div className="grid grid-cols-4 gap-2">
+            {PRESET_LOGOS.map((logoUrl, index) => (
+              <button
+                key={index}
+                type="button"
+                onClick={() => setSelectedLogo(logoUrl)}
+                className={cn(
+                  'aspect-square rounded-xl flex items-center justify-center overflow-hidden transition-all border-2',
+                  selectedLogo === logoUrl
+                    ? 'border-primary bg-orange-50'
+                    : 'border-slate-200 bg-white hover:border-slate-300'
+                )}
+              >
+                <Image
+                  src={logoUrl}
+                  alt={`로고 ${index + 1}`}
+                  width={60}
+                  height={60}
+                  className="object-cover w-3/4 h-3/4"
+                />
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-slate-400">추후 사진 업로드 기능이 추가됩니다</p>
+        </div>
+
         {/* 팀 이름 */}
         <div className="space-y-2">
           <Label>팀 이름 *</Label>

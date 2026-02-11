@@ -37,17 +37,26 @@ export function TeamDetailView({ code }: TeamDetailViewProps) {
     user?.id
   );
 
-  // 멤버 목록 조회
-  const { data: members = [], isLoading: isLoadingMembers } = useTeamMembers(team?.id);
+  // 활성 멤버인지 확인 (ACCEPTED 상태만)
+  const isMember = membership?.status === 'ACCEPTED';
 
-  // 대기 중인 가입 신청 수
-  const { data: pendingMembers = [] } = usePendingMembers(team?.id);
+  // 멤버 목록 조회 (멤버만)
+  const { data: members = [], isLoading: isLoadingMembers } = useTeamMembers(
+    isMember ? team?.id : undefined
+  );
+
+  // 대기 중인 가입 신청 수 (멤버만)
+  const { data: pendingMembers = [] } = usePendingMembers(
+    isMember ? team?.id : undefined
+  );
 
   // 멤버 수
   const { data: memberCount = 0 } = useTeamMemberCount(team?.id);
 
-  // 팀 매치 목록
-  const { data: matches = [], isLoading: isLoadingMatches } = useTeamMatches(team?.id);
+  // 팀 매치 목록 (멤버만)
+  const { data: matches = [], isLoading: isLoadingMatches } = useTeamMatches(
+    isMember ? team?.id : undefined
+  );
 
   // 로딩 중
   if (isLoadingTeam || isLoadingMembership) {
@@ -99,6 +108,7 @@ export function TeamDetailView({ code }: TeamDetailViewProps) {
         team={team}
         membership={membership || null}
         homeGymName={team.homeGymName}
+        isLoggedIn={!!user}
       />
 
       {/* 탭 네비게이션 */}
@@ -117,26 +127,31 @@ export function TeamDetailView({ code }: TeamDetailViewProps) {
           >
             홈
           </TabsTrigger>
-          <TabsTrigger
-            value="schedule"
-            className={cn(
-              'flex-1 text-base font-medium py-3',
-              'data-[state=active]:text-slate-900 data-[state=active]:font-bold',
-              'data-[state=active]:after:bg-slate-900'
-            )}
-          >
-            일정
-          </TabsTrigger>
-          <TabsTrigger
-            value="members"
-            className={cn(
-              'flex-1 text-base font-medium py-3',
-              'data-[state=active]:text-slate-900 data-[state=active]:font-bold',
-              'data-[state=active]:after:bg-slate-900'
-            )}
-          >
-            멤버
-          </TabsTrigger>
+          {/* 일정/멤버 탭은 멤버만 표시 */}
+          {isMember && (
+            <>
+              <TabsTrigger
+                value="schedule"
+                className={cn(
+                  'flex-1 text-base font-medium py-3',
+                  'data-[state=active]:text-slate-900 data-[state=active]:font-bold',
+                  'data-[state=active]:after:bg-slate-900'
+                )}
+              >
+                일정
+              </TabsTrigger>
+              <TabsTrigger
+                value="members"
+                className={cn(
+                  'flex-1 text-base font-medium py-3',
+                  'data-[state=active]:text-slate-900 data-[state=active]:font-bold',
+                  'data-[state=active]:after:bg-slate-900'
+                )}
+              >
+                멤버
+              </TabsTrigger>
+            </>
+          )}
         </TabsList>
 
         {/* 탭 컨텐츠 */}
@@ -148,27 +163,32 @@ export function TeamDetailView({ code }: TeamDetailViewProps) {
           />
         </TabsContent>
 
-        <TabsContent value="schedule" className="mt-0">
-          <TeamScheduleTab
-            teamCode={code}
-            matches={matches}
-            isLoading={isLoadingMatches}
-          />
-        </TabsContent>
+        {/* 일정/멤버 탭 컨텐츠는 멤버만 */}
+        {isMember && (
+          <>
+            <TabsContent value="schedule" className="mt-0">
+              <TeamScheduleTab
+                teamCode={code}
+                matches={matches}
+                isLoading={isLoadingMatches}
+              />
+            </TabsContent>
 
-        <TabsContent value="members" className="mt-0">
-          <TeamMembersTab
-            teamCode={code}
-            members={members}
-            pendingCount={pendingMembers.length}
-            myRole={membership?.role || null}
-            isLoading={isLoadingMembers}
-          />
-        </TabsContent>
+            <TabsContent value="members" className="mt-0">
+              <TeamMembersTab
+                teamCode={code}
+                members={members}
+                pendingCount={pendingMembers.length}
+                myRole={membership?.role || null}
+                isLoading={isLoadingMembers}
+              />
+            </TabsContent>
+          </>
+        )}
       </Tabs>
 
-      {/* FAB - 팀원만 표시 */}
-      {membership && <TeamFab teamCode={code} />}
+      {/* FAB - 활성 멤버만 표시 */}
+      {isMember && <TeamFab teamCode={code} role={membership.role} />}
     </div>
   );
 }

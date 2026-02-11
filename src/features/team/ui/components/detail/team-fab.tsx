@@ -10,9 +10,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/shared/ui/base/popover';
+import type { TeamRoleValue } from '@/shared/config/team-constants';
 
 interface TeamFabProps {
   teamCode: string;
+  role: TeamRoleValue;
 }
 
 /**
@@ -20,9 +22,12 @@ interface TeamFabProps {
  * - 경기 생성하기
  * - 링크로 멤버 초대하기
  */
-export function TeamFab({ teamCode }: TeamFabProps) {
+export function TeamFab({ teamCode, role }: TeamFabProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+
+  // Leader/Manager만 경기 생성 가능
+  const canCreateMatch = role === 'LEADER' || role === 'MANAGER';
 
   const handleCreateMatch = () => {
     setOpen(false);
@@ -40,12 +45,18 @@ export function TeamFab({ teamCode }: TeamFabProps) {
     }
   };
 
+  // 역할에 따라 메뉴 아이템 필터링
   const menuItems = [
-    {
-      icon: Calendar,
-      label: '경기 생성하기',
-      onClick: handleCreateMatch,
-    },
+    // 경기 생성은 Leader/Manager만
+    ...(canCreateMatch
+      ? [
+          {
+            icon: Calendar,
+            label: '경기 생성하기',
+            onClick: handleCreateMatch,
+          },
+        ]
+      : []),
     {
       icon: Link2,
       label: '링크로 멤버 초대하기',

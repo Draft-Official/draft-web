@@ -65,21 +65,21 @@
 
 ## 8. Team Detail - Non-Member View
 
-- [ ] 8.1 Modify `team-detail-view.tsx` to check membership status
-- [ ] 8.2 Show limited info for non-members (name, logo, intro, region)
-- [ ] 8.3 Hide 일정/멤버 tabs for non-members
-- [ ] 8.4 Modify `team-detail-header.tsx` to show join button for non-members
-- [ ] 8.5 Hide settings buttons for non-members
+- [x] 8.1 Modify `team-detail-view.tsx` to check membership status
+- [x] 8.2 Show limited info for non-members (name, logo, intro, region)
+- [x] 8.3 Hide 일정/멤버 tabs for non-members
+- [x] 8.4 Modify `team-detail-header.tsx` to show join button for non-members
+- [x] 8.5 Hide settings buttons for non-members
 
 ## 9. Team Join Flow
 
-- [ ] 9.1 Add "팀 가입 신청" button in non-member header
-- [ ] 9.2 Connect button to `useJoinTeam` mutation
-- [ ] 9.3 Show "승인 대기 중" status for pending requests
-- [ ] 9.4 Disable join button for users with pending request
-- [ ] 9.5 Add login prompt for anonymous users
+- [x] 9.1 Add "팀 가입 신청" button in non-member header
+- [x] 9.2 Connect button to `useJoinTeam` mutation
+- [x] 9.3 Show "승인 대기 중" status for pending requests
+- [x] 9.4 Disable join button for users with pending request
+- [x] 9.5 Add login prompt for anonymous users
 
 ## 10. Team FAB Updates
 
-- [ ] 10.1 Update `team-fab.tsx` to check role before showing "경기 생성" option
-- [ ] 10.2 Hide "경기 생성" for Member role
+- [x] 10.1 Update `team-fab.tsx` to check role before showing "경기 생성" option
+- [x] 10.2 Hide "경기 생성" for Member role

@@ -12,6 +12,7 @@ import {
   getTeamVotes,
   getVotingSummary,
   getMyVote,
+  getMyPendingVoteMatches,
 } from './api';
 import type { VotingSummary } from '../../model/types';
 import type { Match, Application } from '@/shared/types/database.types';
@@ -99,5 +100,26 @@ export function useMyVote(
       return getMyVote(supabase, matchId, userId);
     },
     enabled: !!matchId && !!userId,
+  });
+}
+
+/**
+ * 내 미투표/미래 매치 목록 조회
+ * - 여러 팀의 매치를 한 번에 조회
+ * - guestRecruitmentOnly: true면 게스트 모집 중인 매치만 필터
+ */
+export function useMyPendingVoteMatches(
+  teamIds: string[],
+  userId: string | null | undefined,
+  options?: { guestRecruitmentOnly?: boolean }
+) {
+  return useQuery({
+    queryKey: [...teamMatchKeys.myPendingVotes(userId || ''), options?.guestRecruitmentOnly ?? false],
+    queryFn: async () => {
+      if (!userId || teamIds.length === 0) return [];
+      const supabase = getSupabaseBrowserClient();
+      return getMyPendingVoteMatches(supabase, teamIds, userId, options);
+    },
+    enabled: !!userId && teamIds.length > 0,
   });
 }

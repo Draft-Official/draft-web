@@ -10,12 +10,17 @@ import {
   DialogTitle,
 } from '@/shared/ui/shadcn/dialog';
 import { Button } from '@/shared/ui/shadcn/button';
-import { Input } from '@/shared/ui/base/input';
-import { Label } from '@/shared/ui/base/label';
+import { Input } from '@/shared/ui/shadcn/input';
+import { Label } from '@/shared/ui/shadcn/label';
 import { BankCombobox } from '@/shared/ui/base/bank-combobox';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { teamKeys } from '@/features/team/api/keys';
 import type { AccountInfo } from '@/shared/types/jsonb.types';
+
+// 계좌번호 형식: 숫자와 하이픈만 허용
+const ACCOUNT_NUMBER_REGEX = /^[\d-]+$/;
+// 예금주 형식: 한글, 영문, 공백만 허용
+const HOLDER_NAME_REGEX = /^[가-힣a-zA-Z\s]+$/;
 
 interface AccountEditDialogProps {
   open: boolean;
@@ -73,15 +78,26 @@ export function AccountEditDialog({
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <Label>은행</Label>
-            <BankCombobox value={bank} onChange={setBank} />
+            <BankCombobox
+              value={bank}
+              onValueChange={setBank}
+              className="w-full h-12"
+            />
           </div>
 
           <div className="space-y-2">
             <Label>계좌번호</Label>
             <Input
               value={number}
-              onChange={(e) => setNumber(e.target.value)}
-              placeholder="계좌번호 입력"
+              onChange={(e) => {
+                const value = e.target.value;
+                // 숫자와 하이픈만 허용
+                if (value === '' || ACCOUNT_NUMBER_REGEX.test(value)) {
+                  setNumber(value);
+                }
+              }}
+              placeholder="계좌번호 입력 (숫자, - 만 가능)"
+              inputMode="numeric"
             />
           </div>
 
@@ -89,8 +105,14 @@ export function AccountEditDialog({
             <Label>예금주</Label>
             <Input
               value={holder}
-              onChange={(e) => setHolder(e.target.value)}
-              placeholder="예금주 입력"
+              onChange={(e) => {
+                const value = e.target.value;
+                // 한글, 영문, 공백만 허용
+                if (value === '' || HOLDER_NAME_REGEX.test(value)) {
+                  setHolder(value);
+                }
+              }}
+              placeholder="예금주 입력 (한글, 영문만 가능)"
             />
           </div>
         </div>

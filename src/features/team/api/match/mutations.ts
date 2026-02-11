@@ -75,6 +75,10 @@ export function useVote() {
       queryClient.invalidateQueries({
         queryKey: teamMatchKeys.votingStatus(input.matchId),
       });
+      // 미투표 목록 갱신
+      queryClient.invalidateQueries({
+        queryKey: teamMatchKeys.myPendingVotes(userId),
+      });
     },
   });
 }

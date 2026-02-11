@@ -80,10 +80,21 @@ function findNextRegularDay(regularDay: RegularDayValue | null, dates: DateOptio
 }
 
 /**
+ * 시간을 HH:MM 형식으로 정규화 (초 제거)
+ */
+function normalizeTime(time: string): string {
+  const parts = time.split(':');
+  const hours = (parts[0] || '00').padStart(2, '0');
+  const minutes = (parts[1] || '00').padStart(2, '0');
+  return `${hours}:${minutes}`;
+}
+
+/**
  * 종료 시간 계산
  */
 function calculateEndTime(startTime: string, duration: string): string {
-  const [startHour, startMin] = startTime.split(':').map(Number);
+  const normalized = normalizeTime(startTime);
+  const [startHour, startMin] = normalized.split(':').map(Number);
   const durationHours = parseFloat(duration);
   const totalMinutes = startHour * 60 + startMin + durationHours * 60;
   const endHour = Math.floor(totalMinutes / 60) % 24;
@@ -95,8 +106,10 @@ function calculateEndTime(startTime: string, duration: string): string {
  * 시작/종료 시간으로 duration 계산
  */
 function calculateDuration(startTime: string, endTime: string): string {
-  const [startHour, startMin] = startTime.split(':').map(Number);
-  const [endHour, endMin] = endTime.split(':').map(Number);
+  const normStart = normalizeTime(startTime);
+  const normEnd = normalizeTime(endTime);
+  const [startHour, startMin] = normStart.split(':').map(Number);
+  const [endHour, endMin] = normEnd.split(':').map(Number);
   const startTotal = startHour * 60 + startMin;
   let endTotal = endHour * 60 + endMin;
   if (endTotal < startTotal) endTotal += 24 * 60; // 다음날로 넘어가는 경우
@@ -160,9 +173,9 @@ export function TeamMatchCreateForm({ team, onClose }: TeamMatchCreateFormProps)
       return;
     }
 
-    // ISO 시간 생성 (로컬 시간 기준)
-    const startDateTime = `${selectedDate}T${startTime}:00`;
-    const endDateTime = `${selectedDate}T${endTime}:00`;
+    // ISO 시간 생성 (로컬 시간 기준, HH:MM:00 형식 보장)
+    const startDateTime = `${selectedDate}T${normalizeTime(startTime)}:00`;
+    const endDateTime = `${selectedDate}T${normalizeTime(endTime)}:00`;
 
     createMatch(
       {
@@ -187,7 +200,7 @@ export function TeamMatchCreateForm({ team, onClose }: TeamMatchCreateFormProps)
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 max-w-[430px] mx-auto relative">
+    <div className="min-h-screen bg-slate-100">
       {/* Header */}
       <header className="bg-white px-4 h-14 flex items-center justify-between border-b border-slate-100 sticky top-0 z-30">
         <div className="flex items-center gap-3">
