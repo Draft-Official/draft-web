@@ -87,3 +87,29 @@ export function useSignOut() {
     },
   });
 }
+
+/**
+ * 계정 탈퇴 (익명화 + auth 밴)
+ */
+export function useDeleteAccount() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/account/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || '계정 삭제에 실패했습니다.');
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.clear();
+    },
+  });
+}

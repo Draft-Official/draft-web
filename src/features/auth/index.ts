@@ -11,6 +11,7 @@ export {
   useSignInWithGoogle,
   useSignInWithEmail,
   useSignOut,
+  useDeleteAccount,
 } from './api';
 
 // UI
