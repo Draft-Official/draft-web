@@ -12,3 +12,5 @@ export * from './my-page-footer';
 export * from './bank-account-form';
 export * from './notices-list';
 export * from './phone-verification-form';
+export * from './faq-list';
+export * from './contact-view';

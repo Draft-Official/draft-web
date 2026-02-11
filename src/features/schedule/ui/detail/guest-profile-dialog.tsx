@@ -57,7 +57,7 @@ export function GuestProfileDialog({
             </DialogHeader>
 
             {/* 프로필 정보 */}
-            <div className="w-full space-y-3 border-t border-b border-slate-100 py-4">
+            <div className="w-full space-y-3 border-t border-slate-100 pt-4">
               <div className="flex items-center justify-between">
                 <span className="text-slate-500">포지션</span>
                 <span className="font-medium text-slate-900">{guest.position}</span>
@@ -74,7 +74,23 @@ export function GuestProfileDialog({
                 <span className="text-slate-500">키</span>
                 <span className="font-medium text-slate-900">{guest.height}</span>
               </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">팀</span>
+                <span className="font-medium text-slate-900">{guest.teamName || '-'}</span>
+              </div>
             </div>
+
+            {/* 신청시간 */}
+            {guest.appliedAt && (
+              <div className="w-full space-y-3 border-t border-b border-slate-100 py-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500">신청시간</span>
+                  <span className="font-medium text-slate-900">
+                    {formatMatchDate(guest.appliedAt)} {formatMatchTime(guest.appliedAt)}
+                  </span>
+                </div>
+              </div>
+            )}
 
             {/* 동반인 정보 */}
             {guest.companions && guest.companions.length > 0 && (
@@ -99,18 +115,6 @@ export function GuestProfileDialog({
                       </div>
                     </div>
                   ))}
-                </div>
-              </div>
-            )}
-
-            {/* 신청시간 */}
-            {guest.appliedAt && (
-              <div className="w-full space-y-3 border-t border-b border-slate-100 py-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-500">신청시간</span>
-                  <span className="font-medium text-slate-900">
-                    {formatMatchDate(guest.appliedAt)} {formatMatchTime(guest.appliedAt)}
-                  </span>
                 </div>
               </div>
             )}
