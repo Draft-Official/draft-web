@@ -220,6 +220,8 @@ export interface GuestMatchPosition {
 // Participating matches query에서 사용하는 match row 타입
 export interface ParticipatingMatchRow {
   id: string;
+  match_type: string;
+  team_id: string | null;
   manual_team_name: string;
   start_time: string;
   end_time: string;
@@ -228,6 +230,7 @@ export interface ParticipatingMatchRow {
   status: string;
   account_info: { bank?: string; number?: string; holder?: string } | null;
   gym: { name: string; address: string; kakao_place_id: string | null } | null;
+  team: { name: string } | null;
 }
 
 // ============================================

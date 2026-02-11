@@ -6,8 +6,12 @@ import { ScrollArea, ScrollBar } from '@/shared/ui/base/scroll-area';
 import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/shadcn/alert';
 import { useAuth } from '@/features/auth/model/auth-context';
 import { useMyTeams } from '../api/core/queries';
+import { useMyPendingVoteMatches } from '../api/match/queries';
+import { useVote } from '../api/match/mutations';
 import { TeamProfileCard } from './components/team-profile-card';
 import { TeamMatchItem } from './components/team-match-item';
+import type { TeamVoteStatusValue } from '@/shared/config/team-constants';
+import type { MatchStatusValue } from '@/shared/config/constants';
 
 /**
  * 나의 팀 탭
@@ -86,7 +90,7 @@ export function MyTeamsTab() {
       {/* 팀 정기운동 섹션 */}
       <section className="px-4">
         <h2 className="font-bold text-slate-900 text-lg mb-3">팀 정기운동</h2>
-        <PendingVoteMatches teamIds={teams.map((t) => t.id)} />
+        <PendingVoteMatches teamIds={teams.map((t) => t.id)} userId={user!.id} />
       </section>
     </div>
   );
@@ -94,73 +98,86 @@ export function MyTeamsTab() {
 
 /**
  * 팀 정기운동 목록 컴포넌트
- * TODO: useMyPendingVoteMatches 쿼리 구현 후 연동
  */
-function PendingVoteMatches({ teamIds }: { teamIds: string[] }) {
-  // TODO: 실제 API 연동
-  // const { data: matches } = useMyPendingVoteMatches(teamIds);
+function PendingVoteMatches({ teamIds, userId }: { teamIds: string[]; userId: string }) {
+  const { data: matches, isLoading } = useMyPendingVoteMatches(teamIds, userId);
+  const voteMutation = useVote();
 
-  // 임시 mock 데이터 (API 연동 전)
-  const mockMatches = [
-    {
-      id: '1',
-      teamId: teamIds[0] || '',
-      teamName: 'PoK',
-      teamLogoUrl: null,
-      date: '2026. 02. 08 (일)',
-      time: '19:00',
-      gymName: '서초종합체육관',
-      status: 'RECRUITING' as const,
-      myVote: 'PENDING' as const,
-      votingSummary: {
-        attending: 7,
-        notAttending: 2,
-        pending: 3,
+  const handleVote = (matchId: string, vote: TeamVoteStatusValue, reason: string) => {
+    voteMutation.mutate({
+      userId,
+      input: {
+        matchId,
+        status: vote,
+        description: reason,
       },
-    },
-    {
-      id: '2',
-      teamId: teamIds[0] || '',
-      teamName: 'PoK',
-      teamLogoUrl: null,
-      date: '2026. 02. 15 (일)',
-      time: '19:00',
-      gymName: '서초종합체육관',
-      status: 'CLOSING_SOON' as const,
-      myVote: 'PENDING' as const,
-      votingSummary: {
-        attending: 0,
-        notAttending: 0,
-        pending: 12,
-      },
-    },
-  ];
+    });
+  };
 
-  if (mockMatches.length === 0) {
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
+      </div>
+    );
+  }
+
+  if (!matches || matches.length === 0) {
     return (
       <p className="text-sm text-slate-400 py-4 text-center">
-        투표할 경기가 없습니다
+        예정된 팀 운동이 없습니다
       </p>
     );
   }
 
   return (
     <div className="space-y-3">
-      {mockMatches.map((match) => (
-        <TeamMatchItem
-          key={match.id}
-          id={match.id}
-          teamId={match.teamId}
-          teamName={match.teamName}
-          teamLogoUrl={match.teamLogoUrl}
-          date={match.date}
-          time={match.time}
-          gymName={match.gymName}
-          status={match.status}
-          myVote={match.myVote}
-          votingSummary={match.votingSummary}
-        />
-      ))}
+      {matches.map(({ match, team, myVote, votingSummary }) => {
+        // 날짜 포맷
+        const startDate = new Date(match.start_time);
+        const dateStr = formatMatchDate(startDate);
+        const timeStr = formatMatchTime(match.start_time);
+
+        // 체육관 정보
+        const gym = (match as typeof match & { gyms?: { name: string; address?: string } }).gyms;
+        const gymName = gym?.name || '장소 미정';
+
+        return (
+          <TeamMatchItem
+            key={match.id}
+            id={match.id}
+            teamId={team.code}
+            teamName={team.name}
+            teamLogoUrl={team.logo_url}
+            date={dateStr}
+            time={timeStr}
+            gymName={gymName}
+            status={match.status as MatchStatusValue}
+            myVote={(myVote?.status || 'PENDING') as TeamVoteStatusValue}
+            myVoteReason={myVote?.description || undefined}
+            votingSummary={votingSummary}
+            onVote={(vote, reason) => handleVote(match.id, vote, reason)}
+            isVoting={voteMutation.isPending}
+          />
+        );
+      })}
     </div>
   );
+}
+
+// 날짜 포맷 헬퍼
+function formatMatchDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+  const dayName = dayNames[date.getDay()];
+  return `${year}. ${month}. ${day} (${dayName})`;
+}
+
+function formatMatchTime(isoString: string): string {
+  const date = new Date(isoString);
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  return `${hours}:${minutes}`;
 }

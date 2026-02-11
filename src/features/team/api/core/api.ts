@@ -40,15 +40,15 @@ export async function getTeam(
 }
 
 /**
- * 팀 코드로 팀 정보 조회
+ * 팀 코드로 팀 정보 조회 (gym join 포함)
  */
 export async function getTeamByCode(
   supabase: SupabaseClient<Database>,
   code: string
-): Promise<Team | null> {
+): Promise<(Team & { gyms?: { name: string } | null }) | null> {
   const { data, error } = await supabase
     .from('teams')
-    .select('*')
+    .select('*, gyms(name)')
     .eq('code', code)
     .single();
 

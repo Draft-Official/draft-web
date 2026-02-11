@@ -125,11 +125,11 @@ export function formatRegularSchedule(
     const start = regularStartTime.slice(0, 5);
     if (regularEndTime) {
       const end = regularEndTime.slice(0, 5);
-      timeStr = ` ${start}~${end}`;
+      timeStr = ` ${start} ~ ${end}`;
     } else {
       timeStr = ` ${start}`;
     }
   }
 
-  return `매주 ${day}요일${timeStr}`;
+  return `${day}요일${timeStr}`;
 }

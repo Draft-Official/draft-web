@@ -45,6 +45,9 @@ export const teamMatchKeys = {
   byTeam: (teamId: string) => [...teamMatchKeys.lists(), teamId] as const,
   upcoming: (teamId: string) => [...teamMatchKeys.lists(), teamId, 'upcoming'] as const,
 
+  // 내 미투표 매치 목록
+  myPendingVotes: (userId: string) => [...teamMatchKeys.all, 'my-pending-votes', userId] as const,
+
   // 매치 상세 (투표 정보 포함)
   details: () => [...teamMatchKeys.all, 'detail'] as const,
   detail: (matchId: string) => [...teamMatchKeys.details(), matchId] as const,

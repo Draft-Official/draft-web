@@ -51,7 +51,7 @@ export async function getPendingMembers(
     .select('*, users(id, nickname, avatar_url, positions)')
     .eq('team_id', teamId)
     .eq('status', 'PENDING')
-    .order('created_at', { ascending: true });
+    .order('id', { ascending: true });
 
   if (error) handleSupabaseError(error, '가입 대기자 목록');
   return data || [];

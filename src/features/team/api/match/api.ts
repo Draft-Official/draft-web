@@ -372,6 +372,223 @@ export async function closeVoting(
 }
 
 /**
+ * 투표 재오픈 (status를 RECRUITING으로 변경)
+ * - Leader만 사용 가능
+ */
+export async function reopenVoting(
+  supabase: SupabaseClient<Database>,
+  matchId: string
+): Promise<Match> {
+  const { data, error } = await supabase
+    .from('matches')
+    .update({
+      status: 'RECRUITING',
+    })
+    .eq('id', matchId)
+    .eq('match_type', 'TEAM_MATCH')
+    .select()
+    .single();
+
+  if (error) handleSupabaseError(error, '투표 재오픈');
+  return data!;
+}
+
+/**
+ * 관리자가 팀원의 투표를 대신 변경
+ * - 마감 후에도 변경 가능
+ */
+export async function updateMemberVote(
+  supabase: SupabaseClient<Database>,
+  matchId: string,
+  memberId: string,
+  status: TeamVoteStatusValue,
+  description?: string
+): Promise<Application> {
+  const statusMap: Record<TeamVoteStatusValue, string> = {
+    PENDING: 'PENDING',
+    CONFIRMED: 'CONFIRMED',
+    LATE: 'LATE',
+    NOT_ATTENDING: 'NOT_ATTENDING',
+    MAYBE: 'MAYBE',
+  };
+
+  const applicationStatus = statusMap[status];
+
+  const { data, error } = await supabase
+    .from('applications')
+    .update({
+      status: applicationStatus as Application['status'],
+      description: status === 'NOT_ATTENDING' ? description : null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('match_id', matchId)
+    .eq('user_id', memberId)
+    .eq('source', 'TEAM_VOTE')
+    .select()
+    .single();
+
+  if (error) handleSupabaseError(error, '투표 변경');
+  return data!;
+}
+
+/**
+ * 팀 매치 수정 (시간, 장소)
+ */
+export async function updateTeamMatch(
+  supabase: SupabaseClient<Database>,
+  matchId: string,
+  input: {
+    startTime?: string;
+    endTime?: string;
+    gymId?: string;
+    operationInfo?: Record<string, unknown>;
+  }
+): Promise<Match> {
+  const updateData: Record<string, unknown> = {};
+  if (input.startTime) updateData.start_time = input.startTime;
+  if (input.endTime) updateData.end_time = input.endTime;
+  if (input.gymId) updateData.gym_id = input.gymId;
+  if (input.operationInfo) updateData.operation_info = input.operationInfo;
+
+  const { data, error } = await supabase
+    .from('matches')
+    .update(updateData)
+    .eq('id', matchId)
+    .eq('match_type', 'TEAM_MATCH')
+    .select('*, gyms(*)')
+    .single();
+
+  if (error) handleSupabaseError(error, '팀 매치 수정');
+  return data!;
+}
+
+/**
+ * 팀 매치 취소
+ */
+export async function cancelTeamMatch(
+  supabase: SupabaseClient<Database>,
+  matchId: string
+): Promise<Match> {
+  const { data, error } = await supabase
+    .from('matches')
+    .update({
+      status: 'CANCELED',
+    })
+    .eq('id', matchId)
+    .eq('match_type', 'TEAM_MATCH')
+    .select()
+    .single();
+
+  if (error) handleSupabaseError(error, '팀 매치 취소');
+  return data!;
+}
+
+/**
+ * 사용자의 미투표/미래 매치 목록 조회
+ * - 여러 팀의 매치를 한 번에 조회
+ * - 투표 현황 및 내 투표 상태 포함
+ * - guestRecruitmentOnly: true면 게스트 모집 중인 매치만 필터
+ */
+export async function getMyPendingVoteMatches(
+  supabase: SupabaseClient<Database>,
+  teamIds: string[],
+  userId: string,
+  options?: { guestRecruitmentOnly?: boolean }
+): Promise<
+  Array<{
+    match: Match;
+    team: { id: string; name: string; logo_url: string | null; code: string };
+    myVote: Application | null;
+    votingSummary: { attending: number; notAttending: number; pending: number };
+  }>
+> {
+  if (teamIds.length === 0) return [];
+
+  // 1. 미래의 팀 매치들 조회
+  const { data: matches, error: matchError } = await supabase
+    .from('matches')
+    .select('*, gyms(*), teams!inner(id, name, logo_url, code)')
+    .in('team_id', teamIds)
+    .eq('match_type', 'TEAM_MATCH')
+    .gte('start_time', new Date().toISOString())
+    .order('start_time', { ascending: true });
+
+  if (matchError) handleSupabaseError(matchError, '미투표 매치 조회');
+
+  if (!matches || matches.length === 0) return [];
+
+  // 1.5 게스트 모집 중인 매치만 필터링 (옵션)
+  let filteredMatches = matches;
+  if (options?.guestRecruitmentOnly) {
+    filteredMatches = matches.filter((match) => {
+      const setup = match.recruitment_setup as {
+        type?: 'ANY' | 'POSITION';
+        max_count?: number;
+        positions?: Record<string, { max: number; current: number }>;
+      } | null;
+
+      if (!setup) return false;
+
+      // ANY 타입: max_count > 0이면 게스트 모집 중
+      if (setup.type === 'ANY' && (setup.max_count ?? 0) > 0) {
+        return true;
+      }
+
+      // POSITION 타입: 포지션에 슬롯이 있으면 게스트 모집 중
+      if (setup.type === 'POSITION' && setup.positions) {
+        return Object.values(setup.positions).some((pos) => pos.max > pos.current);
+      }
+
+      return false;
+    });
+  }
+
+  if (filteredMatches.length === 0) return [];
+
+  // 2. 해당 매치들의 투표 정보 조회
+  const matchIds = filteredMatches.map((m) => m.id);
+  const { data: votes, error: voteError } = await supabase
+    .from('applications')
+    .select('*')
+    .in('match_id', matchIds)
+    .eq('source', 'TEAM_VOTE');
+
+  if (voteError) handleSupabaseError(voteError, '투표 정보 조회');
+
+  // 3. 매치별 투표 요약 및 내 투표 상태 계산
+  const result = filteredMatches.map((match) => {
+    const matchVotes = (votes || []).filter((v) => v.match_id === match.id);
+    const myVote = matchVotes.find((v) => v.user_id === userId) || null;
+
+    const votingSummary = {
+      attending: matchVotes.filter(
+        (v) => v.status === 'CONFIRMED' || v.status === 'LATE'
+      ).length,
+      notAttending: matchVotes.filter((v) => v.status === 'NOT_ATTENDING').length,
+      pending: matchVotes.filter(
+        (v) => v.status === 'PENDING' || v.status === 'MAYBE'
+      ).length,
+    };
+
+    const team = match.teams as unknown as {
+      id: string;
+      name: string;
+      logo_url: string | null;
+      code: string;
+    };
+
+    return {
+      match,
+      team,
+      myVote,
+      votingSummary,
+    };
+  });
+
+  return result;
+}
+
+/**
  * 게스트 모집으로 전환
  */
 export async function openGuestRecruitment(
