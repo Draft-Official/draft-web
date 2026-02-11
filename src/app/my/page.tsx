@@ -11,13 +11,14 @@ import { MyPageFooter } from '@/features/my/ui/my-page-footer';
 import { ProfileData } from '@/features/my/model/types';
 import { useAuth } from '@/features/auth/model/auth-context';
 import { useUpdateProfile } from '@/features/auth/api/mutations';
+import { useMyTeams } from '@/features/team/api/core/queries';
 import type { Profile, UserUpdate, UserMetadata } from '@/shared/types/database.types';
 
 // DB Profile → UI ProfileData 변환
 function profileToFormData(dbProfile: Profile | null): ProfileData | null {
   if (!dbProfile) return null;
 
-  const metadata = dbProfile.metadata as UserMetadata & { age?: number; skill_level?: number };
+  const metadata = dbProfile.metadata as UserMetadata & { age?: number; skill_level?: number; display_team_id?: string };
   const position = dbProfile.positions?.[0];
 
   return {
@@ -26,12 +27,17 @@ function profileToFormData(dbProfile: Profile | null): ProfileData | null {
     weight: metadata?.weight?.toString() || '',
     position: (position as ProfileData['position']) || '',  // Already 'G', 'F', 'C'
     skillLevel: metadata?.skill_level || 1,
-    team: '', // TODO: 팀 정보는 team_members 테이블에서 가져와야 함
+    team: metadata?.display_team_id || '',
   };
 }
 
 // UI ProfileData → DB UserUpdate 변환
-function formDataToUpdate(formData: ProfileData): UserUpdate {
+function formDataToUpdate(
+  formData: ProfileData,
+  teams: { id: string; name: string }[]
+): UserUpdate {
+  const selectedTeam = formData.team ? teams.find((t) => t.id === formData.team) : null;
+
   return {
     positions: formData.position ? [formData.position] : null,  // Already code
     metadata: {
@@ -39,6 +45,8 @@ function formDataToUpdate(formData: ProfileData): UserUpdate {
       age: formData.age ? parseInt(formData.age, 10) : undefined,
       weight: formData.weight ? parseInt(formData.weight, 10) : undefined,
       skill_level: formData.skillLevel,
+      display_team_id: selectedTeam?.id ?? null,
+      display_team_name: selectedTeam?.name ?? null,
     },
   };
 }
@@ -48,8 +56,25 @@ export default function MyPage() {
   const updateProfileMutation = useUpdateProfile();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // 소속 팀 목록 조회
+  const { data: myTeams = [] } = useMyTeams(user?.id);
+  const teamOptions = useMemo(
+    () => myTeams.map((t) => ({ id: t.id, name: t.name })),
+    [myTeams]
+  );
+
   // DB 프로필을 UI용 ProfileData로 변환
   const profile = useMemo(() => profileToFormData(dbProfile), [dbProfile]);
+
+  // 선택된 대표 팀 이름 조회
+  const displayTeamName = useMemo(() => {
+    if (!profile?.team) return undefined;
+    const found = myTeams.find((t) => t.id === profile.team);
+    if (found) return found.name;
+    // myTeams에 없으면 metadata에 저장된 이름 사용
+    const metadata = dbProfile?.metadata as { display_team_name?: string } | null;
+    return metadata?.display_team_name || undefined;
+  }, [profile?.team, myTeams, dbProfile?.metadata]);
 
   // 로딩 중일 때 스켈레톤 UI
   if (authLoading) {
@@ -72,7 +97,7 @@ export default function MyPage() {
     }
 
     try {
-      const updates = formDataToUpdate(data);
+      const updates = formDataToUpdate(data, teamOptions);
       await updateProfileMutation.mutateAsync({ userId: user.id, updates });
       await refreshProfile();
     } catch (error) {
@@ -96,7 +121,7 @@ export default function MyPage() {
         profile={profile}
         userName={userName}
         userInitials={userInitials}
-        teamName={profile?.team}
+        teamName={displayTeamName}
         isAuthenticated={!!user}
         onEditClick={handleEditClick}
       />
@@ -119,6 +144,7 @@ export default function MyPage() {
         onComplete={handleProfileComplete}
         initialData={profile || undefined}
         isEditing={!!profile}
+        teams={teamOptions}
       />
     </div>
   );

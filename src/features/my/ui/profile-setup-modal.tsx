@@ -30,6 +30,7 @@ interface ProfileSetupModalProps {
   onComplete: (data: ProfileData) => void;
   initialData?: ProfileData;
   isEditing?: boolean;
+  teams?: { id: string; name: string }[];
 }
 
 export function ProfileSetupModal({
@@ -38,6 +39,7 @@ export function ProfileSetupModal({
   onComplete,
   initialData,
   isEditing = false,
+  teams = [],
 }: ProfileSetupModalProps) {
   const [formData, setFormData] = useState<ProfileData>({
     height: initialData?.height || '',
@@ -77,9 +79,6 @@ export function ProfileSetupModal({
       localStorage.setItem('profileSkipped', 'true');
     }
   };
-
-  // Mock teams for demo - in real app, this would come from props or API
-  const availableTeams = ['슬램덩크', '농구왕', '굿스타'];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -234,9 +233,9 @@ export function ProfileSetupModal({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">팀 없음</SelectItem>
-                  {availableTeams.map((team) => (
-                    <SelectItem key={team} value={team}>
-                      팀 {team}
+                  {teams.map((team) => (
+                    <SelectItem key={team.id} value={team.id}>
+                      팀 {team.name}
                     </SelectItem>
                   ))}
                 </SelectContent>

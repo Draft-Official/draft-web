@@ -106,8 +106,8 @@ export function applicationToGuest(
   const position = participants[0]?.position || 'G';
   const positionLabel = getPositionLabel(position, 'combined');
 
-  // User metadata에서 height, age, skill_level 추출 (있는 경우)
-  const userMetadata = app.user?.metadata as { height?: number; age?: number; skill_level?: number } | null;
+  // User metadata에서 height, age, skill_level, display_team_name 추출 (있는 경우)
+  const userMetadata = app.user?.metadata as { height?: number; age?: number; skill_level?: number; display_team_name?: string } | null;
   const height = userMetadata?.height;
   const age = userMetadata?.age;
 
@@ -140,7 +140,7 @@ export function applicationToGuest(
     status: getGuestStatus(app),
     paymentVerified: !!app.payment_verified_at, // 호스트 내부 관리용 입금 확인 여부
     avatar: app.user.avatar_url || undefined,
-    teamName: app.team?.name || undefined,
+    teamName: app.team?.name || userMetadata?.display_team_name || undefined,
     companions: companions.length > 0 ? companions : undefined,
     appliedAt: app.created_at || undefined,
     accountInfo,
