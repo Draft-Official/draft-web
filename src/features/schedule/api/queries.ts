@@ -64,6 +64,8 @@ export function useParticipatingMatches() {
           *,
           match:matches!match_id (
             id,
+            match_type,
+            team_id,
             manual_team_name,
             start_time,
             end_time,
@@ -71,7 +73,8 @@ export function useParticipatingMatches() {
             cost_amount,
             status,
             account_info,
-            gym:gyms!gym_id (name, address, kakao_place_id)
+            gym:gyms!gym_id (name, address, kakao_place_id),
+            team:teams!team_id (name)
           )
         `)
         .eq('user_id', user.id)
@@ -124,11 +127,14 @@ export function useParticipatingMatches() {
 
           const position = mainParticipant?.position || 'G';
 
+          // match_type에 따라 UI type 결정
+          const matchType = match.match_type === 'TEAM_MATCH' ? 'team' as const : 'guest' as const;
+
           return {
             id: match.id,
-            type: 'guest' as const,
+            type: matchType,
             status,
-            teamName: match.manual_team_name || '팀명 미정',
+            teamName: match.team?.name || match.manual_team_name || '팀명 미정',
             date: formatMatchDate(match.start_time),
             time: formatMatchTime(match.start_time),
             startTimeISO: match.start_time || '',
