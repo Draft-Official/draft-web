@@ -11,7 +11,8 @@ export {
   useSignInWithGoogle,
   useSignInWithEmail,
   useSignOut,
+  useDeleteAccount,
 } from './api';
 
 // UI
-export { AuthGuard } from './ui';
+export { AuthGuard, SignupVerifyGuard, SignupVerifyPageView } from './ui';

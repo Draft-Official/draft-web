@@ -22,6 +22,7 @@ function profileToFormData(dbProfile: Profile | null): ProfileData | null {
   const position = dbProfile.positions?.[0];
 
   return {
+    nickname: dbProfile.nickname || '',
     height: metadata?.height?.toString() || '',
     age: metadata?.age?.toString() || '',
     weight: metadata?.weight?.toString() || '',
@@ -39,6 +40,7 @@ function formDataToUpdate(
   const selectedTeam = formData.team ? teams.find((t) => t.id === formData.team) : null;
 
   return {
+    nickname: formData.nickname.trim() || null,
     positions: formData.position ? [formData.position] : null,  // Already code
     metadata: {
       height: formData.height ? parseInt(formData.height, 10) : undefined,

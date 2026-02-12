@@ -1,5 +1,5 @@
-import { PlaceholderPageView } from '@/features/my/ui/placeholder-page-view';
+import { TermsPageView } from '@/features/my/ui/terms-page-view';
 
 export default function TermsPage() {
-  return <PlaceholderPageView title="서비스 이용약관" />;
+  return <TermsPageView />;
 }

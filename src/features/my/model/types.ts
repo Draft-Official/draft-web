@@ -6,6 +6,7 @@
 import { PositionValue } from '@/shared/config/constants';
 
 export interface ProfileData {
+  nickname: string;
   height: string;
   age: string;
   weight: string;
