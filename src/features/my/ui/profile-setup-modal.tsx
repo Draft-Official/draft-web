@@ -42,6 +42,7 @@ export function ProfileSetupModal({
   teams = [],
 }: ProfileSetupModalProps) {
   const [formData, setFormData] = useState<ProfileData>({
+    nickname: initialData?.nickname || '',
     height: initialData?.height || '',
     age: initialData?.age || '',
     weight: initialData?.weight || '',
@@ -116,6 +117,22 @@ export function ProfileSetupModal({
               </button>
             </div>
           )}
+
+          {/* Nickname */}
+          <div>
+            <Label htmlFor="nickname" className="text-sm font-semibold text-slate-900 mb-2 block">
+              닉네임
+            </Label>
+            <Input
+              id="nickname"
+              type="text"
+              placeholder="닉네임을 입력해주세요"
+              value={formData.nickname}
+              onChange={(e) => setFormData({ ...formData, nickname: e.target.value })}
+              maxLength={20}
+              className="h-12 bg-white border-slate-300 focus-visible:ring-primary"
+            />
+          </div>
 
           {/* Height */}
           <div>

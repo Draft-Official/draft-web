@@ -11,6 +11,7 @@ const PROTECTED_ROUTES = [
   '/schedule',
   '/my',
   '/team',
+  '/signup/verify',
 ];
 
 // 인증 관련 라우트 (이미 로그인했으면 리다이렉트)
