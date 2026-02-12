@@ -20,7 +20,11 @@ type Step = 'input' | 'waiting' | 'done';
 
 const POLL_INTERVAL = 3000;
 
-export function PhoneVerificationForm() {
+interface PhoneVerificationFormProps {
+  onComplete?: () => void;
+}
+
+export function PhoneVerificationForm({ onComplete }: PhoneVerificationFormProps) {
   const { user } = useAuth();
   const router = useRouter();
 
@@ -257,7 +261,7 @@ export function PhoneVerificationForm() {
         </div>
       </div>
 
-      <Button className="w-full" onClick={() => router.back()}>
+      <Button className="w-full" onClick={() => onComplete ? onComplete() : router.back()}>
         완료
       </Button>
     </div>
