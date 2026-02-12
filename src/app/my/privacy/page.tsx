@@ -1,5 +1,5 @@
-import { PlaceholderPageView } from '@/features/my/ui/placeholder-page-view';
+import { PrivacyPageView } from '@/features/my/ui/privacy-page-view';
 
 export default function PrivacyPage() {
-  return <PlaceholderPageView title="개인정보 처리 방침" />;
+  return <PrivacyPageView />;
 }
