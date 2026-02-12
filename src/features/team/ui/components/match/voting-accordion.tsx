@@ -93,6 +93,7 @@ export function VotingAccordion({
                     key={voter.id}
                     voter={voter}
                     showLateTag={voter.status === 'LATE'}
+                    showReason={!!voter.description}
                     isAdmin={false}
                   />
                 ))
@@ -230,43 +231,94 @@ function VoterItem({
   isAdmin,
   onClick,
 }: VoterItemProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [showFullReason, setShowFullReason] = useState(false);
+
   const user = voter.users;
   const nickname = user?.nickname || '알 수 없음';
   const avatarUrl = user?.avatar_url;
+  const hasReason = showReason && !!voter.description;
+
+  // 사유가 50자 이상이면 더보기 필요
+  const REASON_PREVIEW_LENGTH = 50;
+  const needsShowMore = hasReason && (voter.description?.length || 0) > REASON_PREVIEW_LENGTH;
+  const displayReason = hasReason && voter.description
+    ? (showFullReason || !needsShowMore
+        ? voter.description
+        : voter.description.slice(0, REASON_PREVIEW_LENGTH))
+    : '';
+
+  const handleClick = () => {
+    if (hasReason) {
+      setIsExpanded(!isExpanded);
+    }
+  };
 
   return (
-    <div
-      className="flex items-center gap-3 py-2 px-2 rounded-lg"
-    >
-      <Avatar className="w-8 h-8">
-        <AvatarImage src={avatarUrl || undefined} alt={nickname} />
-        <AvatarFallback className="bg-slate-200 text-slate-600 text-xs">
-          <User className="w-4 h-4" />
-        </AvatarFallback>
-      </Avatar>
+    <div className="py-1">
+      <div
+        className={cn(
+          "flex items-center gap-3 py-2 px-2 rounded-lg transition-colors",
+          hasReason && "cursor-pointer hover:bg-slate-50"
+        )}
+        onClick={handleClick}
+      >
+        <Avatar className="w-8 h-8 shrink-0">
+          <AvatarImage src={avatarUrl || undefined} alt={nickname} />
+          <AvatarFallback className="bg-slate-200 text-slate-600 text-xs">
+            <User className="w-4 h-4" />
+          </AvatarFallback>
+        </Avatar>
 
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-slate-900 truncate">
-            {nickname}
-          </span>
-          {showLateTag && (
-            <span className="px-1.5 py-0.5 text-xs font-medium bg-orange-100 text-orange-600 rounded">
-              늦참
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-slate-900 truncate">
+              {nickname}
             </span>
-          )}
-          {showMaybeTag && (
-            <span className="px-1.5 py-0.5 text-xs font-medium bg-slate-100 text-slate-600 rounded">
-              미정
-            </span>
-          )}
+            {showLateTag && (
+              <span className="px-1.5 py-0.5 text-xs font-medium bg-orange-100 text-orange-600 rounded">
+                늦참
+              </span>
+            )}
+            {showMaybeTag && (
+              <span className="px-1.5 py-0.5 text-xs font-medium bg-slate-100 text-slate-600 rounded">
+                미정
+              </span>
+            )}
+          </div>
         </div>
-        {showReason && voter.description && (
-          <p className="text-xs text-slate-500 truncate mt-0.5">
-            {voter.description}
-          </p>
+
+        {hasReason && (
+          <ChevronDown
+            className={cn(
+              "w-4 h-4 text-slate-400 transition-transform shrink-0",
+              isExpanded && "rotate-180"
+            )}
+          />
         )}
       </div>
+
+      {/* 사유 표시 영역 */}
+      {hasReason && isExpanded && (
+        <div className="px-2 pb-2 pl-[52px] animate-in slide-in-from-top-1 duration-200">
+          <div className="bg-slate-50 rounded-lg p-3">
+            <p className="text-xs text-slate-600 leading-relaxed whitespace-pre-wrap">
+              {displayReason}
+              {needsShowMore && !showFullReason && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowFullReason(true);
+                  }}
+                  className="ml-1 text-slate-400 hover:text-primary transition-colors"
+                >
+                  ...
+                </button>
+              )}
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

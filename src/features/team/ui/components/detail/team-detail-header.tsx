@@ -1,19 +1,25 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { MapPin, Clock, MoreHorizontal, Loader2 } from 'lucide-react';
+import { MapPin, Clock, Loader2, Settings, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/shared/lib/utils';
 import { formatRegularSchedule } from '@/features/team/api/mapper';
 import { useJoinTeam } from '@/features/team/api/membership/mutations';
 import { useAuth } from '@/features/auth/model/auth-context';
 import type { ClientTeam, ClientTeamMember } from '@/features/team/model/types';
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from '@/shared/ui/shadcn/hover-card';
 
 interface TeamDetailHeaderProps {
   team: ClientTeam;
   membership: ClientTeamMember | null;
   homeGymName: string | null;
   isLoggedIn: boolean;
+  currentView?: string;
 }
 
 /**
@@ -21,7 +27,7 @@ interface TeamDetailHeaderProps {
  * - 팀 로고, 이름, 기본 정보
  * - 팀 설정 / 공유 버튼 (세그먼트 컨트롤 스타일)
  */
-export function TeamDetailHeader({ team, membership, homeGymName, isLoggedIn }: TeamDetailHeaderProps) {
+export function TeamDetailHeader({ team, membership, homeGymName, isLoggedIn, currentView = 'home' }: TeamDetailHeaderProps) {
   const router = useRouter();
   const { user } = useAuth();
   const joinTeamMutation = useJoinTeam();
@@ -55,12 +61,27 @@ export function TeamDetailHeader({ team, membership, homeGymName, isLoggedIn }: 
   };
 
   const handleShare = async () => {
-    const shareUrl = `${window.location.origin}/team/${team.code}`;
+    // Build URL with current view query param
+    const baseUrl = `${window.location.origin}/team/${team.code}`;
+    const shareUrl = currentView === 'home' ? baseUrl : `${baseUrl}?view=${currentView}`;
+
     try {
-      await navigator.clipboard.writeText(shareUrl);
-      toast.success('팀 링크가 복사되었습니다');
-    } catch {
-      toast.error('링크 복사에 실패했습니다');
+      // Try Web Share API first (mobile native share)
+      if (navigator.share) {
+        await navigator.share({
+          title: team.name,
+          url: shareUrl,
+        });
+      } else {
+        // Fallback to clipboard
+        await navigator.clipboard.writeText(shareUrl);
+        toast.success('팀 링크가 복사되었습니다');
+      }
+    } catch (error) {
+      // Only show error if it's not a user cancellation
+      if (error instanceof Error && error.name !== 'AbortError') {
+        toast.error('링크 공유에 실패했습니다');
+      }
     }
   };
 
@@ -111,45 +132,57 @@ export function TeamDetailHeader({ team, membership, homeGymName, isLoggedIn }: 
         </div>
 
         {/* 팀 정보 */}
-        <div className="flex-1 min-w-0">
-          <h1 className="text-xl font-bold text-slate-900 truncate">{team.name}</h1>
+        <div className="flex-1 min-w-0 flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl font-bold text-slate-900 truncate">{team.name}</h1>
 
-          {/* 홈 구장 */}
-          {homeGymName && (
-            <div className="flex items-center gap-1.5 mt-1.5 text-sm text-primary">
-              <MapPin className="w-4 h-4 shrink-0" />
-              <span className="truncate">{homeGymName}</span>
-            </div>
-          )}
+            {/* 홈 구장 */}
+            {homeGymName && (
+              <div className="flex items-center gap-1.5 mt-1.5 text-sm text-primary">
+                <MapPin className="w-4 h-4 shrink-0" />
+                <span className="truncate">{homeGymName}</span>
+              </div>
+            )}
 
-          {/* 정기 운동 */}
-          {scheduleText && (
-            <div className="flex items-center gap-1.5 mt-1 text-sm text-slate-500">
-              <Clock className="w-4 h-4 shrink-0" />
-              <span>{scheduleText}</span>
-            </div>
+            {/* 정기 운동 */}
+            {scheduleText && (
+              <div className="flex items-center gap-1.5 mt-1 text-sm text-slate-500">
+                <Clock className="w-4 h-4 shrink-0" />
+                <span>{scheduleText}</span>
+              </div>
+            )}
+          </div>
+
+          {/* 설정 버튼 (멤버만 표시) - 가장 오른쪽 */}
+          {isMember && (
+            <HoverCard openDelay={200}>
+              <HoverCardTrigger asChild>
+                <button
+                  onClick={handleSettings}
+                  className="shrink-0 p-2 text-slate-400 hover:text-slate-600 transition-colors"
+                  aria-label="팀 설정"
+                >
+                  <Settings className="w-6 h-6" />
+                </button>
+              </HoverCardTrigger>
+              <HoverCardContent side="top" align="end" className="w-auto px-3 py-1.5">
+                <p className="text-sm">팀설정</p>
+              </HoverCardContent>
+            </HoverCard>
           )}
         </div>
       </div>
 
       {/* 버튼 영역 - 멤버십 상태에 따라 다르게 표시 */}
       {isMember ? (
-        // 멤버: 팀 설정 + 공유 버튼
-        <div className="flex rounded-xl bg-slate-100 p-1">
-          <button
-            onClick={handleSettings}
-            className="flex-1 py-2.5 px-4 text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors rounded-lg"
-          >
-            팀 설정
-          </button>
-          <div className="w-px bg-slate-200 my-2" />
-          <button
-            onClick={handleShare}
-            className="px-4 py-2.5 text-slate-500 hover:text-slate-700 transition-colors rounded-lg"
-          >
-            <MoreHorizontal className="w-5 h-5" />
-          </button>
-        </div>
+        // 멤버: 공유 버튼만 표시
+        <button
+          onClick={handleShare}
+          className="w-full py-3 px-4 rounded-xl text-sm font-medium transition-colors bg-slate-100 text-slate-700 hover:bg-slate-200 flex items-center justify-center gap-2"
+        >
+          <Share2 className="w-5 h-5" />
+          <span>팀 공유</span>
+        </button>
       ) : isPending ? (
         // 승인 대기 중
         <div className="flex rounded-xl bg-slate-100 p-1">

@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
+import { useSafeBack } from '@/shared/lib/hooks';
 import { useTeamByCode } from '@/features/team/api/core/queries';
 import { usePendingMembers, useMyMembership } from '@/features/team/api/membership/queries';
 import { useApproveJoinRequest, useRejectJoinRequest } from '@/features/team/api/membership/mutations';
@@ -17,6 +18,7 @@ interface PendingMembersViewProps {
 export function PendingMembersView({ code }: PendingMembersViewProps) {
   const router = useRouter();
   const { user } = useAuth();
+  const handleBack = useSafeBack(`/team/${code}`);
 
   const { data: team, isLoading: isLoadingTeam } = useTeamByCode(code);
   const { data: membership } = useMyMembership(team?.id, user?.id);
@@ -38,7 +40,7 @@ export function PendingMembersView({ code }: PendingMembersViewProps) {
   if (!isLeaderOrManager) {
     return (
       <div className="min-h-screen bg-white">
-        <Header onBack={() => router.back()} />
+        <Header onBack={handleBack} />
         <div className="flex flex-col items-center justify-center min-h-[60vh] px-5">
           <h2 className="text-xl font-bold text-slate-900 mb-2">접근 권한이 없습니다</h2>
         </div>
@@ -48,7 +50,7 @@ export function PendingMembersView({ code }: PendingMembersViewProps) {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header onBack={() => router.back()} title="가입 신청 관리" />
+      <Header onBack={handleBack} title="가입 신청 관리" />
 
       {pendingMembers.length === 0 ? (
         <div className="flex flex-col items-center justify-center min-h-[60vh] px-5">

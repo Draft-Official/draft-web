@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/ui/shadcn/tabs';
 import { cn } from '@/shared/lib/utils';
@@ -8,6 +8,7 @@ import { useTeamByCode } from '../api/core/queries';
 import { useTeamMembers, usePendingMembers, useMyMembership, useTeamMemberCount } from '../api/membership/queries';
 import { useTeamMatches } from '../api/match/queries';
 import { useAuth } from '@/features/auth/model/auth-context';
+import { useSafeBack } from '@/shared/lib/hooks';
 import {
   TeamDetailHeader,
   TeamHomeTab,
@@ -26,7 +27,13 @@ interface TeamDetailViewProps {
  */
 export function TeamDetailView({ code }: TeamDetailViewProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
+  const handleBack = useSafeBack('/team');
+
+  // URL에서 탭 상태 읽기 (home, schedule, members)
+  const viewParam = searchParams.get('view');
+  const currentView = viewParam === 'schedule' || viewParam === 'members' ? viewParam : 'home';
 
   // 팀 정보 조회
   const { data: team, isLoading: isLoadingTeam } = useTeamByCode(code);
@@ -39,6 +46,21 @@ export function TeamDetailView({ code }: TeamDetailViewProps) {
 
   // 활성 멤버인지 확인 (ACCEPTED 상태만)
   const isMember = membership?.status === 'ACCEPTED';
+
+  // 탭 변경 핸들러 (URL query param 업데이트)
+  const handleTabChange = (newView: string) => {
+    // 비멤버는 home 탭만 허용
+    if (!isMember && newView !== 'home') {
+      return;
+    }
+
+    const url = newView === 'home'
+      ? `/team/${code}`
+      : `/team/${code}?view=${newView}`;
+
+    // replace를 사용하여 히스토리 오염 방지
+    router.replace(url);
+  };
 
   // 멤버 목록 조회 (멤버만)
   const { data: members = [], isLoading: isLoadingMembers } = useTeamMembers(
@@ -73,7 +95,7 @@ export function TeamDetailView({ code }: TeamDetailViewProps) {
       <div className="min-h-screen bg-white">
         <header className="sticky top-0 z-40 bg-white border-b border-slate-100 h-14 flex items-center px-4">
           <button
-            onClick={() => router.back()}
+            onClick={handleBack}
             className="p-2 text-slate-900 hover:bg-slate-50 rounded-full transition-colors"
           >
             <ArrowLeft className="w-6 h-6" />
@@ -94,7 +116,7 @@ export function TeamDetailView({ code }: TeamDetailViewProps) {
       {/* 헤더 (뒤로가기) */}
       <header className="sticky top-0 z-40 bg-white border-b border-slate-100 h-14 flex items-center justify-between px-4">
         <button
-          onClick={() => router.back()}
+          onClick={handleBack}
           className="p-2 text-slate-900 hover:bg-slate-50 rounded-full transition-colors"
         >
           <ArrowLeft className="w-6 h-6" />
@@ -109,10 +131,11 @@ export function TeamDetailView({ code }: TeamDetailViewProps) {
         membership={membership || null}
         homeGymName={team.homeGymName}
         isLoggedIn={!!user}
+        currentView={currentView}
       />
 
       {/* 탭 네비게이션 */}
-      <Tabs defaultValue="home" className="flex-1">
+      <Tabs value={currentView} onValueChange={handleTabChange} className="flex-1">
         <TabsList
           variant="line"
           className="w-full justify-start px-5 bg-white border-b border-slate-100 sticky top-14 z-30"

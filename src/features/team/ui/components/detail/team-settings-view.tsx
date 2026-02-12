@@ -6,6 +6,7 @@ import { ArrowLeft, ChevronRight } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { cn } from '@/shared/lib/utils';
+import { useSafeBack } from '@/shared/lib/hooks';
 import { useTeamByCode } from '@/features/team/api/core/queries';
 import { useMyMembership, useTeamMembers } from '@/features/team/api/membership/queries';
 import { useAuth } from '@/features/auth/model/auth-context';
@@ -39,6 +40,7 @@ export function TeamSettingsView({ code }: TeamSettingsViewProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const handleBack = useSafeBack(`/team/${code}`);
 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showLeaveDialog, setShowLeaveDialog] = useState(false);
@@ -124,7 +126,7 @@ export function TeamSettingsView({ code }: TeamSettingsViewProps) {
       <div className="min-h-screen bg-white">
         <header className="sticky top-0 z-40 bg-white border-b border-slate-100 h-14 flex items-center px-4">
           <button
-            onClick={() => router.back()}
+            onClick={handleBack}
             className="p-2 text-slate-900 hover:bg-slate-50 rounded-full transition-colors"
           >
             <ArrowLeft className="w-6 h-6" />
@@ -142,7 +144,7 @@ export function TeamSettingsView({ code }: TeamSettingsViewProps) {
       {/* 헤더 */}
       <header className="sticky top-0 z-40 bg-white border-b border-slate-100 h-14 flex items-center gap-3 px-4">
         <button
-          onClick={() => router.back()}
+          onClick={handleBack}
           className="p-2 text-slate-900 hover:bg-slate-50 rounded-full transition-colors -ml-2"
         >
           <ArrowLeft className="w-6 h-6" />

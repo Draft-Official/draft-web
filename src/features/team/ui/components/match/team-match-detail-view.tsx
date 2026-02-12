@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, MoreVertical, MapPin, Clock, Building2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/shared/lib/utils';
+import { useSafeBack } from '@/shared/lib/hooks';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,6 +35,7 @@ export function TeamMatchDetailView({
   userId,
 }: TeamMatchDetailViewProps) {
   const router = useRouter();
+  const handleBack = useSafeBack(`/team/${team.code}`);
   const [isVoteDialogOpen, setIsVoteDialogOpen] = useState(false);
 
   // 투표 현황 조회
@@ -134,7 +136,7 @@ export function TeamMatchDetailView({
       {/* Header */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-100 h-14 flex items-center justify-between px-2">
         <button
-          onClick={() => router.back()}
+          onClick={handleBack}
           className="p-2.5 text-slate-900 hover:bg-slate-50 rounded-full transition-colors"
         >
           <ArrowLeft className="w-6 h-6" />
