@@ -15,4 +15,4 @@ export {
 } from './api';
 
 // UI
-export { AuthGuard, OnboardingGuard, OnboardingPageView } from './ui';
+export { AuthGuard, SignupVerifyGuard, SignupVerifyPageView } from './ui';

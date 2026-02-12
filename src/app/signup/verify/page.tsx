@@ -1,5 +1,5 @@
-import { OnboardingPageView } from '@/features/auth/ui/onboarding-page-view';
+import { SignupVerifyPageView } from '@/features/auth/ui/signup-verify-page-view';
 
-export default function OnboardingPage() {
-  return <OnboardingPageView />;
+export default function SignupVerifyPage() {
+  return <SignupVerifyPageView />;
 }

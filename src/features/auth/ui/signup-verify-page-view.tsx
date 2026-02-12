@@ -10,7 +10,7 @@ import { Label } from '@/shared/ui/base/label';
 
 type Step = 'name' | 'phone';
 
-export function OnboardingPageView() {
+export function SignupVerifyPageView() {
   const router = useRouter();
   const { user, profile, isLoading, isAuthenticated, refreshProfile } = useAuth();
   const updateProfile = useUpdateProfile();
@@ -21,7 +21,7 @@ export function OnboardingPageView() {
   const [step, setStep] = useState<Step>(hasName ? 'phone' : 'name');
   const [name, setName] = useState('');
 
-  // 이미 온보딩 완료된 유저는 홈으로
+  // 이미 인증 완료된 유저는 홈으로
   useEffect(() => {
     if (!isLoading && isAuthenticated && hasName && hasPhone) {
       router.replace('/');

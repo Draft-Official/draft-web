@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { Sidebar } from "@/shared/ui/layout/sidebar";
 import { BottomNav } from "@/shared/ui/layout/bottom-nav";
 import { Header as LayoutHeader } from "@/shared/ui/layout/header";
-import { OnboardingGuard } from "@/features/auth/ui/onboarding-guard";
+import { SignupVerifyGuard } from "@/features/auth/ui/signup-verify-guard";
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -21,7 +21,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <OnboardingGuard>
+    <SignupVerifyGuard>
       <div className="flex justify-center min-h-screen bg-white">
         {/* Desktop Sidebar (Left) */}
         <aside className="hidden lg:flex fixed left-0 top-0 h-full w-[240px] bg-white z-30 justify-center">
@@ -43,6 +43,6 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
           <BottomNav />
         </nav>
       </div>
-    </OnboardingGuard>
+    </SignupVerifyGuard>
   );
 }

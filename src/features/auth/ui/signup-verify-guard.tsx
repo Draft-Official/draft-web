@@ -6,7 +6,7 @@ import { useAuth } from '../model/auth-context';
 
 const EXCLUDED_PATHS = ['/signup/verify', '/auth', '/login'];
 
-export function OnboardingGuard({ children }: { children: React.ReactNode }) {
+export function SignupVerifyGuard({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading, profile } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
