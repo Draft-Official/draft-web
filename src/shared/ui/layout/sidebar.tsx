@@ -40,11 +40,11 @@ export function Sidebar({ notificationSlot }: SidebarProps) {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-4 px-6 py-3 rounded-sm text-xl font-medium transition-colors hover:bg-slate-100 w-full",
+                "flex items-center gap-4 px-6 py-3 rounded-sm text-xl font-medium transition-all duration-200 hover:bg-slate-100 w-full",
                 isActive ? "font-bold text-slate-900" : "text-slate-600"
               )}
             >
-              <item.icon className={cn("w-7 h-7", isActive && "fill-slate-900")} strokeWidth={isActive ? 2.5 : 2} />
+              <item.icon className="w-7 h-7" strokeWidth={isActive ? 2.5 : 1.5} />
               <span>{item.label}</span>
             </Link>
           );

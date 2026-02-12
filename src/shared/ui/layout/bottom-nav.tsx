@@ -49,11 +49,11 @@ export function BottomNav() {
             key={item.href}
             onClick={() => handleNavClick(item.href)}
             className={cn(
-              "flex flex-col items-center justify-center w-full h-full gap-1 active:scale-95 transition-transform",
+              "flex flex-col items-center justify-center w-full h-full gap-1 active:scale-95 transition-all duration-200",
               isActive ? "text-slate-900" : "text-slate-400"
             )}
           >
-            <item.icon className={cn("w-6 h-6", isActive && "fill-slate-900")} strokeWidth={isActive ? 2.5 : 2} />
+            <item.icon className="w-6 h-6" strokeWidth={isActive ? 2.5 : 1.5} />
             {/* Optional: Label can be hidden for pure Instagram style, or kept small */}
             {/* <span className="text-[10px] font-medium">{item.label}</span> */}
           </button>
