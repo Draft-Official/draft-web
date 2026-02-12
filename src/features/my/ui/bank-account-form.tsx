@@ -112,9 +112,13 @@ export function BankAccountForm() {
           <Input
             id="accountHolder"
             type="text"
-            placeholder="예금주명 입력"
+            placeholder="예금주명 입력 (한글만 가능)"
             value={accountHolder}
-            onChange={(e) => setAccountHolder(e.target.value)}
+            onChange={(e) => {
+              // 한글, 공백만 허용
+              const value = e.target.value.replace(/[^가-힣ㄱ-ㅎㅏ-ㅣ\s]/g, '');
+              setAccountHolder(value);
+            }}
           />
         </div>
       </div>

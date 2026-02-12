@@ -228,12 +228,14 @@ export function TeamCreateForm() {
       return;
     }
 
-    // Gym upsert: locationData가 있으면 gym을 찾거나 생성하여 UUID 획득
+    // Gym upsert 먼저 실행: locationData가 있으면 gym을 찾거나 생성하여 UUID 획득
     let homeGymId: string | undefined;
     if (locationData && locationData.kakaoPlaceId && locationData.x && locationData.y) {
       try {
         const supabase = getSupabaseBrowserClient();
         const gymService = createGymService(supabase);
+
+        // Gym upsert를 createTeam 전에 완료하여 데이터베이스에 먼저 저장
         homeGymId = await gymService.upsertGym({
           name: locationData.buildingName || locationData.address,
           address: locationData.address,
@@ -242,6 +244,12 @@ export function TeamCreateForm() {
           kakaoPlaceId: locationData.kakaoPlaceId,
           facilities: {}, // 빈 객체: 기존 facilities 덮어쓰지 않음
         });
+
+        // Gym이 정상적으로 저장되었는지 확인
+        if (!homeGymId) {
+          toast.error('홈구장 정보 저장에 실패했습니다');
+          return;
+        }
       } catch (error) {
         console.error('Gym upsert error:', error);
         toast.error('홈구장 정보 저장에 실패했습니다');

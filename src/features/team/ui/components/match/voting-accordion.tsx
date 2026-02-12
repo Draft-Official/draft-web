@@ -54,13 +54,15 @@ export function VotingAccordion({
   // 불참
   const notAttendingVoters = votersWithUser.filter((v) => v.status === 'NOT_ATTENDING');
 
-  // 미응답 (PENDING + MAYBE)
-  const pendingVoters = votersWithUser.filter(
-    (v) => v.status === 'PENDING' || v.status === 'MAYBE'
-  );
+  // 미정
+  const maybeVoters = votersWithUser.filter((v) => v.status === 'MAYBE');
+
+  // 미투표
+  const pendingVoters = votersWithUser.filter((v) => v.status === 'PENDING');
 
   const handleMemberClick = (voter: VoterWithUser) => {
-    if (isAdmin) {
+    // 투표 마감 시 클릭 불가
+    if (isAdmin && !isVotingClosed) {
       setSelectedMember(voter);
     }
   };
@@ -91,8 +93,7 @@ export function VotingAccordion({
                     key={voter.id}
                     voter={voter}
                     showLateTag={voter.status === 'LATE'}
-                    isAdmin={isAdmin}
-                    onClick={() => handleMemberClick(voter)}
+                    isAdmin={false}
                   />
                 ))
               )}
@@ -118,13 +119,47 @@ export function VotingAccordion({
               {notAttendingVoters.length === 0 ? (
                 <p className="text-sm text-slate-400 py-2">불참 인원이 없습니다</p>
               ) : (
-                notAttendingVoters.map((voter) => (
+                // 사유가 있는 사람만 표시
+                notAttendingVoters
+                  .filter((voter) => !!voter.description)
+                  .map((voter) => (
+                    <VoterItem
+                      key={voter.id}
+                      voter={voter}
+                      showReason={!!voter.description}
+                      isAdmin={false}
+                    />
+                  ))
+              )}
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        {/* 미정 그룹 */}
+        <AccordionItem value="maybe" className="border-0">
+          <AccordionTrigger className="px-5 py-3 hover:no-underline hover:bg-slate-50">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-yellow-100 flex items-center justify-center">
+                <HelpCircle className="w-3.5 h-3.5 text-yellow-600" />
+              </div>
+              <span className="font-medium text-slate-900">미정</span>
+              <span className="text-sm text-slate-500">
+                {maybeVoters.length}명
+              </span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="pb-0">
+            <div className="px-5 pb-3 space-y-1">
+              {maybeVoters.length === 0 ? (
+                <p className="text-sm text-slate-400 py-2">미정 인원이 없습니다</p>
+              ) : (
+                maybeVoters.map((voter) => (
                   <VoterItem
                     key={voter.id}
                     voter={voter}
+                    showMaybeTag={true}
                     showReason={!!voter.description}
-                    isAdmin={isAdmin}
-                    onClick={() => handleMemberClick(voter)}
+                    isAdmin={false}
                   />
                 ))
               )}
@@ -132,14 +167,14 @@ export function VotingAccordion({
           </AccordionContent>
         </AccordionItem>
 
-        {/* 미응답 그룹 */}
+        {/* 미투표 그룹 */}
         <AccordionItem value="pending" className="border-0">
           <AccordionTrigger className="px-5 py-3 hover:no-underline hover:bg-slate-50">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-yellow-100 flex items-center justify-center">
-                <HelpCircle className="w-3.5 h-3.5 text-yellow-600" />
+              <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center">
+                <Clock className="w-3.5 h-3.5 text-slate-500" />
               </div>
-              <span className="font-medium text-slate-900">미응답</span>
+              <span className="font-medium text-slate-900">미투표</span>
               <span className="text-sm text-slate-500">
                 {pendingVoters.length}명
               </span>
@@ -154,9 +189,7 @@ export function VotingAccordion({
                   <VoterItem
                     key={voter.id}
                     voter={voter}
-                    showMaybeTag={voter.status === 'MAYBE'}
-                    isAdmin={isAdmin}
-                    onClick={() => handleMemberClick(voter)}
+                    isAdmin={false}
                   />
                 ))
               )}
@@ -203,11 +236,7 @@ function VoterItem({
 
   return (
     <div
-      className={cn(
-        'flex items-center gap-3 py-2 px-2 rounded-lg transition-colors',
-        isAdmin && 'cursor-pointer hover:bg-slate-50'
-      )}
-      onClick={onClick}
+      className="flex items-center gap-3 py-2 px-2 rounded-lg"
     >
       <Avatar className="w-8 h-8">
         <AvatarImage src={avatarUrl || undefined} alt={nickname} />
@@ -238,10 +267,6 @@ function VoterItem({
           </p>
         )}
       </div>
-
-      {isAdmin && (
-        <ChevronDown className="w-4 h-4 text-slate-400 rotate-[-90deg]" />
-      )}
     </div>
   );
 }

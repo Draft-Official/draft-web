@@ -16,7 +16,7 @@ export class MatchService {
    */
   async getRecruitingMatches() {
     logRequest(this.SERVICE_NAME, 'getRecruitingMatches');
-    logSupabaseQuery('matches', 'SELECT', undefined, { status: 'RECRUITING', match_type: 'GUEST_MATCH' });
+    logSupabaseQuery('matches', 'SELECT', undefined, { status: 'RECRUITING', match_type: 'GUEST_RECRUIT' });
 
     const { data, error } = await this.supabase
       .from('matches')
@@ -27,7 +27,7 @@ export class MatchService {
         team:teams!team_id (*)
       `)
       .eq('status', 'RECRUITING')
-      .eq('match_type', 'GUEST_MATCH') // 게스트 모집만
+      .eq('match_type', 'GUEST_RECRUIT') // 게스트 모집만
       .order('start_time', { ascending: true });
 
     logSupabaseResult('matches', 'SELECT', { count: data?.length ?? 0 }, error);
@@ -96,7 +96,7 @@ export class MatchService {
         team:teams!team_id (*)
       `)
       .in('status', VISIBLE_STATUSES) // CANCELED 제외
-      .eq('match_type', 'GUEST_MATCH') // 게스트 모집만
+      .eq('match_type', 'GUEST_RECRUIT') // 게스트 모집만
       .gte('start_time', todayISO) // 오늘 이후 매치만
       .order('created_at', { ascending: false })
       .range(pageParam, pageParam + pageSize - 1);

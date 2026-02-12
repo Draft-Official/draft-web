@@ -130,7 +130,7 @@ export function TeamMatchDetailView({
   const hasVoted = myVoteStatus && myVoteStatus !== 'PENDING';
 
   return (
-    <div className="min-h-screen bg-slate-100 max-w-[430px] mx-auto relative pb-[100px]">
+    <div className="min-h-screen bg-slate-100 relative pb-[100px]">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-100 h-14 flex items-center justify-between px-2">
         <button
@@ -249,16 +249,16 @@ export function TeamMatchDetailView({
       </main>
 
       {/* Bottom Bar - 투표 버튼 */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-4 py-4 z-30">
-        <div className="max-w-[430px] mx-auto">
+      <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none md:pl-[240px]">
+        <div className="max-w-[760px] mx-auto bg-white border-t border-slate-100 px-5 pt-4 pb-8 pointer-events-auto shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
           <button
             onClick={() => setIsVoteDialogOpen(true)}
             disabled={isVotingClosed}
             className={cn(
-              'w-full h-14 rounded-xl font-bold text-lg transition-all',
+              'w-full h-12 rounded-xl font-bold text-lg transition-all',
               isVotingClosed
-                ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                : 'bg-primary text-white hover:bg-primary/90 shadow-lg shadow-orange-100'
+                ? 'bg-slate-200 text-slate-500 cursor-not-allowed'
+                : 'bg-[#FF6600] text-white hover:bg-[#FF6600]/90'
             )}
           >
             {isVotingClosed
