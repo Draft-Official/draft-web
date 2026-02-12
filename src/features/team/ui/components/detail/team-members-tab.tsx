@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { ChevronRight, UserPlus } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { Badge } from '@/shared/ui/base/badge';
 import { cn } from '@/shared/lib/utils';
 import {
@@ -48,34 +48,27 @@ export function TeamMembersTab({
 
   return (
     <div className="bg-white">
-      {/* 가입 신청 관리 배너 - 관리자만 */}
-      {isAdmin && (
-        <div
-          onClick={handleJoinRequestsClick}
-          className="mx-5 mt-4 p-4 bg-slate-50 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors"
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                <UserPlus className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <p className="font-semibold text-slate-900">가입 신청 내역</p>
-                {pendingCount > 0 && (
-                  <p className="text-sm text-primary">{pendingCount}명의 신청이 있습니다</p>
-                )}
-              </div>
-            </div>
-            <ChevronRight className="w-5 h-5 text-slate-400" />
-          </div>
-        </div>
-      )}
-
       {/* 멤버 리스트 */}
       <div className="px-5 py-4">
-        <h3 className="text-sm font-medium text-slate-500 mb-3">
-          멤버 ({members.length}명)
-        </h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-medium text-slate-500">
+            멤버 ({members.length}명)
+          </h3>
+
+          {/* 멤버 관리하기 링크 - 관리자만 */}
+          {isAdmin && (
+            <button
+              onClick={handleJoinRequestsClick}
+              className="flex items-center gap-1 px-3 py-1.5 -mr-3 rounded-lg text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all"
+            >
+              <span>멤버 관리하기</span>
+              {pendingCount > 0 && (
+                <span className="text-primary font-medium">({pendingCount})</span>
+              )}
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          )}
+        </div>
 
         <div className="space-y-0 divide-y divide-slate-100">
           {members.map((member) => (

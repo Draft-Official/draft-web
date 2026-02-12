@@ -9,6 +9,7 @@ import { ArrowLeft } from 'lucide-react';
 import Image from 'next/image';
 import { toast } from 'sonner';
 import { cn } from '@/shared/lib/utils';
+import { useSafeBack } from '@/shared/lib/hooks';
 import { Button } from '@/shared/ui/shadcn/button';
 import { Input } from '@/shared/ui/base/input';
 import { Textarea } from '@/shared/ui/base/textarea';
@@ -18,7 +19,7 @@ import { useUpdateTeam } from '@/features/team/api/core/mutations';
 import { useMyMembership } from '@/features/team/api/membership/queries';
 import { useAuth } from '@/features/auth/model/auth-context';
 import { GENDER_OPTIONS } from '@/shared/config/constants';
-import { REGULAR_DAY_OPTIONS } from '@/shared/config/team-constants';
+import { REGULAR_DAY_OPTIONS, REGULAR_DAY_VALUES } from '@/shared/config/team-constants';
 
 // 프리셋 로고 옵션
 const PRESET_LOGOS = [
@@ -32,7 +33,7 @@ const schema = z.object({
   description: z.string().optional(),
   regionDepth1: z.string().optional(),
   regionDepth2: z.string().optional(),
-  regularDay: z.string().optional(),
+  regularDay: z.enum(REGULAR_DAY_VALUES).nullable().optional(),
   regularStartTime: z.string().optional(),
   regularEndTime: z.string().optional(),
   teamGender: z.string().optional(),
@@ -47,6 +48,7 @@ interface TeamProfileEditViewProps {
 export function TeamProfileEditView({ code }: TeamProfileEditViewProps) {
   const router = useRouter();
   const { user } = useAuth();
+  const handleBack = useSafeBack(`/team/${code}/settings`);
 
   const { data: team, isLoading: isLoadingTeam } = useTeamByCode(code);
   const { data: membership } = useMyMembership(team?.id, user?.id);
@@ -74,7 +76,7 @@ export function TeamProfileEditView({ code }: TeamProfileEditViewProps) {
         description: team.description || '',
         regionDepth1: team.regionDepth1 || '',
         regionDepth2: team.regionDepth2 || '',
-        regularDay: team.regularDay || '',
+        regularDay: team.regularDay || undefined,
         regularStartTime: team.regularStartTime || '',
         regularEndTime: team.regularEndTime || '',
         teamGender: team.teamGender || '',
@@ -105,7 +107,7 @@ export function TeamProfileEditView({ code }: TeamProfileEditViewProps) {
       {
         onSuccess: () => {
           toast.success('팀 정보가 수정되었습니다');
-          router.back();
+          handleBack();
         },
         onError: () => {
           toast.error('수정에 실패했습니다');
@@ -125,7 +127,7 @@ export function TeamProfileEditView({ code }: TeamProfileEditViewProps) {
   if (!team || !isLeader) {
     return (
       <div className="min-h-screen bg-white">
-        <Header onBack={() => router.back()} />
+        <Header onBack={handleBack} />
         <div className="flex flex-col items-center justify-center min-h-[60vh] px-5">
           <h2 className="text-xl font-bold text-slate-900 mb-2">접근 권한이 없습니다</h2>
         </div>
@@ -135,7 +137,7 @@ export function TeamProfileEditView({ code }: TeamProfileEditViewProps) {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header onBack={() => router.back()} title="팀 프로필 수정" />
+      <Header onBack={handleBack} title="팀 프로필 수정" />
 
       <form onSubmit={handleSubmit(onSubmit)} className="px-5 py-6 space-y-6">
         {/* 팀 로고 */}

@@ -33,11 +33,11 @@ export function TeamHomeTab({ team, homeGymName, memberCount }: TeamHomeTabProps
     team.regularEndTime
   );
 
-  // 평균 나이 (ageRange에서 계산)
-  const avgAge = team.ageRange
-    ? team.ageRange.max
-      ? Math.round((team.ageRange.min + team.ageRange.max) / 2)
-      : team.ageRange.min // max가 null이면 min만 표시 ("이상")
+  // 나이 범위 표시
+  const ageRangeText = team.ageRange
+    ? team.ageRange.max && team.ageRange.min !== team.ageRange.max
+      ? `${team.ageRange.min}대~${team.ageRange.max}대`
+      : `${team.ageRange.min}대`
     : null;
 
   // 레벨 (levelRange에서 표시)
@@ -79,8 +79,8 @@ export function TeamHomeTab({ team, homeGymName, memberCount }: TeamHomeTabProps
     },
     {
       icon: User,
-      label: '평균 나이',
-      value: avgAge ? `${avgAge}세` : null,
+      label: '나이',
+      value: ageRangeText,
       valueColor: 'text-slate-900',
     },
     {
@@ -99,8 +99,18 @@ export function TeamHomeTab({ team, homeGymName, memberCount }: TeamHomeTabProps
 
   return (
     <div className="bg-white">
+      {/* 팀 소개 */}
+      {team.description && (
+        <section className="px-5 py-6">
+          <h2 className="text-lg font-bold text-slate-900 mb-4">팀 소개</h2>
+          <p className="text-base text-slate-600 whitespace-pre-wrap">
+            {team.description}
+          </p>
+        </section>
+      )}
+
       {/* 팀 정보 섹션 */}
-      <section className="px-5 py-6">
+      <section className={`px-5 py-6 ${team.description ? 'border-t border-slate-100' : ''}`}>
         <h2 className="text-lg font-bold text-slate-900 mb-4">팀 정보</h2>
 
         <div className="space-y-4">
@@ -125,16 +135,6 @@ export function TeamHomeTab({ team, homeGymName, memberCount }: TeamHomeTabProps
           전적 정보가 없습니다
         </div>
       </section>
-
-      {/* 팀 소개 */}
-      {team.description && (
-        <section className="px-5 py-6 border-t border-slate-100">
-          <h2 className="text-lg font-bold text-slate-900 mb-4">팀 소개</h2>
-          <p className="text-base text-slate-600 whitespace-pre-wrap">
-            {team.description}
-          </p>
-        </section>
-      )}
     </div>
   );
 }

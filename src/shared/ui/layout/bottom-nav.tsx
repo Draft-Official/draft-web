@@ -1,13 +1,13 @@
 'use client';
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { Home, Users, Calendar, User } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 
 import { useScrollDirection } from '@/shared/lib/hooks/use-scroll-direction';
 
 export function BottomNav() {
+  const router = useRouter();
   const pathname = usePathname();
   const isScrolledDown = useScrollDirection(); // Shared scroll logic
 
@@ -17,6 +17,17 @@ export function BottomNav() {
     { label: '경기관리', href: '/schedule', icon: Calendar },
     { label: '마이', href: '/my', icon: User },
   ];
+
+  // Smart navigation handler
+  const handleNavClick = (href: string) => {
+    if (pathname === href) {
+      // Same tab: scroll to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      // Different tab: navigate
+      router.push(href);
+    }
+  };
 
   // Pages where bottom nav should be visible
   const showNavOnPages = ['/', '/team', '/schedule', '/my', '/notifications'];
@@ -34,18 +45,18 @@ export function BottomNav() {
       {NAV_ITEMS.map((item) => {
         const isActive = pathname === item.href;
         return (
-          <Link
+          <button
             key={item.href}
-            href={item.href}
+            onClick={() => handleNavClick(item.href)}
             className={cn(
-              "flex flex-col items-center justify-center w-full h-full gap-1 active:scale-95 transition-transform",
+              "flex flex-col items-center justify-center w-full h-full gap-1 active:scale-95 transition-all duration-200",
               isActive ? "text-slate-900" : "text-slate-400"
             )}
           >
-            <item.icon className={cn("w-6 h-6", isActive && "fill-slate-900")} strokeWidth={isActive ? 2.5 : 2} />
+            <item.icon className="w-6 h-6" strokeWidth={isActive ? 2.5 : 1.5} />
             {/* Optional: Label can be hidden for pure Instagram style, or kept small */}
             {/* <span className="text-[10px] font-medium">{item.label}</span> */}
-          </Link>
+          </button>
         );
       })}
     </div>

@@ -227,7 +227,7 @@ export async function upsertTeamVote(
       .from('applications')
       .update({
         status: applicationStatus as Application['status'],
-        description: input.status === 'NOT_ATTENDING' ? input.description : null,
+        description: input.description || null,
         updated_at: new Date().toISOString(),
       })
       .eq('id', existing.id)
@@ -245,7 +245,7 @@ export async function upsertTeamVote(
         user_id: userId,
         source: 'TEAM_VOTE',
         status: applicationStatus as Application['status'],
-        description: input.status === 'NOT_ATTENDING' ? input.description : null,
+        description: input.description || null,
       })
       .select()
       .single();
@@ -418,7 +418,7 @@ export async function updateMemberVote(
     .from('applications')
     .update({
       status: applicationStatus as Application['status'],
-      description: status === 'NOT_ATTENDING' ? description : null,
+      description: description || null,
       updated_at: new Date().toISOString(),
     })
     .eq('match_id', matchId)

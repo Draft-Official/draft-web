@@ -1,19 +1,21 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { X, Building2, Clock, FileText, Loader2 } from 'lucide-react';
+import { X, Building2, FileText, Loader2 } from 'lucide-react';
 import { Button } from '@/shared/ui/base/button';
 import { Label } from '@/shared/ui/base/label';
 import { Textarea } from '@/shared/ui/base/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/base/select';
 import { DateStrip, DateOption } from '@/features/match/ui/components/date-strip';
 import { TimePickerSelect } from '@/shared/ui/base/time-picker-select';
+import { SelectedLocationCard } from '@/features/match-create/ui/components/selected-location-card';
 import { useCreateTeamMatch } from '@/features/team/api/match/mutations';
 import { useAuth } from '@/features/auth/model/auth-context';
 import { toast } from 'sonner';
 import type { ClientTeam } from '@/features/team/model/types';
 import type { RegularDayValue } from '@/shared/config/team-constants';
+import type { LocationData } from '@/features/match-create/model/types';
 
 interface TeamMatchCreateFormProps {
   team: ClientTeam & { homeGymName: string | null };
@@ -157,6 +159,14 @@ export function TeamMatchCreateForm({ team, onClose }: TeamMatchCreateFormProps)
   // 종료 시간 계산
   const endTime = calculateEndTime(startTime, duration);
 
+  // 장소 데이터 (LocationData 형식으로 변환)
+  const locationData: LocationData | null = team.homeGymName
+    ? {
+        buildingName: team.homeGymName,
+        address: '', // 주소 정보가 없으므로 빈 문자열
+      }
+    : null;
+
   const handleSubmit = () => {
     if (!selectedDate) {
       toast.error('날짜를 선택해주세요.');
@@ -229,9 +239,11 @@ export function TeamMatchCreateForm({ team, onClose }: TeamMatchCreateFormProps)
               경기 날짜
               {selectedDate && (() => {
                 const [_, m, d] = selectedDate.split('-');
+                const normalizedStartTime = normalizeTime(startTime);
+                const normalizedEndTime = normalizeTime(endTime);
                 return (
                   <span className="text-primary">
-                    {parseInt(m)}월 {parseInt(d)}일 {startTime} ~ {endTime}
+                    {parseInt(m)}월 {parseInt(d)}일 {normalizedStartTime} ~ {normalizedEndTime}
                   </span>
                 );
               })()}
@@ -277,16 +289,26 @@ export function TeamMatchCreateForm({ team, onClose }: TeamMatchCreateFormProps)
             </div>
           </div>
 
-          {/* 장소 (읽기 전용) */}
+          {/* 장소 */}
           <div className="space-y-2">
-            <Label className="text-sm font-bold text-slate-600">장소</Label>
-            <div className="h-12 px-4 bg-slate-50 border border-slate-200 rounded-lg flex items-center text-slate-700 font-medium">
-              {team.homeGymName || '홈구장 미설정'}
-            </div>
-            {!team.homeGymId && (
-              <p className="text-xs text-orange-600">
-                팀 설정에서 홈구장을 먼저 설정해주세요.
-              </p>
+            <Label className="text-sm font-bold text-slate-900">장소</Label>
+            {locationData ? (
+              <SelectedLocationCard
+                location={locationData}
+                isExistingGym={true}
+                onClear={() => {
+                  toast.error('팀 홈구장은 팀 설정에서 변경할 수 있습니다.');
+                }}
+              />
+            ) : (
+              <div className="p-4 bg-orange-50/30 border border-orange-200 rounded-xl">
+                <p className="text-sm text-orange-800 font-medium">
+                  홈구장이 설정되지 않았습니다.
+                </p>
+                <p className="text-xs text-orange-600 mt-1">
+                  팀 설정에서 홈구장을 먼저 설정해주세요.
+                </p>
+              </div>
             )}
           </div>
         </section>

@@ -54,13 +54,15 @@ export function VotingAccordion({
   // 불참
   const notAttendingVoters = votersWithUser.filter((v) => v.status === 'NOT_ATTENDING');
 
-  // 미응답 (PENDING + MAYBE)
-  const pendingVoters = votersWithUser.filter(
-    (v) => v.status === 'PENDING' || v.status === 'MAYBE'
-  );
+  // 미정
+  const maybeVoters = votersWithUser.filter((v) => v.status === 'MAYBE');
+
+  // 미투표
+  const pendingVoters = votersWithUser.filter((v) => v.status === 'PENDING');
 
   const handleMemberClick = (voter: VoterWithUser) => {
-    if (isAdmin) {
+    // 투표 마감 시 클릭 불가
+    if (isAdmin && !isVotingClosed) {
       setSelectedMember(voter);
     }
   };
@@ -91,8 +93,8 @@ export function VotingAccordion({
                     key={voter.id}
                     voter={voter}
                     showLateTag={voter.status === 'LATE'}
-                    isAdmin={isAdmin}
-                    onClick={() => handleMemberClick(voter)}
+                    showReason={!!voter.description}
+                    isAdmin={false}
                   />
                 ))
               )}
@@ -118,13 +120,47 @@ export function VotingAccordion({
               {notAttendingVoters.length === 0 ? (
                 <p className="text-sm text-slate-400 py-2">불참 인원이 없습니다</p>
               ) : (
-                notAttendingVoters.map((voter) => (
+                // 사유가 있는 사람만 표시
+                notAttendingVoters
+                  .filter((voter) => !!voter.description)
+                  .map((voter) => (
+                    <VoterItem
+                      key={voter.id}
+                      voter={voter}
+                      showReason={!!voter.description}
+                      isAdmin={false}
+                    />
+                  ))
+              )}
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        {/* 미정 그룹 */}
+        <AccordionItem value="maybe" className="border-0">
+          <AccordionTrigger className="px-5 py-3 hover:no-underline hover:bg-slate-50">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-yellow-100 flex items-center justify-center">
+                <HelpCircle className="w-3.5 h-3.5 text-yellow-600" />
+              </div>
+              <span className="font-medium text-slate-900">미정</span>
+              <span className="text-sm text-slate-500">
+                {maybeVoters.length}명
+              </span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="pb-0">
+            <div className="px-5 pb-3 space-y-1">
+              {maybeVoters.length === 0 ? (
+                <p className="text-sm text-slate-400 py-2">미정 인원이 없습니다</p>
+              ) : (
+                maybeVoters.map((voter) => (
                   <VoterItem
                     key={voter.id}
                     voter={voter}
+                    showMaybeTag={true}
                     showReason={!!voter.description}
-                    isAdmin={isAdmin}
-                    onClick={() => handleMemberClick(voter)}
+                    isAdmin={false}
                   />
                 ))
               )}
@@ -132,14 +168,14 @@ export function VotingAccordion({
           </AccordionContent>
         </AccordionItem>
 
-        {/* 미응답 그룹 */}
+        {/* 미투표 그룹 */}
         <AccordionItem value="pending" className="border-0">
           <AccordionTrigger className="px-5 py-3 hover:no-underline hover:bg-slate-50">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-yellow-100 flex items-center justify-center">
-                <HelpCircle className="w-3.5 h-3.5 text-yellow-600" />
+              <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center">
+                <Clock className="w-3.5 h-3.5 text-slate-500" />
               </div>
-              <span className="font-medium text-slate-900">미응답</span>
+              <span className="font-medium text-slate-900">미투표</span>
               <span className="text-sm text-slate-500">
                 {pendingVoters.length}명
               </span>
@@ -154,9 +190,7 @@ export function VotingAccordion({
                   <VoterItem
                     key={voter.id}
                     voter={voter}
-                    showMaybeTag={voter.status === 'MAYBE'}
-                    isAdmin={isAdmin}
-                    onClick={() => handleMemberClick(voter)}
+                    isAdmin={false}
                   />
                 ))
               )}
@@ -197,50 +231,93 @@ function VoterItem({
   isAdmin,
   onClick,
 }: VoterItemProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [showFullReason, setShowFullReason] = useState(false);
+
   const user = voter.users;
   const nickname = user?.nickname || '알 수 없음';
   const avatarUrl = user?.avatar_url;
+  const hasReason = showReason && !!voter.description;
+
+  // 사유가 50자 이상이면 더보기 필요
+  const REASON_PREVIEW_LENGTH = 50;
+  const needsShowMore = hasReason && (voter.description?.length || 0) > REASON_PREVIEW_LENGTH;
+  const displayReason = hasReason && voter.description
+    ? (showFullReason || !needsShowMore
+        ? voter.description
+        : voter.description.slice(0, REASON_PREVIEW_LENGTH))
+    : '';
+
+  const handleClick = () => {
+    if (hasReason) {
+      setIsExpanded(!isExpanded);
+    }
+  };
 
   return (
-    <div
-      className={cn(
-        'flex items-center gap-3 py-2 px-2 rounded-lg transition-colors',
-        isAdmin && 'cursor-pointer hover:bg-slate-50'
-      )}
-      onClick={onClick}
-    >
-      <Avatar className="w-8 h-8">
-        <AvatarImage src={avatarUrl || undefined} alt={nickname} />
-        <AvatarFallback className="bg-slate-200 text-slate-600 text-xs">
-          <User className="w-4 h-4" />
-        </AvatarFallback>
-      </Avatar>
+    <div className="py-1">
+      <div
+        className={cn(
+          "flex items-center gap-3 py-2 px-2 rounded-lg transition-colors",
+          hasReason && "cursor-pointer hover:bg-slate-50"
+        )}
+        onClick={handleClick}
+      >
+        <Avatar className="w-8 h-8 shrink-0">
+          <AvatarImage src={avatarUrl || undefined} alt={nickname} />
+          <AvatarFallback className="bg-slate-200 text-slate-600 text-xs">
+            <User className="w-4 h-4" />
+          </AvatarFallback>
+        </Avatar>
 
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-slate-900 truncate">
-            {nickname}
-          </span>
-          {showLateTag && (
-            <span className="px-1.5 py-0.5 text-xs font-medium bg-orange-100 text-orange-600 rounded">
-              늦참
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-slate-900 truncate">
+              {nickname}
             </span>
-          )}
-          {showMaybeTag && (
-            <span className="px-1.5 py-0.5 text-xs font-medium bg-slate-100 text-slate-600 rounded">
-              미정
-            </span>
-          )}
+            {showLateTag && (
+              <span className="px-1.5 py-0.5 text-xs font-medium bg-orange-100 text-orange-600 rounded">
+                늦참
+              </span>
+            )}
+            {showMaybeTag && (
+              <span className="px-1.5 py-0.5 text-xs font-medium bg-slate-100 text-slate-600 rounded">
+                미정
+              </span>
+            )}
+          </div>
         </div>
-        {showReason && voter.description && (
-          <p className="text-xs text-slate-500 truncate mt-0.5">
-            {voter.description}
-          </p>
+
+        {hasReason && (
+          <ChevronDown
+            className={cn(
+              "w-4 h-4 text-slate-400 transition-transform shrink-0",
+              isExpanded && "rotate-180"
+            )}
+          />
         )}
       </div>
 
-      {isAdmin && (
-        <ChevronDown className="w-4 h-4 text-slate-400 rotate-[-90deg]" />
+      {/* 사유 표시 영역 */}
+      {hasReason && isExpanded && (
+        <div className="px-2 pb-2 pl-[52px] animate-in slide-in-from-top-1 duration-200">
+          <div className="bg-slate-50 rounded-lg p-3">
+            <p className="text-xs text-slate-600 leading-relaxed whitespace-pre-wrap">
+              {displayReason}
+              {needsShowMore && !showFullReason && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowFullReason(true);
+                  }}
+                  className="ml-1 text-slate-400 hover:text-primary transition-colors"
+                >
+                  ...
+                </button>
+              )}
+            </p>
+          </div>
+        </div>
       )}
     </div>
   );
