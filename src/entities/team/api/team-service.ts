@@ -29,7 +29,7 @@ import type {
   VoteInput,
   VotingSummary,
   UpdateFeeStatusInput,
-} from '@/features/team/model/types';
+} from '../model/types';
 
 // DB row types (users 조인 포함)
 export type TeamMemberWithUser = TeamMember & {

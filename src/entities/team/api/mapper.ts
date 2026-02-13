@@ -10,7 +10,7 @@ import type {
   TeamMemberStatusValue,
   RegularDayValue,
 } from '@/shared/config/team-constants';
-import type { ClientTeam, ClientTeamMember, ClientTeamFee } from '@/features/team/model/types';
+import type { ClientTeam, ClientTeamMember, ClientTeamFee } from '../model/types';
 
 /**
  * Team DB row를 Client type으로 변환
