@@ -8,7 +8,7 @@ import { createApplicationService } from './application-service';
 import type { ParticipantInfo, ApplicationStatus } from '@/shared/types/database.types';
 import type { CancelOptions } from './application-service';
 import { applicationKeys } from './keys';
-import { matchKeys } from '@/entities/match';
+import { matchKeys } from '../@x/match';
 
 interface CreateApplicationInput {
   matchId: string;
