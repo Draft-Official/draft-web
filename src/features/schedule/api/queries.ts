@@ -15,7 +15,11 @@ import {
   applicationToGuest,
   matchToHostMatchDetail,
 } from '../lib/mappers';
-import { GUEST_APPROVAL_STATUS_TEXT } from '../config/constants';
+import {
+  resolveApplicationStatus,
+  toParticipatingMatchStatus,
+  toApprovalStatusText,
+} from '../lib/status-utils';
 import type { ManagedMatch, Guest, HostMatchDetail, ParticipatingMatchRow } from '../model/types';
 
 /**
@@ -95,26 +99,19 @@ export function useParticipatingMatches() {
           const matchOngoing = match.start_time && match.end_time &&
             now >= new Date(match.start_time) && now < new Date(match.end_time);
 
-          // Application status를 UI status로 매핑 (시간 기반 오버라이드 포함)
+          // Application status → 공통 GuestStatus → UI 매핑
+          const baseStatus = resolveApplicationStatus(app.status, app.approved_at);
+
           let status: ManagedMatch['status'];
           if (matchEnded) {
-            status = app.status === 'REJECTED' || app.status === 'CANCELED' ? 'cancelled' : 'ended';
-          } else if (matchOngoing && app.status === 'CONFIRMED') {
+            status = baseStatus === 'rejected' || baseStatus === 'canceled' ? 'cancelled' : 'ended';
+          } else if (matchOngoing && baseStatus === 'confirmed') {
             status = 'ongoing';
           } else {
-            status = app.status === 'CONFIRMED' ? 'confirmed' :
-                    app.status === 'REJECTED' ? 'cancelled' :
-                    app.status === 'CANCELED' ? 'cancelled' :
-                    app.status === 'PENDING' && app.approved_at ? 'payment_waiting' :
-                    'waiting';
+            status = toParticipatingMatchStatus(baseStatus);
           }
 
-          const approvalStatusText =
-            app.status === 'CONFIRMED' ? GUEST_APPROVAL_STATUS_TEXT.CONFIRMED :
-            app.status === 'REJECTED' ? GUEST_APPROVAL_STATUS_TEXT.REJECTED :
-            app.status === 'CANCELED' ? GUEST_APPROVAL_STATUS_TEXT.CANCELED :
-            app.status === 'PENDING' && app.approved_at ? GUEST_APPROVAL_STATUS_TEXT.PAYMENT_WAITING :
-            GUEST_APPROVAL_STATUS_TEXT.PENDING;
+          const approvalStatusText = toApprovalStatusText(baseStatus);
 
           // 참가자 정보 파싱
           const participants = (app.participants_info as { type: string; name?: string; position?: string }[] | null) || [];

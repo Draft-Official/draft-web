@@ -20,11 +20,11 @@ import type {
   MatchType,
   MatchStatus,
   Guest,
-  GuestStatus,
   HostMatchDetail,
   RecruitmentMode,
   PositionQuota,
 } from '../model/types';
+import { resolveApplicationStatus } from './status-utils';
 
 // ============================================
 // Type Guards and Helpers
@@ -65,29 +65,8 @@ type MatchWithRelations = Match & {
 // Guest Status Logic
 // ============================================
 
-/**
- * DB Application status → UI GuestStatus 변환
- *
- * 상태 해석:
- * - PENDING + approved_at IS NULL → 신청자 (pending)
- * - PENDING + approved_at IS NOT NULL → 입금대기 (payment_waiting)
- * - CONFIRMED → 확정
- * - REJECTED → 거절
- * - CANCELED → 취소
- */
-export function getGuestStatus(application: Application): GuestStatus {
-  const { status, approved_at } = application;
-
-  if (status === 'CONFIRMED') return 'confirmed';
-  if (status === 'REJECTED') return 'rejected';
-  if (status === 'CANCELED') return 'canceled';
-
-  // PENDING 상태: approved_at 유무로 구분
-  if (status === 'PENDING') {
-    return approved_at ? 'payment_waiting' : 'pending';
-  }
-
-  return 'pending';
+export function getGuestStatus(application: Application) {
+  return resolveApplicationStatus(application.status, application.approved_at);
 }
 
 // ============================================
