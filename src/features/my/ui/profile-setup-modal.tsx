@@ -20,6 +20,7 @@ import {
 } from '@/shared/ui/base/select';
 import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/base/avatar';
 import { cn } from '@/shared/lib/utils';
+import { filterNumericInput } from '@/shared/lib/input-utils';
 import { SkillSlider } from './skill-slider';
 import { ProfileData } from '../model/types';
 import { POSITION_OPTIONS } from '@/shared/config/constants';
@@ -147,7 +148,7 @@ export function ProfileSetupModal({
                 placeholder="175"
                 value={formData.height}
                 onChange={(e) => {
-                  const value = e.target.value.replace(/[^0-9]/g, '');
+                  const value = filterNumericInput(e.target.value);
                   setFormData({ ...formData, height: value });
                 }}
                 className="h-12 bg-white border-slate-300 focus-visible:ring-primary pr-12"
@@ -169,7 +170,7 @@ export function ProfileSetupModal({
                 placeholder="28"
                 value={formData.age}
                 onChange={(e) => {
-                  const value = e.target.value.replace(/[^0-9]/g, '');
+                  const value = filterNumericInput(e.target.value);
                   setFormData({ ...formData, age: value });
                 }}
                 className="h-12 bg-white border-slate-300 focus-visible:ring-primary pr-12"
@@ -191,7 +192,7 @@ export function ProfileSetupModal({
                 placeholder="72"
                 value={formData.weight}
                 onChange={(e) => {
-                  const value = e.target.value.replace(/[^0-9]/g, '');
+                  const value = filterNumericInput(e.target.value);
                   setFormData({ ...formData, weight: value });
                 }}
                 className="h-12 bg-white border-slate-300 focus-visible:ring-primary pr-12"

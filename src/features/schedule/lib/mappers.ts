@@ -20,11 +20,11 @@ import type {
   MatchType,
   MatchStatus,
   Guest,
-  GuestStatus,
   HostMatchDetail,
   RecruitmentMode,
   PositionQuota,
 } from '../model/types';
+import { resolveApplicationStatus } from './status-utils';
 
 // ============================================
 // Type Guards and Helpers
@@ -65,29 +65,8 @@ type MatchWithRelations = Match & {
 // Guest Status Logic
 // ============================================
 
-/**
- * DB Application status → UI GuestStatus 변환
- *
- * 상태 해석:
- * - PENDING + approved_at IS NULL → 신청자 (pending)
- * - PENDING + approved_at IS NOT NULL → 입금대기 (payment_waiting)
- * - CONFIRMED → 확정
- * - REJECTED → 거절
- * - CANCELED → 취소
- */
-export function getGuestStatus(application: Application): GuestStatus {
-  const { status, approved_at } = application;
-
-  if (status === 'CONFIRMED') return 'confirmed';
-  if (status === 'REJECTED') return 'rejected';
-  if (status === 'CANCELED') return 'canceled';
-
-  // PENDING 상태: approved_at 유무로 구분
-  if (status === 'PENDING') {
-    return approved_at ? 'payment_waiting' : 'pending';
-  }
-
-  return 'pending';
+export function getGuestStatus(application: Application) {
+  return resolveApplicationStatus(application.status ?? 'PENDING', application.approved_at);
 }
 
 // ============================================
@@ -234,18 +213,6 @@ export function matchToHostMatchDetail(match: MatchWithRelations): HostMatchDeta
 // ============================================
 // Helper Functions
 // ============================================
-
-
-function getLevelLabel(mannerScore: number): string {
-  // manner_score를 레벨로 변환 (임시 로직)
-  if (mannerScore >= 4.5) return '상급 (Lv.7)';
-  if (mannerScore >= 4.0) return '상급 (Lv.6)';
-  if (mannerScore >= 3.5) return '중급 (Lv.5)';
-  if (mannerScore >= 3.0) return '중급 (Lv.4)';
-  if (mannerScore >= 2.5) return '초급 (Lv.3)';
-  if (mannerScore >= 2.0) return '초급 (Lv.2)';
-  return '초급 (Lv.1)';
-}
 
 function getMatchStatus(
   dbStatus: string,
