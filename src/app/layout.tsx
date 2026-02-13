@@ -1,3 +1,4 @@
+import "@seed-design/css/base.css";
 import type { Metadata } from "next";
 import "./globals.css";
 
