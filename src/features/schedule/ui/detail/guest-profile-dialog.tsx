@@ -40,14 +40,17 @@ export function GuestProfileDialog({
             {/* 아바타 + 이름 + 팀 */}
             <div className="w-20 h-20 rounded-full bg-slate-200 flex items-center justify-center">
               <span className="text-slate-600 font-bold text-3xl">
-                {guest.name.charAt(0)}
+                {(guest.realName || guest.name).charAt(0)}
               </span>
             </div>
 
             <DialogHeader className="space-y-2">
               <DialogTitle className="text-2xl font-bold text-slate-900 text-center">
-                {guest.name}
+                {guest.realName || guest.name}
               </DialogTitle>
+              {guest.realName && guest.realName !== guest.name && (
+                <p className="text-sm text-slate-400 text-center">닉네임: {guest.name}</p>
+              )}
               {guest.teamName && (
                 <p className="text-sm text-slate-500 text-center">{guest.teamName}</p>
               )}

@@ -107,6 +107,7 @@ export interface Participant {
 // 게스트 정보 (호스트 관리용)
 export interface Guest extends Participant {
   status: GuestStatus;
+  realName?: string; // 실명 (호스트에게만 표시)
   paymentVerified?: boolean; // 호스트 내부 관리용 입금 확인 여부
   teamName?: string; // 신청 시 선택한 팀
   companions?: CompanionInfo[];
