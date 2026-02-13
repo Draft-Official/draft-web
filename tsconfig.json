@@ -29,6 +29,9 @@
       "@/components/*": [
         "./src/components/*"
       ],
+      "@/entities/*": [
+        "./src/entities/*"
+      ],
       "@/features/*": [
         "./src/features/*"
       ],

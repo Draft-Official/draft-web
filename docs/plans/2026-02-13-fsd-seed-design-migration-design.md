@@ -61,7 +61,7 @@ Draft 프로젝트의 파편화된 컴포넌트와 아키텍처를 **FSD (Featur
 --seed-scale-color-carrot-500: #FF6F0F;
 
 /* After (Draft 브랜드) */
---seed-scale-color-draft-500: #FF6600;  /* Draft Primary */
+--seed-scale-color-draft-500: #FF6F0F;  /* Draft Primary */
 ```
 
 ### 4. 컴포넌트 교체 방식
