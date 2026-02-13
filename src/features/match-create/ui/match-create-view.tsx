@@ -27,7 +27,7 @@ import { MatchCreateFormData } from '@/features/match-create/model/schema';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { createAuthService } from '@/features/auth/api/auth-api';
 import { createTeamService } from '@/features/team/api';
-import { createMatchService } from '@/features/match/api/match-api';
+import { createMatchService } from '@/entities/match';
 import {
   GENDER_DEFAULT,
   COURT_SIZE_DEFAULT,
