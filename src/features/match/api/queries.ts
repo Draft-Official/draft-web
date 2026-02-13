@@ -4,7 +4,7 @@
  */
 import { useQuery, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
-import { createMatchService } from '@/features/match/api/match-api';
+import { createMatchService } from '@/entities/match';
 import { matchRowToGuestListMatch } from '@/features/match/api/match-mapper';
 import { matchKeys } from '@/shared/api/keys';
 import { GuestListMatch } from '@/features/match/model/types';

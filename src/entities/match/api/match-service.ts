@@ -146,6 +146,110 @@ export class MatchService {
   async cancelMatch(id: string) {
     return this.updateStatus(id, 'CANCELED');
   }
+
+  // ============================================
+  // Feature-specific queries
+  // ============================================
+
+  /**
+   * Get recruiting guest matches (RECRUITING + GUEST_RECRUIT only)
+   * Used by guest match list feature
+   */
+  async getRecruitingMatches() {
+    logRequest(this.SERVICE_NAME, 'getRecruitingMatches');
+
+    const { data, error } = await this.supabase
+      .from('matches')
+      .select(`
+        *,
+        gym:gyms!gym_id (*),
+        host:users!host_id (*),
+        team:teams!team_id (*)
+      `)
+      .eq('status', 'RECRUITING')
+      .eq('match_type', 'GUEST_RECRUIT')
+      .order('start_time', { ascending: true });
+
+    if (error) {
+      logResponse(this.SERVICE_NAME, 'getRecruitingMatches', undefined, error);
+      throw error;
+    }
+
+    logResponse(this.SERVICE_NAME, 'getRecruitingMatches', { count: data?.length ?? 0 });
+    return data ?? [];
+  }
+
+  /**
+   * Get recruiting matches with pagination
+   * @param pageParam Starting index
+   * @param pageSize Page size (default 20)
+   */
+  async getRecruitingMatchesPaginated(pageParam: number = 0, pageSize: number = 20) {
+    logRequest(this.SERVICE_NAME, 'getRecruitingMatchesPaginated', { pageParam, pageSize });
+
+    const todayISO = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' });
+    const VISIBLE_STATUSES: MatchStatusValue[] = ['RECRUITING', 'CLOSED'];
+
+    const { data, error } = await this.supabase
+      .from('matches')
+      .select(`
+        *,
+        gym:gyms!gym_id (*),
+        host:users!host_id (*),
+        team:teams!team_id (*)
+      `)
+      .in('status', VISIBLE_STATUSES)
+      .eq('match_type', 'GUEST_RECRUIT')
+      .gte('start_time', todayISO)
+      .order('created_at', { ascending: false })
+      .range(pageParam, pageParam + pageSize - 1);
+
+    if (error) {
+      logResponse(this.SERVICE_NAME, 'getRecruitingMatchesPaginated', undefined, error);
+      throw error;
+    }
+
+    const hasMore = data?.length === pageSize;
+    const nextCursor = hasMore ? pageParam + pageSize : undefined;
+
+    logResponse(this.SERVICE_NAME, 'getRecruitingMatchesPaginated', {
+      count: data?.length ?? 0,
+      nextCursor
+    });
+
+    return {
+      matches: data ?? [],
+      nextCursor,
+    };
+  }
+
+  /**
+   * Get matches hosted by user
+   * @param userId User ID
+   * @param limit Maximum number of matches (default 5)
+   */
+  async getMyHostedMatches(userId: string, limit: number = 5) {
+    logRequest(this.SERVICE_NAME, 'getMyHostedMatches', { userId, limit });
+
+    const { data, error } = await this.supabase
+      .from('matches')
+      .select(`
+        *,
+        gym:gyms!gym_id (*),
+        team:teams!team_id (name)
+      `)
+      .eq('host_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      logResponse(this.SERVICE_NAME, 'getMyHostedMatches', undefined, error);
+      throw error;
+    }
+
+    logResponse(this.SERVICE_NAME, 'getMyHostedMatches', { count: data?.length ?? 0 });
+    return data;
+  }
 }
 
 export function createMatchService(supabase: SupabaseClient<Database>) {
