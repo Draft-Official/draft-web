@@ -68,6 +68,9 @@ export function MyPageFooter() {
     try {
       await deleteAccount.mutateAsync();
       localStorage.removeItem('profileSkipped');
+      localStorage.removeItem('draft-query-cache');
+      // auth.users가 이미 삭제된 상태이므로 signOut이 실패할 수 있음
+      try { await signOut(); } catch { /* ignore */ }
       setWithdrawOpen(false);
       toast.success('탈퇴가 완료되었습니다.');
       router.push('/');
