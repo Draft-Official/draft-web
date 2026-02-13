@@ -235,18 +235,6 @@ export function matchToHostMatchDetail(match: MatchWithRelations): HostMatchDeta
 // Helper Functions
 // ============================================
 
-
-function getLevelLabel(mannerScore: number): string {
-  // manner_score를 레벨로 변환 (임시 로직)
-  if (mannerScore >= 4.5) return '상급 (Lv.7)';
-  if (mannerScore >= 4.0) return '상급 (Lv.6)';
-  if (mannerScore >= 3.5) return '중급 (Lv.5)';
-  if (mannerScore >= 3.0) return '중급 (Lv.4)';
-  if (mannerScore >= 2.5) return '초급 (Lv.3)';
-  if (mannerScore >= 2.0) return '초급 (Lv.2)';
-  return '초급 (Lv.1)';
-}
-
 function getMatchStatus(
   dbStatus: string,
   startTime?: string,
