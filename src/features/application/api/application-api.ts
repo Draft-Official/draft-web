@@ -211,21 +211,18 @@ export class ApplicationService {
   /**
    * 신청 확정 (with recruitment count update)
    * RPC 함수를 통해 트랜잭션으로 처리
-   * @param confirmedBy - 'GUEST' (기본값) 또는 'HOST'. HOST인 경우 알림이 발송되지 않음
    */
-  async confirmApplication(applicationId: string, confirmedBy: 'GUEST' | 'HOST' = 'GUEST'): Promise<Application> {
+  async confirmApplication(applicationId: string): Promise<Application> {
     // 먼저 신청 정보 조회하여 participants_info 추출
     const application = await this.getApplicationById(applicationId);
     const positions = extractPositionsFromParticipants(application.participants_info);
 
     // RPC 함수 호출 (신청 확정 + count 업데이트)
-    // Note: RPC 타입은 마이그레이션 후 database.types.ts에 추가됨
     const { error } = await (this.supabase.rpc as CallableFunction)(
       'confirm_application_with_count',
       {
         p_application_id: applicationId,
         p_positions: positions.length > 0 ? positions : null,
-        p_confirmed_by: confirmedBy,
       }
     );
 

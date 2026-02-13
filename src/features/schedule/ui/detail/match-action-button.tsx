@@ -6,23 +6,19 @@ import { Button } from '@/shared/ui/base/button';
 interface MatchActionButtonProps {
   isRecruiting: boolean;
   isClosed: boolean;
-  isConfirmed: boolean;
   isEnded: boolean;
   isMatchCanceled: boolean;
   isPending: boolean;
   onCloseRecruiting: () => void;
-  onConfirmMatch: () => void;
 }
 
 export function MatchActionButton({
   isRecruiting,
   isClosed,
-  isConfirmed,
   isEnded,
   isMatchCanceled,
   isPending,
   onCloseRecruiting,
-  onConfirmMatch,
 }: MatchActionButtonProps) {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none md:pl-[240px]">
@@ -42,28 +38,13 @@ export function MatchActionButton({
           </Button>
         )}
 
-        {/* 모집 마감: 경기 확정하기 */}
+        {/* 모집 마감 완료 */}
         {isClosed && (
-          <Button
-            onClick={onConfirmMatch}
-            disabled={isPending}
-            className="w-full bg-primary hover:bg-primary/90 text-white h-12 rounded-xl font-bold text-lg"
-          >
-            {isPending ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              '경기 확정하기'
-            )}
-          </Button>
-        )}
-
-        {/* 경기 확정 이후: 확정 완료 (비활성화) */}
-        {isConfirmed && (
           <Button
             disabled
             className="w-full bg-slate-200 text-slate-500 h-12 rounded-xl font-bold text-lg cursor-not-allowed"
           >
-            확정 완료
+            모집 마감
           </Button>
         )}
 

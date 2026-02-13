@@ -60,10 +60,9 @@ export function useApproveApplication() {
 }
 
 /**
- * 게스트 자가 확정 (송금 완료 → CONFIRMED)
- * 게스트가 직접 "송금 완료" 버튼을 누르면 바로 CONFIRMED 상태로 전환
- * recruitment_setup의 current 값도 업데이트
- * 호스트에게 알림 발송됨
+ * 게스트 송금 완료 알림 (상태 변경 없이 호스트에게 알림만 전송)
+ * 게스트가 "송금 완료" 버튼을 누르면 호스트에게 알림 발송
+ * 실제 확정은 호스트가 "입금확인" 버튼으로 처리
  */
 export function useConfirmPaymentByGuest() {
   const queryClient = useQueryClient();
@@ -71,37 +70,50 @@ export function useConfirmPaymentByGuest() {
   return useMutation({
     mutationFn: async ({
       applicationId,
+      matchId,
     }: {
       applicationId: string;
       matchId: string;
     }) => {
       const supabase = getSupabaseBrowserClient();
-      const applicationService = createApplicationService(supabase);
 
-      // RPC confirm_application_with_count가 상태 변경 + recruitment_setup 갱신을 원자적으로 처리
-      // confirmedBy: 'GUEST'로 호스트에게 알림 발송
-      return applicationService.confirmApplication(applicationId, 'GUEST');
+      // 신청자(게스트) ID 조회
+      const { data: app, error: appError } = await supabase
+        .from('applications')
+        .select('user_id, match:matches!match_id(host_id)')
+        .eq('id', applicationId)
+        .single();
+
+      if (appError) throw appError;
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const hostId = (app.match as any)?.host_id;
+      if (!hostId) throw new Error('호스트 정보를 찾을 수 없습니다.');
+
+      // 호스트에게 알림만 전송 (상태 변경 X)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: notifError } = await (supabase as any)
+        .from('notifications')
+        .insert({
+          user_id: hostId,
+          type: 'GUEST_PAYMENT_CONFIRMED',
+          reference_id: applicationId,
+          reference_type: 'APPLICATION',
+          match_id: matchId,
+          actor_id: app.user_id,
+        });
+
+      if (notifError) throw notifError;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: matchManagementKeys.applicants(variables.matchId),
-      });
-      queryClient.invalidateQueries({
-        queryKey: matchManagementKeys.matchDetail(variables.matchId),
-      });
-      // 모든 사용자의 참여 목록 갱신 (게스트 탭)
-      queryClient.invalidateQueries({
         queryKey: matchManagementKeys.all,
       });
-      // 홈탭 경기 목록 갱신 (빈자리 반영)
-      queryClient.invalidateQueries({
-        queryKey: matchKeys.lists(),
-      });
-      toast.success('송금 완료! 참가가 확정되었습니다.');
+      toast.success('호스트에게 송금 완료 알림을 보냈습니다.');
     },
     onError: (error: Error) => {
-      console.error('Confirm payment by guest error:', error);
-      toast.error(`확정 실패: ${error.message}`);
+      console.error('Notify payment sent error:', error);
+      toast.error(`알림 전송 실패: ${error.message}`);
     },
   });
 }
@@ -125,7 +137,7 @@ export function useConfirmPaymentByHost() {
       const applicationService = createApplicationService(supabase);
 
       // confirmedBy: 'HOST'로 알림 스킵
-      return applicationService.confirmApplication(applicationId, 'HOST');
+      return applicationService.confirmApplication(applicationId);
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({

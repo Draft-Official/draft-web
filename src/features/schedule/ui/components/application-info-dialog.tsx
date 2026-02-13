@@ -215,7 +215,7 @@ export function ApplicationInfoDialog({
                   )}
                 </button>
                 <p className="text-xs text-orange-600">
-                  입금 후 아래 &apos;송금 완료&apos; 버튼을 눌러주세요.
+                  입금 후 아래 &apos;송금 완료&apos; 버튼을 누르면 호스트에게 알림이 전송됩니다.
                 </p>
               </section>
             )}
@@ -265,9 +265,9 @@ export function ApplicationInfoDialog({
         <DialogContent className="max-w-sm mx-4 rounded-2xl p-6">
           <DialogHeader>
             <DialogTitle>송금을 완료하셨나요?</DialogTitle>
-            <DialogDescription className="text-red-600 pt-2 font-medium">
-              입금 없이 허위로 &apos;송금 완료&apos; 버튼을 누를 경우,
-              즉시 서비스 정지 및 법적 처벌을 받을 수 있습니다.
+            <DialogDescription className="text-slate-600 pt-2 font-medium">
+              호스트에게 송금 완료 알림이 전송됩니다.
+              호스트가 입금을 확인하면 참가가 확정됩니다.
             </DialogDescription>
           </DialogHeader>
 

@@ -33,7 +33,6 @@ interface GuestListSectionProps {
   onApprove: (guest: Guest) => void;
   onReject: (guest: Guest) => void;
   onConfirmPayment: (guest: Guest) => void;
-  onVerifyPayment: (guest: Guest) => void;
   onCancelClick: (guest: Guest) => void;
 }
 
@@ -46,7 +45,6 @@ export function GuestListSection({
   onApprove,
   onReject,
   onConfirmPayment,
-  onVerifyPayment,
   onCancelClick,
 }: GuestListSectionProps) {
   const getTabCount = (status: GuestStatus) => {
@@ -95,7 +93,6 @@ export function GuestListSection({
               onApprove={() => onApprove(guest)}
               onReject={() => onReject(guest)}
               onConfirmPayment={() => onConfirmPayment(guest)}
-              onVerifyPayment={() => onVerifyPayment(guest)}
               onCancelClick={() => onCancelClick(guest)}
             />
           ))
@@ -112,7 +109,6 @@ interface GuestListItemProps {
   onApprove: () => void;
   onReject: () => void;
   onConfirmPayment: () => void;
-  onVerifyPayment: () => void;
   onCancelClick: () => void;
 }
 
@@ -123,7 +119,6 @@ function GuestListItem({
   onApprove,
   onReject,
   onConfirmPayment,
-  onVerifyPayment,
   onCancelClick,
 }: GuestListItemProps) {
   return (
@@ -152,19 +147,6 @@ function GuestListItem({
                 className="text-[10px] px-2 py-0.5 bg-blue-50 text-blue-700 border-blue-200"
               >
                 +{guest.companions.length}명
-              </Badge>
-            )}
-            {guest.status === 'confirmed' && (
-              <Badge
-                variant="outline"
-                className={cn(
-                  'text-[10px] px-2 py-0.5',
-                  guest.paymentVerified
-                    ? 'bg-green-50 text-green-700 border-green-200'
-                    : 'bg-yellow-50 text-yellow-700 border-yellow-200'
-                )}
-              >
-                {guest.paymentVerified ? '입금확인' : '입금미확인'}
               </Badge>
             )}
           </div>
@@ -229,31 +211,16 @@ function GuestListItem({
             )}
 
             {guest.status === 'confirmed' && (
-              <>
-                {!guest.paymentVerified && (
-                  <Button
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onVerifyPayment();
-                    }}
-                    variant="outline"
-                    className="h-8 px-3 text-xs border-slate-200"
-                  >
-                    입금확인
-                  </Button>
-                )}
-                <Button
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onCancelClick();
-                  }}
-                  className="bg-red-100 hover:bg-red-200 text-red-600 border border-red-200 h-8 px-3 text-xs"
-                >
-                  취소
-                </Button>
-              </>
+              <Button
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCancelClick();
+                }}
+                className="bg-red-100 hover:bg-red-200 text-red-600 border border-red-200 h-8 px-3 text-xs"
+              >
+                취소
+              </Button>
             )}
           </div>
         )}

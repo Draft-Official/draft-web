@@ -25,7 +25,6 @@ import {
   useMatchApplicants,
   useApproveApplication,
   useConfirmPaymentByHost,
-  useVerifyPayment,
   useRejectApplication,
   useCancelParticipation,
   useUpdateMatchStatus,
@@ -54,7 +53,6 @@ export function HostMatchDetailView() {
   // Mutations
   const approveMutation = useApproveApplication();
   const confirmMutation = useConfirmPaymentByHost();
-  const verifyPaymentMutation = useVerifyPayment();
   const rejectMutation = useRejectApplication();
   const cancelMutation = useCancelParticipation();
   const statusMutation = useUpdateMatchStatus();
@@ -139,10 +137,6 @@ export function HostMatchDetailView() {
     );
   };
 
-  const handleVerifyPayment = (guest: Guest) => {
-    verifyPaymentMutation.mutate({ applicationId: guest.id, matchId });
-  };
-
   const openGuestProfile = (guest: Guest) => {
     setSelectedGuest(guest);
     setIsGuestProfileOpen(true);
@@ -155,10 +149,6 @@ export function HostMatchDetailView() {
 
   const handleCloseRecruiting = () => {
     statusMutation.mutate({ matchId, status: 'CLOSED' });
-  };
-
-  const handleConfirmMatch = () => {
-    statusMutation.mutate({ matchId, status: 'CONFIRMED' });
   };
 
   const handleResumeRecruiting = () => {
@@ -290,7 +280,6 @@ export function HostMatchDetailView() {
           onApprove={handleApprove}
           onReject={handleReject}
           onConfirmPayment={handleConfirmPayment}
-          onVerifyPayment={handleVerifyPayment}
           onCancelClick={openCancelConfirm}
         />
       </div>
@@ -358,12 +347,10 @@ export function HostMatchDetailView() {
       <MatchActionButton
         isRecruiting={isRecruiting}
         isClosed={isClosed}
-        isConfirmed={isConfirmed}
         isEnded={isEnded}
         isMatchCanceled={isMatchCanceled}
         isPending={statusMutation.isPending}
         onCloseRecruiting={handleCloseRecruiting}
-        onConfirmMatch={handleConfirmMatch}
       />
     </div>
   );
