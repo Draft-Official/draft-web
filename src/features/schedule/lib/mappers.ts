@@ -66,7 +66,7 @@ type MatchWithRelations = Match & {
 // ============================================
 
 export function getGuestStatus(application: Application) {
-  return resolveApplicationStatus(application.status, application.approved_at);
+  return resolveApplicationStatus(application.status ?? 'PENDING', application.approved_at);
 }
 
 // ============================================
