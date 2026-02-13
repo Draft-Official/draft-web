@@ -20,7 +20,7 @@ import { Match } from '@/features/match/model/types';
 import { ApplyModal } from '@/features/application/ui/apply-modal';
 import { useAuth } from '@/features/auth/model/auth-context';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
-import { createApplicationService } from '@/features/application/api/application-api';
+import { createApplicationService } from '@/entities/application';
 import { matchManagementKeys } from '@/features/schedule/api/keys';
 
 interface MatchDetailViewProps {

@@ -5,8 +5,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
-import { createApplicationService } from '@/features/application/api/application-api';
-import type { CancelOptions } from '@/features/application/api/application-api';
+import { createApplicationService } from '@/entities/application';
+import type { CancelOptions } from '@/entities/application';
 import { matchManagementKeys } from './keys';
 import { matchKeys } from '@/shared/api/keys';
 
