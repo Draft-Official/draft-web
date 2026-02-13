@@ -50,6 +50,7 @@ export class ApplicationService {
         user:users!user_id (
           id,
           nickname,
+          real_name,
           avatar_url,
           positions,
           manner_score,

@@ -52,7 +52,7 @@ function getTotalCurrentFromSetup(setup: RecruitmentSetup | null | undefined): n
 }
 
 type ApplicationWithUser = Application & {
-  user: Pick<User, 'id' | 'nickname' | 'avatar_url' | 'positions' | 'manner_score' | 'metadata' | 'account_info'>;
+  user: Pick<User, 'id' | 'nickname' | 'avatar_url' | 'positions' | 'manner_score' | 'metadata' | 'account_info' | 'real_name'>;
   team?: Pick<Team, 'name'> | null;
 };
 
@@ -131,6 +131,7 @@ export function applicationToGuest(
   return {
     id: app.id,
     name: app.user.nickname || '이름 없음',
+    realName: app.user.real_name || undefined,
     position: positionLabel,
     level: userMetadata?.skill_level
       ? (SKILL_LEVEL_NAMES[userMetadata.skill_level] || `Lv.${userMetadata.skill_level}`)

@@ -133,14 +133,19 @@ function GuestListItem({
         {/* Avatar */}
         <div className="w-12 h-12 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0">
           <span className="text-slate-600 font-bold text-lg">
-            {guest.name.charAt(0)}
+            {(guest.realName || guest.name).charAt(0)}
           </span>
         </div>
 
         {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <p className="font-bold text-slate-900">{guest.name}</p>
+            <p className="font-bold text-slate-900">
+              {guest.realName || guest.name}
+              {guest.realName && guest.realName !== guest.name && (
+                <span className="text-slate-400 font-normal text-sm ml-1">({guest.name})</span>
+              )}
+            </p>
             {guest.companions && guest.companions.length > 0 && (
               <Badge
                 variant="outline"
