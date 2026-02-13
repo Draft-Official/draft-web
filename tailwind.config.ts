@@ -8,9 +8,26 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // Keep existing system colors
         background: "var(--background)",
         foreground: "var(--foreground)",
         border: "hsl(var(--border))",
+
+        // Draft brand colors (Seed-compatible)
+        draft: {
+          50: '#FFF5EB',
+          100: '#FFE5CC',
+          200: '#FFCC99',
+          300: '#FFB366',
+          400: '#FF9933',
+          500: '#FF6600',  // Primary
+          600: '#E65C00',
+          700: '#CC5200',
+          800: '#B34700',
+          900: '#993D00',
+        },
+
+        // Keep primary mapped to draft
         primary: {
             DEFAULT: "hsl(var(--primary))",
             foreground: "hsl(var(--primary-foreground))",
