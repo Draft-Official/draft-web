@@ -259,7 +259,7 @@ function getMatchStatus(
     const end = new Date(endTime);
 
     if (now >= end) {
-      return dbStatus === 'CONFIRMED' ? 'ended' : 'cancelled';
+      return dbStatus === 'CANCELED' ? 'cancelled' : 'ended';
     }
     if (now >= start) {
       return 'ongoing';
