@@ -178,8 +178,5 @@ export interface LegacyMatchCard {
   isPast: boolean;
 }
 
-// Re-export from application feature for convenience
-export type { Applicant } from '@/features/application/model/types';
-
 // Re-export position type
 export type { PositionValue as Position } from '@/shared/config/constants';

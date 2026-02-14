@@ -15,7 +15,7 @@ import { useAuth } from '@/shared/session';
 import { toast } from 'sonner';
 import type { Team } from '@/features/team/model/types';
 import type { RegularDayValue } from '@/shared/config/team-constants';
-import type { LocationData } from '@/features/match-create/model/types';
+import type { LocationData } from '@/shared/types/location.types';
 
 interface TeamMatchCreateFormProps {
   team: Team & { homeGymName: string | null };

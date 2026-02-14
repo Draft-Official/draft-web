@@ -13,7 +13,7 @@ import { cn } from '@/shared/lib/utils';
 import { StepHeader } from './step-header';
 import { SelectedLocationCard } from '@/features/match-create/ui/components/selected-location-card';
 import { REGULAR_DAY_OPTIONS, type RegularDayValue } from '@/shared/config/team-constants';
-import type { LocationData } from '@/features/match-create/model/types';
+import type { LocationData } from '@/shared/types/location.types';
 
 // 진행 시간 옵션
 const DURATION_OPTIONS = [

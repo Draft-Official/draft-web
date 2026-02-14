@@ -8,7 +8,6 @@ export type {
   Team,
   LegacyTeamCard,
   LegacyMatchCard,
-  Applicant,
   Position,
 } from './model/types';
 export { MatchStatus, ApplicantStatus } from './model/types';
