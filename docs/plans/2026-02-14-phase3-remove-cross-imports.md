@@ -26,50 +26,319 @@
 
 ---
 
-## 🚨 새로운 문제 발견: @x Cross-Import 패턴
+## 🚨 문제의 본질 분석
 
-### 현재 위반 중인 FSD 원칙
+### ❌ 잘못 이해한 것
+- "@x 패턴 자체가 문제다"
+- "@x 폴더만 지우면 된다"
 
-```
-entities/
-├── team/@x/match.ts          ❌ team이 match를 cross-import!
-├── match/@x/team.ts          ❌ match가 team을 cross-import!
-├── match/@x/application.ts   ❌ match가 application을 cross-import!
-└── application/@x/match.ts   ❌ application이 match를 cross-import!
-```
+### ✅ 실제 문제: Entities 간 API 호출 종속성
 
-**문제점:**
-- entities는 다른 entities를 import하면 안 됨 (FSD 원칙)
-- `@x` 패턴도 cross-import이므로 위반!
-- CLAUDE.md "실수 2"에도 명시되어 있음
-
-**올바른 방법:**
 ```typescript
-// ❌ entities에서 cross-import
-import { useMatch } from '@/entities/team/@x/match';
+// ❌ 문제의 근본 원인!
+// entities/team/api/team-service.ts
+class TeamService {
+  async getTeamMatches(teamId: string) {
+    // Team entity가 Match API를 호출! → 순환 종속성!
+    const matches = await matchService.getMatches({ teamId });
+    return matches;
+  }
+}
 
-// ✅ features에서 각각 import하고 조합
-import { useMatch } from '@/entities/match';
-import { useTeam } from '@/entities/team';
-
-function Component() {
-  const match = useMatch(matchId);
-  const team = useTeam(match.teamId);  // 조합은 features에서!
+// entities/match/api/match-service.ts
+class MatchService {
+  async getMatch(matchId: string) {
+    // Match entity가 Team API를 호출! → 순환 종속성!
+    const team = await teamService.getTeam(match.teamId);
+    return { ...match, team };
+  }
 }
 ```
+
+**왜 @x가 생겼나?**
+→ Entities 간 순환 종속성을 우회하려고 `@x` 패턴 사용!
+→ 하지만 이것은 근본 해결이 아님!
+
+### ✅ FSD + React Query 올바른 패턴
+
+**원칙:**
+1. **Entities** = 자기 테이블만 (완전 독립!)
+2. **Features** = JOIN query + 조합 + DTO
+
+```typescript
+// ==========================================
+// ✅ Entities - 순수하게 자신만!
+// ==========================================
+
+// entities/match/api/match-service.ts
+class MatchService {
+  async getMatch(id: string): Promise<Match> {
+    const { data } = await this.supabase
+      .from('matches')
+      .select('*')  // ← matches 테이블만!
+      .eq('id', id)
+      .single();
+    return matchRowToEntity(data);
+  }
+}
+
+// ==========================================
+// ✅ Features - JOIN query로 조합!
+// ==========================================
+
+// features/match/api/queries.ts
+export function useMatchDetail(matchId: string) {
+  return useQuery({
+    queryKey: ['match', 'detail', matchId],
+    queryFn: async () => {
+      const supabase = getSupabaseBrowserClient();
+
+      // ✅ 한 번의 query로 모든 관련 데이터 JOIN!
+      const { data } = await supabase
+        .from('matches')
+        .select(`
+          *,
+          gyms(*),
+          users!matches_host_id_fkey(*),
+          teams(*)
+        `)
+        .eq('id', matchId)
+        .single();
+
+      // Entity mappers 재사용
+      const match = matchRowToEntity(data);
+      const gym = gymRowToEntity(data.gyms);
+      const host = userRowToEntity(data.users);
+      const team = data.teams ? teamRowToEntity(data.teams) : null;
+
+      // Flat DTO로 변환 (features에서!)
+      return toMatchDetailDTO(match, gym, host, team);
+    },
+  });
+}
+```
+
+### 📊 Before vs After
+
+| | Before (❌) | After (✅) |
+|---|---|---|
+| **Data Fetching** | N번의 개별 API 호출 | 1번의 JOIN query |
+| **Entities** | 다른 entity API 호출 | 자기 테이블만 |
+| **Cross-import** | @x 패턴으로 우회 | 없음 (독립적!) |
+| **조합** | entities에서 | features에서 |
+| **DTO** | Nested 객체 | Flat 구조 |
 
 ---
 
 ## 📋 Phase 3 작업 계획
 
 ### 목표
-1. ❌ 모든 `@x` 폴더 제거
-2. ✅ features/에서 올바르게 entities 조합
-3. ✅ FSD 원칙 완벽 준수
+1. ❌ Entities 간 API 호출 제거 (순환 종속성 해결)
+2. ❌ 모든 `@x` 폴더 제거
+3. ✅ Features에 JOIN query 추가
+4. ✅ Features에 Flat DTO + Mapper 추가
+5. ✅ FSD 원칙 완벽 준수
 
 ---
 
-## Task 3.1: @x 사용처 분석
+## Task 3.0: Entities 순수성 확보 (API 호출 종속성 제거)
+
+**목표:** Entities가 다른 entities API를 호출하지 않도록 수정
+
+**Files:**
+- Analyze: `src/entities/*/api/*-service.ts`
+- Modify: Entities service methods that call other entities
+
+**Step 1: 순환 종속성 찾기**
+
+```bash
+# Entity service에서 다른 entity import 찾기
+grep -r "from '@/entities/" src/entities/*/api/ --include="*.ts"
+```
+
+**Step 2: 각 Entity Service 정리**
+
+패턴:
+```typescript
+// ❌ Before - Match service가 Team API 호출
+class MatchService {
+  async getMatch(id: string) {
+    const match = await this.getMatchRow(id);
+    const team = await teamService.getTeam(match.team_id);  // ❌
+    return { ...match, team };
+  }
+}
+
+// ✅ After - Match는 자기 것만!
+class MatchService {
+  async getMatch(id: string): Promise<Match> {
+    const { data } = await this.supabase
+      .from('matches')
+      .select('*')  // ← matches만!
+      .eq('id', id)
+      .single();
+    return matchRowToEntity(data);
+  }
+}
+```
+
+**Step 3: 검증**
+
+```bash
+# Entities에서 다른 entities import가 없어야 함
+grep -r "from '@/entities/" src/entities/ --include="*.ts" | grep -v "from '@/entities/[^/]*'$"
+```
+
+---
+
+## Task 3.1: Features에 JOIN Query 추가
+
+**목표:** Features에서 Supabase JOIN으로 관련 데이터 한 번에 fetch
+
+**Files:**
+- Create: `src/features/match/model/types.ts` (DTO types)
+- Create: `src/features/match/lib/mappers.ts` (Entity → DTO)
+- Modify: `src/features/match/api/queries.ts` (JOIN query)
+
+**Step 1: DTO 타입 정의**
+
+```typescript
+// features/match/model/types.ts
+
+/**
+ * Match 상세 페이지 DTO (UI 전용)
+ */
+export interface MatchDetailDTO {
+  // Match
+  id: string;
+  dateISO: string;
+  startTime: string;
+  endTime: string;
+
+  // Gym (flat!)
+  gymId: string;
+  gymName: string;
+  gymAddress: string;
+  latitude: number;
+  longitude: number;
+
+  // Host (flat!)
+  hostId: string;
+  hostName: string;
+  hostAvatar: string | null;
+
+  // Team (flat!)
+  teamId: string | null;
+  teamName: string | null;
+  teamLogo: string | null;
+
+  // Computed
+  priceDisplay: string;
+  recruitmentStatus: {
+    total: number;
+    current: number;
+    isFull: boolean;
+  };
+}
+```
+
+**Step 2: Mapper 구현**
+
+```typescript
+// features/match/lib/mappers.ts
+
+import type { Match } from '@/entities/match';
+import type { Gym } from '@/entities/gym';
+import type { User } from '@/entities/user';
+import type { Team } from '@/entities/team';
+import type { MatchDetailDTO } from '../model/types';
+
+export function toMatchDetailDTO(
+  match: Match,
+  gym: Gym,
+  host: User,
+  team: Team | null,
+): MatchDetailDTO {
+  const priceDisplay = formatPrice(match.costType, match.costAmount);
+  const recruitmentStatus = calculateRecruitment(match.recruitmentSetup);
+
+  return {
+    id: match.id,
+    dateISO: formatDateISO(match.startTime),
+    startTime: formatTime(match.startTime),
+    endTime: formatTime(match.endTime),
+
+    gymId: gym.id,
+    gymName: gym.name,
+    gymAddress: gym.address,
+    latitude: gym.latitude,
+    longitude: gym.longitude,
+
+    hostId: host.id,
+    hostName: host.nickname ?? '익명',
+    hostAvatar: host.avatarUrl,
+
+    teamId: team?.id ?? null,
+    teamName: team?.name ?? match.manualTeamName,
+    teamLogo: team?.logoUrl ?? null,
+
+    priceDisplay,
+    recruitmentStatus,
+  };
+}
+```
+
+**Step 3: JOIN Query 구현**
+
+```typescript
+// features/match/api/queries.ts
+
+import { matchRowToEntity } from '@/entities/match';
+import { gymRowToEntity } from '@/entities/gym';
+import { userRowToEntity } from '@/entities/user';
+import { teamRowToEntity } from '@/entities/team';
+
+export function useMatchDetail(matchId: string) {
+  return useQuery({
+    queryKey: ['match', 'detail', matchId],
+    queryFn: async (): Promise<MatchDetailDTO> => {
+      const supabase = getSupabaseBrowserClient();
+
+      // ✅ JOIN query - 한 번에!
+      const { data, error } = await supabase
+        .from('matches')
+        .select(`
+          *,
+          gyms(*),
+          users!matches_host_id_fkey(*),
+          teams(*)
+        `)
+        .eq('id', matchId)
+        .single();
+
+      if (error) throw error;
+
+      // Entity mappers 재사용
+      const match = matchRowToEntity(data);
+      const gym = gymRowToEntity(data.gyms);
+      const host = userRowToEntity(data.users);
+      const team = data.teams ? teamRowToEntity(data.teams) : null;
+
+      return toMatchDetailDTO(match, gym, host, team);
+    },
+  });
+}
+```
+
+**Step 4: 빌드 검증**
+
+```bash
+npm run build
+```
+
+---
+
+## Task 3.2: @x 사용처 분석
 
 **Files:**
 - Analyze: All files importing from `@x` directories
@@ -92,7 +361,7 @@ grep -r "from '@/entities/.*/@x/" src/ --include="*.ts" --include="*.tsx"
 
 ---
 
-## Task 3.2: features/ 파일 수정 (cross-import 제거)
+## Task 3.3: features/ 파일 수정 (cross-import 제거)
 
 **Files:**
 - Modify: All files using `@x` imports
@@ -124,7 +393,7 @@ npm run build
 
 ---
 
-## Task 3.3: @x 폴더 삭제
+## Task 3.4: @x 폴더 삭제
 
 **Files:**
 - Delete: `src/entities/team/@x/`
@@ -155,7 +424,7 @@ npm run build
 
 ---
 
-## Task 3.4: CLAUDE.md 업데이트
+## Task 3.5: CLAUDE.md 업데이트
 
 **Files:**
 - Modify: `CLAUDE.md`
@@ -187,7 +456,7 @@ const team = useTeam(match.teamId);
 
 ---
 
-## Task 3.5: WORK_LOG.md 업데이트
+## Task 3.6: WORK_LOG.md 업데이트
 
 **Files:**
 - Modify: `WORK_LOG.md`
@@ -197,66 +466,94 @@ const team = useTeam(match.teamId);
 ```markdown
 ## 🎯 Phase 3 완료! (2026-02-14)
 
-**Phase 3 - Remove @x Cross-Imports: 완료**
+**Phase 3 - Entities 순수성 확보 & @x 제거: 완료**
 
-### 문제 발견
-- entities/team/@x/match.ts ❌
-- entities/match/@x/team.ts ❌
-- entities/match/@x/application.ts ❌
-- entities/application/@x/match.ts ❌
-→ @x 패턴도 FSD 원칙 위반!
+### 문제의 본질
+- ❌ Entities가 다른 entities API 호출 (순환 종속성!)
+- ❌ @x 패턴으로 우회했으나 근본 해결 아님
+- ❌ N번의 개별 API 호출 (비효율)
 
 ### 완료된 작업
-✅ @x import 사용처 분석 및 수정
-✅ features/에서 올바르게 entities 직접 import
-✅ 모든 @x 폴더 삭제
-✅ CLAUDE.md에 실수 6 추가
-✅ 빌드 성공 확인
+1. ✅ Entities 순수성 확보
+   - Entities는 자기 테이블만 다룸
+   - 다른 entities API 호출 제거
+
+2. ✅ Features에 JOIN Query 추가
+   - 한 번의 query로 관련 데이터 fetch
+   - Entity mappers 재사용
+   - Flat DTO 변환
+
+3. ✅ @x 폴더 제거
+   - entities/team/@x/ 삭제
+   - entities/match/@x/ 삭제
+   - entities/application/@x/ 삭제
+
+4. ✅ CLAUDE.md 업데이트
+   - 실수 6 추가: Entities 간 API 호출
+   - JOIN Query 패턴 문서화
 
 ### 결과
-**Before:**
-\`\`\`
-entities/team/@x/match.ts     ❌ cross-import
-features/team/ui/comp.tsx
-  import from '@/entities/team/@x/match'  ❌
+
+**Data Fetching:**
+\`\`\`typescript
+// Before (❌) - N번의 API 호출
+const match = await matchService.getMatch(matchId);     // 1
+const gym = await gymService.getGym(match.gymId);       // 2
+const host = await userService.getUser(match.hostId);   // 3
+const team = await teamService.getTeam(match.teamId);   // 4
+
+// After (✅) - 1번의 JOIN query
+const { data } = await supabase
+  .from('matches')
+  .select(\`*, gyms(*), users(*), teams(*)\`)
+  .eq('id', matchId)
+  .single();
 \`\`\`
 
-**After:**
+**Entities 독립성:**
 \`\`\`
-entities/team/               ✅ 독립적!
-features/team/ui/comp.tsx
-  import from '@/entities/match'          ✅
-  import from '@/entities/team'           ✅
+Before: entities/match/api/ → teamService.getTeam() ❌
+After:  entities/match/api/ → matches 테이블만 ✅
 \`\`\`
 ```
 
 ---
 
-## Task 3.6: Commit
+## Task 3.7: Commit
 
 **Step 1: 변경사항 커밋**
 
 ```bash
 git add -A
 git commit -m "$(cat <<'EOF'
-refactor: Remove @x cross-import pattern (FSD violation)
+refactor: Establish entity purity & remove @x pattern
 
-## 문제
-- entities 간 @x cross-import 존재
-- FSD 원칙 위반: entities는 완전히 독립적이어야 함
+## 문제의 본질
+- Entities가 다른 entities API 호출 (순환 종속성)
+- @x 패턴으로 우회했으나 근본 해결 아님
+- N번의 개별 API 호출 (비효율)
 
 ## 수정 내역
-- ❌ entities/team/@x/match.ts 삭제
-- ❌ entities/match/@x/team.ts 삭제
-- ❌ entities/match/@x/application.ts 삭제
-- ❌ entities/application/@x/match.ts 삭제
-- ✅ features/에서 올바르게 각 entity 직접 import
 
-## 원칙 확립
-entities는 완전히 독립적!
-- ❌ entities 간 cross-import
-- ❌ @x 패턴
-- ✅ features에서 조합
+### 1. Entities 순수성 확보
+- Entities는 자기 테이블만 다룸
+- 다른 entities API 호출 제거
+
+### 2. Features에 JOIN Query 추가
+- 한 번의 Supabase JOIN으로 관련 데이터 fetch
+- Entity mappers 재사용
+- Flat DTO 변환
+
+### 3. @x 폴더 제거
+- entities/team/@x/ 삭제
+- entities/match/@x/ 삭제
+- entities/application/@x/ 삭제
+
+## FSD 원칙 확립
+✅ Entities = 자기 테이블만 (완전 독립!)
+✅ Features = JOIN query + 조합 + DTO
+❌ Entities 간 API 호출 금지
+❌ @x 패턴 금지
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 
