@@ -22,7 +22,6 @@ export {
   useMarkNotificationsAsReadByMatch,
   useMarkAllNotificationsAsRead,
 } from './api/mutations';
-export { NotificationService, createNotificationService, notificationRowToEntity } from '@/entities/notification';
 
 // ============================================
 // Utilities
