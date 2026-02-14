@@ -26,6 +26,14 @@ import {
   formatTeamRegularSchedule,
 } from './formatters';
 
+type TeamMemberUserInput = {
+  id: string;
+  nickname: string | null;
+  avatarUrl: string | null;
+  positions: string[] | null;
+};
+type TeamVoteUserInput = Pick<UserEntity, 'nickname' | 'avatarUrl'>;
+
 function toTeamVoteStatus(status: string | null): TeamVoteStatusValue {
   switch (status) {
     case 'CONFIRMED':
@@ -108,7 +116,7 @@ export function toMyTeamListItemDTO(
 
 export function toTeamMembershipDTO(
   member: TeamMemberEntity,
-  user?: UserEntity | null
+  user?: TeamMemberUserInput | null
 ): TeamMembershipDTO {
   return {
     id: member.id,
@@ -156,7 +164,7 @@ export function toTeamScheduleMatchItemDTO(
 
 export function toTeamVoteDTO(
   application: ApplicationEntity,
-  user?: UserEntity | null
+  user?: TeamVoteUserInput | null
 ): TeamVoteDTO {
   return {
     id: application.id,

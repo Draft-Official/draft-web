@@ -7,7 +7,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { teamMemberKeys, teamKeys } from '../keys';
 import { createTeamService, teamMemberRowToEntity } from '@/entities/team';
-import type { TeamMember } from '../../model/types';
+import { toTeamMembershipDTO } from '../../lib';
+import type { TeamMembershipDTO } from '../../model/types';
 import type { TeamRoleValue } from '@/shared/config/team-constants';
 
 /**
@@ -23,11 +24,11 @@ export function useJoinTeam() {
     }: {
       teamId: string;
       userId: string;
-    }): Promise<TeamMember> => {
+    }): Promise<TeamMembershipDTO> => {
       const supabase = getSupabaseBrowserClient();
       const service = createTeamService(supabase);
       const row = await service.createJoinRequest(teamId, userId);
-      return teamMemberRowToEntity(row);
+      return toTeamMembershipDTO(teamMemberRowToEntity(row));
     },
     onSuccess: (data, { teamId, userId }) => {
       // 멤버십 캐시 갱신
@@ -57,11 +58,11 @@ export function useApproveJoin() {
     }: {
       membershipId: string;
       teamId: string;
-    }): Promise<TeamMember> => {
+    }): Promise<TeamMembershipDTO> => {
       const supabase = getSupabaseBrowserClient();
       const service = createTeamService(supabase);
       const row = await service.approveJoinRequest(membershipId);
-      const member = teamMemberRowToEntity(row);
+      const member = toTeamMembershipDTO(teamMemberRowToEntity(row));
 
       // 새 팀원에게 진행 중인 경기들의 투표 생성
       await service.createVotesForNewMember(teamId, member.userId);
@@ -99,11 +100,11 @@ export function useRejectJoin() {
     }: {
       membershipId: string;
       teamId: string;
-    }): Promise<TeamMember> => {
+    }): Promise<TeamMembershipDTO> => {
       const supabase = getSupabaseBrowserClient();
       const service = createTeamService(supabase);
       const row = await service.rejectJoinRequest(membershipId);
-      return teamMemberRowToEntity(row);
+      return toTeamMembershipDTO(teamMemberRowToEntity(row));
     },
     onSuccess: (_, { teamId }) => {
       // 대기자 목록 갱신
@@ -129,11 +130,11 @@ export function useUpdateRole() {
       membershipId: string;
       teamId: string;
       newRole: TeamRoleValue;
-    }): Promise<TeamMember> => {
+    }): Promise<TeamMembershipDTO> => {
       const supabase = getSupabaseBrowserClient();
       const service = createTeamService(supabase);
       const row = await service.updateMemberRole(membershipId, newRole);
-      return teamMemberRowToEntity(row);
+      return toTeamMembershipDTO(teamMemberRowToEntity(row));
     },
     onSuccess: (data, { teamId }) => {
       // 팀원 목록 갱신
@@ -228,11 +229,11 @@ export function useApproveJoinRequest(teamId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (membershipId: string): Promise<TeamMember> => {
+    mutationFn: async (membershipId: string): Promise<TeamMembershipDTO> => {
       const supabase = getSupabaseBrowserClient();
       const service = createTeamService(supabase);
       const row = await service.approveJoinRequest(membershipId);
-      const member = teamMemberRowToEntity(row);
+      const member = toTeamMembershipDTO(teamMemberRowToEntity(row));
       await service.createVotesForNewMember(teamId, member.userId);
       return member;
     },
@@ -250,11 +251,11 @@ export function useRejectJoinRequest(teamId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (membershipId: string): Promise<TeamMember> => {
+    mutationFn: async (membershipId: string): Promise<TeamMembershipDTO> => {
       const supabase = getSupabaseBrowserClient();
       const service = createTeamService(supabase);
       const row = await service.rejectJoinRequest(membershipId);
-      return teamMemberRowToEntity(row);
+      return toTeamMembershipDTO(teamMemberRowToEntity(row));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: teamMemberKeys.pending(teamId) });

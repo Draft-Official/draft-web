@@ -11,11 +11,12 @@ import {
   type TeamMemberWithUserRow,
 } from '@/entities/team';
 import { teamMemberKeys } from '../keys';
-import type { TeamMember, TeamMemberUser } from '../../model/types';
+import { toTeamMembershipDTO } from '../../lib';
+import type { TeamMemberListItemDTO, TeamMembershipDTO } from '../../model/types';
 
-function mapTeamMemberWithUserRow(row: TeamMemberWithUserRow): TeamMember {
+function mapTeamMemberWithUserRow(row: TeamMemberWithUserRow): TeamMemberListItemDTO {
   const member = teamMemberRowToEntity(row);
-  const user: TeamMemberUser | undefined = row.users
+  const user = row.users
     ? {
         id: row.users.id,
         nickname: row.users.nickname,
@@ -24,10 +25,7 @@ function mapTeamMemberWithUserRow(row: TeamMemberWithUserRow): TeamMember {
       }
     : undefined;
 
-  return {
-    ...member,
-    user,
-  };
+  return toTeamMembershipDTO(member, user);
 }
 
 /**
@@ -36,7 +34,7 @@ function mapTeamMemberWithUserRow(row: TeamMemberWithUserRow): TeamMember {
 export function useTeamMembers(teamId: string | null | undefined) {
   return useQuery({
     queryKey: teamMemberKeys.byTeam(teamId || ''),
-    queryFn: async (): Promise<TeamMember[]> => {
+    queryFn: async (): Promise<TeamMemberListItemDTO[]> => {
       if (!teamId) return [];
       const supabase = getSupabaseBrowserClient();
       const service = createTeamService(supabase);
@@ -53,7 +51,7 @@ export function useTeamMembers(teamId: string | null | undefined) {
 export function usePendingMembers(teamId: string | null | undefined) {
   return useQuery({
     queryKey: teamMemberKeys.pending(teamId || ''),
-    queryFn: async (): Promise<TeamMember[]> => {
+    queryFn: async (): Promise<TeamMemberListItemDTO[]> => {
       if (!teamId) return [];
       const supabase = getSupabaseBrowserClient();
       const service = createTeamService(supabase);
@@ -73,12 +71,12 @@ export function useMyMembership(
 ) {
   return useQuery({
     queryKey: teamMemberKeys.myMembership(teamId || '', userId || ''),
-    queryFn: async (): Promise<TeamMember | null> => {
+    queryFn: async (): Promise<TeamMembershipDTO | null> => {
       if (!teamId || !userId) return null;
       const supabase = getSupabaseBrowserClient();
       const service = createTeamService(supabase);
       const row = await service.getMembership(teamId, userId);
-      return row ? { ...teamMemberRowToEntity(row), user: undefined } : null;
+      return row ? toTeamMembershipDTO(teamMemberRowToEntity(row)) : null;
     },
     enabled: !!teamId && !!userId,
   });
