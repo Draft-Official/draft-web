@@ -10,10 +10,10 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/shared/ui/shadcn/accordion';
-import type { Match } from '@/shared/types/database.types';
+import type { TeamMatchDetailDTO } from '@/features/team/model/types';
 
 interface TeamFacilitySectionProps {
-  match: Match;
+  match: TeamMatchDetailDTO;
   id?: string;
 }
 
@@ -30,9 +30,7 @@ interface GymFacilities {
 }
 
 export function TeamFacilitySection({ match, id }: TeamFacilitySectionProps) {
-  // gyms에서 시설 정보 추출
-  const gymsData = match as unknown as { gyms?: GymFacilities };
-  const facilities = gymsData.gyms;
+  const facilities = match.facilities as GymFacilities | null;
 
   // 주차 정보 처리
   const getParkingInfo = (): { value: string; fee?: string; location?: string; isActive: boolean } => {

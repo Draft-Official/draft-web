@@ -18,14 +18,17 @@ import { TeamInfoSection } from './team-info-section';
 import { TeamFacilitySection } from './team-facility-section';
 import { useTeamVotes, useVotingSummary, useMyVote } from '@/features/team/api/match/queries';
 import { useVote, useCloseVoting, useReopenVoting } from '@/features/team/api/match/mutations';
-import type { Match } from '@/shared/types/database.types';
-import type { Team, TeamMember } from '@/features/team/model/types';
+import type {
+  TeamInfoDTO,
+  TeamMatchDetailDTO,
+  TeamMembershipDTO,
+} from '@/features/team/model/types';
 import type { TeamVoteStatusValue } from '@/shared/config/team-constants';
 
 interface TeamMatchDetailViewProps {
-  match: Match;
-  team: Team;
-  membership: TeamMember;
+  match: TeamMatchDetailDTO;
+  team: TeamInfoDTO;
+  membership: TeamMembershipDTO;
   userId?: string;
 }
 
@@ -39,9 +42,9 @@ export function TeamMatchDetailView({
   const [isVoteDialogOpen, setIsVoteDialogOpen] = useState(false);
 
   // 투표 현황 조회
-  const { data: votes = [], isLoading: isVotesLoading } = useTeamVotes(match.id);
-  const { data: votingSummary } = useVotingSummary(match.id, team.id);
-  const { data: myVote } = useMyVote(match.id, userId);
+  const { data: votes = [], isLoading: isVotesLoading } = useTeamVotes(match.matchId);
+  const { data: votingSummary } = useVotingSummary(match.matchId, team.id);
+  const { data: myVote } = useMyVote(match.matchId, userId);
 
   // Mutations
   const { mutate: vote, isPending: isVoting } = useVote();
@@ -52,7 +55,7 @@ export function TeamMatchDetailView({
   const isLeader = membership.role === 'LEADER';
   const isManager = membership.role === 'MANAGER';
   const canManage = isLeader || isManager;
-  const isVotingClosed = match.status === 'CLOSED';
+  const isVotingClosed = match.isVotingClosed;
 
   // 투표하기
   const handleVote = (status: TeamVoteStatusValue, reason: string) => {
@@ -65,7 +68,7 @@ export function TeamMatchDetailView({
       {
         userId,
         input: {
-          matchId: match.id,
+          matchId: match.matchId,
           status,
           description: reason || undefined,
         },
@@ -85,7 +88,7 @@ export function TeamMatchDetailView({
   // 투표 마감
   const handleCloseVoting = () => {
     closeVoting(
-      { matchId: match.id, teamId: team.id },
+      { matchId: match.matchId, teamId: team.id },
       {
         onSuccess: () => toast.success('투표가 마감되었습니다.'),
         onError: (error) => toast.error(`마감 실패: ${error.message}`),
@@ -96,7 +99,7 @@ export function TeamMatchDetailView({
   // 투표 재오픈
   const handleReopenVoting = () => {
     reopenVoting(
-      { matchId: match.id, teamId: team.id },
+      { matchId: match.matchId, teamId: team.id },
       {
         onSuccess: () => toast.success('투표가 재오픈되었습니다.'),
         onError: (error) => toast.error(`재오픈 실패: ${error.message}`),
@@ -174,7 +177,7 @@ export function TeamMatchDetailView({
           votes={votes}
           votingSummary={votingSummary ?? undefined}
           isAdmin={canManage}
-          matchId={match.id}
+          matchId={match.matchId}
           isVotingClosed={isVotingClosed}
           isLoading={isVotesLoading}
         />

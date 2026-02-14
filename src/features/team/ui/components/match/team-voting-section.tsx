@@ -1,11 +1,10 @@
 'use client';
 
 import { VotingAccordion } from './voting-accordion';
-import type { VotingSummary } from '@/features/team/model/types';
-import type { Application } from '@/shared/types/database.types';
+import type { TeamVoteDTO, VotingSummary } from '@/features/team/model/types';
 
 interface TeamVotingSectionProps {
-  votes: Application[];
+  votes: TeamVoteDTO[];
   votingSummary?: VotingSummary;
   isAdmin: boolean;
   matchId: string;

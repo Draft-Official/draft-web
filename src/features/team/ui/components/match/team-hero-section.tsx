@@ -1,21 +1,18 @@
 'use client';
 
 import { toast } from 'sonner';
-import type { Match } from '@/shared/types/database.types';
+import type { TeamMatchDetailDTO } from '@/features/team/model/types';
 
 interface TeamHeroSectionProps {
-  match: Match;
+  match: TeamMatchDetailDTO;
   teamName: string;
 }
 
 export function TeamHeroSection({ match, teamName }: TeamHeroSectionProps) {
-  // 체육관 정보
-  const gym = (match as unknown as { gyms?: { name: string; address: string } }).gyms;
-
   // 날짜/시간 포맷팅
   const formatDateTime = () => {
-    const startDate = new Date(match.start_time);
-    const endDate = new Date(match.end_time);
+    const startDate = new Date(match.startTime);
+    const endDate = new Date(match.endTime);
     const month = startDate.getMonth() + 1;
     const date = startDate.getDate();
     const day = ['일', '월', '화', '수', '목', '금', '토'][startDate.getDay()];
@@ -34,9 +31,9 @@ export function TeamHeroSection({ match, teamName }: TeamHeroSectionProps) {
 
   // 주소 복사 핸들러
   const handleCopyAddress = async () => {
-    if (!gym?.address) return;
+    if (!match.gymAddress) return;
     try {
-      await navigator.clipboard.writeText(gym.address);
+      await navigator.clipboard.writeText(match.gymAddress);
       toast.success('주소가 복사되었습니다.');
     } catch {
       toast.error('주소 복사에 실패했습니다.');
@@ -45,9 +42,9 @@ export function TeamHeroSection({ match, teamName }: TeamHeroSectionProps) {
 
   // 카카오맵 열기 핸들러
   const handleOpenMap = () => {
-    if (!gym) return;
+    if (!match.gymAddress) return;
     // 주소 검색으로 카카오맵 열기
-    const searchUrl = `https://map.kakao.com/link/search/${encodeURIComponent(gym.address)}`;
+    const searchUrl = `https://map.kakao.com/link/search/${encodeURIComponent(match.gymAddress)}`;
     window.open(searchUrl, '_blank', 'noopener,noreferrer');
   };
 
@@ -72,13 +69,13 @@ export function TeamHeroSection({ match, teamName }: TeamHeroSectionProps) {
         </div>
 
         {/* 2. 장소 */}
-        {gym && (
+        {match.gymName && (
           <div className="flex items-start gap-3">
             <span className="text-base font-normal text-slate-500 w-12 shrink-0 pt-0.5">장소</span>
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-base font-medium text-slate-900">
-                  {gym.name}
+                  {match.gymName}
                 </span>
                 <button
                   onClick={() => {
@@ -90,7 +87,7 @@ export function TeamHeroSection({ match, teamName }: TeamHeroSectionProps) {
                 </button>
               </div>
               <div className="flex items-center flex-wrap gap-x-2 text-[13px]">
-                <span className="text-slate-500">{gym.address}</span>
+                <span className="text-slate-500">{match.gymAddress || '-'}</span>
                 <span className="text-slate-300">|</span>
                 <button
                   onClick={handleCopyAddress}

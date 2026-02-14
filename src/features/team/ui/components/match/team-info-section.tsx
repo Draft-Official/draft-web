@@ -7,10 +7,10 @@ import { Users, Info } from 'lucide-react';
 import { ContactModal } from '@/features/match/ui/components/detail/contact-modal';
 import { toast } from 'sonner';
 import { Alert, AlertDescription } from '@/shared/ui/shadcn/alert';
-import type { Team } from '@/features/team/model/types';
+import type { TeamInfoDTO } from '@/features/team/model/types';
 
 interface TeamInfoSectionProps {
-  team: Team;
+  team: TeamInfoDTO;
 }
 
 export function TeamInfoSection({ team }: TeamInfoSectionProps) {
