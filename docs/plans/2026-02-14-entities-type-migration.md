@@ -1,5 +1,7 @@
 # Entities Type Migration Implementation Plan
 
+> **Status**: ✅ **COMPLETED** - Phase 2.5 Finished (2026-02-14)
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Migrate Match and Application domain types from features/ to entities/, eliminate type confusion, and create base structures to reduce duplication.
@@ -7,6 +9,8 @@
 **Architecture:** Following strict FSD architecture - domain entity types belong in entities/ layer, feature-specific UI types remain in features/, shared common types go to shared/types/. Establish clear dependency direction: features → entities → shared.
 
 **Tech Stack:** TypeScript, FSD Architecture, existing Supabase types
+
+**Completion**: Phase 2.5 완료 - All entity model types created (Match, Application, Gym, User)
 
 ---
 
