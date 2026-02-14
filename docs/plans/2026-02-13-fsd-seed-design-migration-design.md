@@ -82,8 +82,8 @@ pnpm dlx @seed-design/cli@latest add ui:button
 
 **결정**: **카카오페이 방식 (재사용 범위 기준)** ✅
 
-- **entities**: 여러 곳에서 재사용되는 CRUD
-- **features**: 특정 기능 전용 로직
+- **entities**: 자기 테이블 중심의 순수 도메인 계층 (service, keys, mapper, model)
+- **features**: JOIN query + entity 조합 + DTO + query/mutation orchestration
 - **shared**: Infrastructure (Supabase, Auth, Notification)
 
 ### 6. OAuth 처리
@@ -115,18 +115,19 @@ entities/match/api/
 - 파일 크기 관리 가능 (각 300줄 이내)
 - TypeScript Discriminated Union으로 타입 안전성
 
-### 9. 엔티티 간 관계
+### 9. 엔티티 간 관계와 조합 위치
 
-**결정**: **@x 패턴 (Cross-import API)** ✅
+**결정**: **Entities 독립 + Features 조합** ✅
 
 ```typescript
-entities/match/@x/
-├── with-team.ts              # Match + Team 조합
-└── with-applicants.ts        # Match + Applications 조합
+// 핵심 원칙 (2026-02-14 정렬)
+1. Entities = 자기 테이블만 (완전 독립)
+2. Features = JOIN query + 조합 + DTO
 ```
 
-FSD 공식 권장:
-> "연결된 엔티티는 함께 리팩토링되어야 하므로, 연결을 명시적으로 만드는 것이 최선입니다."
+- `entities/*` 내부 cross-import 금지 (`@/entities/*` 재의존 금지)
+- `entities/*/@x` 패턴은 사용하지 않음
+- `features/*/@x`는 sliced-group(기능 그룹핑) 용도로만 사용 가능
 
 ---
 
@@ -167,44 +168,33 @@ src/
 │   │   │   ├── match-service.ts          # 공통 CRUD
 │   │   │   ├── guest-recruit-ext.ts      # 용병 전용
 │   │   │   ├── team-match-ext.ts         # 팀 경기 전용
-│   │   │   ├── queries.ts
-│   │   │   ├── mutations.ts
+│   │   │   ├── mapper.ts
 │   │   │   └── keys.ts
 │   │   ├── model/
-│   │   │   ├── match-types.ts            # Discriminated Union
-│   │   │   ├── guest-recruit-types.ts
-│   │   │   └── team-match-types.ts
-│   │   └── @x/
-│   │       ├── with-team.ts
-│   │       └── with-applicants.ts
+│   │   │   └── types.ts                  # Discriminated Union
+│   │   └── index.ts
 │   │
 │   ├── application/
 │   │   ├── api/
 │   │   │   ├── application-service.ts    # 공통 CRUD
 │   │   │   ├── guest-application-ext.ts  # 게스트 신청
 │   │   │   ├── team-vote-ext.ts          # 팀 투표
-│   │   │   ├── queries.ts
-│   │   │   ├── mutations.ts
 │   │   │   └── keys.ts
 │   │   ├── model/
-│   │   │   ├── application-types.ts      # Discriminated Union
-│   │   │   ├── guest-application-types.ts
-│   │   │   └── team-vote-types.ts
-│   │   └── @x/
-│   │       ├── with-match.ts
-│   │       └── with-user.ts
+│   │   │   └── types.ts                  # Discriminated Union
+│   │   └── index.ts
 │   │
 │   ├── team/
 │   │   ├── api/
 │   │   │   ├── team-service.ts
-│   │   │   └── queries.ts
+│   │   │   ├── mapper.ts
+│   │   │   └── keys.ts
 │   │   └── model/
 │   │
 │   └── user/
 │       ├── api/
 │       │   ├── user-service.ts
-│       │   ├── queries.ts
-│       │   └── mutations.ts
+│       │   └── mapper.ts
 │       └── model/
 │
 ├── widgets/
@@ -285,6 +275,20 @@ src/
 
 ---
 
+## 🔁 FSD Data Flow (Updated)
+
+1. `features/*/api/queries.ts`에서 JOIN query 실행
+2. DB Row를 `entities/*` mapper로 Entity 변환
+3. `features/*/lib/mappers.ts`에서 Entity -> Flat DTO 변환
+4. `features/*/ui/*`는 DTO만 소비
+
+**핵심 규칙**
+- Entities는 완전 독립(자기 테이블만)
+- 조합/오케스트레이션은 Features에서 수행
+- DTO 계약은 Features에서 관리
+
+---
+
 ## 🎨 Seed Design Integration
 
 ### Foundation 교체
@@ -361,13 +365,13 @@ export default {
 1. `entities/match/api/` 생성
 2. `match/api/` + `match-create/api/` 통합
 3. `guest-recruit-ext.ts`, `team-match-ext.ts` 분리
-4. `@x/with-team.ts` 추가
+4. entities는 자기 테이블 기준 service/mapper/keys만 유지
 
 #### Step 2: entities/application 생성
 1. `entities/application/api/` 생성
 2. `application/api/` + `schedule/api/application-mutations.ts` 통합
 3. `guest-application-ext.ts`, `team-vote-ext.ts` 분리
-4. `@x/with-match.ts`, `@x/with-user.ts` 추가
+4. entities cross-import 없이 독립성 유지
 
 #### Step 3: entities/user, team 생성
 1. `entities/user/api/` 생성 (auth에서 이동)
@@ -385,7 +389,7 @@ export default {
 #### Step 6: features 정리
 1. `features/match/@x/` Sliced-group 적용
 2. `features/schedule-manage/` 생성 (schedule 통합)
-3. API 제거 (entities 사용)
+3. Feature query/mutation에서 JOIN + Entity->DTO 조합으로 오케스트레이션
 
 ### Phase 3: Seed 컴포넌트 교체 (3-4주)
 
@@ -497,5 +501,5 @@ export default {
 
 ---
 
-**Last Updated**: 2026-02-13
-**Next Review**: 2026-02-20 (Phase 1 완료 후)
+**Last Updated**: 2026-02-14 (Phase 3 / Match DTO 원칙 반영)
+**Next Review**: 2026-02-21 (문서 정합성 점검)

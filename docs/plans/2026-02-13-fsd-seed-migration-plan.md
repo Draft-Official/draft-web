@@ -4,7 +4,7 @@
 
 **Goal:** Migrate Draft project to FSD architecture with Seed Design system
 
-**Architecture:** Hybrid FSD approach maintaining 3-folder structure while adding entities/widgets layers. Parallel Seed Design integration with Foundation-first strategy.
+**Architecture:** Hybrid FSD structure + strict boundary rule. Entities stay table-scoped and independent, while features own JOIN queries, composition, and DTO contracts. Seed Design integration remains Foundation-first.
 
 **Tech Stack:** Next.js 15, TypeScript, Seed Design, React Query, Tailwind CSS 4
 
@@ -460,413 +460,106 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 
 ## 🏗️ Phase 2: FSD Structure Migration (Weeks 2-4)
 
-**Objective:** Create entities, widgets layers and reorganize API following FSD principles.
+**Objective:** Align with strict FSD boundaries.
+- **Entities** = 자기 테이블만 (완전 독립)
+- **Features** = JOIN query + 조합 + DTO
 
-### Task 2.1: Create entities/match Structure
+### Task 2.1: Create Entity Foundations (No Cross-import)
 
 **Files:**
-- Create: `src/entities/match/api/match-service.ts`
-- Create: `src/entities/match/api/queries.ts`
-- Create: `src/entities/match/api/mutations.ts`
-- Create: `src/entities/match/api/keys.ts`
-- Create: `src/entities/match/api/index.ts`
-- Create: `src/entities/match/model/match-types.ts`
-- Create: `src/entities/match/model/index.ts`
-- Create: `src/entities/match/index.ts`
+- Create/Modify: `src/entities/match/api/{match-service.ts,mapper.ts,keys.ts}`
+- Create/Modify: `src/entities/application/api/{application-service.ts,keys.ts}`
+- Create/Modify: `src/entities/team/api/{team-service.ts,mapper.ts,keys.ts}`
+- Create/Modify: `src/entities/*/model/types.ts`, `src/entities/*/index.ts`
 
-**Step 1: Create directory structure**
+**Rules:**
+1. `entities/*`는 자기 테이블만 조회/수정 (`select('*')` 기준)
+2. `entities/*` 내부에서 다른 `@/entities/*` import 금지
+3. `src/entities/*/@x` 폴더 생성 금지
 
+**Verification:**
 ```bash
-mkdir -p src/entities/match/api
-mkdir -p src/entities/match/model
-mkdir -p src/entities/match/@x
-```
-
-**Step 2: Create match-service.ts (unified CRUD)**
-
-```typescript
-/**
- * Match Service
- * Unified CRUD for both GUEST_RECRUIT and TEAM_MATCH types
- */
-import { SupabaseClient } from '@supabase/supabase-js';
-import { Database } from '@/shared/types/database.types';
-import { logRequest, logResponse } from '@/shared/lib/logger';
-
-type MatchType = 'GUEST_RECRUIT' | 'TEAM_MATCH';
-type MatchStatusValue = 'RECRUITING' | 'CLOSED' | 'CONFIRMED' | 'CANCELED';
-
-export class MatchService {
-  private readonly SERVICE_NAME = 'MatchService';
-
-  constructor(private supabase: SupabaseClient<Database>) {}
-
-  /**
-   * Get matches with optional type filter
-   */
-  async getMatches(filter?: { type?: MatchType; status?: MatchStatusValue }) {
-    logRequest(this.SERVICE_NAME, 'getMatches', filter);
-
-    let query = this.supabase
-      .from('matches')
-      .select(`
-        *,
-        gym:gyms!gym_id (*),
-        host:users!host_id (*),
-        team:teams!team_id (*)
-      `)
-      .order('start_time', { ascending: true });
-
-    if (filter?.type) {
-      query = query.eq('match_type', filter.type);
-    }
-
-    if (filter?.status) {
-      query = query.eq('status', filter.status);
-    }
-
-    const { data, error } = await query;
-
-    if (error) {
-      logResponse(this.SERVICE_NAME, 'getMatches', undefined, error);
-      throw error;
-    }
-
-    logResponse(this.SERVICE_NAME, 'getMatches', { count: data?.length ?? 0 });
-    return data ?? [];
-  }
-
-  /**
-   * Get match detail (type-agnostic)
-   */
-  async getMatchDetail(id: string) {
-    logRequest(this.SERVICE_NAME, 'getMatchDetail', { id });
-
-    const { data, error } = await this.supabase
-      .from('matches')
-      .select(`
-        *,
-        gym:gyms!gym_id (*),
-        host:users!host_id (*),
-        team:teams!team_id (*)
-      `)
-      .eq('id', id)
-      .single();
-
-    if (error) {
-      logResponse(this.SERVICE_NAME, 'getMatchDetail', undefined, error);
-      throw error;
-    }
-
-    logResponse(this.SERVICE_NAME, 'getMatchDetail', data);
-    return data;
-  }
-
-  /**
-   * Create match (supports both types)
-   */
-  async createMatch(data: any) {
-    logRequest(this.SERVICE_NAME, 'createMatch', data);
-
-    const { data: match, error } = await this.supabase
-      .from('matches')
-      .insert(data)
-      .select()
-      .single();
-
-    if (error) {
-      logResponse(this.SERVICE_NAME, 'createMatch', undefined, error);
-      throw error;
-    }
-
-    logResponse(this.SERVICE_NAME, 'createMatch', { matchId: match.id });
-    return match;
-  }
-
-  /**
-   * Update match
-   */
-  async updateMatch(id: string, data: any) {
-    logRequest(this.SERVICE_NAME, 'updateMatch', { id, data });
-
-    const { data: match, error } = await this.supabase
-      .from('matches')
-      .update(data)
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) {
-      logResponse(this.SERVICE_NAME, 'updateMatch', undefined, error);
-      throw error;
-    }
-
-    logResponse(this.SERVICE_NAME, 'updateMatch', { matchId: match.id });
-    return match;
-  }
-
-  /**
-   * Update match status
-   */
-  async updateStatus(id: string, status: MatchStatusValue) {
-    logRequest(this.SERVICE_NAME, 'updateStatus', { id, status });
-
-    const { data, error } = await this.supabase
-      .from('matches')
-      .update({ status })
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) {
-      logResponse(this.SERVICE_NAME, 'updateStatus', undefined, error);
-      throw error;
-    }
-
-    logResponse(this.SERVICE_NAME, 'updateStatus', data);
-    return data;
-  }
-
-  /**
-   * Cancel match
-   */
-  async cancelMatch(id: string) {
-    return this.updateStatus(id, 'CANCELED');
-  }
-}
-
-export function createMatchService(supabase: SupabaseClient<Database>) {
-  return new MatchService(supabase);
-}
-```
-
-**Step 3: Create keys.ts**
-
-```typescript
-/**
- * Match Query Keys
- * Structured keys for both GUEST_RECRUIT and TEAM_MATCH
- */
-
-export const matchKeys = {
-  all: ['matches'] as const,
-
-  lists: (filter?: { type?: string; status?: string }) =>
-    [...matchKeys.all, 'list', filter] as const,
-
-  detail: (id: string) =>
-    [...matchKeys.all, 'detail', id] as const,
-
-  // Guest Recruit specific
-  guestRecruit: {
-    all: ['matches', 'guest-recruit'] as const,
-    recruiting: () => [...matchKeys.guestRecruit.all, 'recruiting'] as const,
-    detail: (id: string) => [...matchKeys.guestRecruit.all, 'detail', id] as const,
-  },
-
-  // Team Match specific
-  teamMatch: {
-    all: ['matches', 'team-match'] as const,
-    upcoming: () => [...matchKeys.teamMatch.all, 'upcoming'] as const,
-    detail: (id: string) => [...matchKeys.teamMatch.all, 'detail', id] as const,
-  },
-} as const;
-```
-
-**Step 4: Create queries.ts**
-
-```typescript
-/**
- * Match Query Hooks
- */
-import { useQuery } from '@tanstack/react-query';
-import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
-import { createMatchService } from './match-service';
-import { matchKeys } from './keys';
-
-type MatchType = 'GUEST_RECRUIT' | 'TEAM_MATCH';
-
-/**
- * Get matches with optional filter
- */
-export function useMatches(filter?: { type?: MatchType }) {
-  return useQuery({
-    queryKey: matchKeys.lists(filter),
-    queryFn: async () => {
-      const supabase = getSupabaseBrowserClient();
-      const service = createMatchService(supabase);
-      return service.getMatches(filter);
-    },
-  });
-}
-
-/**
- * Get match detail
- */
-export function useMatch(id: string) {
-  return useQuery({
-    queryKey: matchKeys.detail(id),
-    queryFn: async () => {
-      const supabase = getSupabaseBrowserClient();
-      const service = createMatchService(supabase);
-      return service.getMatchDetail(id);
-    },
-    enabled: !!id,
-  });
-}
-```
-
-**Step 5: Create mutations.ts**
-
-```typescript
-/**
- * Match Mutation Hooks
- */
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
-import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
-import { createMatchService } from './match-service';
-import { matchKeys } from './keys';
-
-export function useCreateMatch() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (data: any) => {
-      const supabase = getSupabaseBrowserClient();
-      const service = createMatchService(supabase);
-      return service.createMatch(data);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: matchKeys.all });
-      toast.success('경기가 생성되었습니다');
-    },
-    onError: (error: Error) => {
-      toast.error(`경기 생성 실패: ${error.message}`);
-    },
-  });
-}
-
-export function useUpdateMatch() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: any }) => {
-      const supabase = getSupabaseBrowserClient();
-      const service = createMatchService(supabase);
-      return service.updateMatch(id, data);
-    },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: matchKeys.detail(variables.id) });
-      queryClient.invalidateQueries({ queryKey: matchKeys.all });
-      toast.success('경기가 수정되었습니다');
-    },
-    onError: (error: Error) => {
-      toast.error(`경기 수정 실패: ${error.message}`);
-    },
-  });
-}
-```
-
-**Step 6: Create barrel exports**
-
-```typescript
-// src/entities/match/api/index.ts
-export * from './match-service';
-export * from './queries';
-export * from './mutations';
-export { matchKeys } from './keys';
-
-// src/entities/match/model/index.ts
-export * from './match-types';
-
-// src/entities/match/index.ts
-export * from './api';
-export * from './model';
-```
-
-**Step 7: Commit**
-
-```bash
-git add src/entities/match
-git commit -m "feat(entities): create entities/match with unified service
-
-Create Match entity layer following FSD architecture:
-- Unified MatchService for GUEST_RECRUIT and TEAM_MATCH
-- React Query hooks (useMatches, useMatch, useCreateMatch, useUpdateMatch)
-- Structured query keys for type-based filtering
-
-Phase 2.1: entities/match foundation
-
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+find src/entities -type d -name '@x'
+rg -n "from '@/entities/" src/entities --glob '*.ts'
 ```
 
 ---
 
-### Task 2.2: Migrate features/match to use entities/match
+### Task 2.2: Move Query/Mutation Orchestration to Features
 
 **Files:**
-- Modify: `src/app/page.tsx` (home - match list)
-- Modify: `src/app/matches/[id]/page.tsx` (match detail)
-- Modify: `src/app/matches/create/page.tsx` (match create)
+- Modify: `src/features/match/api/queries.ts`
+- Modify: `src/features/application/api/{queries.ts,mutations.ts}`
+- Modify: `src/features/schedule/api/queries.ts`
+- Modify: `src/features/team/api/{team-info,membership,match}/*`
 
-**Step 1: Update home page to use entities/match**
-
-```typescript
-// src/app/page.tsx
-'use client';
-
-import { useMatches } from '@/entities/match';  // ← NEW: from entities
-// OLD: import { useRecruitingMatches } from '@/features/match/api/queries';
-
-export default function Home() {
-  const { data: matches, isLoading } = useMatches({
-    type: 'GUEST_RECRUIT'
-  });  // ← NEW: filtered by type
-
-  if (isLoading) return <div>Loading...</div>;
-
-  return (
-    <div>
-      {matches?.map(match => (
-        <MatchCard key={match.id} match={match} />
-      ))}
-    </div>
-  );
-}
-```
-
-**Step 2: Test the page**
-
-Run: `pnpm dev`
-
-Action: Visit http://localhost:3000 and verify match list loads
-
-**Step 3: Commit**
-
-```bash
-git add src/app/page.tsx
-git commit -m "refactor: migrate home page to use entities/match
-
-Replace features/match/api with entities/match API.
-Use unified useMatches hook with type filter.
-
-Phase 2.2: Migration step 1/3
-
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
-```
+**Steps:**
+1. Feature layer에서 필요한 JOIN query를 실행
+2. DB Row -> Entity mapper (`entities/*/api/mapper.ts`) 적용
+3. Entity -> DTO mapper (`features/*/lib/mappers.ts`) 적용
+4. Hook 반환 타입을 DTO로 고정
 
 ---
 
-**Note:** This implementation plan is comprehensive and covers all 4 phases. Due to length constraints, I'm showing the detailed pattern for Phase 1 and early Phase 2 tasks. The remaining tasks follow the same bite-sized structure:
+### Task 2.3: Match DTO Pattern as Baseline
 
-- Each task is 2-5 minute action
-- Exact file paths and line numbers
-- Complete code samples (no "add validation" shortcuts)
-- Test commands with expected output
-- Commit after each task
+**Files:**
+- `src/features/match/model/types.ts`
+- `src/features/match/lib/mappers.ts`
+- `src/features/match/api/queries.ts`
+- `src/features/match/ui/*`
 
-Would you like me to:
-1. Continue with the complete plan (Tasks 2.3-4.5)?
-2. Save this partial plan and provide execution options?
-3. Focus on a specific phase in detail?
+**Contract:**
+- `MatchListItemDTO`, `MatchDetailDTO` 중심
+- Flat DTO only (UI는 nested DB row/Entity shape 직접 소비 금지)
+- JOIN 위치는 `features/match/api/queries.ts`
+
+---
+
+### Task 2.4: Route-level Consumers Use Feature Hooks
+
+**Files:**
+- `src/app/page.tsx`
+- `src/app/matches/[id]/page.tsx`
+- `src/app/matches/create/page.tsx`
+
+**Rule:**
+- App route는 feature 공개 API(`@/features/*`)를 통해 DTO hook 사용
+- Entity query hook 직접 의존을 신규로 추가하지 않음
+
+---
+
+### Task 2.5: Spread Same DTO Pipeline to Schedule/Team
+
+**Schedule:**
+- `features/schedule/api/queries.ts` -> DTO 반환
+- `features/schedule/ui/*` -> DTO만 소비
+
+**Team:**
+- `features/team/api/*/queries.ts` -> DTO 반환
+- `features/team/ui/*` -> DTO만 소비
+
+---
+
+## ✅ Phase 2 Verification Checklist
+
+1. **Architecture Rules**
+- [ ] `src/entities`에 `@x` 폴더 없음
+- [ ] entities 내부 cross-import 없음
+- [ ] 조합/오케스트레이션은 feature hook에서만 수행
+
+2. **Type Rules**
+- [ ] feature query hook의 공개 반환 타입은 DTO
+- [ ] UI에서 DB row 타입 직접 import 없음
+
+3. **Build Gates**
+- [ ] `npm run lint`
+- [ ] `npm run build`
+
+---
+
+## 📌 Migration Notes (Updated 2026-02-14)
+
+- 이 문서의 Phase 2는 `docs/plans/complete/2026-02-14-phase3-remove-cross-imports.md`의 원칙(라인 68-69)과 일치하도록 갱신됨.
+- Match 기준 DTO 흐름(`JOIN in feature -> Entity mapping -> DTO mapping -> UI`)은 `docs/plans/complete/2026-02-14-match-feature-dto-refactoring-design.md`를 단일 기준으로 사용.
+- 구버전 지시(`entities/*/@x`, entities 중심 query orchestration)는 더 이상 적용하지 않음.
