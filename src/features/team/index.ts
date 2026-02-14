@@ -6,7 +6,8 @@ export type {
   TeamProfileCardData,
   TeamListItem,
   Team,
-  Match,
+  LegacyTeamCard,
+  LegacyMatchCard,
   Applicant,
   Position,
 } from './model/types';

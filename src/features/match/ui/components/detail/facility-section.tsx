@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Match } from '@/features/match/model/types';
+import { MatchDetailUI } from '@/features/match/model/types';
 import { Car, Droplets, Thermometer, BoxSelect, Droplet, CircleDot } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { COURT_SIZE_LABELS, BALL_LABELS, type CourtSizeValue, type BallValue } from '@/shared/config/constants';
@@ -13,7 +13,7 @@ import {
 } from '@/shared/ui/shadcn/accordion';
 
 interface FacilitySectionProps {
-  match: Match;
+  match: MatchDetailUI;
   id?: string;
 }
 

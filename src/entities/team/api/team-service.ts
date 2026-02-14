@@ -32,7 +32,7 @@ import type {
 } from '../model/types';
 
 // DB row types (users 조인 포함)
-export type TeamMemberWithUser = TeamMember & {
+export type TeamMemberWithUserRow = TeamMember & {
   users?: {
     id: string;
     nickname: string | null;
@@ -41,7 +41,7 @@ export type TeamMemberWithUser = TeamMember & {
   } | null;
 };
 
-export type TeamFeeWithUser = TeamFee & {
+export type TeamFeeWithUserRow = TeamFee & {
   users?: {
     id: string;
     nickname: string | null;
@@ -256,7 +256,7 @@ export class TeamService {
   /**
    * 팀원 목록 조회 (활성 팀원만)
    */
-  async getTeamMembers(teamId: string): Promise<TeamMemberWithUser[]> {
+  async getTeamMembers(teamId: string): Promise<TeamMemberWithUserRow[]> {
     const { data, error } = await this.supabase
       .from('team_members')
       .select('*, users(id, nickname, avatar_url, positions)')
@@ -271,7 +271,7 @@ export class TeamService {
   /**
    * 가입 대기자 목록 조회
    */
-  async getPendingMembers(teamId: string): Promise<TeamMemberWithUser[]> {
+  async getPendingMembers(teamId: string): Promise<TeamMemberWithUserRow[]> {
     const { data, error } = await this.supabase
       .from('team_members')
       .select('*, users(id, nickname, avatar_url, positions)')
@@ -472,7 +472,7 @@ export class TeamService {
   /**
    * 팀 회비 목록 조회 (특정 월)
    */
-  async getTeamFees(teamId: string, yearMonth: string): Promise<TeamFeeWithUser[]> {
+  async getTeamFees(teamId: string, yearMonth: string): Promise<TeamFeeWithUserRow[]> {
     const { data, error } = await this.supabase
       .from('team_fees')
       .select('*, users!user_id(id, nickname, avatar_url)')

@@ -11,10 +11,10 @@ import {
 } from 'lucide-react';
 import { formatRegion, formatRegularSchedule } from '@/features/team/api/mapper';
 import { LEVEL_LABELS, GENDER_LABELS, type GenderValue } from '@/shared/config/constants';
-import type { ClientTeam } from '@/features/team/model/types';
+import type { Team } from '@/features/team/model/types';
 
 interface TeamHomeTabProps {
-  team: ClientTeam;
+  team: Team;
   homeGymName: string | null;
   memberCount: number;
 }

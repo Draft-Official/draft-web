@@ -2,7 +2,7 @@
 // Model Types
 // ============================================
 export type {
-  ClientMatch,
+  Match,
   CreateMatchInput,
   UpdateMatchInput,
 } from './model/types';

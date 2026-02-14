@@ -1,21 +1,21 @@
 /**
  * Team Mapper
- * DB row를 Client type으로 변환
+ * DB row를 entity 타입으로 변환
  */
 
-import type { Team, TeamMember, TeamFee } from '@/shared/types/database.types';
+import type { Team as TeamRow, TeamMember as TeamMemberRow, TeamFee as TeamFeeRow } from '@/shared/types/database.types';
 import type { AccountInfo, OperationInfo, LevelRange, AgeRange } from '@/shared/types/jsonb.types';
 import type {
   TeamRoleValue,
   TeamMemberStatusValue,
   RegularDayValue,
 } from '@/shared/config/team-constants';
-import type { ClientTeam, ClientTeamMember, ClientTeamFee } from '../model/types';
+import type { Team as TeamEntity, TeamMember as TeamMemberEntity, TeamFee as TeamFeeEntity } from '../model/types';
 
 /**
- * Team DB row를 Client type으로 변환
+ * Team DB row를 entity 타입으로 변환
  */
-export function teamRowToClient(row: Team): ClientTeam {
+export function teamRowToEntity(row: TeamRow): TeamEntity {
   return {
     id: row.id,
     code: row.code,
@@ -40,11 +40,11 @@ export function teamRowToClient(row: Team): ClientTeam {
 }
 
 /**
- * TeamMember DB row를 Client type으로 변환
+ * TeamMember DB row를 entity 타입으로 변환
  */
-export function teamMemberRowToClient(
-  row: TeamMember & { users?: { id: string; nickname: string | null; avatar_url: string | null; positions: string[] | null } | null }
-): ClientTeamMember {
+export function teamMemberRowToEntity(
+  row: TeamMemberRow
+): TeamMemberEntity {
   return {
     id: row.id,
     teamId: row.team_id,
@@ -52,23 +52,15 @@ export function teamMemberRowToClient(
     role: (row.role as TeamRoleValue) || 'MEMBER',
     status: (row.status as TeamMemberStatusValue) || 'PENDING',
     joinedAt: row.joined_at,
-    user: row.users
-      ? {
-          id: row.users.id,
-          nickname: row.users.nickname,
-          avatarUrl: row.users.avatar_url,
-          positions: row.users.positions,
-        }
-      : undefined,
   };
 }
 
 /**
- * TeamFee DB row를 Client type으로 변환
+ * TeamFee DB row를 entity 타입으로 변환
  */
-export function teamFeeRowToClient(
-  row: TeamFee & { users?: { id: string; nickname: string | null; avatar_url: string | null } | null }
-): ClientTeamFee {
+export function teamFeeRowToEntity(
+  row: TeamFeeRow
+): TeamFeeEntity {
   return {
     id: row.id,
     teamId: row.team_id,
@@ -79,13 +71,6 @@ export function teamFeeRowToClient(
     updatedBy: row.updated_by,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
-    user: row.users
-      ? {
-          id: row.users.id,
-          nickname: row.users.nickname,
-          avatarUrl: row.users.avatar_url,
-        }
-      : undefined,
   };
 }
 

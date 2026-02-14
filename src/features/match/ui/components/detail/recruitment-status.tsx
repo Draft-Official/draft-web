@@ -2,11 +2,11 @@
 
 import React from 'react';
 import { cn } from '@/shared/lib/utils';
-import { Match } from '@/features/match/model/types';
+import { MatchDetailUI } from '@/features/match/model/types';
 import { POSITION_LABELS } from '@/shared/config/constants';
 
 interface RecruitmentStatusProps {
-  match: Match;
+  match: MatchDetailUI;
 }
 
 export function RecruitmentStatus({ match }: RecruitmentStatusProps) {

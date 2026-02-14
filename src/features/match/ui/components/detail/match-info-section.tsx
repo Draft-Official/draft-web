@@ -1,14 +1,14 @@
 'use client';
 
 import React from 'react';
-import { Match } from '@/features/match/model/types';
+import { MatchDetailUI } from '@/features/match/model/types';
 import { Trophy, User, Swords, Calendar } from 'lucide-react';
 import { getLevelLabel, GENDER_LABELS, MATCH_FORMAT_LABELS, GenderValue } from '@/shared/config/constants';
 import { SKILL_LEVELS } from '@/shared/config/skill-constants';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/shared/ui/shadcn/accordion';
 
 interface MatchInfoSectionProps {
-  match: Match;
+  match: MatchDetailUI;
 }
 
 export function MatchInfoSection({ match }: MatchInfoSectionProps) {

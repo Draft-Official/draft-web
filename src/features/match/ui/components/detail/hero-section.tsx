@@ -2,10 +2,10 @@
 
 import React from 'react';
 import { toast } from 'sonner';
-import { Match } from '@/features/match/model/types';
+import { MatchDetailUI } from '@/features/match/model/types';
 
 interface HeroSectionProps {
-  match: Match;
+  match: MatchDetailUI;
 }
 
 export function HeroSection({ match }: HeroSectionProps) {

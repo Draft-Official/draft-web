@@ -16,10 +16,9 @@ import type { AccountInfo, OperationInfo, LevelRange, AgeRange } from '@/shared/
 // ============================================
 
 /**
- * 클라이언트용 팀 타입
- * DB row를 mapper로 변환한 결과
+ * 팀 엔티티 타입
  */
-export interface ClientTeam {
+export interface Team {
   id: string;
   code: string | null;
   name: string;
@@ -90,21 +89,15 @@ export interface UpdateTeamInput {
 // ============================================
 
 /**
- * 클라이언트용 팀 멤버 타입
+ * 팀 멤버 엔티티 타입
  */
-export interface ClientTeamMember {
+export interface TeamMember {
   id: string;
   teamId: string;
   userId: string;
   role: TeamRoleValue;
   status: TeamMemberStatusValue;
   joinedAt: string | null;
-  user?: {
-    id: string;
-    nickname: string | null;
-    avatarUrl: string | null;
-    positions: string[] | null;
-  };
 }
 
 /**
@@ -120,9 +113,9 @@ export interface UpdateMemberRoleInput {
 // ============================================
 
 /**
- * 클라이언트용 팀 회비 타입
+ * 팀 회비 엔티티 타입
  */
-export interface ClientTeamFee {
+export interface TeamFee {
   id: string;
   teamId: string;
   userId: string;
@@ -132,11 +125,6 @@ export interface ClientTeamFee {
   updatedBy: string | null;
   createdAt: string;
   updatedAt: string;
-  user?: {
-    id: string;
-    nickname: string | null;
-    avatarUrl: string | null;
-  };
 }
 
 /**
@@ -166,7 +154,7 @@ export interface VotingSummary {
 }
 
 /**
- * 팀 투표 타입
+ * 팀 투표 엔티티 타입
  */
 export interface TeamVote {
   id: string;
@@ -176,11 +164,6 @@ export interface TeamVote {
   description: string | null;
   createdAt: string;
   updatedAt: string;
-  user?: {
-    id: string;
-    nickname: string | null;
-    avatarUrl: string | null;
-  };
 }
 
 /**

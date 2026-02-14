@@ -2,7 +2,7 @@
 // Model Types
 // ============================================
 export type {
-  ClientApplication,
+  Application,
   CreateApplicationInput,
   UpdateApplicationInput,
 } from './model/types';

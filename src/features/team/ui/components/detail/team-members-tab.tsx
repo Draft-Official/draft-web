@@ -9,11 +9,11 @@ import {
   TEAM_ROLE_STYLES,
   type TeamRoleValue,
 } from '@/shared/config/team-constants';
-import type { ClientTeamMember } from '@/features/team/model/types';
+import type { TeamMember } from '@/features/team/model/types';
 
 interface TeamMembersTabProps {
   teamCode: string;
-  members: ClientTeamMember[];
+  members: TeamMember[];
   pendingCount: number;
   myRole: TeamRoleValue | null;
   isLoading?: boolean;
@@ -82,7 +82,7 @@ export function TeamMembersTab({
 
 // 멤버 행 컴포넌트
 interface MemberRowProps {
-  member: ClientTeamMember;
+  member: TeamMember;
 }
 
 function MemberRow({ member }: MemberRowProps) {

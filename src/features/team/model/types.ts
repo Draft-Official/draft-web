@@ -7,24 +7,76 @@
 
 // Re-export entity types for backwards compatibility
 export type {
-  ClientTeam,
-  ClientTeamMember,
-  ClientTeamFee,
+  Team,
   CreateTeamInput,
   UpdateTeamInput,
   UpdateMemberRoleInput,
   UpdateFeeStatusInput,
   VotingSummary,
-  TeamVote,
   VoteInput,
   CreateTeamMatchInput,
+} from '@/entities/team';
+
+import type {
+  TeamMember as TeamMemberEntity,
+  TeamFee as TeamFeeEntity,
+  TeamVote as TeamVoteEntity,
+  VotingSummary,
 } from '@/entities/team';
 
 import type {
   TeamRoleValue,
   RegularDayValue,
 } from '@/shared/config/team-constants';
-import type { VotingSummary } from '@/entities/team';
+
+/**
+ * TeamMember UI 조합용 사용자 타입
+ */
+export interface TeamMemberUser {
+  id: string;
+  nickname: string | null;
+  avatarUrl: string | null;
+  positions: string[] | null;
+}
+
+/**
+ * TeamFee UI 조합용 사용자 타입
+ */
+export interface TeamFeeUser {
+  id: string;
+  nickname: string | null;
+  avatarUrl: string | null;
+}
+
+/**
+ * TeamVote UI 조합용 사용자 타입
+ */
+export interface TeamVoteUser {
+  id: string;
+  nickname: string | null;
+  avatarUrl: string | null;
+}
+
+/**
+ * Feature 조합 모델 (TeamMember + joined user)
+ */
+export type TeamMember = TeamMemberEntity & {
+  user?: TeamMemberUser;
+};
+
+/**
+ * Feature 조합 모델 (TeamFee + joined user)
+ */
+export type TeamFee = TeamFeeEntity & {
+  user?: TeamFeeUser;
+};
+
+/**
+ * Feature 조합 모델 (TeamVote + joined user)
+ */
+export type TeamVote = TeamVoteEntity & {
+  user?: TeamVoteUser;
+};
 
 // ============================================
 // Feature-specific View Models
@@ -96,9 +148,9 @@ export const ApplicantStatus = {
 } as const;
 
 /**
- * 레거시 Team 타입 (mock data용)
+ * 레거시 Team 카드 타입 (mock data용)
  */
-export interface Team {
+export interface LegacyTeamCard {
   id: string;
   name: string;
   leaderName: string;
@@ -107,9 +159,9 @@ export interface Team {
 }
 
 /**
- * 레거시 Match 타입 (mock data용)
+ * 레거시 Match 카드 타입 (mock data용)
  */
-export interface Match {
+export interface LegacyMatchCard {
   id: string;
   title: string;
   gymName: string;

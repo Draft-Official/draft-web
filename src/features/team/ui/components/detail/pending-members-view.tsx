@@ -9,7 +9,7 @@ import { usePendingMembers, useMyMembership } from '@/features/team/api/membersh
 import { useApproveJoinRequest, useRejectJoinRequest } from '@/features/team/api/membership/mutations';
 import { useAuth } from '@/features/auth/model/auth-context';
 import { Button } from '@/shared/ui/shadcn/button';
-import type { ClientTeamMember } from '@/features/team/model/types';
+import type { TeamMember } from '@/features/team/model/types';
 
 interface PendingMembersViewProps {
   code: string;
@@ -85,7 +85,7 @@ function Header({ onBack, title }: { onBack: () => void; title?: string }) {
 }
 
 interface PendingMemberItemProps {
-  member: ClientTeamMember;
+  member: TeamMember;
   onApprove: () => void;
   onReject: () => void;
   isLoading: boolean;

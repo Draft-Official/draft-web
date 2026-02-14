@@ -5,9 +5,9 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
-import { createTeamService, teamRowToClient } from '@/entities/team';
+import { createTeamService, teamRowToEntity } from '@/entities/team';
 import { teamKeys, teamMemberKeys } from '../keys';
-import type { CreateTeamInput, UpdateTeamInput, ClientTeam } from '../../model/types';
+import type { CreateTeamInput, UpdateTeamInput, Team } from '../../model/types';
 
 /**
  * 팀 생성
@@ -22,11 +22,11 @@ export function useCreateTeam() {
     }: {
       userId: string;
       input: CreateTeamInput;
-    }): Promise<ClientTeam> => {
+    }): Promise<Team> => {
       const supabase = getSupabaseBrowserClient();
       const service = createTeamService(supabase);
       const team = await service.createTeam(userId, input);
-      return teamRowToClient(team);
+      return teamRowToEntity(team);
     },
     onSuccess: (data, { userId }) => {
       // 내 팀 목록 갱신
@@ -53,11 +53,11 @@ export function useUpdateTeam() {
     }: {
       teamId: string;
       input: UpdateTeamInput;
-    }): Promise<ClientTeam> => {
+    }): Promise<Team> => {
       const supabase = getSupabaseBrowserClient();
       const service = createTeamService(supabase);
       const row = await service.updateTeam(teamId, input);
-      return teamRowToClient(row);
+      return teamRowToEntity(row);
     },
     onSuccess: (data) => {
       // 팀 상세 캐시 갱신

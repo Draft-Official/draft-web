@@ -7,7 +7,7 @@ import { cn } from '@/shared/lib/utils';
 import { formatRegularSchedule } from '@/features/team/api/mapper';
 import { useJoinTeam } from '@/features/team/api/membership/mutations';
 import { useAuth } from '@/features/auth/model/auth-context';
-import type { ClientTeam, ClientTeamMember } from '@/features/team/model/types';
+import type { Team, TeamMember } from '@/features/team/model/types';
 import {
   HoverCard,
   HoverCardContent,
@@ -15,8 +15,8 @@ import {
 } from '@/shared/ui/shadcn/hover-card';
 
 interface TeamDetailHeaderProps {
-  team: ClientTeam;
-  membership: ClientTeamMember | null;
+  team: Team;
+  membership: TeamMember | null;
   homeGymName: string | null;
   isLoggedIn: boolean;
   currentView?: string;

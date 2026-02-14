@@ -5,9 +5,9 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
-import { createTeamService, teamRowToClient } from '@/entities/team';
+import { createTeamService, teamRowToEntity } from '@/entities/team';
 import { teamKeys } from '../keys';
-import type { ClientTeam, TeamListItem } from '../../model/types';
+import type { Team, TeamListItem } from '../../model/types';
 import type { RegularDayValue } from '@/shared/config/team-constants';
 
 /**
@@ -16,12 +16,12 @@ import type { RegularDayValue } from '@/shared/config/team-constants';
 export function useTeam(teamId: string | null | undefined) {
   return useQuery({
     queryKey: teamKeys.detail(teamId || ''),
-    queryFn: async (): Promise<ClientTeam | null> => {
+    queryFn: async (): Promise<Team | null> => {
       if (!teamId) return null;
       const supabase = getSupabaseBrowserClient();
       const service = createTeamService(supabase);
       const row = await service.getTeam(teamId);
-      return row ? teamRowToClient(row) : null;
+      return row ? teamRowToEntity(row) : null;
     },
     enabled: !!teamId,
   });
@@ -33,14 +33,14 @@ export function useTeam(teamId: string | null | undefined) {
 export function useTeamByCode(code: string | null | undefined) {
   return useQuery({
     queryKey: teamKeys.detailByCode(code || ''),
-    queryFn: async (): Promise<(ClientTeam & { homeGymName: string | null }) | null> => {
+    queryFn: async (): Promise<(Team & { homeGymName: string | null }) | null> => {
       if (!code) return null;
       const supabase = getSupabaseBrowserClient();
       const service = createTeamService(supabase);
       const row = await service.getTeamByCode(code);
       if (!row) return null;
       return {
-        ...teamRowToClient(row),
+        ...teamRowToEntity(row),
         homeGymName: row.gyms?.name ?? null,
       };
     },

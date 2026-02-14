@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { gymKeys } from './keys';
-import type { ClientGym } from '../model/types';
+import type { Gym } from '../model/types';
 import type { GymFacilities } from '@/shared/types/jsonb.types';
 
 /**

@@ -19,7 +19,7 @@ import type { Participant } from '@/shared/types/jsonb.types';
  * 클라이언트용 신청 타입
  * DB row를 mapper로 변환한 결과
  */
-export interface ClientApplication {
+export interface Application {
   id: string;
   userId: string;
   matchId: string;

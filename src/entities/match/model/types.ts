@@ -29,7 +29,7 @@ import type {
  * 클라이언트용 매치 타입
  * DB row를 mapper로 변환한 결과
  */
-export interface ClientMatch {
+export interface Match {
   id: string;
   hostId: string;
   teamId: string | null;

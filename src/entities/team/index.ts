@@ -2,12 +2,12 @@
 // Model Types
 // ============================================
 export type {
-  ClientTeam,
+  Team,
   CreateTeamInput,
   UpdateTeamInput,
-  ClientTeamMember,
+  TeamMember,
   UpdateMemberRoleInput,
-  ClientTeamFee,
+  TeamFee,
   UpdateFeeStatusInput,
   VotingSummary,
   TeamVote,
@@ -19,7 +19,7 @@ export type {
 // API Service & Queries
 // ============================================
 export { TeamService, createTeamService } from './api/team-service';
-export type { TeamMemberWithUser, TeamFeeWithUser } from './api/team-service';
+export type { TeamMemberWithUserRow, TeamFeeWithUserRow } from './api/team-service';
 export {
   teamKeys,
   teamMemberKeys,
@@ -27,9 +27,9 @@ export {
   teamFeeKeys,
 } from './api/keys';
 export {
-  teamRowToClient,
-  teamMemberRowToClient,
-  teamFeeRowToClient,
+  teamRowToEntity,
+  teamMemberRowToEntity,
+  teamFeeRowToEntity,
   formatRegion,
   formatRegularSchedule,
 } from './api/mapper';

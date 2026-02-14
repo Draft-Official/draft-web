@@ -3,7 +3,7 @@
 // ============================================
 export type {
   UserMetadata,
-  ClientUser,
+  User,
   CreateUserInput,
   UpdateUserInput,
 } from './model/types';

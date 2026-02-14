@@ -13,12 +13,12 @@ import { SelectedLocationCard } from '@/features/match-create/ui/components/sele
 import { useCreateTeamMatch } from '@/features/team/api/match/mutations';
 import { useAuth } from '@/features/auth/model/auth-context';
 import { toast } from 'sonner';
-import type { ClientTeam } from '@/features/team/model/types';
+import type { Team } from '@/features/team/model/types';
 import type { RegularDayValue } from '@/shared/config/team-constants';
 import type { LocationData } from '@/features/match-create/model/types';
 
 interface TeamMatchCreateFormProps {
-  team: ClientTeam & { homeGymName: string | null };
+  team: Team & { homeGymName: string | null };
   onClose?: () => void;
 }
 

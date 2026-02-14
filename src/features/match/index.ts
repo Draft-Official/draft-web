@@ -12,7 +12,7 @@ export type {
   PositionsUI,
   ContactInfo,
   GuestListMatch,
-  Match,
+  MatchDetailUI,
 } from './model/types';
 
 // ============================================

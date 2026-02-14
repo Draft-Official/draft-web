@@ -1,11 +1,11 @@
 'use client';
 
 import React from 'react';
-import { Match } from '@/features/match/model/types';
+import { MatchDetailUI } from '@/features/match/model/types';
 import { PLAY_STYLE_LABELS, REFEREE_TYPE_LABELS } from '@/shared/config/constants';
 
 interface MatchRuleSectionProps {
-  match: Match;
+  match: MatchDetailUI;
 }
 
 export function MatchRuleSection({ match }: MatchRuleSectionProps) {

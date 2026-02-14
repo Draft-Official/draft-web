@@ -5,9 +5,30 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
-import { createTeamService, teamMemberRowToClient } from '@/entities/team';
+import {
+  createTeamService,
+  teamMemberRowToEntity,
+  type TeamMemberWithUserRow,
+} from '@/entities/team';
 import { teamMemberKeys } from '../keys';
-import type { ClientTeamMember } from '../../model/types';
+import type { TeamMember, TeamMemberUser } from '../../model/types';
+
+function mapTeamMemberWithUserRow(row: TeamMemberWithUserRow): TeamMember {
+  const member = teamMemberRowToEntity(row);
+  const user: TeamMemberUser | undefined = row.users
+    ? {
+        id: row.users.id,
+        nickname: row.users.nickname,
+        avatarUrl: row.users.avatar_url,
+        positions: row.users.positions,
+      }
+    : undefined;
+
+  return {
+    ...member,
+    user,
+  };
+}
 
 /**
  * 팀원 목록 조회 (활성 팀원만)
@@ -15,12 +36,12 @@ import type { ClientTeamMember } from '../../model/types';
 export function useTeamMembers(teamId: string | null | undefined) {
   return useQuery({
     queryKey: teamMemberKeys.byTeam(teamId || ''),
-    queryFn: async (): Promise<ClientTeamMember[]> => {
+    queryFn: async (): Promise<TeamMember[]> => {
       if (!teamId) return [];
       const supabase = getSupabaseBrowserClient();
       const service = createTeamService(supabase);
       const rows = await service.getTeamMembers(teamId);
-      return rows.map(teamMemberRowToClient);
+      return rows.map(mapTeamMemberWithUserRow);
     },
     enabled: !!teamId,
   });
@@ -32,12 +53,12 @@ export function useTeamMembers(teamId: string | null | undefined) {
 export function usePendingMembers(teamId: string | null | undefined) {
   return useQuery({
     queryKey: teamMemberKeys.pending(teamId || ''),
-    queryFn: async (): Promise<ClientTeamMember[]> => {
+    queryFn: async (): Promise<TeamMember[]> => {
       if (!teamId) return [];
       const supabase = getSupabaseBrowserClient();
       const service = createTeamService(supabase);
       const rows = await service.getPendingMembers(teamId);
-      return rows.map(teamMemberRowToClient);
+      return rows.map(mapTeamMemberWithUserRow);
     },
     enabled: !!teamId,
   });
@@ -52,12 +73,12 @@ export function useMyMembership(
 ) {
   return useQuery({
     queryKey: teamMemberKeys.myMembership(teamId || '', userId || ''),
-    queryFn: async (): Promise<ClientTeamMember | null> => {
+    queryFn: async (): Promise<TeamMember | null> => {
       if (!teamId || !userId) return null;
       const supabase = getSupabaseBrowserClient();
       const service = createTeamService(supabase);
       const row = await service.getMembership(teamId, userId);
-      return row ? teamMemberRowToClient(row) : null;
+      return row ? { ...teamMemberRowToEntity(row), user: undefined } : null;
     },
     enabled: !!teamId && !!userId,
   });

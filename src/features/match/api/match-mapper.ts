@@ -6,7 +6,7 @@ import {
 import type { LevelRange } from '@/shared/types/jsonb.types';
 import {
   GuestListMatch,
-  Match,
+  MatchDetailUI,
   MatchOptionsUI,
   PositionsUI,
   PositionStatusUI,
@@ -291,7 +291,7 @@ export function matchRowToGuestListMatch(row: any): GuestListMatch {
  * GuestListMatch -> Match (상세 페이지 UI용) 변환
  * 기존 page.tsx의 adaptToDetailMatch 로직을 mapper로 이동
  */
-export function guestListMatchToMatch(data: GuestListMatch): Match {
+export function guestListMatchToMatch(data: GuestListMatch): MatchDetailUI {
   const priceAmount = data.price.amount ?? 0;
 
   const getPriceDisplay = () => {

@@ -24,10 +24,9 @@ export interface UserMetadata {
 }
 
 /**
- * 클라이언트용 사용자 타입
- * DB row를 mapper로 변환한 결과
+ * 사용자 엔티티 타입
  */
-export interface ClientUser {
+export interface User {
   id: string;
   nickname: string | null;
   avatarUrl: string | null;

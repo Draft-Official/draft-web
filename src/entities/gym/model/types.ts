@@ -15,7 +15,7 @@ import type { GymFacilities } from '@/shared/types/jsonb.types';
  * 클라이언트용 체육관 타입
  * DB row를 mapper로 변환한 결과
  */
-export interface ClientGym {
+export interface Gym {
   id: string;
   name: string;
   address: string;

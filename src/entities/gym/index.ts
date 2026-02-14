@@ -2,7 +2,7 @@
 // Model Types
 // ============================================
 export type {
-  ClientGym,
+  Gym,
   CreateGymInput,
   UpdateGymInput,
 } from './model/types';

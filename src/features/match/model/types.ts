@@ -170,7 +170,7 @@ export interface GuestListMatch extends BaseMatch {
 /**
  * Match 인터페이스 (상세 페이지 UI용)
  */
-export interface Match {
+export interface MatchDetailUI {
   id: string;
   dateISO: string; // YYYY-MM-DD
   startTime: string; // HH:mm

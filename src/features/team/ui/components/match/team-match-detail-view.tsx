@@ -19,13 +19,13 @@ import { TeamFacilitySection } from './team-facility-section';
 import { useTeamVotes, useVotingSummary, useMyVote } from '@/features/team/api/match/queries';
 import { useVote, useCloseVoting, useReopenVoting } from '@/features/team/api/match/mutations';
 import type { Match } from '@/shared/types/database.types';
-import type { ClientTeam, ClientTeamMember } from '@/features/team/model/types';
+import type { Team, TeamMember } from '@/features/team/model/types';
 import type { TeamVoteStatusValue } from '@/shared/config/team-constants';
 
 interface TeamMatchDetailViewProps {
   match: Match;
-  team: ClientTeam;
-  membership: ClientTeamMember;
+  team: Team;
+  membership: TeamMember;
   userId?: string;
 }
 

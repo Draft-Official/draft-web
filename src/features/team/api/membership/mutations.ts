@@ -6,8 +6,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { teamMemberKeys, teamKeys } from '../keys';
-import { createTeamService, teamMemberRowToClient } from '@/entities/team';
-import type { ClientTeamMember } from '@/entities/team/model/types';
+import { createTeamService, teamMemberRowToEntity } from '@/entities/team';
+import type { TeamMember } from '../../model/types';
 import type { TeamRoleValue } from '@/shared/config/team-constants';
 
 /**
@@ -23,11 +23,11 @@ export function useJoinTeam() {
     }: {
       teamId: string;
       userId: string;
-    }): Promise<ClientTeamMember> => {
+    }): Promise<TeamMember> => {
       const supabase = getSupabaseBrowserClient();
       const service = createTeamService(supabase);
       const row = await service.createJoinRequest(teamId, userId);
-      return teamMemberRowToClient(row);
+      return teamMemberRowToEntity(row);
     },
     onSuccess: (data, { teamId, userId }) => {
       // 멤버십 캐시 갱신
@@ -57,11 +57,11 @@ export function useApproveJoin() {
     }: {
       membershipId: string;
       teamId: string;
-    }): Promise<ClientTeamMember> => {
+    }): Promise<TeamMember> => {
       const supabase = getSupabaseBrowserClient();
       const service = createTeamService(supabase);
       const row = await service.approveJoinRequest(membershipId);
-      const member = teamMemberRowToClient(row);
+      const member = teamMemberRowToEntity(row);
 
       // 새 팀원에게 진행 중인 경기들의 투표 생성
       await service.createVotesForNewMember(teamId, member.userId);
@@ -99,11 +99,11 @@ export function useRejectJoin() {
     }: {
       membershipId: string;
       teamId: string;
-    }): Promise<ClientTeamMember> => {
+    }): Promise<TeamMember> => {
       const supabase = getSupabaseBrowserClient();
       const service = createTeamService(supabase);
       const row = await service.rejectJoinRequest(membershipId);
-      return teamMemberRowToClient(row);
+      return teamMemberRowToEntity(row);
     },
     onSuccess: (_, { teamId }) => {
       // 대기자 목록 갱신
@@ -129,11 +129,11 @@ export function useUpdateRole() {
       membershipId: string;
       teamId: string;
       newRole: TeamRoleValue;
-    }): Promise<ClientTeamMember> => {
+    }): Promise<TeamMember> => {
       const supabase = getSupabaseBrowserClient();
       const service = createTeamService(supabase);
       const row = await service.updateMemberRole(membershipId, newRole);
-      return teamMemberRowToClient(row);
+      return teamMemberRowToEntity(row);
     },
     onSuccess: (data, { teamId }) => {
       // 팀원 목록 갱신
@@ -228,11 +228,11 @@ export function useApproveJoinRequest(teamId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (membershipId: string): Promise<ClientTeamMember> => {
+    mutationFn: async (membershipId: string): Promise<TeamMember> => {
       const supabase = getSupabaseBrowserClient();
       const service = createTeamService(supabase);
       const row = await service.approveJoinRequest(membershipId);
-      const member = teamMemberRowToClient(row);
+      const member = teamMemberRowToEntity(row);
       await service.createVotesForNewMember(teamId, member.userId);
       return member;
     },
@@ -250,11 +250,11 @@ export function useRejectJoinRequest(teamId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (membershipId: string): Promise<ClientTeamMember> => {
+    mutationFn: async (membershipId: string): Promise<TeamMember> => {
       const supabase = getSupabaseBrowserClient();
       const service = createTeamService(supabase);
       const row = await service.rejectJoinRequest(membershipId);
-      return teamMemberRowToClient(row);
+      return teamMemberRowToEntity(row);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: teamMemberKeys.pending(teamId) });
