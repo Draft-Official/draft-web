@@ -102,6 +102,58 @@ export interface HostMatchDetailDTO {
   };
 }
 
+// 팀운동 상세 DTO
+export interface TeamExerciseDetailDTO {
+  id: string;
+  teamName: string;
+  date: string;
+  time: string;
+  location: string;
+  locationUrl: string;
+  description: string;
+  participants: Participant[];
+}
+
+// 대회 상세 DTO
+export interface TournamentDetailDTO {
+  id: string;
+  tournamentName: string;
+  round: string;
+  date: string;
+  time: string;
+  location: string;
+  locationUrl: string;
+  tactics: string;
+  participants: Participant[];
+  teamName: string;
+}
+
+// 팀운동 관리 상세 DTO
+export interface TeamExerciseManageDetailDTO {
+  id: string;
+  teamName: string;
+  date: string;
+  time: string;
+  location: string;
+  locationUrl: string;
+  description: string;
+  participants: Participant[];
+}
+
+// 대회 관리 상세 DTO
+export interface TournamentManageDetailDTO {
+  id: string;
+  teamName: string;
+  tournamentName: string;
+  round: string;
+  date: string;
+  time: string;
+  location: string;
+  locationUrl: string;
+  description: string;
+  participants: Participant[];
+}
+
 // 경기 타입 (MVP + Phase 2)
 export type MatchType = 'guest' | 'host' | 'team' | 'tournament';
 
@@ -254,7 +306,9 @@ export interface HostMatchDetail {
   };
 }
 
-// 팀운동 상세
+/**
+ * @deprecated Use TeamExerciseDetailDTO
+ */
 export interface TeamExerciseDetail {
   id: string;
   teamName: string;
@@ -266,7 +320,9 @@ export interface TeamExerciseDetail {
   participants: Participant[];
 }
 
-// 대회 상세
+/**
+ * @deprecated Use TournamentDetailDTO
+ */
 export interface TournamentDetail {
   id: string;
   tournamentName: string;
@@ -343,7 +399,9 @@ export interface ParticipatingMatchRow {
 // 관리 페이지 타입 정의
 // ============================================
 
-// 팀운동 관리 상세
+/**
+ * @deprecated Use TeamExerciseManageDetailDTO
+ */
 export interface TeamExerciseManageDetail {
   id: string;
   teamName: string;
@@ -355,7 +413,9 @@ export interface TeamExerciseManageDetail {
   participants: Participant[];
 }
 
-// 대회 관리 상세
+/**
+ * @deprecated Use TournamentManageDetailDTO
+ */
 export interface TournamentManageDetail {
   id: string;
   teamName: string;

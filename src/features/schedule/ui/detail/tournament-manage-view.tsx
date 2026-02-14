@@ -32,13 +32,13 @@ import {
   DialogDescription,
 } from '@/shared/ui/base/dialog';
 import { toast } from 'sonner';
-import type { TournamentManageDetail, Participant } from '../../model/types';
+import type { TournamentManageDetailDTO, Participant } from '../../model/types';
 import { MOCK_TOURNAMENT_MANAGE } from '../../model/mock-data';
 
 export function TournamentManageView() {
   const router = useRouter();
 
-  const [tournament] = useState<TournamentManageDetail>(MOCK_TOURNAMENT_MANAGE);
+  const [tournament] = useState<TournamentManageDetailDTO>(MOCK_TOURNAMENT_MANAGE);
   const [description, setDescription] = useState(tournament.description);
   const [participants, setParticipants] = useState<Participant[]>(tournament.participants);
   const [isEditingDescription, setIsEditingDescription] = useState(false);

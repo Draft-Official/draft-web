@@ -31,13 +31,13 @@ import {
   DialogDescription,
 } from '@/shared/ui/base/dialog';
 import { toast } from 'sonner';
-import type { TeamExerciseManageDetail, Participant } from '../../model/types';
+import type { TeamExerciseManageDetailDTO, Participant } from '../../model/types';
 import { MOCK_TEAM_EXERCISE_MANAGE } from '../../model/mock-data';
 
 export function TeamExerciseManageView() {
   const router = useRouter();
 
-  const [exercise] = useState<TeamExerciseManageDetail>(MOCK_TEAM_EXERCISE_MANAGE);
+  const [exercise] = useState<TeamExerciseManageDetailDTO>(MOCK_TEAM_EXERCISE_MANAGE);
   const [description, setDescription] = useState(exercise.description);
   const [participants, setParticipants] = useState<Participant[]>(exercise.participants);
   const [isEditingDescription, setIsEditingDescription] = useState(false);

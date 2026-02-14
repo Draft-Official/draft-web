@@ -26,13 +26,13 @@ import {
   DialogDescription,
 } from '@/shared/ui/base/dialog';
 import { toast } from 'sonner';
-import type { Participant, TeamExerciseDetail } from '../../model/types';
+import type { Participant, TeamExerciseDetailDTO } from '../../model/types';
 import { MOCK_TEAM_EXERCISE_DETAIL } from '../../model/mock-data';
 
 export function TeamExerciseDetailView() {
   const router = useRouter();
 
-  const [exercise] = useState<TeamExerciseDetail>(MOCK_TEAM_EXERCISE_DETAIL);
+  const [exercise] = useState<TeamExerciseDetailDTO>(MOCK_TEAM_EXERCISE_DETAIL);
   const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isCancelConfirmOpen, setIsCancelConfirmOpen] = useState(false);
