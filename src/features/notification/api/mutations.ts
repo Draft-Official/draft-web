@@ -3,7 +3,7 @@
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
-import { createNotificationService } from './notification-api';
+import { createNotificationService } from '@/entities/notification';
 import { notificationKeys } from './keys';
 
 /**

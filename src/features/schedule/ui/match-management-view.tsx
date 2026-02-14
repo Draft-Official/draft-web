@@ -6,7 +6,7 @@ import { Calendar, RotateCcw, Loader2 } from "lucide-react";
 import { useLocalStorage } from "@/shared/lib/hooks/use-local-storage";
 import { useAuth } from "@/shared/session";
 import { useUnreadNotifications, useMarkNotificationsAsReadByMatch } from "@/features/notification";
-import type { ClientNotification } from "@/shared/types/notification.types";
+import type { UnreadMatchNotificationDTO } from "@/features/notification";
 import type { NotificationTypeValue } from "@/shared/config/match-constants";
 import { FilterDropdown } from "./components/filter-dropdown";
 import { MatchCard } from "./components/match-card";
@@ -71,7 +71,7 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
     ];
     const allowedTypes = viewMode === 'guest' ? GUEST_TYPES : HOST_TYPES;
 
-    const map = new Map<string, ClientNotification[]>();
+    const map = new Map<string, UnreadMatchNotificationDTO[]>();
     for (const n of unreadNotifications) {
       if (!n.matchId) continue;
       if (!allowedTypes.includes(n.type)) continue;

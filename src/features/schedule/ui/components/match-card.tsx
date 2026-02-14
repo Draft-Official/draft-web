@@ -7,7 +7,7 @@ import { Button } from '@/shared/ui/base/button';
 import { PaymentConfirmDialog } from './payment-confirm-dialog';
 import { cn } from '@/shared/lib/utils';
 import type { ScheduleMatchListItemDTO } from '../../model/types';
-import type { ClientNotification } from '@/shared/types/notification.types';
+import type { UnreadMatchNotificationDTO } from '@/features/notification';
 import { NOTIFICATION_TYPE_DESCRIPTIONS } from '@/shared/config/match-constants';
 import {
   MATCH_TYPE_LABELS,
@@ -19,7 +19,7 @@ import {
 
 interface MatchCardProps {
   match: ScheduleMatchListItemDTO;
-  notifications?: ClientNotification[];
+  notifications?: UnreadMatchNotificationDTO[];
   onClick: (matchId: string) => void;
   onConfirmPayment?: (applicationId: string, matchId: string) => void;
 }
