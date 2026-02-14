@@ -384,6 +384,7 @@ export function useCreateApplication() {
 - Entities = 완전히 독립적! 다른 entities import 금지!
 - Features = 여러 entities 조합 및 orchestration
 - **예외**: 2개 이상 entities에서 사용하는 공통 유틸은 `shared/`로
+- **프로젝트 로컬 규칙**: FSD 공식 문서에서 `@x` cross-import를 제한적으로 허용하더라도, 이 프로젝트는 `@x`를 사용하지 않고 `entities` 간 cross-import를 전면 금지한다.
 
 ### 올바른 접근 순서
 
@@ -410,6 +411,103 @@ export function useCreateApplication() {
 ---
 
 ## File Structure Rules
+
+### Public API (index.ts) - FSD Official Rules
+
+**핵심 원칙**: Each slice exports a public API via `index.ts` at the slice root level only.
+
+#### Required index.ts Locations
+
+```
+✅ entities/{entity}/index.ts       # Slice-level only
+✅ features/{feature}/index.ts      # Slice-level only
+✅ shared/{segment}/index.ts        # Segment-level (ui/base, api, etc.)
+```
+
+#### Forbidden index.ts Locations
+
+```
+❌ entities/*/model/index.ts        # NO segment-level index
+❌ entities/*/api/index.ts          # NO segment-level index
+❌ features/*/model/index.ts        # NO segment-level index
+❌ features/*/api/index.ts          # NO segment-level index
+❌ features/*/ui/index.ts           # NO segment-level index
+```
+
+#### Why No Segment-Level Index?
+
+1. **Performance** - Reduces intermediate barrel files that slow down builds
+2. **Circular imports** - Prevents accidental circular dependencies within slices
+3. **FSD official** - Per [feature-sliced.design](https://feature-sliced.design/docs/reference/public-api), only slice-level public API
+
+#### Slice-Level Index Pattern
+
+**DO:** Explicitly list exports (no wildcards)
+
+```typescript
+// ✅ entities/match/index.ts (slice-level)
+// Model Types
+export type {
+  ClientMatch,
+  CreateMatchInput,
+  UpdateMatchInput,
+} from './model/types';
+
+// API Service & Queries
+export { MatchService, createMatchService } from './api/match-service';
+export { matchKeys } from './api/keys';
+export { useMatches, useMatch } from './api/queries';
+```
+
+**DON'T:** Use wildcard exports or segment-level index
+
+```typescript
+// ❌ Wildcard exports (bad discoverability)
+export * from './api';
+export * from './model';
+
+// ❌ Segment-level index (performance issue)
+// entities/match/api/index.ts  <-- Should NOT exist
+```
+
+#### Within-Slice Imports
+
+**NEVER** import through the slice's own index.ts - use direct relative paths:
+
+```typescript
+// ❌ Creates circular import
+// entities/match/api/queries.ts
+import { Match } from '../';  // Through index.ts
+
+// ✅ Direct relative path
+import { Match } from '../model/types';
+```
+
+#### Cross-Slice Imports
+
+**ALWAYS** use absolute path through slice-level index:
+
+```typescript
+// ✅ Import from another slice
+import { Match } from '@/entities/match';
+
+// ❌ Deep import bypassing public API
+import { Match } from '@/entities/match/model/types';
+```
+
+#### Shared Layer Special Rule
+
+For `shared/`, create **individual index per segment** (not one giant barrel):
+
+```
+✅ shared/ui/base/index.ts          # Per-segment
+✅ shared/ui/layout/index.ts        # Per-segment
+✅ shared/api/index.ts              # Per-segment
+
+❌ shared/index.ts                  # Monolithic barrel (bad for tree-shaking)
+```
+
+---
 
 ### 3-Folder Architecture
 

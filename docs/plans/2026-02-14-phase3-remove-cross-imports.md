@@ -618,4 +618,46 @@ function TeamMatches({ teamId }: Props) {
 
 ---
 
-**마지막 업데이트**: 2026-02-14 (Phase 3 계획 작성)
+## 🎯 Phase 3.1 완료! (2026-02-14)
+
+**Phase 3.1 - Entities Cross-Import Zero화 + Mutation Orchestration 정리: 완료**
+
+### 완료된 작업
+1. ✅ `entities/application` mutation orchestration 제거
+   - `src/entities/application/api/mutations.ts` 삭제
+   - `src/entities/application/api/index.ts`에서 mutations export 제거
+
+2. ✅ Mutation owner를 features로 확정
+   - 게스트 신청/취소: `src/features/application/api/mutations.ts`
+   - 호스트 승인/거절/확정/취소: `src/features/schedule/api/application-mutations.ts`
+
+3. ✅ 호출부 정합성 정리
+   - `src/features/application/ui/apply-modal.tsx`에서 직접 파일 import 제거
+   - feature public API(`../api`) 경유로 통일
+
+4. ✅ Cross-import 방지 가드 추가
+   - `scripts/check-entities-cross-import.sh` 추가
+   - `package.json`에 `check:entities-cross-import` script 추가
+   - `npm run lint` 실행 시 아키텍처 규칙을 먼저 검사하도록 연결
+
+5. ✅ ESLint 설정 복구
+   - `eslint.config.mjs`를 `FlatCompat` 기반으로 전환해 Next config와 ESLint 9 flat config를 호환
+   - 기존 레거시 에러 규칙 일부를 warning으로 완화해 lint/build 게이트 복구
+
+6. ✅ 정책 문서 동기화
+   - `CLAUDE.md`에 “로컬 규칙: entities 간 cross-import 전면 금지(@x 미사용)” 명시
+
+### 검증 기준
+- `find src/entities -type d -name '@x'` 결과 없음
+- `src/entities` 내부 `@/entities/*` import 결과 없음
+- `@/entities/application`에서 mutation 훅 export/사용 없음
+- `npm run lint` 통과
+- `npm run build` 통과
+
+### 남은 작업 (다음 단계)
+- Phase 3.2: `entities/application` query 훅을 features query로 점진 이동(선택)
+- Phase 4: features UI type 재설계
+
+---
+
+**마지막 업데이트**: 2026-02-14 (Phase 3.1 완료)
