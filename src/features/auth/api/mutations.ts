@@ -5,9 +5,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { createAuthService } from '@/shared/api/auth-service';
-import { useDeleteAccount, useUpdateProfile } from '@/shared/session';
-
-export { useUpdateProfile, useDeleteAccount };
 
 /**
  * Kakao 로그인

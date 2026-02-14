@@ -1,15 +1,6 @@
 // ============================================
-// Model
-// ============================================
-export { AuthProvider, useAuth } from './model/auth-context';
-export type { AuthContextValue, AuthStatus } from './model/types';
-export { useRequireAuth } from './model/use-require-auth';
-
-// ============================================
 // API
 // ============================================
-export { authKeys } from './api/keys';
-export { useProfile, useUpdateProfile, useDeleteAccount } from '@/shared/session';
 export {
   useSignInWithKakao,
   useSignInWithGoogle,

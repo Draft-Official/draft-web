@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { useAuth } from '../model/auth-context';
+import { useAuth } from '@/shared/session';
 
 const EXCLUDED_PATHS = ['/signup/verify', '/auth', '/login'];
 
