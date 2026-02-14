@@ -1,10 +1,27 @@
 // ============================================
 // Model Types
 // ============================================
-export type { ProfileData } from './model/types';
+export type {
+  MyNotificationSettingsDTO,
+  MyProfileFormDTO,
+  MyProfileViewDTO,
+  MyTeamOptionDTO,
+  ProfileData,
+  UpdateMyProfileInput,
+} from './model/types';
 export type { SkillLevel } from '@/shared/config/skill-constants';
 export { SKILL_LEVELS, SKILL_LEVEL_NAMES } from '@/shared/config/skill-constants';
 export { isProfileComplete } from './model/types';
+
+// ============================================
+// Mappers
+// ============================================
+export {
+  myProfileFormDTOToUpdateSessionProfileInput,
+  sessionProfileToMyProfileFormDTO,
+  toMyProfileViewDTO,
+  toMyTeamOptions,
+} from './lib';
 
 // ============================================
 // API & Queries
