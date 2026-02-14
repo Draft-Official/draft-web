@@ -3,7 +3,7 @@
  * Used across multiple features (match, team)
  */
 
-import type { CostTypeValue } from '@/shared/config/constants';
+import type { CostTypeValue } from '@/shared/config/match-constants';
 
 /**
  * 가격 표시 문자열 생성

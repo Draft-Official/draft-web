@@ -10,7 +10,8 @@ import {
   Users2,
 } from 'lucide-react';
 import { formatRegion, formatRegularSchedule } from '@/features/team/api/mapper';
-import { LEVEL_LABELS, GENDER_LABELS, type GenderValue } from '@/shared/config/constants';
+import { GENDER_LABELS, type GenderValue } from '@/shared/config/match-constants';
+import { SKILL_LEVEL_NAMES } from '@/shared/config/skill-constants';
 import type { Team } from '@/features/team/model/types';
 
 interface TeamHomeTabProps {
@@ -43,8 +44,8 @@ export function TeamHomeTab({ team, homeGymName, memberCount }: TeamHomeTabProps
   // 레벨 (levelRange에서 표시)
   const levelText = team.levelRange
     ? team.levelRange.min === team.levelRange.max
-      ? LEVEL_LABELS[String(team.levelRange.min) as keyof typeof LEVEL_LABELS] || `레벨 ${team.levelRange.min}`
-      : `${LEVEL_LABELS[String(team.levelRange.min) as keyof typeof LEVEL_LABELS] || `레벨 ${team.levelRange.min}`} ~ ${LEVEL_LABELS[String(team.levelRange.max) as keyof typeof LEVEL_LABELS] || `레벨 ${team.levelRange.max}`}`
+      ? SKILL_LEVEL_NAMES[team.levelRange.min] || `레벨 ${team.levelRange.min}`
+      : `${SKILL_LEVEL_NAMES[team.levelRange.min] || `레벨 ${team.levelRange.min}`} ~ ${SKILL_LEVEL_NAMES[team.levelRange.max] || `레벨 ${team.levelRange.max}`}`
     : null;
 
   // 성별 라벨

@@ -5,7 +5,7 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { Database } from '@/shared/types/database.types';
 import { logRequest, logResponse } from '@/shared/lib/logger';
-import type { MatchStatusValue } from '@/shared/config/constants';
+import type { MatchStatusValue } from '@/shared/config/match-constants';
 
 type MatchType = 'GUEST_RECRUIT' | 'TEAM_MATCH';
 

@@ -4,7 +4,7 @@
 
 import type {
   PositionValue,
-} from '@/shared/config/constants';
+} from '@/shared/config/match-constants';
 import type { ApplicationStatusValue } from "@/src/shared/config/application-constants";
 import type { ApplicationSourceValue } from '@/shared/config/team-constants';
 

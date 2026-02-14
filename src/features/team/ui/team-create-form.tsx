@@ -24,7 +24,7 @@ import {
   TEAM_CODE_ERROR_MESSAGE,
   type RegularDayValue,
 } from '@/shared/config/team-constants';
-import type { GenderValue } from '@/shared/config/constants';
+import type { GenderValue } from '@/shared/config/match-constants';
 import type { CreateTeamInput } from '@/features/team/model/types';
 import type { LevelRange, AgeRange } from '@/shared/types/jsonb.types';
 import { parseRegionFromAddress } from '@/shared/lib/parse-region';

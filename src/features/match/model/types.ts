@@ -15,7 +15,7 @@ import type {
   PlayStyleValue,
   RefereeTypeValue,
   ContactTypeValue,
-} from '@/shared/config/constants';
+} from '@/shared/config/match-constants';
 import type { MatchRule } from '@/shared/types/jsonb.types';
 
 // Re-export for convenience

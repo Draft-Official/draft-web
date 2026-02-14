@@ -4,7 +4,7 @@
  */
 
 import type { LevelRange, AgeRange } from '@/shared/types/jsonb.types';
-import { getLevelLabel } from '@/shared/config/constants';
+import { getLevelLabel } from '@/shared/config/match-constants';
 
 /**
  * 레벨 범위 표시 문자열 생성

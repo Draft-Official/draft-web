@@ -10,7 +10,7 @@ import type {
   CostTypeValue,
   GenderValue,
   MatchStatusValue,
-} from '@/shared/config/constants';
+} from '@/shared/config/match-constants';
 import type {
   LevelRange,
   AgeRange,

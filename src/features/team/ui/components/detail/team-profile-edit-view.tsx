@@ -18,7 +18,7 @@ import { useTeamByCode } from '@/features/team/api/core/queries';
 import { useUpdateTeam } from '@/features/team/api/core/mutations';
 import { useMyMembership } from '@/features/team/api/membership/queries';
 import { useAuth } from '@/shared/session';
-import { GENDER_OPTIONS } from '@/shared/config/constants';
+import { GENDER_OPTIONS } from '@/shared/config/match-constants';
 import { REGULAR_DAY_OPTIONS, REGULAR_DAY_VALUES } from '@/shared/config/team-constants';
 
 // 프리셋 로고 옵션

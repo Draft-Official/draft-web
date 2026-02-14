@@ -37,7 +37,7 @@ import {
   RefereeTypeValue,
   CourtSizeValue,
   MatchFormatValue
-} from '@/shared/config/constants';
+} from '@/shared/config/match-constants';
 import { useLocationSearch } from '@/features/match-create/lib/hooks/use-location-search';
 import { useRecentMatchPrefill } from '@/features/match-create/lib/hooks/use-recent-match-prefill';
 import type { LocationData } from '@/features/match-create/model/types';

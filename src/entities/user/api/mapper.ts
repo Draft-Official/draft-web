@@ -4,7 +4,7 @@
  */
 
 import type { User as UserRow } from '@/shared/types/database.types';
-import type { PositionValue } from '@/shared/config/constants';
+import type { PositionValue } from '@/shared/config/match-constants';
 import type { AccountInfo, OperationInfo } from '@/shared/types/jsonb.types';
 import type { UserMetadata, User as UserEntity } from '../model/types';
 

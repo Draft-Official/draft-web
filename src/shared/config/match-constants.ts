@@ -148,35 +148,6 @@ export function getRefereeTypeLabel(code: string): string {
 }
 
 // ============================================
-// Level (레벨)
-// ============================================
-
-export const LEVEL_VALUES = ['1', '2', '3', '4', '5', '6', '7'] as const;
-export type LevelValue = typeof LEVEL_VALUES[number];
-
-export const LEVEL_LABELS: Record<LevelValue, string> = {
-  '1': '초보1',
-  '2': '초보2',
-  '3': '중급1',
-  '4': '중급2',
-  '5': '상급1',
-  '6': '상급2',
-  '7': '선출',
-};
-
-export const LEVEL_STYLES: Record<string, { label: string; color: string }> = {
-  low: { label: '초보', color: '#22C55E' },
-  middle: { label: '중급', color: '#EAB308' },
-  high: { label: '상급', color: '#FF6600' },
-  pro: { label: '프로', color: '#EF4444' },
-};
-
-export function getLevelLabel(code: string, suffix: string = '이상'): string {
-  const label = LEVEL_LABELS[code as LevelValue] || code;
-  return suffix ? `${label} ${suffix}` : label;
-}
-
-// ============================================
 // Requirements (준비물)
 // ============================================
 

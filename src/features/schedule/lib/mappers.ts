@@ -14,7 +14,7 @@ import type {
 import type { AccountInfo } from '@/shared/types/jsonb.types';
 import { formatMatchDate, formatMatchTime } from '@/shared/lib/date';
 import { SKILL_LEVEL_NAMES } from '@/shared/config/skill-constants';
-import { getPositionLabel } from '@/shared/config/constants';
+import { getPositionLabel } from '@/shared/config/match-constants';
 import type {
   ManagedMatch,
   MatchType,

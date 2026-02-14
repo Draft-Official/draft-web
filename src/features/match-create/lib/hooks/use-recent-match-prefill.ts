@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import type { UseFormReturn } from 'react-hook-form';
 import type { MatchWithRelations } from '@/shared/types/database.types';
-import type { GenderValue, MatchFormatValue } from '@/shared/config/constants';
+import type { GenderValue, MatchFormatValue } from '@/shared/config/match-constants';
 import { MatchToPrefillMapper } from '@/features/match-create/mappers/match-to-prefill-mapper';
 
 /**

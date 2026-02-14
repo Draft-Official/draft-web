@@ -23,7 +23,7 @@ import { cn } from '@/shared/lib/utils';
 import { filterNumericInput } from '@/shared/lib/input-utils';
 import { SkillSlider } from './skill-slider';
 import { ProfileData } from '../model/types';
-import { POSITION_OPTIONS } from '@/shared/config/constants';
+import { POSITION_OPTIONS } from '@/shared/config/match-constants';
 
 interface ProfileSetupModalProps {
   open: boolean;

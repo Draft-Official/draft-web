@@ -3,7 +3,7 @@
 import React from 'react';
 import { cn } from '@/shared/lib/utils';
 import { GuestMatchDetailDTO } from '@/features/match/model/types';
-import { POSITION_LABELS } from '@/shared/config/constants';
+import { POSITION_LABELS } from '@/shared/config/match-constants';
 
 interface RecruitmentStatusProps {
   match: GuestMatchDetailDTO;

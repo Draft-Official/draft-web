@@ -179,4 +179,4 @@ export interface LegacyMatchCard {
 }
 
 // Re-export position type
-export type { PositionValue as Position } from '@/shared/config/constants';
+export type { PositionValue as Position } from '@/shared/config/match-constants';

@@ -26,7 +26,7 @@ import { cn } from '@/shared/lib/utils';
 import { useAuth, useUpdateProfile } from '@/shared/session';
 import { useCreateApplication, useUserTeams } from '@/features/application';
 import type { ParticipantInfo, Profile, UserMetadata, UserUpdate, Json } from '@/shared/types/database.types';
-import { POSITION_OPTIONS, POSITION_DEFAULT, PositionValue } from '@/shared/config/constants';
+import { POSITION_OPTIONS, POSITION_DEFAULT, PositionValue } from '@/shared/config/match-constants';
 import { SKILL_LEVELS } from '@/shared/config/skill-constants';
 import { AlertTriangle } from 'lucide-react';
 

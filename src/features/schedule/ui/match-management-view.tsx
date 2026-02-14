@@ -7,7 +7,7 @@ import { useLocalStorage } from "@/shared/lib/hooks/use-local-storage";
 import { useAuth } from "@/shared/session";
 import { useUnreadNotifications, useMarkNotificationsAsReadByMatch } from "@/features/notification";
 import type { ClientNotification } from "@/shared/types/notification.types";
-import type { NotificationTypeValue } from "@/shared/config/constants";
+import type { NotificationTypeValue } from "@/shared/config/match-constants";
 import { FilterDropdown } from "./components/filter-dropdown";
 import { MatchCard } from "./components/match-card";
 import { ApplicationInfoDialog } from "./components/application-info-dialog";

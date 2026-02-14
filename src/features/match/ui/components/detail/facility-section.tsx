@@ -4,7 +4,7 @@ import React from 'react';
 import { GuestMatchDetailDTO } from '@/features/match/model/types';
 import { Car, Droplets, Thermometer, BoxSelect, Droplet, CircleDot } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
-import { COURT_SIZE_LABELS, BALL_LABELS, type CourtSizeValue, type BallValue } from '@/shared/config/constants';
+import { COURT_SIZE_LABELS, BALL_LABELS, type CourtSizeValue, type BallValue } from '@/shared/config/match-constants';
 import {
   Accordion,
   AccordionContent,

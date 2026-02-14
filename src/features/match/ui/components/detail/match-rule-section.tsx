@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { GuestMatchDetailDTO } from '@/features/match/model/types';
-import { PLAY_STYLE_LABELS, REFEREE_TYPE_LABELS } from '@/shared/config/constants';
+import { PLAY_STYLE_LABELS, REFEREE_TYPE_LABELS } from '@/shared/config/match-constants';
 
 interface MatchRuleSectionProps {
   match: GuestMatchDetailDTO;

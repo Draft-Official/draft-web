@@ -16,7 +16,7 @@ import type {
   RefereeTypeValue,
   CourtSizeValue,
   RequirementsValue,
-} from '@/shared/config/constants';
+} from '@/shared/config/match-constants';
 
 // ============================================
 // 공통 JSONB 타입 (users, teams, matches)

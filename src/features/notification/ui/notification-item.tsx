@@ -19,7 +19,7 @@ import {
   NOTIFICATION_TYPE_LABELS,
   NOTIFICATION_TYPE_DESCRIPTIONS,
   type NotificationTypeValue,
-} from '@/shared/config/constants';
+} from '@/shared/config/match-constants';
 import { useMarkNotificationAsRead } from '../api/mutations';
 import { formatRelativeTime } from '../lib/format-time';
 import type { ClientNotification } from '../model/types';

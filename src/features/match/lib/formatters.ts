@@ -3,7 +3,7 @@
  * Match-specific formatting (positions only)
  */
 
-import type { PositionValue } from '@/shared/config/constants';
+import type { PositionValue } from '@/shared/config/match-constants';
 import type { RecruitmentSetup } from '@/shared/types/jsonb.types';
 
 /**

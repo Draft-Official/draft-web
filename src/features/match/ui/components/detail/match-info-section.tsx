@@ -3,7 +3,7 @@
 import React from 'react';
 import { GuestMatchDetailDTO } from '@/features/match/model/types';
 import { Trophy, User, Swords, Calendar } from 'lucide-react';
-import { getLevelLabel, GENDER_LABELS, MATCH_FORMAT_LABELS, GenderValue } from '@/shared/config/constants';
+import { getLevelLabel, GENDER_LABELS, MATCH_FORMAT_LABELS, GenderValue } from '@/shared/config/match-constants';
 import { SKILL_LEVELS } from '@/shared/config/skill-constants';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/shared/ui/shadcn/accordion';
 

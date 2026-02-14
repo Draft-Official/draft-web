@@ -11,7 +11,7 @@ import { useVote } from '../api/match/mutations';
 import { TeamProfileCard } from './components/team-profile-card';
 import { TeamMatchItem } from './components/team-match-item';
 import type { TeamVoteStatusValue } from '@/shared/config/team-constants';
-import type { MatchStatusValue } from '@/shared/config/constants';
+import type { MatchStatusValue } from '@/shared/config/match-constants';
 
 /**
  * 나의 팀 탭

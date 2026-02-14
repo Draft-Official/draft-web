@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from '@/shared/ui/base/dialog';
 import { Button } from '@/shared/ui/base/button';
-import type { ContactTypeValue } from '@/shared/config/constants';
+import type { ContactTypeValue } from '@/shared/config/match-constants';
 
 interface ContactModalProps {
   open: boolean;

@@ -5,7 +5,7 @@
  * DB Schema 기반 타입 정의 (users 테이블)
  */
 
-import type { PositionValue } from '@/shared/config/constants';
+import type { PositionValue } from '@/shared/config/match-constants';
 import type { OperationInfo, AccountInfo } from '@/shared/types/jsonb.types';
 
 // ============================================

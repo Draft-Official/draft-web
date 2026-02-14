@@ -2,7 +2,7 @@
  * Notification Mapper
  * DB Row → ClientNotification 타입 변환
  */
-import type { NotificationTypeValue } from '@/shared/config/constants';
+import type { NotificationTypeValue } from '@/shared/config/match-constants';
 import type { ClientNotification } from '../model/types';
 
 interface NotificationRow {

@@ -9,7 +9,7 @@ import { SkillRangeSlider } from '@/shared/ui/base/skill-range-slider';
 
 import { StepHeader } from './step-header';
 import { AgeSelector } from '@/features/match-create/ui/components/age-selector';
-import { GENDER_OPTIONS, type GenderValue } from '@/shared/config/constants';
+import { GENDER_OPTIONS, type GenderValue } from '@/shared/config/match-constants';
 
 interface TeamCreateStepTraitsProps {
   gender: GenderValue;

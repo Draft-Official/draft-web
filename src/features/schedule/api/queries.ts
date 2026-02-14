@@ -8,7 +8,7 @@ import { createMatchService } from '@/entities/match';
 import { createApplicationService } from '@/entities/application';
 import { useAuth } from '@/shared/session';
 import { formatMatchDate, formatMatchTime } from '@/shared/lib/date';
-import { getPositionLabel } from '@/shared/config/constants';
+import { getPositionLabel } from '@/shared/config/match-constants';
 import { matchManagementKeys } from './keys';
 import {
   matchToManagedMatch,

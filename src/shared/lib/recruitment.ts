@@ -7,7 +7,7 @@ import type {
   RecruitmentSetupPosition,
   PositionQuota,
 } from '@/shared/types/jsonb.types';
-import type { PositionValue } from '@/shared/config/constants';
+import type { PositionValue } from '@/shared/config/match-constants';
 
 /**
  * RecruitmentSetup이 ANY 타입인지 확인

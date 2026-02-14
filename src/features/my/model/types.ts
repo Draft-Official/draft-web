@@ -3,7 +3,7 @@
  * Feature: my (마이페이지)
  */
 
-import { PositionValue } from '@/shared/config/constants';
+import { PositionValue } from '@/shared/config/match-constants';
 
 export interface ProfileData {
   nickname: string;
