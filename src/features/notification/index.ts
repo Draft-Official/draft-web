@@ -1,7 +1,12 @@
 // ============================================
 // Model Types
 // ============================================
-export type { ClientNotification } from '@/shared/types/notification.types';
+export type {
+  ClientNotification,
+  NotificationEntity,
+  NotificationListItemDTO,
+  UnreadMatchNotificationDTO,
+} from './model/types';
 
 // ============================================
 // API & Queries
@@ -17,13 +22,16 @@ export {
   useMarkNotificationsAsReadByMatch,
   useMarkAllNotificationsAsRead,
 } from './api/mutations';
-export { NotificationService, createNotificationService } from './api/notification-api';
-export { notificationRowToClient } from './api/notification-mapper';
+export { NotificationService, createNotificationService, notificationRowToEntity } from '@/entities/notification';
 
 // ============================================
 // Utilities
 // ============================================
-export { formatRelativeTime } from './lib/format-time';
+export {
+  formatRelativeTime,
+  toNotificationListItemDTO,
+  toUnreadMatchNotificationDTO,
+} from './lib';
 
 // ============================================
 // UI Components
