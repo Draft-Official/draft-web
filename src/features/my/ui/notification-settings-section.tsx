@@ -3,7 +3,7 @@
 import { Card } from '@/shared/ui/base/card';
 import { Switch } from '@/shared/ui/base/switch';
 import { useAuth } from '@/features/auth';
-import { useUserSettings, useUpdateNotificationSetting } from '@/features/my/api';
+import { useUserSettings, useUpdateNotificationSetting } from '@/features/my';
 
 type NotificationField = 'notify_application' | 'notify_match' | 'notify_payment';
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { SubPageHeader, FaqList } from '@/features/my/ui';
+import { SubPageHeader, FaqList } from '@/features/my';
 
 export default function FaqPage() {
   return (

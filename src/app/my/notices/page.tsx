@@ -1,6 +1,6 @@
 'use client';
 
-import { SubPageHeader, NoticesList } from '@/features/my/ui';
+import { SubPageHeader, NoticesList } from '@/features/my';
 
 export default function NoticesPage() {
   return (

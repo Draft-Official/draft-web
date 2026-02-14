@@ -5,14 +5,14 @@ import { useRouter } from "next/navigation";
 import { Calendar, RotateCcw, Loader2 } from "lucide-react";
 import { useLocalStorage } from "@/shared/lib/hooks/use-local-storage";
 import { useAuth } from "@/features/auth/model/auth-context";
-import { useUnreadNotifications, useMarkNotificationsAsReadByMatch } from "@/features/notification/api";
+import { useUnreadNotifications, useMarkNotificationsAsReadByMatch } from "@/features/notification";
 import type { ClientNotification } from "@/shared/types/notification.types";
 import type { NotificationTypeValue } from "@/shared/config/constants";
 import { FilterDropdown } from "./components/filter-dropdown";
 import { MatchCard } from "./components/match-card";
 import { ApplicationInfoDialog } from "./components/application-info-dialog";
 import { Toggle } from "@/shared/ui/shadcn/toggle";
-import { useHostedMatches, useParticipatingMatches, useConfirmPaymentByGuest, useCancelApplicationByGuest } from "../api";
+import { useHostedMatches, useParticipatingMatches, useConfirmPaymentByGuest, useCancelApplicationByGuest } from "@/features/schedule";
 import type { MatchType, ManagedMatch } from "../model/types";
 import {
   MATCH_TYPE_FILTER_OPTIONS,

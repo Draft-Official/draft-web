@@ -1,6 +1,6 @@
 'use client';
 
-import { SubPageHeader, BankAccountForm } from '@/features/my/ui';
+import { SubPageHeader, BankAccountForm } from '@/features/my';
 
 export default function BankAccountPage() {
   return (

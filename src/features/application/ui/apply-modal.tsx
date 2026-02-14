@@ -25,7 +25,7 @@ import { Alert, AlertDescription } from '@/shared/ui/shadcn/alert';
 import { cn } from '@/shared/lib/utils';
 import { useAuth } from '@/features/auth/model/auth-context';
 import { useUpdateProfile } from '@/features/auth/api/mutations';
-import { useCreateApplication, useUserTeams } from '../api';
+import { useCreateApplication, useUserTeams } from '@/features/application';
 import type { ParticipantInfo, Profile, UserMetadata, UserUpdate, Json } from '@/shared/types/database.types';
 import { POSITION_OPTIONS, POSITION_DEFAULT, PositionValue } from '@/shared/config/constants';
 import { SKILL_LEVELS } from '@/shared/config/skill-constants';

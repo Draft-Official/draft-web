@@ -1,6 +1,6 @@
 'use client';
 
-import { SubPageHeader, ContactView } from '@/features/my/ui';
+import { SubPageHeader, ContactView } from '@/features/my';
 
 export default function ContactPage() {
   return (

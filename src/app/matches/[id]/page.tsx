@@ -1,9 +1,8 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useMatch, guestListMatchToMatch } from '@/features/match/api';
-import { MatchDetailView } from '@/features/match/ui/match-detail-view';
-import { TeamExerciseDetailView } from '@/features/schedule/ui/detail';
+import { useMatch, guestListMatchToMatch, MatchDetailView } from '@/features/match';
+import { TeamExerciseDetailView } from '@/features/schedule';
 import { Loader2 } from 'lucide-react';
 
 // TODO: DB에 match_type 컬럼 추가 후 실제 타입 분기 구현

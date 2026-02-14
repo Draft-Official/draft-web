@@ -1,2 +1,2 @@
-// Barrel export for team model
+// Team model types barrel export
 export * from './types';

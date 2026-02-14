@@ -31,7 +31,7 @@ import {
   useUpdateRecruitmentSetup,
   useCreateAnnouncement,
   useCancelMatchFlow,
-} from '../../api';
+} from '@/features/schedule';
 import { GuestProfileDialog } from './guest-profile-dialog';
 import { EditQuotaDialog } from './edit-quota-dialog';
 import { CancelConfirmDialog } from './cancel-confirm-dialog';
