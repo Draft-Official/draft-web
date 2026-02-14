@@ -1,4 +1,8 @@
 import type { NotificationTypeValue } from '@/shared/config/match-constants';
+import {
+  NOTIFICATION_TYPE_DESCRIPTIONS,
+  NOTIFICATION_TYPE_LABELS,
+} from '@/shared/config/match-constants';
 import type { NotificationEntity, NotificationListItemDTO, UnreadMatchNotificationDTO } from '../model/types';
 
 const HOST_NOTIFICATION_TYPES: ReadonlySet<NotificationTypeValue> = new Set([
@@ -21,6 +25,8 @@ export function toNotificationListItemDTO(
   notification: NotificationEntity,
   announcementMessage?: string
 ): NotificationListItemDTO {
+  const description = announcementMessage ?? NOTIFICATION_TYPE_DESCRIPTIONS[notification.type];
+
   return {
     id: notification.id,
     userId: notification.userId,
@@ -31,6 +37,8 @@ export function toNotificationListItemDTO(
     actorId: notification.actorId,
     isRead: notification.isRead,
     createdAt: notification.createdAt,
+    title: NOTIFICATION_TYPE_LABELS[notification.type],
+    description,
     ...(announcementMessage ? { announcementMessage } : {}),
     targetPath: resolveTargetPath(notification),
   };

@@ -11,8 +11,10 @@ export interface NotificationListItemDTO {
   actorId: string | null;
   isRead: boolean;
   createdAt: string;
+  title: string;
+  description: string;
   announcementMessage?: string;
-  targetPath?: string | null;
+  targetPath: string | null;
 }
 
 export interface UnreadMatchNotificationDTO {
