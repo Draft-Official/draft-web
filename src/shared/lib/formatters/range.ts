@@ -4,7 +4,7 @@
  */
 
 import type { LevelRange, AgeRange } from '@/shared/types/jsonb.types';
-import { getLevelLabel } from '@/shared/config/match-constants';
+import { getLevelLabel } from '@/shared/config/skill-constants';
 
 /**
  * 레벨 범위 표시 문자열 생성
@@ -15,8 +15,8 @@ export function formatLevelRange(levelRange: LevelRange | null): string | null {
   if (!levelRange) return null;
 
   const { min, max } = levelRange;
-  const minLabel = getLevelLabel(min.toString(), '');
-  const maxLabel = getLevelLabel(max.toString(), '');
+  const minLabel = getLevelLabel(min, '');
+  const maxLabel = getLevelLabel(max, '');
 
   if (min === max) return `${minLabel} 이상`;
   return `${minLabel} ~ ${maxLabel}`;
