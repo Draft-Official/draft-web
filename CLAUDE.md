@@ -349,6 +349,42 @@ const { data } = await supabase
 // → 1번의 쿼리! (빠름)
 ```
 
+**실수 6: Entities 간 직접 import (Cross-dependency)**
+
+```typescript
+// ❌ Entity에서 다른 entity import (의존성 발생!)
+// entities/application/api/mutations.ts
+import { matchKeys } from '@/entities/match';  // ❌ Cross-dependency!
+
+export function useCreateApplication() {
+  return useMutation({
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: matchKeys.detail(data.match_id) });  // ❌
+    }
+  });
+}
+
+// ✅ Features에서 orchestration
+// features/application/api/mutations.ts
+import { matchKeys } from '@/entities/match';
+import { applicationKeys } from '@/entities/application';
+
+export function useCreateApplication() {
+  return useMutation({
+    onSuccess: (data) => {
+      // ✅ Features에서 여러 entities invalidate!
+      queryClient.invalidateQueries({ queryKey: applicationKeys.byMatch(data.match_id) });
+      queryClient.invalidateQueries({ queryKey: matchKeys.detail(data.match_id) });
+    }
+  });
+}
+```
+
+**핵심:**
+- Entities = 완전히 독립적! 다른 entities import 금지!
+- Features = 여러 entities 조합 및 orchestration
+- **예외**: 2개 이상 entities에서 사용하는 공통 유틸은 `shared/`로
+
 ### 올바른 접근 순서
 
 1. **DB 스키마 확인**

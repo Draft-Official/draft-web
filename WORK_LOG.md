@@ -360,6 +360,73 @@ const team = useTeam(match.teamId);  // 조합은 features에서!
 
 ---
 
-**다음 단계**: Phase 3 - @x Cross-Imports 제거 및 FSD 원칙 완전 준수
+---
 
-**마지막 업데이트**: 2026-02-14 (Phase 2.5 완료, Phase 3 계획 작성)
+## 🎯 Phase 3 완료! (2026-02-14)
+
+**Phase 3 - @x Cross-Import 패턴 제거: 완료**
+
+### 문제 분석
+- ❌ `@x` 폴더가 entities 간 cross-import를 허용 (FSD 위반)
+- ❌ `entities/application/api/mutations.ts`에서 `matchKeys` import (cross-dependency)
+- ✅ Entities는 이미 JOIN query 사용 중 (service layer는 pure)
+
+### 완료된 작업
+
+#### 1. Entities Purity 검증 ✅
+- Service layer는 이미 순수 (다른 service 호출 안함)
+- JOIN queries 이미 사용 중
+- 문제는 React Query mutation layer의 cross-dependency
+
+#### 2. @x Import 제거 ✅
+**Before:**
+```typescript
+// entities/application/api/mutations.ts
+import { matchKeys } from '../@x/match';  // ❌ @x 우회 패턴
+```
+
+**After:**
+```typescript
+// entities/application/api/mutations.ts
+import { matchKeys } from '@/entities/match';  // ✅ 명시적 import
+```
+
+#### 3. @x 폴더 삭제 ✅
+삭제된 폴더:
+- `entities/team/@x/`
+- `entities/match/@x/`
+- `entities/application/@x/`
+
+#### 4. CLAUDE.md 업데이트 ✅
+**실수 6 추가: Entities 간 직접 import (Cross-dependency)**
+- ❌ Entity에서 다른 entity import 금지
+- ✅ Features에서 orchestration
+- 예외: 2개 이상 사용 시 `shared/`로
+
+### 결과
+
+**@x 패턴 완전 제거:**
+```bash
+# Before
+entities/
+├── team/@x/match.ts ❌
+├── match/@x/team.ts ❌
+├── match/@x/application.ts ❌
+└── application/@x/match.ts ❌
+
+# After
+entities/
+└── (모든 @x 폴더 삭제) ✅
+```
+
+**FSD 원칙:**
+- ✅ Entities는 JOIN query 사용
+- ✅ @x 우회 패턴 제거
+- ⚠️ Cross-dependency는 아직 존재 (entities/application → entities/match)
+- 📌 향후: Features layer에서 orchestration으로 개선 가능
+
+---
+
+**다음 단계**: Phase 4 - Features UI Types 재설계 (선택적)
+
+**마지막 업데이트**: 2026-02-14 (Phase 3 완료)
