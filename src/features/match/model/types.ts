@@ -24,10 +24,89 @@ import type { MatchRule } from '@/shared/types/jsonb.types';
 export type { MatchRule };
 
 // ============================================
-// Core Interfaces (from shared/types/match.ts)
+// DTO Types (NEW - Flat Structure)
 // ============================================
 
 /**
+ * Match 리스트 아이템 DTO
+ * 게스트 매치 목록 화면용 (홈, 검색 등)
+ *
+ * Flat structure for React performance optimization
+ */
+export interface MatchListItemDTO {
+  // Match entity fields
+  matchId: string;
+  dateISO: string; // "2026-02-14"
+  startTime: string; // "19:00"
+  endTime: string; // "21:00"
+  matchType: MatchTypeValue;
+  matchFormat: MatchFormatValue;
+  genderRule: GenderValue;
+  status: MatchStatusValue | null;
+
+  // Gym fields (flattened from entities/gym)
+  gymId: string;
+  gymName: string;
+  gymAddress: string;
+  gymLatitude: number;
+  gymLongitude: number;
+
+  // Host fields (flattened from entities/user)
+  hostId: string;
+  hostNickname: string | null;
+  hostAvatar: string | null;
+
+  // Team fields (flattened from entities/team)
+  teamId: string | null;
+  teamName: string | null;
+  teamLogo: string | null;
+
+  // Computed UI fields
+  priceDisplay: string; // "10,000원" | "무료" | "음료수 2병"
+  positionsDisplay: string; // "가드 1/3, 포워드 0/2"
+  levelDisplay: string | null; // "중수(B) 이상"
+  ageDisplay: string | null; // "20대~30대"
+  isNew: boolean; // Created within 24 hours
+  isClosed: boolean; // status === 'CLOSED'
+}
+
+/**
+ * Match 상세 페이지 DTO
+ * 경기 상세 정보 화면용
+ *
+ * Extends MatchListItemDTO with additional detail fields
+ */
+export interface MatchDetailDTO extends MatchListItemDTO {
+  // Additional detail fields
+  requirements: string[] | null;
+  providesBeverage: boolean | null;
+
+  // Recruitment status (computed)
+  recruitmentStatus: {
+    total: number;
+    current: number;
+    isFull: boolean;
+  };
+
+  // Match rule display (formatted)
+  matchRuleDisplay: {
+    playStyle: string; // "2파전" | "3파전" | "교류전"
+    quarterTime: number;
+    quarterCount: number;
+    referee: string; // "자체 심판" | "스태프" | "전문 심판"
+  } | null;
+
+  // Contact info
+  contactType: ContactTypeValue | null;
+  contactValue: string | null;
+}
+
+// ============================================
+// Legacy Types (DEPRECATED - will be removed)
+// ============================================
+
+/**
+ * @deprecated Flattened into DTO types
  * 지리적 위치 정보
  */
 export interface Location {
@@ -39,6 +118,7 @@ export interface Location {
 }
 
 /**
+ * @deprecated Flattened into DTO types (priceDisplay field)
  * 가격 정보
  */
 export interface PriceInfo {
@@ -56,6 +136,7 @@ export interface PositionStatus {
 }
 
 /**
+ * @deprecated Flattened into DTO types (positionsDisplay field)
  * 포지션 상태 (UI용) - 새 스타일
  */
 export interface PositionStatusUI {
@@ -113,6 +194,7 @@ export interface MatchOptionsUI {
 }
 
 /**
+ * @deprecated Flattened into DTO types (positionsDisplay field)
  * 포지션 UI 구조 (리스트 표시용)
  * - all: 포지션 무관 (recruitmentType === 'ANY')
  * - g/f/c: 개별 포지션 (recruitmentType === 'POSITION')
@@ -133,6 +215,9 @@ export interface ContactInfo {
 }
 
 /**
+ * @deprecated Use MatchListItemDTO instead
+ * Will be removed after all components migrated
+ *
  * Guest 매치 리스트/상세용 Match
  */
 export interface GuestListMatch extends BaseMatch {
@@ -168,6 +253,9 @@ export interface GuestListMatch extends BaseMatch {
 }
 
 /**
+ * @deprecated Use MatchDetailDTO instead
+ * Will be removed after all components migrated
+ *
  * Match 인터페이스 (상세 페이지 UI용)
  */
 export interface MatchDetailUI {
