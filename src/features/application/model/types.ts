@@ -4,7 +4,6 @@
 
 import type { PositionValue } from '@/shared/config/match-constants';
 import type { ApplicationStatusValue } from '@/shared/config/application-constants';
-import type { ApplicationSourceValue } from '@/shared/config/team-constants';
 import type { ParticipantInfo } from '@/shared/types/database.types';
 
 // Re-export for convenience
@@ -51,22 +50,4 @@ export interface UserTeamOptionDTO {
 export interface ApplyModalViewDTO {
   form: ApplyFormDTO;
   userSkillLevel: string;
-}
-
-/**
- * 신청자 정보
- * @deprecated Use Application DTO contracts instead
- */
-export interface Applicant {
-  id: string;
-  nickname: string;
-  position: PositionValue;
-  level: string;
-  height: string;
-  status: ApplicationStatusValue;
-  avatar?: string;
-  tags: string[];
-  mannerTemp: number;
-  noshowCount: number;
-  attendanceRate: number;
 }

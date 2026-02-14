@@ -3,7 +3,6 @@
 // ============================================
 export type { ApplicationSourceValue } from '@/shared/config/team-constants';
 export type {
-  Applicant,
   ApplyCompanionDTO,
   ApplyFormDTO,
   ApplyModalViewDTO,
