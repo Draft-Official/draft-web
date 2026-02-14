@@ -9,13 +9,13 @@ import {
   User,
   Users2,
 } from 'lucide-react';
-import { formatRegion, formatRegularSchedule } from '@/features/team/api/mapper';
+import { formatTeamRegion, formatTeamRegularSchedule } from '@/features/team/lib';
 import { GENDER_LABELS, type GenderValue } from '@/shared/config/match-constants';
 import { SKILL_LEVEL_NAMES } from '@/shared/config/skill-constants';
-import type { Team } from '@/features/team/model/types';
+import type { TeamInfoDTO } from '@/features/team/model/types';
 
 interface TeamHomeTabProps {
-  team: Team;
+  team: TeamInfoDTO;
   homeGymName: string | null;
   memberCount: number;
 }
@@ -25,10 +25,10 @@ interface TeamHomeTabProps {
  */
 export function TeamHomeTab({ team, homeGymName, memberCount }: TeamHomeTabProps) {
   // 지역 정보
-  const regionText = formatRegion(team.regionDepth1, team.regionDepth2);
+  const regionText = formatTeamRegion(team.regionDepth1, team.regionDepth2);
 
   // 정기운동 스케줄
-  const scheduleText = formatRegularSchedule(
+  const scheduleText = formatTeamRegularSchedule(
     team.regularDay,
     team.regularStartTime,
     team.regularEndTime

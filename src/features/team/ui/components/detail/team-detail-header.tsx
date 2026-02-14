@@ -4,10 +4,10 @@ import { useRouter } from 'next/navigation';
 import { MapPin, Clock, Loader2, Settings, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/shared/lib/utils';
-import { formatRegularSchedule } from '@/features/team/api/mapper';
+import { formatTeamRegularSchedule } from '@/features/team/lib';
 import { useJoinTeam } from '@/features/team/api/membership/mutations';
 import { useAuth } from '@/shared/session';
-import type { Team, TeamMember } from '@/features/team/model/types';
+import type { TeamInfoDTO, TeamMembershipDTO } from '@/features/team/model/types';
 import {
   HoverCard,
   HoverCardContent,
@@ -15,8 +15,8 @@ import {
 } from '@/shared/ui/shadcn/hover-card';
 
 interface TeamDetailHeaderProps {
-  team: Team;
-  membership: TeamMember | null;
+  team: TeamInfoDTO;
+  membership: TeamMembershipDTO | null;
   homeGymName: string | null;
   isLoggedIn: boolean;
   currentView?: string;
@@ -50,7 +50,7 @@ export function TeamDetailHeader({ team, membership, homeGymName, isLoggedIn, cu
   const logoBgColor = logoColors[logoColorIndex];
 
   // 정기운동 스케줄 포맷
-  const scheduleText = formatRegularSchedule(
+  const scheduleText = formatTeamRegularSchedule(
     team.regularDay,
     team.regularStartTime,
     team.regularEndTime

@@ -10,15 +10,9 @@ export type {
   TeamScheduleMatchItemDTO,
   TeamMatchDetailDTO,
   MyPendingTeamVoteMatchDTO,
-  TeamMatchWithVoting,
-  TeamProfileCardData,
-  TeamListItem,
   Team,
-  LegacyTeamCard,
-  LegacyMatchCard,
   Position,
 } from './model/types';
-export { MatchStatus, ApplicantStatus } from './model/types';
 
 // ============================================
 // API (Re-export from sub-modules)
