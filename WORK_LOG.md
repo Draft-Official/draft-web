@@ -1,8 +1,8 @@
-# FSD Phase 2 Migration - Team API 작업 로그
+# FSD Phase 2 & 2.5 Migration - Entities 작업 로그
 
-**날짜**: 2026-02-13
+**날짜**: 2026-02-13 ~ 2026-02-14
 **브랜치**: refactor/designsystem
-**작업**: Phase 2 - Team entities 마이그레이션
+**작업**: Phase 2 - Team entities 마이그레이션 / Phase 2.5 - All entities 모델 생성
 
 ---
 
@@ -232,7 +232,83 @@ initializeMonthlyFees(teamId, yearMonth)
 
 ---
 
-## 🎉 Phase 2 완료!
+## 🎯 Phase 2.5 완료! (2026-02-14)
+
+**Phase 2.5 - All Entities Model Types Migration: 완료**
+
+### 문제 발견
+- entities/match - model/types.ts 없음 ❌
+- entities/application - model/types.ts 없음 ❌
+- entities/gym - 폴더 자체가 없음 ❌
+- entities/user - 폴더 자체가 없음 ❌
+
+### 완료된 작업
+
+#### 1. DB Schema 기반 Entity Types 생성
+✅ **entities/match/model/types.ts**
+- ClientMatch (DB row → entity)
+- CreateMatchInput, UpdateMatchInput
+- DB 컬럼 그대로 매핑 (gymId, teamId, hostId만 참조)
+
+✅ **entities/application/model/types.ts**
+- ClientApplication (DB row → entity)
+- CreateApplicationInput, UpdateApplicationInput
+- ApplicationStatusValue, CancelTypeValue import
+
+✅ **entities/gym/model/types.ts** (새로 생성)
+- ClientGym (위치 정보의 주인!)
+- latitude, longitude는 Gym의 속성
+- GymFacilities JSONB type
+
+✅ **entities/user/model/types.ts** (새로 생성)
+- ClientUser
+- UserMetadata JSONB type
+- PositionValue[] 타입
+
+#### 2. CLAUDE.md에 Common Mistakes 추가
+✅ **실수 4: Nested props 사용 (React anti-pattern)**
+- ❌ 중첩된 객체 구조
+- ✅ Flat props (React 공식 권장)
+
+✅ **실수 5: N개의 개별 쿼리 실행 (N+1 문제)**
+- ❌ N개의 개별 service 호출
+- ✅ JOIN 쿼리 한 번에
+
+#### 3. 빌드 검증
+✅ TypeScript 컴파일 성공
+✅ 모든 entity types 정상 동작 확인
+
+### 구조 개선 결과
+
+**Before (Phase 2):**
+```
+entities/
+├── team/model/types.ts ✅
+├── match/ (model 없음) ❌
+└── application/ (model 없음) ❌
+```
+
+**After (Phase 2.5):**
+```
+entities/
+├── team/model/types.ts ✅
+├── match/model/types.ts ✅
+├── application/model/types.ts ✅
+├── gym/model/types.ts ✅ (신규)
+└── user/model/types.ts ✅ (신규)
+```
+
+### 핵심 원칙 확립
+1. ✅ **DB Schema First** - 항상 DB 스키마를 먼저 확인
+2. ✅ **Entity Independence** - entities는 ID만 참조 (cross-import 금지)
+3. ✅ **Flat Props** - React 권장 패턴 따르기
+4. ✅ **JOIN Queries** - N+1 문제 방지
+
+---
+
+---
+
+## 🎉 Phase 2 & 2.5 완료!
 
 **Phase 2 - Team Entities Migration: 완료**
 - 모든 team API가 `entities/team` service를 사용하도록 마이그레이션 완료
@@ -240,6 +316,12 @@ initializeMonthlyFees(teamId, yearMonth)
 - 빌드 성공 확인
 - 커밋: 26071e9
 
-**다음 단계**: Phase 3 - Match Entities Migration 또는 Seed Design 통합
+**Phase 2.5 - All Entities Model Types: 완료**
+- 모든 entity에 model/types.ts 생성 (Match, Application, Gym, User)
+- CLAUDE.md에 Common Mistakes 추가 (Nested props, N+1 queries)
+- DB Schema 기반 타입 정의 완료
+- 빌드 성공 확인
 
-**마지막 업데이트**: 2026-02-14 (Phase 2 완료)
+**다음 단계**: Phase 3 - features/ UI Types 재설계 (entities 기반)
+
+**마지막 업데이트**: 2026-02-14 (Phase 2.5 완료)
