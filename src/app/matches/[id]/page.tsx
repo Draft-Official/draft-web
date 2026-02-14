@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useMatch, guestListMatchToMatch, MatchDetailView } from '@/features/match';
+import { useMatch, MatchDetailView } from '@/features/match';
 import { TeamExerciseDetailView } from '@/features/schedule';
 import { Loader2 } from 'lucide-react';
 
@@ -47,7 +47,6 @@ export default function MatchDetailPage() {
     case 'PICKUP_GAME':
     default:
       // 게스트 모집 / 픽업 게임용 뷰
-      const match = guestListMatchToMatch(matchData);
-      return <MatchDetailView match={match} />;
+      return <MatchDetailView match={matchData} />;
   }
 }

@@ -2,10 +2,10 @@
 
 import React from 'react';
 import { toast } from 'sonner';
-import { MatchDetailUI } from '@/features/match/model/types';
+import { GuestMatchDetailDTO } from '@/features/match/model/types';
 
 interface HeroSectionProps {
-  match: MatchDetailUI;
+  match: GuestMatchDetailDTO;
 }
 
 export function HeroSection({ match }: HeroSectionProps) {

@@ -7,7 +7,7 @@ import type { Match } from '@/entities/match';
 import type { Gym } from '@/entities/gym';
 import type { User } from '@/entities/user';
 import type { Team } from '@/entities/team';
-import type { MatchListItemDTO, MatchDetailDTO } from '../model/types';
+import type { GuestMatchListItemDTO, GuestMatchDetailDTO } from '../model/types';
 import {
   formatPrice,
   formatLevelRange,
@@ -19,7 +19,7 @@ import {
 import { formatPositions } from './formatters';
 
 /**
- * Match + related entities → MatchListItemDTO
+ * Match + related entities → GuestMatchListItemDTO
  *
  * @param match - Match entity
  * @param gym - Gym entity
@@ -27,12 +27,12 @@ import { formatPositions } from './formatters';
  * @param team - Team entity (nullable)
  * @returns Flat DTO for list views
  */
-export function toMatchListItemDTO(
+export function toGuestMatchListItemDTO(
   match: Match,
   gym: Gym,
   host: User,
   team: Team | null
-): MatchListItemDTO {
+): GuestMatchListItemDTO {
   return {
     // Match fields
     matchId: match.id,
@@ -72,7 +72,7 @@ export function toMatchListItemDTO(
 }
 
 /**
- * Match + related entities → MatchDetailDTO
+ * Match + related entities → GuestMatchDetailDTO
  *
  * @param match - Match entity
  * @param gym - Gym entity
@@ -80,28 +80,49 @@ export function toMatchListItemDTO(
  * @param team - Team entity (nullable)
  * @returns Flat DTO for detail views
  */
-export function toMatchDetailDTO(
+export function toGuestMatchDetailDTO(
   match: Match,
   gym: Gym,
   host: User,
   team: Team | null
-): MatchDetailDTO {
+): GuestMatchDetailDTO {
   // Start with list item DTO
-  const listItem = toMatchListItemDTO(match, gym, host, team);
+  const listItem = toGuestMatchListItemDTO(match, gym, host, team);
 
-  // Calculate recruitment status
+  // Calculate recruitment status + detailed position status
+  const positions: GuestMatchDetailDTO['positions'] = {};
   let total = 0;
   let current = 0;
 
   if (match.recruitmentSetup.type === 'ANY') {
     total = match.recruitmentSetup.max_count;
     current = match.recruitmentSetup.current_count;
+    positions.all = {
+      status: current >= total && total > 0 ? 'closed' : 'open',
+      max: total,
+      current,
+    };
   } else if (match.recruitmentSetup.type === 'POSITION') {
-    const positions = match.recruitmentSetup.positions;
-    for (const pos of Object.values(positions)) {
-      if (pos) {
-        total += pos.max;
-        current += pos.current ?? 0;
+    const quotaByPosition = match.recruitmentSetup.positions;
+    const uiKeyMap = {
+      G: 'g',
+      F: 'f',
+      C: 'c',
+      B: 'bigman',
+    } as const;
+
+    for (const positionKey of Object.keys(quotaByPosition) as (keyof typeof uiKeyMap)[]) {
+      const quota = quotaByPosition[positionKey];
+      if (quota && quota.max > 0) {
+        const positionCurrent = quota.current ?? 0;
+        const positionMax = quota.max;
+        positions[uiKeyMap[positionKey]] = {
+          status: positionCurrent >= positionMax ? 'closed' : 'open',
+          max: positionMax,
+          current: positionCurrent,
+        };
+        total += positionMax;
+        current += positionCurrent;
       }
     }
   }
@@ -109,17 +130,17 @@ export function toMatchDetailDTO(
   const recruitmentStatus = {
     total,
     current,
-    isFull: current >= total,
+    isFull: total > 0 && current >= total,
   };
 
   // Format match rule
   let matchRuleDisplay = null;
+  let rule: GuestMatchDetailDTO['rule'] = null;
   if (match.matchRule) {
     const playStyleLabels: Record<string, string> = {
       INTERNAL_2WAY: '2파전',
       INTERNAL_3WAY: '3파전',
       EXCHANGE: '교류전',
-      PRACTICE: '연습',
     };
 
     const refereeLabels: Record<string, string> = {
@@ -142,6 +163,14 @@ export function toMatchDetailDTO(
       quarterCount: match.matchRule.quarter_rule?.quarter_count ?? 4,
       referee,
     };
+
+    rule = {
+      type: match.matchRule.play_style ?? 'INTERNAL_2WAY',
+      quarterTime: match.matchRule.quarter_rule?.minutes_per_quarter ?? 0,
+      quarterCount: match.matchRule.quarter_rule?.quarter_count ?? 0,
+      fullGames: match.matchRule.quarter_rule?.game_count ?? 0,
+      referee: match.matchRule.referee_type ?? 'SELF',
+    };
   }
 
   // Extract contact info
@@ -154,8 +183,38 @@ export function toMatchDetailDTO(
       : match.operationInfo.url ?? null;
   }
 
+  const contactInfo = contactType && contactValue
+    ? { type: contactType, value: contactValue }
+    : null;
+
+  const facilities: Record<string, unknown> = {
+    ...(gym.facilities ?? {}),
+    providesBeverage: match.providesBeverage ?? false,
+  };
+
   return {
     ...listItem,
+    id: listItem.matchId,
+    title: gym.name,
+    location: gym.name,
+    address: gym.address,
+    price: listItem.priceDisplay,
+    priceNum: match.costAmount ?? 0,
+    gender: match.genderRule,
+    level: listItem.levelDisplay,
+    levelMin: match.levelRange?.min ?? null,
+    levelMax: match.levelRange?.max ?? null,
+    ageRange: listItem.ageDisplay,
+    facilities,
+    positions,
+    rule,
+    hostName: host.nickname,
+    hostImage: host.avatarUrl,
+    manualTeamName: match.manualTeamName,
+    hostMessage: match.operationInfo?.notice ?? null,
+    contactInfo,
+    latitude: gym.latitude,
+    longitude: gym.longitude,
     requirements: match.requirements,
     providesBeverage: match.providesBeverage,
     recruitmentStatus,
@@ -164,3 +223,13 @@ export function toMatchDetailDTO(
     contactValue,
   };
 }
+
+/**
+ * @deprecated Use toGuestMatchListItemDTO instead
+ */
+export const toMatchListItemDTO = toGuestMatchListItemDTO;
+
+/**
+ * @deprecated Use toGuestMatchDetailDTO instead
+ */
+export const toMatchDetailDTO = toGuestMatchDetailDTO;

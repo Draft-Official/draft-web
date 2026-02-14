@@ -1,4 +1,4 @@
-import type { MatchListItemDTO } from '../model/types';
+import type { GuestMatchListItemDTO } from '../model/types';
 
 // --- Date Utils ---
 
@@ -137,9 +137,9 @@ function parseAgeDisplay(ageDisplay: string | null): { min: number; max: number 
 }
 
 export const filterMatches = (
-    matches: MatchListItemDTO[],
+    matches: GuestMatchListItemDTO[],
     options: FilterOptions
-): MatchListItemDTO[] => {
+): GuestMatchListItemDTO[] => {
     let filtered = [...matches];
 
     // 1. Date Filter
@@ -259,8 +259,8 @@ export const filterMatches = (
     return filtered;
 };
 
-export const groupMatchesByDate = (matches: MatchListItemDTO[]): Record<string, MatchListItemDTO[]> => {
-    const grouped: Record<string, MatchListItemDTO[]> = {};
+export const groupMatchesByDate = (matches: GuestMatchListItemDTO[]): Record<string, GuestMatchListItemDTO[]> => {
+    const grouped: Record<string, GuestMatchListItemDTO[]> = {};
     matches.forEach(match => {
         if (!grouped[match.dateISO]) grouped[match.dateISO] = [];
         grouped[match.dateISO].push(match);

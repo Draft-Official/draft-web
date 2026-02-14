@@ -9,10 +9,10 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/base/avatar';
 import { cn } from '@/shared/lib/utils';
 import type { ApplicationStatusValue } from '@/shared/config/application-constants';
 import { getDayLabel } from '@/features/match/lib/utils';
-import type { MatchListItemDTO } from '@/features/match/model/types';
+import type { GuestMatchListItemDTO } from '@/features/match/model/types';
 
 interface MatchListItemProps {
-  match: MatchListItemDTO;
+  match: GuestMatchListItemDTO;
   applicationStatus?: ApplicationStatusValue;
 }
 

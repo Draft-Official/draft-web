@@ -2,17 +2,11 @@
 // Model Types
 // ============================================
 export type {
-  Location,
-  PriceInfo,
-  PositionStatus,
-  PositionStatusUI,
-  BaseMatch,
-  HostDashboardMatch,
-  MatchOptionsUI,
-  PositionsUI,
-  ContactInfo,
-  GuestListMatch,
-  MatchDetailUI,
+  GuestMatchListItemDTO,
+  GuestMatchDetailDTO,
+  GuestMatchPositionStatus,
+  GuestMatchContactInfo,
+  MatchRule,
 } from './model/types';
 
 // ============================================
@@ -20,7 +14,6 @@ export type {
 // ============================================
 export { matchKeys } from '@/entities/match';
 export { useRecruitingMatches, useMatch, useRecruitingMatchesInfinite } from './api/queries';
-export { matchRowToGuestListMatch, guestListMatchToMatch } from './api/match-mapper';
 
 // ============================================
 // Utilities

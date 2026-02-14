@@ -2,12 +2,12 @@
 
 import React from 'react';
 import { Loader2 } from 'lucide-react';
-import { MatchDetailUI } from '@/features/match/model/types';
+import { GuestMatchDetailDTO } from '@/features/match/model/types';
 import { Button } from '@/shared/ui/base/button';
 import { cn } from '@/shared/lib/utils';
 
 interface BottomBarProps {
-  match: MatchDetailUI;
+  match: GuestMatchDetailDTO;
   onApply: () => void;
   hasApplied?: boolean;
   canCancel?: boolean;

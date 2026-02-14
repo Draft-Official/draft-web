@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { MatchDetailUI } from '@/features/match/model/types';
+import { GuestMatchDetailDTO } from '@/features/match/model/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/base/avatar';
 import { Button } from '@/shared/ui/base/button';
 import { MessageCircle, Users, Info } from 'lucide-react';
@@ -13,7 +13,7 @@ import { Alert, AlertDescription } from '@/shared/ui/shadcn/alert';
 const DEFAULT_TEAM_LOGO = '/logos/preset/logo-01.webp';
 
 interface HostSectionProps {
-  match: MatchDetailUI;
+  match: GuestMatchDetailDTO;
 }
 
 export function HostSection({ match }: HostSectionProps) {
