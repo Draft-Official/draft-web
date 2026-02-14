@@ -5,7 +5,7 @@ import { Button } from '@/shared/ui/base/button';
 import { ScrollArea, ScrollBar } from '@/shared/ui/base/scroll-area';
 import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/shadcn/alert';
 import { useAuth } from '@/shared/session';
-import { useMyTeams } from '../api/core/queries';
+import { useMyTeams } from '../api/team-info/queries';
 import { useMyPendingVoteMatches } from '../api/match/queries';
 import { useVote } from '../api/match/mutations';
 import { TeamProfileCard } from './components/team-profile-card';

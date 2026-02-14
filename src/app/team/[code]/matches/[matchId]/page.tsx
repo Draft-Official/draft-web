@@ -2,7 +2,7 @@
 
 import { use } from 'react';
 import { notFound } from 'next/navigation';
-import { useTeamByCode } from '@/features/team/api/core/queries';
+import { useTeamByCode } from '@/features/team/api/team-info/queries';
 import { useMyMembership } from '@/features/team/api/membership/queries';
 import { useTeamMatch } from '@/features/team/api/match/queries';
 import { useAuth } from '@/shared/session';

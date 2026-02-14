@@ -1,5 +1,5 @@
 /**
- * Team Core React Query Mutations
+ * Team Info React Query Mutations
  */
 'use client';
 

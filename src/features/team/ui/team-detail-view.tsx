@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/ui/shadcn/tabs';
 import { cn } from '@/shared/lib/utils';
-import { useTeamByCode } from '../api/core/queries';
+import { useTeamByCode } from '../api/team-info/queries';
 import { useTeamMembers, usePendingMembers, useMyMembership, useTeamMemberCount } from '../api/membership/queries';
 import { useTeamMatches } from '../api/match/queries';
 import { useAuth } from '@/shared/session';

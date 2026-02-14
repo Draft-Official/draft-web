@@ -1,3 +1,3 @@
-// Team core API barrel export
+// Team info API barrel export
 export * from './queries';
 export * from './mutations';

@@ -1,5 +1,5 @@
 /**
- * Team Core React Query Hooks
+ * Team Info React Query Hooks
  */
 'use client';
 

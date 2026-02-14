@@ -10,7 +10,7 @@ import { PaymentSection } from '@/features/my/ui/payment-section';
 import { MyPageFooter } from '@/features/my/ui/my-page-footer';
 import { ProfileData } from '@/features/my/model/types';
 import { useAuth, useUpdateProfile } from '@/shared/session';
-import { useMyTeams } from '@/features/team/api/core/queries';
+import { useMyTeams } from '@/features/team/api/team-info/queries';
 import type { Profile, UserUpdate, UserMetadata } from '@/shared/types/database.types';
 
 // DB Profile → UI ProfileData 변환

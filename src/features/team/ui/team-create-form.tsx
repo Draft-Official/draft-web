@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 
 import { Button } from '@/shared/ui/base/button';
 
-import { useCreateTeam } from '@/features/team/api/core/mutations';
+import { useCreateTeam } from '@/features/team/api/team-info/mutations';
 import { useAuth } from '@/shared/session';
 import { useLocationSearch } from '@/features/match-create/lib/hooks/use-location-search';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';

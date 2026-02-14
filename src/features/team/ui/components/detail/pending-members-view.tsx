@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { useSafeBack } from '@/shared/lib/hooks';
-import { useTeamByCode } from '@/features/team/api/core/queries';
+import { useTeamByCode } from '@/features/team/api/team-info/queries';
 import { usePendingMembers, useMyMembership } from '@/features/team/api/membership/queries';
 import { useApproveJoinRequest, useRejectJoinRequest } from '@/features/team/api/membership/mutations';
 import { useAuth } from '@/shared/session';
