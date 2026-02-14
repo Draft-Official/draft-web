@@ -33,7 +33,7 @@ export default function GuestMatchListPage() {
   // 사용자 신청 상태 Map (matchId → status)
   const applicationStatusMap = useMemo(() => {
     if (!userApplications) return new Map<string, ApplicationStatusValue>();
-    return new Map(userApplications.map(app => [app.match_id, app.status]));
+    return new Map(userApplications.map(app => [app.matchId, app.status]));
   }, [userApplications]);
 
   // --- State (Persisted) ---

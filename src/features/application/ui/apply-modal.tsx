@@ -214,7 +214,7 @@ export function ApplyModal({
       await createApplication.mutateAsync({
         matchId,
         userId: user.id,
-        participantsInfo,
+        participants: participantsInfo,
         teamId: formData.teamId || null,
       });
 
