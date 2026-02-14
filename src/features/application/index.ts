@@ -2,7 +2,27 @@
 // Model Types
 // ============================================
 export type { ApplicationSourceValue } from '@/shared/config/team-constants';
-export type { Applicant } from './model/types';
+export type {
+  Applicant,
+  ApplyCompanionDTO,
+  ApplyFormDTO,
+  ApplyModalViewDTO,
+  CreateApplicationDTO,
+  UserApplicationItemDTO,
+  UserTeamOptionDTO,
+} from './model/types';
+
+// ============================================
+// Mappers
+// ============================================
+export {
+  buildCreateApplicationDTO,
+  buildProfileUpdateFromApplyForm,
+  sessionProfileToApplyFormDTO,
+  sessionProfileToApplyModalViewDTO,
+  toUserApplicationItemDTO,
+  toUserTeamOptionDTO,
+} from './lib';
 
 // ============================================
 // API & Queries
