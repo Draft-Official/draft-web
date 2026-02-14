@@ -4,7 +4,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { applicationKeys } from './keys';
-import type { ApplicationStatusValue } from "@/src/shared/config/application-constants";
+import type { ApplicationStatusValue } from '@/shared/config/application-constants';
 
 /**
  * 사용자의 활성 신청 목록 조회 (매치 리스트에서 신청 상태 표시용)

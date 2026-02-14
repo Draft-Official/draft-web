@@ -462,3 +462,29 @@ entities/
 **다음 단계**: Phase 3.2 (entities query 훅 정리) 또는 Phase 4 (Features UI Types 재설계)
 
 **마지막 업데이트**: 2026-02-14 (Phase 3.1 완료)
+
+## 🎯 Phase 3.2 완료! (2026-02-14)
+
+**Phase 3.2 - Entities Query Hook 정리: 완료**
+
+### 완료된 작업
+1. ✅ `entities/application` query hook 제거
+   - `src/entities/application/api/queries.ts` 삭제
+   - `src/entities/application/index.ts`에서 `useUserApplications` export 제거
+
+2. ✅ query hook 호출부를 features로 통일
+   - `src/app/page.tsx`: `@/entities/application` → `@/features/application`
+
+3. ✅ features query 파일 정리
+   - `src/features/application/api/queries.ts`의 잘못된 타입 import 경로 수정
+
+### 결과
+- `entities/application`은 service/keys/model만 제공
+- React Query hook은 `features/application` 레이어로 단일화
+- entities와 features 경계가 Phase 3.1보다 명확해짐
+
+---
+
+**다음 단계**: Phase 4 - Features UI Types 재설계
+
+**마지막 업데이트**: 2026-02-14 (Phase 3.2 완료)

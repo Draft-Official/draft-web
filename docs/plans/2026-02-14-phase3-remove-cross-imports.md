@@ -661,3 +661,27 @@ function TeamMatches({ teamId }: Props) {
 ---
 
 **마지막 업데이트**: 2026-02-14 (Phase 3.1 완료)
+
+## 🎯 Phase 3.2 완료! (2026-02-14)
+
+**Phase 3.2 - Entities Query Hook 정리: 완료**
+
+### 완료된 작업
+1. ✅ `entities/application`에서 React Query hook 제거
+   - `src/entities/application/api/queries.ts` 삭제
+   - `src/entities/application/index.ts`에서 query hook export 제거
+
+2. ✅ query hook 사용 경로를 features로 통일
+   - `src/app/page.tsx`: `useUserApplications` import를 `@/features/application`으로 변경
+
+3. ✅ features query 정합성 개선
+   - `src/features/application/api/queries.ts`의 타입 import 경로 오타 수정
+
+### 결과
+- `entities/application`은 service + keys + model 타입만 노출
+- application query hook은 `features/application`에서만 제공
+- Layer 역할 분리가 명확해짐 (entities: 데이터 접근, features: query orchestration)
+
+---
+
+**마지막 업데이트**: 2026-02-14 (Phase 3.2 완료)
