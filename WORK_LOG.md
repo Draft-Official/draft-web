@@ -321,7 +321,45 @@ entities/
 - CLAUDE.md에 Common Mistakes 추가 (Nested props, N+1 queries)
 - DB Schema 기반 타입 정의 완료
 - 빌드 성공 확인
+- Commit: bf6f1b1
 
-**다음 단계**: Phase 3 - features/ UI Types 재설계 (entities 기반)
+---
 
-**마지막 업데이트**: 2026-02-14 (Phase 2.5 완료)
+## 🔍 Phase 2.5 추가 발견사항
+
+### ⚠️ @x Cross-Import 패턴 발견 (FSD 위반!)
+
+**위치:**
+- `entities/team/@x/match.ts` ❌
+- `entities/match/@x/team.ts` ❌
+- `entities/match/@x/application.ts` ❌
+- `entities/application/@x/match.ts` ❌
+
+**문제:**
+- `@x` 패턴도 entities 간 cross-import!
+- FSD 원칙: entities는 완전히 독립적이어야 함
+- CLAUDE.md "실수 2"에도 명시되어 있음
+
+**올바른 방법:**
+```typescript
+// ❌ entities에서 cross-import (@x 패턴)
+import { useMatch } from '@/entities/team/@x/match';
+
+// ✅ features에서 각각 import하고 조합
+import { useMatch } from '@/entities/match';
+import { useTeam } from '@/entities/team';
+
+const match = useMatch(matchId);
+const team = useTeam(match.teamId);  // 조합은 features에서!
+```
+
+**계획:**
+- Phase 3에서 모든 `@x` 폴더 제거
+- features/에서 올바르게 entities 조합하도록 수정
+- 계획 문서: `docs/plans/2026-02-14-phase3-remove-cross-imports.md`
+
+---
+
+**다음 단계**: Phase 3 - @x Cross-Imports 제거 및 FSD 원칙 완전 준수
+
+**마지막 업데이트**: 2026-02-14 (Phase 2.5 완료, Phase 3 계획 작성)
