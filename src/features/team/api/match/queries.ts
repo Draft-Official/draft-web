@@ -5,15 +5,8 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
+import { createTeamService } from '@/entities/team';
 import { teamMatchKeys } from '../keys';
-import {
-  getTeamMatches,
-  getTeamMatch,
-  getTeamVotes,
-  getVotingSummary,
-  getMyVote,
-  getMyPendingVoteMatches,
-} from './api';
 import type { VotingSummary } from '../../model/types';
 import type { Match, Application } from '@/shared/types/database.types';
 
@@ -31,7 +24,8 @@ export function useTeamMatches(
     queryFn: async (): Promise<Match[]> => {
       if (!teamId) return [];
       const supabase = getSupabaseBrowserClient();
-      return getTeamMatches(supabase, teamId, options);
+      const service = createTeamService(supabase);
+      return service.getTeamMatches(teamId, options);
     },
     enabled: !!teamId,
   });
@@ -46,7 +40,8 @@ export function useTeamMatch(matchId: string | null | undefined) {
     queryFn: async (): Promise<Match | null> => {
       if (!matchId) return null;
       const supabase = getSupabaseBrowserClient();
-      return getTeamMatch(supabase, matchId);
+      const service = createTeamService(supabase);
+      return service.getTeamMatch(matchId);
     },
     enabled: !!matchId,
   });
@@ -61,7 +56,8 @@ export function useTeamVotes(matchId: string | null | undefined) {
     queryFn: async (): Promise<Application[]> => {
       if (!matchId) return [];
       const supabase = getSupabaseBrowserClient();
-      return getTeamVotes(supabase, matchId);
+      const service = createTeamService(supabase);
+      return service.getTeamVotes(matchId);
     },
     enabled: !!matchId,
   });
@@ -79,7 +75,8 @@ export function useVotingSummary(
     queryFn: async (): Promise<VotingSummary | null> => {
       if (!matchId || !teamId) return null;
       const supabase = getSupabaseBrowserClient();
-      return getVotingSummary(supabase, matchId, teamId);
+      const service = createTeamService(supabase);
+      return service.getVotingSummary(matchId);
     },
     enabled: !!matchId && !!teamId,
   });
@@ -97,7 +94,8 @@ export function useMyVote(
     queryFn: async (): Promise<Application | null> => {
       if (!matchId || !userId) return null;
       const supabase = getSupabaseBrowserClient();
-      return getMyVote(supabase, matchId, userId);
+      const service = createTeamService(supabase);
+      return service.getMyVote(matchId, userId);
     },
     enabled: !!matchId && !!userId,
   });
@@ -118,7 +116,8 @@ export function useMyPendingVoteMatches(
     queryFn: async () => {
       if (!userId || teamIds.length === 0) return [];
       const supabase = getSupabaseBrowserClient();
-      return getMyPendingVoteMatches(supabase, teamIds, userId, options);
+      const service = createTeamService(supabase);
+      return service.getMyPendingVoteMatches(teamIds, userId, options);
     },
     enabled: !!userId && teamIds.length > 0,
   });

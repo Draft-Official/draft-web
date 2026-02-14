@@ -1051,6 +1051,107 @@ export class TeamService {
     if (error) handleSupabaseError(error, '게스트 모집 전환');
     return data!;
   }
+
+  /**
+   * 내가 속한 팀의 미투표 매치 목록 조회
+   */
+  async getMyPendingVoteMatches(
+    teamIds: string[],
+    userId: string,
+    options?: { guestRecruitmentOnly?: boolean }
+  ): Promise<
+    Array<{
+      match: Match;
+      team: { id: string; name: string; logo_url: string | null; code: string };
+      myVote: Application | null;
+      votingSummary: { attending: number; notAttending: number; pending: number };
+    }>
+  > {
+    if (teamIds.length === 0) return [];
+
+    // 1. 미래의 팀 매치들 조회
+    const { data: matches, error: matchError } = await this.supabase
+      .from('matches')
+      .select('*, gyms(*), teams!inner(id, name, logo_url, code)')
+      .in('team_id', teamIds)
+      .eq('match_type', 'TEAM_MATCH')
+      .gte('start_time', new Date().toISOString())
+      .order('start_time', { ascending: true });
+
+    if (matchError) handleSupabaseError(matchError, '미투표 매치 조회');
+
+    if (!matches || matches.length === 0) return [];
+
+    // 1.5 게스트 모집 중인 매치만 필터링 (옵션)
+    let filteredMatches = matches;
+    if (options?.guestRecruitmentOnly) {
+      filteredMatches = matches.filter((match) => {
+        const setup = match.recruitment_setup as {
+          type?: 'ANY' | 'POSITION';
+          max_count?: number;
+          positions?: Record<string, { max: number; current: number }>;
+        } | null;
+
+        if (!setup) return false;
+
+        // ANY 타입: max_count > 0이면 게스트 모집 중
+        if (setup.type === 'ANY' && (setup.max_count ?? 0) > 0) {
+          return true;
+        }
+
+        // POSITION 타입: 포지션에 슬롯이 있으면 게스트 모집 중
+        if (setup.type === 'POSITION' && setup.positions) {
+          return Object.values(setup.positions).some((pos) => pos.max > pos.current);
+        }
+
+        return false;
+      });
+    }
+
+    if (filteredMatches.length === 0) return [];
+
+    // 2. 해당 매치들의 투표 정보 조회
+    const matchIds = filteredMatches.map((m) => m.id);
+    const { data: votes, error: voteError } = await this.supabase
+      .from('applications')
+      .select('*')
+      .in('match_id', matchIds)
+      .eq('source', 'TEAM_VOTE');
+
+    if (voteError) handleSupabaseError(voteError, '투표 정보 조회');
+
+    // 3. 매치별 투표 요약 및 내 투표 상태 계산
+    const result = filteredMatches.map((match) => {
+      const matchVotes = (votes || []).filter((v) => v.match_id === match.id);
+      const myVote = matchVotes.find((v) => v.user_id === userId) || null;
+
+      const votingSummary = {
+        attending: matchVotes.filter(
+          (v) => v.status === 'CONFIRMED' || v.status === 'LATE'
+        ).length,
+        notAttending: matchVotes.filter((v) => v.status === 'NOT_ATTENDING').length,
+        pending: matchVotes.filter(
+          (v) => v.status === 'PENDING' || v.status === 'MAYBE'
+        ).length,
+      };
+
+      const team = match.teams as unknown as {
+        id: string;
+        name: string;
+        logo_url: string | null;
+        code: string;
+      };
+
+      return {
+        match,
+        team,
+        myVote,
+        votingSummary,
+      };
+    });
+
+    return result;
+  }
 }
 
 /**

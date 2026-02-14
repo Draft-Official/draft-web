@@ -7,7 +7,6 @@
  * - core/: 팀 CRUD (생성, 수정, 삭제, 조회)
  * - membership/: 팀원 관리 (가입, 탈퇴, 역할 변경)
  * - match/: 팀 운동 및 투표
- * - fees/: 회비 관리
  */
 
 // Shared
@@ -22,6 +21,3 @@ export * from './membership';
 
 // Team match & voting
 export * from './match';
-
-// Team fees
-export * from './fees';

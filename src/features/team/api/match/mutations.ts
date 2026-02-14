@@ -6,17 +6,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { teamMatchKeys } from '../keys';
-import {
-  createTeamMatch,
-  upsertTeamVote,
-  closeVoting,
-  reopenVoting,
-  updateMemberVote,
-  updateTeamMatch,
-  cancelTeamMatch,
-  openGuestRecruitment,
-} from './api';
-import type { CreateTeamMatchInput, VoteInput } from '../../model/types';
+import { createTeamService } from '@/entities/team';
+import type { CreateTeamMatchInput, VoteInput } from '@/entities/team/model/types';
 import type { TeamVoteStatusValue } from '@/shared/config/team-constants';
 import type { Match, Application } from '@/shared/types/database.types';
 
@@ -35,7 +26,8 @@ export function useCreateTeamMatch() {
       input: CreateTeamMatchInput;
     }): Promise<Match> => {
       const supabase = getSupabaseBrowserClient();
-      return createTeamMatch(supabase, hostId, input);
+      const service = createTeamService(supabase);
+      return service.createTeamMatch(hostId, input);
     },
     onSuccess: (data, { input }) => {
       // 팀 매치 목록 갱신
@@ -63,7 +55,8 @@ export function useVote() {
       input: VoteInput;
     }): Promise<Application> => {
       const supabase = getSupabaseBrowserClient();
-      return upsertTeamVote(supabase, userId, input);
+      const service = createTeamService(supabase);
+      return service.upsertTeamVote(userId, input);
     },
     onSuccess: (data, { userId, input }) => {
       // 내 투표 캐시 갱신
@@ -98,7 +91,8 @@ export function useCloseVoting() {
       teamId: string;
     }): Promise<Match> => {
       const supabase = getSupabaseBrowserClient();
-      return closeVoting(supabase, matchId);
+      const service = createTeamService(supabase);
+      return service.closeVoting(matchId);
     },
     onSuccess: (data, { matchId, teamId }) => {
       // 매치 상세 갱신
@@ -132,7 +126,8 @@ export function useOpenGuestRecruitment() {
       };
     }): Promise<Match> => {
       const supabase = getSupabaseBrowserClient();
-      return openGuestRecruitment(supabase, matchId, recruitmentSetup);
+      const service = createTeamService(supabase);
+      return service.openGuestRecruitment(matchId, recruitmentSetup);
     },
     onSuccess: (data, { matchId, teamId }) => {
       // 매치 상세 갱신
@@ -160,7 +155,8 @@ export function useReopenVoting() {
       teamId: string;
     }): Promise<Match> => {
       const supabase = getSupabaseBrowserClient();
-      return reopenVoting(supabase, matchId);
+      const service = createTeamService(supabase);
+      return service.reopenVoting(matchId);
     },
     onSuccess: (data, { matchId, teamId }) => {
       // 매치 상세 갱신
@@ -192,7 +188,8 @@ export function useUpdateMemberVote() {
       description?: string;
     }): Promise<Application> => {
       const supabase = getSupabaseBrowserClient();
-      return updateMemberVote(supabase, matchId, memberId, status, description);
+      const service = createTeamService(supabase);
+      return service.updateMemberVote(matchId, memberId, status, description);
     },
     onSuccess: (data, { matchId, memberId }) => {
       // 해당 멤버의 투표 캐시 갱신
@@ -230,7 +227,8 @@ export function useUpdateTeamMatch() {
       };
     }): Promise<Match> => {
       const supabase = getSupabaseBrowserClient();
-      return updateTeamMatch(supabase, matchId, input);
+      const service = createTeamService(supabase);
+      return service.updateTeamMatch(matchId, input);
     },
     onSuccess: (data, { matchId, teamId }) => {
       // 매치 상세 갱신
@@ -258,7 +256,8 @@ export function useCancelTeamMatch() {
       teamId: string;
     }): Promise<Match> => {
       const supabase = getSupabaseBrowserClient();
-      return cancelTeamMatch(supabase, matchId);
+      const service = createTeamService(supabase);
+      return service.cancelTeamMatch(matchId);
     },
     onSuccess: (data, { matchId, teamId }) => {
       // 매치 상세 갱신

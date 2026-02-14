@@ -5,14 +5,8 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
+import { createTeamService, teamMemberRowToClient } from '@/entities/team';
 import { teamMemberKeys } from '../keys';
-import {
-  getTeamMembers,
-  getPendingMembers,
-  getMembership,
-  getTeamMemberCount,
-} from './api';
-import { teamMemberRowToClient } from '../mapper';
 import type { ClientTeamMember } from '../../model/types';
 
 /**
@@ -24,7 +18,8 @@ export function useTeamMembers(teamId: string | null | undefined) {
     queryFn: async (): Promise<ClientTeamMember[]> => {
       if (!teamId) return [];
       const supabase = getSupabaseBrowserClient();
-      const rows = await getTeamMembers(supabase, teamId);
+      const service = createTeamService(supabase);
+      const rows = await service.getTeamMembers(teamId);
       return rows.map(teamMemberRowToClient);
     },
     enabled: !!teamId,
@@ -40,7 +35,8 @@ export function usePendingMembers(teamId: string | null | undefined) {
     queryFn: async (): Promise<ClientTeamMember[]> => {
       if (!teamId) return [];
       const supabase = getSupabaseBrowserClient();
-      const rows = await getPendingMembers(supabase, teamId);
+      const service = createTeamService(supabase);
+      const rows = await service.getPendingMembers(teamId);
       return rows.map(teamMemberRowToClient);
     },
     enabled: !!teamId,
@@ -59,7 +55,8 @@ export function useMyMembership(
     queryFn: async (): Promise<ClientTeamMember | null> => {
       if (!teamId || !userId) return null;
       const supabase = getSupabaseBrowserClient();
-      const row = await getMembership(supabase, teamId, userId);
+      const service = createTeamService(supabase);
+      const row = await service.getMembership(teamId, userId);
       return row ? teamMemberRowToClient(row) : null;
     },
     enabled: !!teamId && !!userId,
@@ -75,7 +72,8 @@ export function useTeamMemberCount(teamId: string | null | undefined) {
     queryFn: async (): Promise<number> => {
       if (!teamId) return 0;
       const supabase = getSupabaseBrowserClient();
-      return getTeamMemberCount(supabase, teamId);
+      const service = createTeamService(supabase);
+      return service.getTeamMemberCount(teamId);
     },
     enabled: !!teamId,
   });

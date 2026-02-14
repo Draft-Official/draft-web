@@ -5,9 +5,8 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
+import { createTeamService, teamRowToClient } from '@/entities/team';
 import { teamKeys, teamMemberKeys } from '../keys';
-import { createTeam, updateTeam, deleteTeam } from './api';
-import { teamRowToClient } from '../mapper';
 import type { CreateTeamInput, UpdateTeamInput, ClientTeam } from '../../model/types';
 
 /**
@@ -25,7 +24,8 @@ export function useCreateTeam() {
       input: CreateTeamInput;
     }): Promise<ClientTeam> => {
       const supabase = getSupabaseBrowserClient();
-      const team = await createTeam(supabase, userId, input);
+      const service = createTeamService(supabase);
+      const team = await service.createTeam(userId, input);
       return teamRowToClient(team);
     },
     onSuccess: (data, { userId }) => {
@@ -55,7 +55,8 @@ export function useUpdateTeam() {
       input: UpdateTeamInput;
     }): Promise<ClientTeam> => {
       const supabase = getSupabaseBrowserClient();
-      const row = await updateTeam(supabase, teamId, input);
+      const service = createTeamService(supabase);
+      const row = await service.updateTeam(teamId, input);
       return teamRowToClient(row);
     },
     onSuccess: (data) => {
@@ -85,7 +86,8 @@ export function useDeleteTeam() {
       userId: string;
     }): Promise<void> => {
       const supabase = getSupabaseBrowserClient();
-      await deleteTeam(supabase, teamId);
+      const service = createTeamService(supabase);
+      await service.deleteTeam(teamId);
     },
     onSuccess: (_, { teamId, userId }) => {
       // 캐시에서 제거

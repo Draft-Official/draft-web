@@ -6,18 +6,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { teamMemberKeys, teamKeys } from '../keys';
-import {
-  createJoinRequest,
-  approveJoinRequest,
-  rejectJoinRequest,
-  updateMemberRole,
-  removeMember,
-  leaveTeam,
-  transferLeadership,
-} from './api';
-import { createVotesForNewMember } from '../match/api';
-import { teamMemberRowToClient } from '../mapper';
-import type { ClientTeamMember } from '../../model/types';
+import { createTeamService, teamMemberRowToClient } from '@/entities/team';
+import type { ClientTeamMember } from '@/entities/team/model/types';
 import type { TeamRoleValue } from '@/shared/config/team-constants';
 
 /**
@@ -35,7 +25,8 @@ export function useJoinTeam() {
       userId: string;
     }): Promise<ClientTeamMember> => {
       const supabase = getSupabaseBrowserClient();
-      const row = await createJoinRequest(supabase, teamId, userId);
+      const service = createTeamService(supabase);
+      const row = await service.createJoinRequest(teamId, userId);
       return teamMemberRowToClient(row);
     },
     onSuccess: (data, { teamId, userId }) => {
@@ -68,11 +59,12 @@ export function useApproveJoin() {
       teamId: string;
     }): Promise<ClientTeamMember> => {
       const supabase = getSupabaseBrowserClient();
-      const row = await approveJoinRequest(supabase, membershipId);
+      const service = createTeamService(supabase);
+      const row = await service.approveJoinRequest(membershipId);
       const member = teamMemberRowToClient(row);
 
       // 새 팀원에게 진행 중인 경기들의 투표 생성
-      await createVotesForNewMember(supabase, teamId, member.userId);
+      await service.createVotesForNewMember(teamId, member.userId);
 
       return member;
     },
@@ -109,7 +101,8 @@ export function useRejectJoin() {
       teamId: string;
     }): Promise<ClientTeamMember> => {
       const supabase = getSupabaseBrowserClient();
-      const row = await rejectJoinRequest(supabase, membershipId);
+      const service = createTeamService(supabase);
+      const row = await service.rejectJoinRequest(membershipId);
       return teamMemberRowToClient(row);
     },
     onSuccess: (_, { teamId }) => {
@@ -138,7 +131,8 @@ export function useUpdateRole() {
       newRole: TeamRoleValue;
     }): Promise<ClientTeamMember> => {
       const supabase = getSupabaseBrowserClient();
-      const row = await updateMemberRole(supabase, membershipId, newRole);
+      const service = createTeamService(supabase);
+      const row = await service.updateMemberRole(membershipId, newRole);
       return teamMemberRowToClient(row);
     },
     onSuccess: (data, { teamId }) => {
@@ -172,7 +166,8 @@ export function useRemoveMember() {
       userId: string;
     }): Promise<void> => {
       const supabase = getSupabaseBrowserClient();
-      await removeMember(supabase, membershipId);
+      const service = createTeamService(supabase);
+      await service.removeMember(membershipId);
     },
     onSuccess: (_, { teamId, userId }) => {
       // 팀원 목록 갱신
@@ -206,7 +201,8 @@ export function useLeaveTeam() {
       userId: string;
     }): Promise<void> => {
       const supabase = getSupabaseBrowserClient();
-      await leaveTeam(supabase, teamId, userId);
+      const service = createTeamService(supabase);
+      await service.leaveTeam(teamId, userId);
     },
     onSuccess: (_, { teamId, userId }) => {
       // 팀원 목록 갱신
@@ -234,9 +230,10 @@ export function useApproveJoinRequest(teamId: string) {
   return useMutation({
     mutationFn: async (membershipId: string): Promise<ClientTeamMember> => {
       const supabase = getSupabaseBrowserClient();
-      const row = await approveJoinRequest(supabase, membershipId);
+      const service = createTeamService(supabase);
+      const row = await service.approveJoinRequest(membershipId);
       const member = teamMemberRowToClient(row);
-      await createVotesForNewMember(supabase, teamId, member.userId);
+      await service.createVotesForNewMember(teamId, member.userId);
       return member;
     },
     onSuccess: () => {
@@ -255,7 +252,8 @@ export function useRejectJoinRequest(teamId: string) {
   return useMutation({
     mutationFn: async (membershipId: string): Promise<ClientTeamMember> => {
       const supabase = getSupabaseBrowserClient();
-      const row = await rejectJoinRequest(supabase, membershipId);
+      const service = createTeamService(supabase);
+      const row = await service.rejectJoinRequest(membershipId);
       return teamMemberRowToClient(row);
     },
     onSuccess: () => {
@@ -281,7 +279,8 @@ export function useTransferLeadership() {
       newLeaderId: string;
     }): Promise<void> => {
       const supabase = getSupabaseBrowserClient();
-      await transferLeadership(supabase, teamId, currentLeaderId, newLeaderId);
+      const service = createTeamService(supabase);
+      await service.transferLeadership(teamId, currentLeaderId, newLeaderId);
     },
     onSuccess: (_, { teamId, currentLeaderId, newLeaderId }) => {
       // 팀원 목록 갱신

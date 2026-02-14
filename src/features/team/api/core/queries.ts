@@ -5,9 +5,8 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
+import { createTeamService, teamRowToClient } from '@/entities/team';
 import { teamKeys } from '../keys';
-import { getTeam, getTeamByCode, getMyTeams, checkTeamCodeExists } from './api';
-import { teamRowToClient } from '../mapper';
 import type { ClientTeam, TeamListItem } from '../../model/types';
 import type { RegularDayValue } from '@/shared/config/team-constants';
 
@@ -20,7 +19,8 @@ export function useTeam(teamId: string | null | undefined) {
     queryFn: async (): Promise<ClientTeam | null> => {
       if (!teamId) return null;
       const supabase = getSupabaseBrowserClient();
-      const row = await getTeam(supabase, teamId);
+      const service = createTeamService(supabase);
+      const row = await service.getTeam(teamId);
       return row ? teamRowToClient(row) : null;
     },
     enabled: !!teamId,
@@ -36,7 +36,8 @@ export function useTeamByCode(code: string | null | undefined) {
     queryFn: async (): Promise<(ClientTeam & { homeGymName: string | null }) | null> => {
       if (!code) return null;
       const supabase = getSupabaseBrowserClient();
-      const row = await getTeamByCode(supabase, code);
+      const service = createTeamService(supabase);
+      const row = await service.getTeamByCode(code);
       if (!row) return null;
       return {
         ...teamRowToClient(row),
@@ -56,7 +57,8 @@ export function useMyTeams(userId: string | null | undefined) {
     queryFn: async (): Promise<TeamListItem[]> => {
       if (!userId) return [];
       const supabase = getSupabaseBrowserClient();
-      const rows = await getMyTeams(supabase, userId);
+      const service = createTeamService(supabase);
+      const rows = await service.getMyTeams(userId);
       return rows.map((row) => ({
         id: row.id,
         code: row.code || '',
@@ -81,7 +83,8 @@ export function useCheckTeamCode(code: string | null | undefined) {
     queryFn: async (): Promise<boolean> => {
       if (!code || code.length < 3) return false;
       const supabase = getSupabaseBrowserClient();
-      return checkTeamCodeExists(supabase, code);
+      const service = createTeamService(supabase);
+      return service.checkTeamCodeExists(code);
     },
     enabled: !!code && code.length >= 3,
     staleTime: 1000 * 10, // 10초 동안 캐시
