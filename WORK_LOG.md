@@ -35,7 +35,7 @@
 
 ---
 
-## ❌ 남은 작업 (빌드 에러 수정 필요)
+## ✅ 추가 완료 작업 (2026-02-14)
 
 ### 빌드 에러 목록
 
@@ -142,32 +142,37 @@ echo "  - src/features/team/api/membership/mutations.ts (all function calls)"
 
 ## 📊 진행 상황
 
-**Phase 2 - Team Migration: 80% 완료**
+**Phase 2 - Team Migration: 100% 완료 ✅**
 
 - ✅ Queries 마이그레이션: 100%
-- ⚠️  Mutations 마이그레이션: 60% (함수 호출 부분 미완료)
+- ✅ Mutations 마이그레이션: 100%
 - ✅ 중복 파일 제거: 100%
-- ⚠️  UI 파일 import 수정: 80%
+- ✅ UI 파일 import 수정: 100%
+- ✅ 빌드 성공 확인: 100%
 
 ---
 
-## 🎯 Next Steps
+## 🎯 완료된 작업 (2026-02-14)
 
-1. 위의 수정 스크립트 실행
-2. `match/mutations.ts` 파일 수동 수정 (7개 함수 호출)
-3. `membership/mutations.ts` 파일 수동 수정 (8개 함수 호출)
-4. `npm run build` 실행하여 빌드 성공 확인
-5. 커밋:
-   ```bash
-   git add -A
-   git commit -m "refactor: complete team entities migration
+1. ✅ Import 경로 수정
+   - `match-create-view.tsx`: `@/features/team/api` → `@/entities/team`
+   - `team-settings-view.tsx`: 함수 import를 service 사용으로 변경
 
-   - Migrate all team queries/mutations to use entities/team service
-   - Remove duplicate API files (core, match, membership, fees)
-   - Update imports across codebase
+2. ✅ `match/mutations.ts` 수정 완료
+   - 7개 mutation 모두 service 메서드 호출로 변경
+   - 타입 import 추가 (CreateTeamMatchInput, VoteInput)
 
-   Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
-   ```
+3. ✅ `membership/mutations.ts` 수정 완료
+   - 8개 mutation 모두 service 메서드 호출로 변경
+   - 타입 import 추가 (ClientTeamMember)
+
+4. ✅ 빌드 성공 확인
+   - `npm run build` 실행 → 성공
+   - 모든 TypeScript 타입 에러 해결
+
+5. ✅ 커밋 완료
+   - Commit: 26071e9
+   - 21 files changed, 413 insertions(+), 1626 deletions(-)
 
 ---
 
@@ -225,4 +230,16 @@ initializeMonthlyFees(teamId, yearMonth)
 
 ---
 
-**마지막 업데이트**: 2026-02-13 23:52
+---
+
+## 🎉 Phase 2 완료!
+
+**Phase 2 - Team Entities Migration: 완료**
+- 모든 team API가 `entities/team` service를 사용하도록 마이그레이션 완료
+- 중복 API 파일 제거 (1626줄 삭제)
+- 빌드 성공 확인
+- 커밋: 26071e9
+
+**다음 단계**: Phase 3 - Match Entities Migration 또는 Seed Design 통합
+
+**마지막 업데이트**: 2026-02-14 (Phase 2 완료)
