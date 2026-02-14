@@ -9,14 +9,14 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/shared/ui/base/dialog';
-import type { Guest } from '../../model/types';
+import type { MatchApplicantDTO } from '../../model/types';
 
 const MAX_LENGTH = 1000;
 
 interface MatchCancelDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  confirmedGuests: Guest[];
+  confirmedGuests: MatchApplicantDTO[];
   onConfirm: (message: string) => void;
 }
 

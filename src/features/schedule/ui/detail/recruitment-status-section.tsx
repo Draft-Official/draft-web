@@ -2,10 +2,10 @@
 
 import { Users } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
-import type { HostMatchDetail } from '../../model/types';
+import type { HostMatchDetailDTO } from '../../model/types';
 
 interface RecruitmentStatusSectionProps {
-  match: HostMatchDetail;
+  match: HostMatchDetailDTO;
   confirmedCountByPosition: Record<string, number>;
   totalConfirmedCount: number;
   isEnded: boolean;
