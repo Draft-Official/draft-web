@@ -850,7 +850,7 @@ export class TeamService {
   async getTeamVotes(matchId: string): Promise<Application[]> {
     const { data, error } = await this.supabase
       .from('applications')
-      .select('*, users(id, nickname, avatar_url)')
+      .select('*, users(*)')
       .eq('match_id', matchId)
       .eq('source', 'TEAM_VOTE')
       .order('created_at', { ascending: true });
@@ -1062,7 +1062,7 @@ export class TeamService {
   ): Promise<
     Array<{
       match: Match;
-      team: { id: string; name: string; logo_url: string | null; code: string };
+      team: Team;
       myVote: Application | null;
       votingSummary: { attending: number; notAttending: number; pending: number };
     }>
@@ -1072,7 +1072,7 @@ export class TeamService {
     // 1. 미래의 팀 매치들 조회
     const { data: matches, error: matchError } = await this.supabase
       .from('matches')
-      .select('*, gyms(*), teams!inner(id, name, logo_url, code)')
+      .select('*, gyms(*), teams!inner(*)')
       .in('team_id', teamIds)
       .eq('match_type', 'TEAM_MATCH')
       .gte('start_time', new Date().toISOString())
@@ -1135,12 +1135,7 @@ export class TeamService {
         ).length,
       };
 
-      const team = match.teams as unknown as {
-        id: string;
-        name: string;
-        logo_url: string | null;
-        code: string;
-      };
+      const team = match.teams as unknown as Team;
 
       return {
         match,
