@@ -21,7 +21,6 @@ import {
 import { Switch } from '@/shared/ui/base/switch';
 import { Checkbox } from '@/shared/ui/shadcn/checkbox';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/shared/ui/shadcn/accordion';
-import { Alert, AlertDescription } from '@/shared/ui/shadcn/alert';
 import { cn } from '@/shared/lib/utils';
 import { useAuth, useUpdateProfile } from '@/shared/session';
 import { useCreateApplication, useUserTeams } from '@/features/application';
@@ -34,7 +33,6 @@ import {
 } from '../lib';
 import { POSITION_OPTIONS } from '@/shared/config/match-constants';
 import { SKILL_LEVELS } from '@/shared/config/skill-constants';
-import { AlertTriangle } from 'lucide-react';
 
 const MAX_COMPANIONS = 9;
 
