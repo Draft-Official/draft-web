@@ -173,54 +173,6 @@ export type MatchStatus =
   | 'closed'
   | 'rejected';
 
-/**
- * @deprecated Use ScheduleMatchListItemDTO
- */
-export interface ManagedMatch {
-  id: string;
-  type: MatchType;
-  status: MatchStatus;
-  teamName: string;
-  date: string;       // YYYY. MM. DD (Day)
-  time: string;       // HH:mm
-  startTimeISO: string; // ISO timestamp (정렬용)
-  location: string;
-  locationUrl?: string;
-
-  // Guest specific
-  applicationId?: string; // 게스트 신청 ID (송금 완료 처리용)
-  approvalStatus?: string;
-  totalCost?: number;    // 총금액 (본인 + 동반인)
-  perCost?: number;      // 인당 금액
-  companionCount?: number; // 동반인 수
-  bankInfo?: {
-    bank: string;
-    account: string;
-    holder: string;
-  };
-  // 신청 정보 (바텀시트용)
-  applicationInfo?: {
-    position: string;
-    appliedAt: string;
-    companions?: {
-      name: string;
-      position: string;
-    }[];
-    cancelReason?: string; // 거절/취소 사유
-  };
-
-  // Host specific
-  applicants?: number;
-  vacancies?: number;
-
-  // Team specific
-  participants?: number;
-
-  // Tournament specific
-  tournamentName?: string;
-  round?: string;
-}
-
 // 필터 옵션 타입
 export interface FilterOption<T extends string = string> {
   value: T;
@@ -237,15 +189,6 @@ export type GuestStatus = 'pending' | 'payment_waiting' | 'confirmed' | 'rejecte
 // 모집 방식
 export type RecruitmentMode = 'position' | 'total';
 
-// 동반인 정보
-export interface CompanionInfo {
-  name: string;
-  position: string;
-  height?: string;
-  age?: string;
-  skillLevel?: string;
-}
-
 // 참여자 기본 정보
 export interface Participant {
   id: string;
@@ -257,83 +200,12 @@ export interface Participant {
   avatar?: string;
 }
 
-/**
- * @deprecated Use MatchApplicantDTO
- */
-export interface Guest extends Participant {
-  status: GuestStatus;
-  realName?: string; // 실명 (호스트에게만 표시)
-  paymentVerified?: boolean; // 호스트 내부 관리용 입금 확인 여부
-  teamName?: string; // 신청 시 선택한 팀
-  companions?: CompanionInfo[];
-  appliedAt?: string; // 신청 시간 (ISO timestamp)
-  accountInfo?: {
-    bank?: string;
-    number?: string;
-    holder?: string;
-  };
-  matchHistory?: {
-    count: number;
-    lastDate?: string;
-  };
-}
-
 // 포지션별 모집 인원
 export interface PositionQuota {
   position: string;
   label: string;
   current: number;
   max: number;
-}
-
-/**
- * @deprecated Use HostMatchDetailDTO
- */
-export interface HostMatchDetail {
-  id: string;
-  date: string;
-  time: string;
-  endTimeISO: string; // ISO timestamp for time-based status derivation
-  location: string;
-  locationUrl: string;
-  teamName: string;
-  status: string; // DB status (RECRUITING, CLOSED, etc.)
-  recruitmentMode: RecruitmentMode;
-  positionQuotas?: PositionQuota[];
-  totalQuota?: {
-    current: number;
-    max: number;
-  };
-}
-
-/**
- * @deprecated Use TeamExerciseDetailDTO
- */
-export interface TeamExerciseDetail {
-  id: string;
-  teamName: string;
-  date: string;
-  time: string;
-  location: string;
-  locationUrl: string;
-  description: string;
-  participants: Participant[];
-}
-
-/**
- * @deprecated Use TournamentDetailDTO
- */
-export interface TournamentDetail {
-  id: string;
-  tournamentName: string;
-  round: string;
-  date: string;
-  time: string;
-  location: string;
-  locationUrl: string;
-  tactics: string;
-  participants: Participant[];
-  teamName: string;
 }
 
 // 게스트 경기 상세 (게스트 신청용)
@@ -398,33 +270,3 @@ export interface ParticipatingMatchRow {
 // ============================================
 // 관리 페이지 타입 정의
 // ============================================
-
-/**
- * @deprecated Use TeamExerciseManageDetailDTO
- */
-export interface TeamExerciseManageDetail {
-  id: string;
-  teamName: string;
-  date: string;
-  time: string;
-  location: string;
-  locationUrl: string;
-  description: string;
-  participants: Participant[];
-}
-
-/**
- * @deprecated Use TournamentManageDetailDTO
- */
-export interface TournamentManageDetail {
-  id: string;
-  teamName: string;
-  tournamentName: string;
-  round: string;
-  date: string;
-  time: string;
-  location: string;
-  locationUrl: string;
-  description: string;
-  participants: Participant[];
-}

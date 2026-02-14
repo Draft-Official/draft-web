@@ -70,14 +70,14 @@ export function getGuestStatus(application: Application) {
 }
 
 // ============================================
-// Application → Guest Mapper
+// Application → MatchApplicantDTO Mapper
 // ============================================
 
 /**
- * DB Application → UI Guest 변환
+ * DB Application → MatchApplicantDTO 변환
  * @param matchHistory 팀 참여 이력 (별도 쿼리로 조회됨)
  */
-export function applicationToGuest(
+export function toMatchApplicantDTO(
   app: ApplicationWithUser,
   matchHistory?: { count: number; lastDate?: string }
 ): MatchApplicantDTO {
@@ -129,13 +129,13 @@ export function applicationToGuest(
 }
 
 // ============================================
-// Match → ManagedMatch Mapper
+// Match → ScheduleMatchListItemDTO Mapper
 // ============================================
 
 /**
- * DB Match → UI ManagedMatch 변환
+ * DB Match → ScheduleMatchListItemDTO 변환
  */
-export function matchToManagedMatch(
+export function toScheduleMatchListItemDTO(
   match: MatchWithRelations,
   type: 'host' | 'guest'
 ): ScheduleMatchListItemDTO {
@@ -175,13 +175,13 @@ export function matchToManagedMatch(
 }
 
 // ============================================
-// Match → HostMatchDetail Mapper
+// Match → HostMatchDetailDTO Mapper
 // ============================================
 
 /**
- * DB Match → UI HostMatchDetail 변환
+ * DB Match → HostMatchDetailDTO 변환
  */
-export function matchToHostMatchDetail(match: MatchWithRelations): HostMatchDetailDTO {
+export function toHostMatchDetailDTO(match: MatchWithRelations): HostMatchDetailDTO {
   const recruitmentSetup = match.recruitment_setup as RecruitmentSetup | null;
   const recruitmentMode: RecruitmentMode =
     recruitmentSetup?.type === 'POSITION' ? 'position' : 'total';

@@ -38,9 +38,9 @@ export {
 } from './lib/status-utils';
 export {
   getGuestStatus,
-  applicationToGuest,
-  matchToManagedMatch,
-  matchToHostMatchDetail,
+  toMatchApplicantDTO,
+  toScheduleMatchListItemDTO,
+  toHostMatchDetailDTO,
 } from './lib/mappers';
 
 // ============================================

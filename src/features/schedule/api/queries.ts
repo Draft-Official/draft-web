@@ -11,9 +11,9 @@ import { formatMatchDate, formatMatchTime } from '@/shared/lib/date';
 import { getPositionLabel } from '@/shared/config/match-constants';
 import { matchManagementKeys } from './keys';
 import {
-  matchToManagedMatch,
-  applicationToGuest,
-  matchToHostMatchDetail,
+  toScheduleMatchListItemDTO,
+  toMatchApplicantDTO,
+  toHostMatchDetailDTO,
 } from '../lib/mappers';
 import {
   resolveApplicationStatus,
@@ -29,7 +29,7 @@ import type {
 
 /**
  * 내가 주최한 경기 목록 조회
- * @returns ManagedMatch[] 형태로 변환된 호스트 경기 목록
+ * @returns ScheduleMatchListItemDTO[] 형태로 변환된 호스트 경기 목록
  */
 export function useHostedMatches() {
   const { user } = useAuth();
@@ -45,8 +45,8 @@ export function useHostedMatches() {
       // 모든 호스트 경기 조회 (limit 없음)
       const rows = await matchService.getMyHostedMatches(user.id, 100);
 
-      // DB Row -> UI ManagedMatch 변환
-      return rows.map((row) => matchToManagedMatch(row, 'host'));
+      // DB Row -> ScheduleMatchListItemDTO 변환
+      return rows.map((row) => toScheduleMatchListItemDTO(row, 'host'));
     },
     enabled: !!user?.id,
   });
@@ -54,7 +54,7 @@ export function useHostedMatches() {
 
 /**
  * 내가 참여한 경기 목록 조회 (게스트로 신청한 경기)
- * @returns ManagedMatch[] 형태로 변환된 참여 경기 목록
+ * @returns ScheduleMatchListItemDTO[] 형태로 변환된 참여 경기 목록
  */
 export function useParticipatingMatches() {
   const { user } = useAuth();
@@ -92,7 +92,7 @@ export function useParticipatingMatches() {
       if (error) throw error;
       if (!applications) return [];
 
-      // DB Application → UI ManagedMatch 변환
+      // DB Application → ScheduleMatchListItemDTO 변환
       return applications
         .filter((app) => app.match) // match가 있는 것만
         .map((app) => {
@@ -176,7 +176,7 @@ export function useParticipatingMatches() {
 /**
  * 호스트 경기 상세 조회
  * @param matchId 경기 ID
- * @returns HostMatchDetail 형태로 변환된 경기 상세
+ * @returns HostMatchDetailDTO 형태로 변환된 경기 상세
  */
 export function useHostMatchDetail(matchId: string) {
   return useQuery({
@@ -189,8 +189,8 @@ export function useHostMatchDetail(matchId: string) {
 
       const row = await matchService.getMatchDetail(matchId);
 
-      // DB Row -> UI HostMatchDetail 변환
-      return matchToHostMatchDetail(row);
+      // DB Row -> HostMatchDetailDTO 변환
+      return toHostMatchDetailDTO(row);
     },
     enabled: !!matchId,
   });
@@ -199,7 +199,7 @@ export function useHostMatchDetail(matchId: string) {
 /**
  * 경기 신청자 목록 조회
  * @param matchId 경기 ID
- * @returns Guest[] 형태로 변환된 신청자 목록 (팀 참여 이력 포함)
+ * @returns MatchApplicantDTO[] 형태로 변환된 신청자 목록 (팀 참여 이력 포함)
  */
 export function useMatchApplicants(matchId: string) {
   return useQuery({
@@ -220,7 +220,7 @@ export function useMatchApplicants(matchId: string) {
       // team_id가 없으면 이력 조회 불가
       if (!match?.team_id) {
         const applications = await applicationService.getApplicationsByMatch(matchId);
-        return applications.map((app) => applicationToGuest(app));
+        return applications.map((app) => toMatchApplicantDTO(app));
       }
 
       // 2. 신청자 목록 조회
@@ -262,10 +262,10 @@ export function useMatchApplicants(matchId: string) {
         }
       }
 
-      // 5. DB Application -> UI Guest 변환 (이력 포함)
+      // 5. DB Application -> MatchApplicantDTO 변환 (이력 포함)
       return applications.map((app) => {
         const history = historyMap.get(app.user_id);
-        return applicationToGuest(app, history ? {
+        return toMatchApplicantDTO(app, history ? {
           count: history.count,
           lastDate: history.lastDate ? formatMatchDate(history.lastDate) : undefined,
         } : undefined);
