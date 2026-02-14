@@ -7,7 +7,6 @@ export type {
   MyProfileFormDTO,
   MyProfileViewDTO,
   MyTeamOptionDTO,
-  ProfileData,
   UpdateMyProfileInput,
 } from './model/types';
 export type { SkillLevel } from '@/shared/config/skill-constants';

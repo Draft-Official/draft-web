@@ -45,11 +45,6 @@ export type MyNotificationSettingField =
 
 export type UpdateMyProfileInput = MyProfileFormDTO;
 
-/**
- * @deprecated Use MyProfileFormDTO instead.
- */
-export type ProfileData = MyProfileFormDTO;
-
 // Re-export from shared config for convenience
 export type { SkillLevel } from '@/shared/config/skill-constants';
 export { SKILL_LEVELS, SKILL_LEVEL_NAMES } from '@/shared/config/skill-constants';
