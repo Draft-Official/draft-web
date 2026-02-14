@@ -26,8 +26,172 @@ import type {
 
 import type {
   TeamRoleValue,
+  TeamMemberStatusValue,
+  TeamVoteStatusValue,
   RegularDayValue,
 } from '@/shared/config/team-constants';
+import type { MatchStatusValue, MatchTypeValue, MatchFormatValue, GenderValue } from '@/shared/config/match-constants';
+import type {
+  AccountInfo,
+  AgeRange,
+  GymFacilities,
+  LevelRange,
+  MatchRule,
+  OperationInfo,
+  RecruitmentSetup,
+} from '@/shared/types/jsonb.types';
+import type { ApplicationSourceValue } from '@/shared/config/application-constants';
+
+// ============================================
+// DTO Types (NEW - Flat Structure)
+// ============================================
+
+/**
+ * Team 상세 DTO
+ * 팀 상세/설정/프로필 화면에서 사용
+ */
+export interface TeamInfoDTO {
+  id: string;
+  code: string | null;
+  name: string;
+  shortIntro: string | null;
+  description: string | null;
+  logoUrl: string | null;
+  regionDepth1: string | null;
+  regionDepth2: string | null;
+  regionDisplay: string | null;
+  homeGymId: string | null;
+  homeGymName: string | null;
+  regularDay: RegularDayValue | null;
+  regularStartTime: string | null;
+  regularEndTime: string | null;
+  regularScheduleDisplay: string | null;
+  teamGender: string | null;
+  levelRange: LevelRange | null;
+  levelDisplay: string | null;
+  ageRange: AgeRange | null;
+  ageDisplay: string | null;
+  isRecruiting: boolean;
+  accountInfo: AccountInfo | null;
+  operationInfo: OperationInfo | null;
+  createdAt: string | null;
+}
+
+/**
+ * 내 팀 목록 카드 DTO
+ * /team, /my 팀 카드 영역에서 사용
+ */
+export interface MyTeamListItemDTO {
+  id: string;
+  code: string;
+  name: string;
+  logoUrl: string | null;
+  role: TeamRoleValue;
+  regularDay: RegularDayValue | null;
+  regularTime: string | null;
+  regularScheduleDisplay: string | null;
+  homeGymName: string | null;
+}
+
+/**
+ * 팀 멤버십 DTO
+ * 멤버 권한/상태 확인용
+ */
+export interface TeamMembershipDTO {
+  id: string;
+  teamId: string;
+  userId: string;
+  role: TeamRoleValue;
+  status: TeamMemberStatusValue;
+  joinedAt: string | null;
+  user?: TeamMemberUser;
+}
+
+/**
+ * 팀 멤버 목록 아이템 DTO
+ * 멤버/대기자 목록 화면에서 사용
+ */
+export type TeamMemberListItemDTO = TeamMembershipDTO;
+
+/**
+ * 팀 투표 DTO
+ * TEAM_VOTE source application 표시용
+ */
+export interface TeamVoteDTO {
+  id: string;
+  matchId: string;
+  userId: string;
+  status: TeamVoteStatusValue;
+  source: ApplicationSourceValue | null;
+  description: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+  userNickname: string | null;
+  userAvatarUrl: string | null;
+}
+
+/**
+ * 팀 일정 아이템 DTO
+ * 팀 상세 > 일정 탭, 내 팀 > 정기운동 카드에서 사용
+ */
+export interface TeamScheduleMatchItemDTO {
+  matchId: string;
+  teamId: string | null;
+  teamCode: string | null;
+  teamName: string;
+  teamLogoUrl: string | null;
+  gymId: string | null;
+  gymName: string;
+  gymAddress: string | null;
+  startTime: string;
+  endTime: string;
+  dateDisplay: string;
+  timeDisplay: string;
+  status: MatchStatusValue | null;
+  statusLabel: string;
+  isPast: boolean;
+}
+
+/**
+ * 팀 매치 상세 DTO
+ * 팀 매치 상세 화면에서 사용
+ */
+export interface TeamMatchDetailDTO extends TeamScheduleMatchItemDTO {
+  matchType: MatchTypeValue;
+  matchFormat: MatchFormatValue;
+  genderRule: GenderValue;
+  recruitmentSetup: RecruitmentSetup;
+  matchRule: MatchRule | null;
+  requirements: string[] | null;
+  operationInfo: OperationInfo | null;
+  accountInfo: AccountInfo | null;
+  facilities: GymFacilities | null;
+  isVotingClosed: boolean;
+}
+
+/**
+ * 내 미투표 팀 매치 카드 DTO
+ * /team 내 팀 정기운동 섹션에서 사용
+ */
+export interface MyPendingTeamVoteMatchDTO {
+  matchId: string;
+  teamId: string;
+  teamCode: string;
+  teamName: string;
+  teamLogoUrl: string | null;
+  dateDisplay: string;
+  timeDisplay: string;
+  gymName: string;
+  gymAddress: string | null;
+  status: MatchStatusValue;
+  myVote: TeamVoteStatusValue;
+  myVoteReason: string | null;
+  votingSummary: {
+    attending: number;
+    notAttending: number;
+    pending: number;
+  };
+}
 
 /**
  * TeamMember UI 조합용 사용자 타입
@@ -83,6 +247,7 @@ export type TeamVote = TeamVoteEntity & {
 // ============================================
 
 /**
+ * @deprecated Use TeamScheduleMatchItemDTO or TeamMatchDetailDTO instead
  * 팀 운동용 매치 타입 (투표 정보 포함)
  */
 export interface TeamMatchWithVoting {
@@ -99,6 +264,7 @@ export interface TeamMatchWithVoting {
 }
 
 /**
+ * @deprecated Use TeamInfoDTO instead
  * 팀 프로필 카드용 타입
  */
 export interface TeamProfileCardData {
@@ -113,6 +279,7 @@ export interface TeamProfileCardData {
 }
 
 /**
+ * @deprecated Use MyTeamListItemDTO instead
  * 팀 목록 아이템용 타입 (나의 팀 카드에 표시)
  */
 export interface TeamListItem {
@@ -148,6 +315,7 @@ export const ApplicantStatus = {
 } as const;
 
 /**
+ * @deprecated Use TeamInfoDTO or MyTeamListItemDTO instead
  * 레거시 Team 카드 타입 (mock data용)
  */
 export interface LegacyTeamCard {
@@ -159,6 +327,7 @@ export interface LegacyTeamCard {
 }
 
 /**
+ * @deprecated Use TeamScheduleMatchItemDTO instead
  * 레거시 Match 카드 타입 (mock data용)
  */
 export interface LegacyMatchCard {

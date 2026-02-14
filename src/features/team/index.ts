@@ -2,6 +2,14 @@
 // Model Types
 // ============================================
 export type {
+  TeamInfoDTO,
+  MyTeamListItemDTO,
+  TeamMembershipDTO,
+  TeamMemberListItemDTO,
+  TeamVoteDTO,
+  TeamScheduleMatchItemDTO,
+  TeamMatchDetailDTO,
+  MyPendingTeamVoteMatchDTO,
   TeamMatchWithVoting,
   TeamProfileCardData,
   TeamListItem,
