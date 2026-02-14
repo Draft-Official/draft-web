@@ -20,7 +20,12 @@ import {
   toParticipatingMatchStatus,
   toApprovalStatusText,
 } from '../lib/status-utils';
-import type { ManagedMatch, Guest, HostMatchDetail, ParticipatingMatchRow } from '../model/types';
+import type {
+  ScheduleMatchListItemDTO,
+  MatchApplicantDTO,
+  HostMatchDetailDTO,
+  ParticipatingMatchRow,
+} from '../model/types';
 
 /**
  * 내가 주최한 경기 목록 조회
@@ -31,7 +36,7 @@ export function useHostedMatches() {
 
   return useQuery({
     queryKey: matchManagementKeys.hostedMatches(user?.id ?? ''),
-    queryFn: async (): Promise<ManagedMatch[]> => {
+    queryFn: async (): Promise<ScheduleMatchListItemDTO[]> => {
       if (!user?.id) return [];
 
       const supabase = getSupabaseBrowserClient();
@@ -56,7 +61,7 @@ export function useParticipatingMatches() {
 
   return useQuery({
     queryKey: matchManagementKeys.participatingMatches(user?.id ?? ''),
-    queryFn: async (): Promise<ManagedMatch[]> => {
+    queryFn: async (): Promise<ScheduleMatchListItemDTO[]> => {
       if (!user?.id) return [];
 
       const supabase = getSupabaseBrowserClient();
@@ -102,7 +107,7 @@ export function useParticipatingMatches() {
           // Application status → 공통 GuestStatus → UI 매핑
           const baseStatus = resolveApplicationStatus(app.status ?? 'PENDING', app.approved_at);
 
-          let status: ManagedMatch['status'];
+          let status: ScheduleMatchListItemDTO['status'];
           if (matchEnded) {
             status = baseStatus === 'rejected' || baseStatus === 'canceled' ? 'cancelled' : 'ended';
           } else if (matchOngoing && baseStatus === 'confirmed') {
@@ -126,9 +131,12 @@ export function useParticipatingMatches() {
 
           // match_type에 따라 UI type 결정
           const matchType = match.match_type === 'TEAM_MATCH' ? 'team' as const : 'guest' as const;
+          const scheduleMode = 'participating' as const;
 
           return {
             id: match.id,
+            matchType,
+            scheduleMode,
             type: matchType,
             status,
             teamName: match.team?.name || match.manual_team_name || '팀명 미정',
@@ -158,7 +166,7 @@ export function useParticipatingMatches() {
               })) : undefined,
               cancelReason: app.cancel_reason || undefined,
             },
-          } as ManagedMatch;
+          } as ScheduleMatchListItemDTO;
         });
     },
     enabled: !!user?.id,
@@ -173,7 +181,7 @@ export function useParticipatingMatches() {
 export function useHostMatchDetail(matchId: string) {
   return useQuery({
     queryKey: matchManagementKeys.matchDetail(matchId),
-    queryFn: async (): Promise<HostMatchDetail | null> => {
+    queryFn: async (): Promise<HostMatchDetailDTO | null> => {
       if (!matchId) return null;
 
       const supabase = getSupabaseBrowserClient();
@@ -196,7 +204,7 @@ export function useHostMatchDetail(matchId: string) {
 export function useMatchApplicants(matchId: string) {
   return useQuery({
     queryKey: matchManagementKeys.applicants(matchId),
-    queryFn: async (): Promise<Guest[]> => {
+    queryFn: async (): Promise<MatchApplicantDTO[]> => {
       if (!matchId) return [];
 
       const supabase = getSupabaseBrowserClient();
@@ -266,4 +274,3 @@ export function useMatchApplicants(matchId: string) {
     enabled: !!matchId,
   });
 }
-
