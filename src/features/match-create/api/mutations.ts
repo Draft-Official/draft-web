@@ -8,7 +8,7 @@ import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { createMatchCreateService } from './match-create-api';
 import { matchKeys } from '@/shared/api/keys';
 import { MatchCreateFormData } from '@/features/match-create/model/schema';
-import { useAuth } from '@/features/auth/model/auth-context';
+import { useAuth } from '@/shared/session';
 
 /**
  * 매치 생성

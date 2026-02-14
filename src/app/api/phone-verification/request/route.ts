@@ -14,6 +14,14 @@ const CODE_EXPIRY_MS = 5 * 60 * 1000; // 5분
 
 export async function POST(request: NextRequest) {
   try {
+    if (!VERIFY_EMAIL) {
+      console.error('[phone-verification] IMAP_USER is not configured');
+      return NextResponse.json(
+        { error: '서버 인증 메일 주소(IMAP_USER)가 설정되지 않았습니다.' },
+        { status: 500 }
+      );
+    }
+
     const body = await request.json();
     const rawPhone = body.phoneNumber as string;
 
@@ -87,10 +95,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const smsUri = `sms:${VERIFY_EMAIL}?body=${code}`;
+    const smsUri = `sms:${VERIFY_EMAIL}?body=${encodeURIComponent(code)}`;
 
     const response: VerificationRequestResponse = {
       smsUri,
+      recipient: VERIFY_EMAIL,
       code,
       expiresAt,
     };

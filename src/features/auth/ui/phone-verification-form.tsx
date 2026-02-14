@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { CheckCircle2, Info, Smartphone } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
-import { useAuth } from '@/features/auth';
+import { useAuth } from '@/shared/session';
 import { useIsMobile } from '@/shared/lib/hooks/use-is-mobile';
 import { Input } from '@/shared/ui/base/input';
 import { Label } from '@/shared/ui/base/label';
@@ -25,7 +25,7 @@ interface PhoneVerificationFormProps {
 }
 
 export function PhoneVerificationForm({ onComplete }: PhoneVerificationFormProps) {
-  const { user } = useAuth();
+  const { user, isLoading: isAuthLoading } = useAuth();
   const router = useRouter();
 
   const [step, setStep] = useState<Step>('input');
@@ -34,6 +34,7 @@ export function PhoneVerificationForm({ onComplete }: PhoneVerificationFormProps
 
   // 인증 대기 상태
   const [smsUri, setSmsUri] = useState('');
+  const [recipient, setRecipient] = useState('');
   const [code, setCode] = useState('');
   const [expiresAt, setExpiresAt] = useState('');
   const [remainingSeconds, setRemainingSeconds] = useState(0);
@@ -104,6 +105,11 @@ export function PhoneVerificationForm({ onComplete }: PhoneVerificationFormProps
 
   // Step 1: 인증 요청
   const handleRequest = async () => {
+    if (isAuthLoading) {
+      toast.error('인증 상태를 확인 중입니다. 잠시 후 다시 시도해주세요.');
+      return;
+    }
+
     const normalized = normalizePhoneNumber(phone);
     if (!PHONE_REGEX.test(normalized)) {
       toast.error('올바른 전화번호를 입력해주세요.');
@@ -131,6 +137,7 @@ export function PhoneVerificationForm({ onComplete }: PhoneVerificationFormProps
 
       const data: VerificationRequestResponse = await res.json();
       setSmsUri(data.smsUri);
+      setRecipient(data.recipient);
       setCode(data.code);
       setExpiresAt(data.expiresAt);
 
@@ -150,6 +157,7 @@ export function PhoneVerificationForm({ onComplete }: PhoneVerificationFormProps
     setStep('input');
     setCode('');
     setSmsUri('');
+    setRecipient('');
     setExpiresAt('');
   };
 
@@ -186,7 +194,7 @@ export function PhoneVerificationForm({ onComplete }: PhoneVerificationFormProps
         <Button
           className="w-full"
           onClick={handleRequest}
-          disabled={isRequesting || phone.length < 10}
+          disabled={isAuthLoading || isRequesting || phone.length < 10}
         >
           {isRequesting ? '요청 중...' : '인증 요청'}
         </Button>
@@ -235,6 +243,11 @@ export function PhoneVerificationForm({ onComplete }: PhoneVerificationFormProps
             <div className="p-4 bg-white border rounded-lg">
               <QRCodeSVG value={smsUri} size={160} />
             </div>
+            {recipient && (
+              <p className="text-xs text-slate-500">
+                수신 주소: {recipient}
+              </p>
+            )}
           </div>
         )}
 

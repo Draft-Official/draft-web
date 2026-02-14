@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Bell } from 'lucide-react';
-import { useAuth } from '@/features/auth/model/auth-context';
+import { useAuth } from '@/shared/session';
 import { useUnreadNotificationCount } from '../api/queries';
 
 export function NotificationBell() {

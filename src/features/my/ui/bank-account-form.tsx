@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Info } from 'lucide-react';
-import { useAuth, useProfile, useUpdateProfile } from '@/features/auth';
+import { useAuth, useProfile, useUpdateProfile } from '@/shared/session';
 import { BankCombobox } from '@/shared/ui/base/bank-combobox';
 import { Input } from '@/shared/ui/base/input';
 import { Label } from '@/shared/ui/base/label';

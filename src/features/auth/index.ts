@@ -9,14 +9,12 @@ export { useRequireAuth } from './model/use-require-auth';
 // API
 // ============================================
 export { authKeys } from './api/keys';
-export { useProfile } from './api/queries';
+export { useProfile, useUpdateProfile, useDeleteAccount } from '@/shared/session';
 export {
-  useUpdateProfile,
   useSignInWithKakao,
   useSignInWithGoogle,
   useSignInWithEmail,
   useSignOut,
-  useDeleteAccount,
 } from './api/mutations';
 
 // ============================================
@@ -26,3 +24,4 @@ export { AuthGuard } from './ui/auth-guard';
 export { SignupVerifyGuard } from './ui/signup-verify-guard';
 export { SignupVerifyPageView } from './ui/signup-verify-page-view';
 export { LoginRequiredModal } from './ui/login-required-modal';
+export { PhoneVerificationForm } from './ui/phone-verification-form';

@@ -8,7 +8,7 @@ import { useRecruitingMatchesInfinite } from '@/features/match/api/queries';
 import { filterMatches, groupMatchesByDate } from '@/features/match/lib/utils';
 import { useLocalStorage } from '@/shared/lib/hooks/use-local-storage';
 import { NotificationBell } from '@/features/notification/ui/notification-bell';
-import { useAuth } from '@/features/auth';
+import { useAuth } from '@/shared/session';
 import { useUserApplications } from '@/features/application';
 import type { ApplicationStatusValue } from "../shared/config/application-constants";
 

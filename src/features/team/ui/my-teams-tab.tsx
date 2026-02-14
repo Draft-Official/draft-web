@@ -4,7 +4,7 @@ import { Users, Loader2 } from 'lucide-react';
 import { Button } from '@/shared/ui/base/button';
 import { ScrollArea, ScrollBar } from '@/shared/ui/base/scroll-area';
 import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/shadcn/alert';
-import { useAuth } from '@/features/auth/model/auth-context';
+import { useAuth } from '@/shared/session';
 import { useMyTeams } from '../api/core/queries';
 import { useMyPendingVoteMatches } from '../api/match/queries';
 import { useVote } from '../api/match/mutations';

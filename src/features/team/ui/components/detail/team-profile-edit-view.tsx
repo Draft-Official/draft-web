@@ -17,7 +17,7 @@ import { Label } from '@/shared/ui/base/label';
 import { useTeamByCode } from '@/features/team/api/core/queries';
 import { useUpdateTeam } from '@/features/team/api/core/mutations';
 import { useMyMembership } from '@/features/team/api/membership/queries';
-import { useAuth } from '@/features/auth/model/auth-context';
+import { useAuth } from '@/shared/session';
 import { GENDER_OPTIONS } from '@/shared/config/constants';
 import { REGULAR_DAY_OPTIONS, REGULAR_DAY_VALUES } from '@/shared/config/team-constants';
 

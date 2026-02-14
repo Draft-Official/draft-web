@@ -25,7 +25,7 @@ import { useCreateMatch, useUpdateMatch } from '@/features/match-create/api/muta
 import { useMyRecentMatches } from '@/features/match-create/api/queries';
 import { MatchCreateFormData } from '@/features/match-create/model/schema';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
-import { createAuthService } from '@/features/auth/api/auth-api';
+import { createAuthService } from '@/shared/api/auth-service';
 import { createTeamService } from '@/entities/team';
 import { createMatchService } from '@/entities/match';
 import {

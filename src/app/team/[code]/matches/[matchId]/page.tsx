@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation';
 import { useTeamByCode } from '@/features/team/api/core/queries';
 import { useMyMembership } from '@/features/team/api/membership/queries';
 import { useTeamMatch } from '@/features/team/api/match/queries';
-import { useAuth } from '@/features/auth/model/auth-context';
+import { useAuth } from '@/shared/session';
 import { TeamMatchDetailView } from '@/features/team/ui/components/match/team-match-detail-view';
 
 interface TeamMatchDetailPageProps {

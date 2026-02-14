@@ -33,6 +33,5 @@ export { NotificationSettingsSection } from './ui/notification-settings-section'
 export { MenuSection } from './ui/menu-section';
 export { ContactView } from './ui/contact-view';
 export { MyPageFooter } from './ui/my-page-footer';
-export { PhoneVerificationForm } from './ui/phone-verification-form';
 export { PlaceholderPageView } from './ui/placeholder-page-view';
 export { PrivacyPageView } from './ui/privacy-page-view';

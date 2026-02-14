@@ -5,7 +5,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
-import { useAuth } from '@/features/auth';
+import { useAuth } from '@/shared/session';
 
 /**
  * 공지 발송 (announcements 테이블에 INSERT)

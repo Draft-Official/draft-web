@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Calendar, RotateCcw, Loader2 } from "lucide-react";
 import { useLocalStorage } from "@/shared/lib/hooks/use-local-storage";
-import { useAuth } from "@/features/auth/model/auth-context";
+import { useAuth } from "@/shared/session";
 import { useUnreadNotifications, useMarkNotificationsAsReadByMatch } from "@/features/notification";
 import type { ClientNotification } from "@/shared/types/notification.types";
 import type { NotificationTypeValue } from "@/shared/config/constants";

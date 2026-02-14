@@ -7,7 +7,7 @@ import { useSafeBack } from '@/shared/lib/hooks';
 import { useTeamByCode } from '@/features/team/api/core/queries';
 import { usePendingMembers, useMyMembership } from '@/features/team/api/membership/queries';
 import { useApproveJoinRequest, useRejectJoinRequest } from '@/features/team/api/membership/mutations';
-import { useAuth } from '@/features/auth/model/auth-context';
+import { useAuth } from '@/shared/session';
 import { Button } from '@/shared/ui/shadcn/button';
 import type { TeamMember } from '@/features/team/model/types';
 

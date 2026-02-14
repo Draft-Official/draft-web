@@ -18,7 +18,7 @@ import { ShareModal } from './components/detail/share-modal';
 import { KebabMenu } from './components/detail/kebab-menu';
 import { MatchDetailUI } from '@/features/match/model/types';
 import { ApplyModal } from '@/features/application/ui/apply-modal';
-import { useAuth } from '@/features/auth/model/auth-context';
+import { useAuth } from '@/shared/session';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { createApplicationService } from '@/entities/application';
 import { matchManagementKeys } from '@/features/schedule/api/keys';

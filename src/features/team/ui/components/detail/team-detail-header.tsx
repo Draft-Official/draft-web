@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { cn } from '@/shared/lib/utils';
 import { formatRegularSchedule } from '@/features/team/api/mapper';
 import { useJoinTeam } from '@/features/team/api/membership/mutations';
-import { useAuth } from '@/features/auth/model/auth-context';
+import { useAuth } from '@/shared/session';
 import type { Team, TeamMember } from '@/features/team/model/types';
 import {
   HoverCard,

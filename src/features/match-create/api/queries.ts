@@ -5,7 +5,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { matchKeys } from '@/shared/api/keys';
-import { useAuth } from '@/features/auth';
+import { useAuth } from '@/shared/session';
 
 /**
  * 내가 주최한 최근 경기 목록 (최대 5개)

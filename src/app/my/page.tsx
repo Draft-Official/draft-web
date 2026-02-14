@@ -9,8 +9,7 @@ import { AccountSection } from '@/features/my/ui/account-section';
 import { PaymentSection } from '@/features/my/ui/payment-section';
 import { MyPageFooter } from '@/features/my/ui/my-page-footer';
 import { ProfileData } from '@/features/my/model/types';
-import { useAuth } from '@/features/auth/model/auth-context';
-import { useUpdateProfile } from '@/features/auth/api/mutations';
+import { useAuth, useUpdateProfile } from '@/shared/session';
 import { useMyTeams } from '@/features/team/api/core/queries';
 import type { Profile, UserUpdate, UserMetadata } from '@/shared/types/database.types';
 

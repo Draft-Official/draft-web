@@ -7,7 +7,7 @@ import { cn } from '@/shared/lib/utils';
 import { useTeamByCode } from '../api/core/queries';
 import { useTeamMembers, usePendingMembers, useMyMembership, useTeamMemberCount } from '../api/membership/queries';
 import { useTeamMatches } from '../api/match/queries';
-import { useAuth } from '@/features/auth/model/auth-context';
+import { useAuth } from '@/shared/session';
 import { useSafeBack } from '@/shared/lib/hooks';
 import {
   TeamDetailHeader,

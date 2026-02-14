@@ -9,7 +9,7 @@ import { cn } from '@/shared/lib/utils';
 import { useSafeBack } from '@/shared/lib/hooks';
 import { useTeamByCode } from '@/features/team/api/core/queries';
 import { useMyMembership, useTeamMembers } from '@/features/team/api/membership/queries';
-import { useAuth } from '@/features/auth/model/auth-context';
+import { useAuth } from '@/shared/session';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { createTeamService } from '@/entities/team';
 import { teamKeys, teamMemberKeys } from '@/features/team/api/keys';

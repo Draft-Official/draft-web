@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { createMatchService } from '@/entities/match';
 import { createApplicationService } from '@/entities/application';
-import { useAuth } from '@/features/auth';
+import { useAuth } from '@/shared/session';
 import { formatMatchDate, formatMatchTime } from '@/shared/lib/date';
 import { getPositionLabel } from '@/shared/config/constants';
 import { matchManagementKeys } from './keys';
