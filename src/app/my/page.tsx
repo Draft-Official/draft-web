@@ -11,10 +11,11 @@ import { MyPageFooter } from '@/features/my/ui/my-page-footer';
 import { ProfileData } from '@/features/my/model/types';
 import { useAuth, useUpdateProfile } from '@/shared/session';
 import { useMyTeams } from '@/features/team/api/team-info/queries';
-import type { Profile, UserUpdate, UserMetadata } from '@/shared/types/database.types';
+import type { UserUpdate, UserMetadata } from '@/shared/types/database.types';
+import type { SessionProfile } from '@/shared/session';
 
 // DB Profile → UI ProfileData 변환
-function profileToFormData(dbProfile: Profile | null): ProfileData | null {
+function profileToFormData(dbProfile: SessionProfile | null): ProfileData | null {
   if (!dbProfile) return null;
 
   const metadata = dbProfile.metadata as UserMetadata & { age?: number; skill_level?: number; display_team_id?: string };

@@ -4,8 +4,9 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import type { User } from '@supabase/supabase-js';
 import { useQueryClient } from '@tanstack/react-query';
 import { getSupabaseAuthClient, getSupabaseBrowserClient, isSupabaseConfigured } from '@/shared/api/supabase/client';
-import type { Profile } from '@/shared/types/database.types';
-import type { AuthContextValue, AuthStatus } from './types';
+import type { Profile as ProfileRow } from '@/shared/types/database.types';
+import type { AuthContextValue, AuthStatus, SessionProfile } from './types';
+import { profileRowToSessionProfile } from './mappers';
 import { useCacheRestored } from '@/shared/lib/cache-restored-context';
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -18,7 +19,7 @@ function getProfileQueryKey(userId: string) {
   return ['auth', 'profile', userId] as const;
 }
 
-async function fetchProfile(userId: string): Promise<Profile | null> {
+async function fetchProfile(userId: string): Promise<SessionProfile | null> {
   const supabase = getSupabaseBrowserClient();
   const { data, error } = await supabase
     .from('users')
@@ -31,12 +32,12 @@ async function fetchProfile(userId: string): Promise<Profile | null> {
     throw error;
   }
 
-  return data;
+  return profileRowToSessionProfile(data as ProfileRow);
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [profile, setProfile] = useState<SessionProfile | null>(null);
   const [status, setStatus] = useState<AuthStatus>('loading');
   const isSessionFound = React.useRef(false);
   const queryClient = useQueryClient();
@@ -52,7 +53,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const queryKey = getProfileQueryKey(userId);
       const existingData = queryClient.getQueryData(queryKey);
       if (existingData) {
-        setProfile(existingData as Profile);
+        setProfile(profileRowToSessionProfile(existingData as ProfileRow));
         return;
       }
 

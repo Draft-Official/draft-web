@@ -1,5 +1,4 @@
 import type { User } from '@supabase/supabase-js';
-import type { Profile } from '@/shared/types/database.types';
 import type { OperationInfo } from '@/shared/types/jsonb.types';
 
 export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
@@ -63,7 +62,7 @@ export interface UpdateSessionProfileInput {
 
 export interface AuthContextValue {
   user: User | null;
-  profile: Profile | null;
+  profile: SessionProfile | null;
   status: AuthStatus;
   isLoading: boolean;
   isAuthenticated: boolean;

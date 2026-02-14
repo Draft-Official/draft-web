@@ -3,11 +3,16 @@ import { toast } from 'sonner';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import type { ProfileUpdate } from '@/shared/types/database.types';
 import { authKeys } from './keys';
+import {
+  profileRowToSessionProfile,
+  sessionProfileToProfileUpdate,
+} from './mappers';
+import type { SessionProfile, UpdateSessionProfileInput } from './types';
 
 export function useProfile(userId: string | undefined) {
   return useQuery({
     queryKey: authKeys.profile(userId!),
-    queryFn: async () => {
+    queryFn: async (): Promise<SessionProfile | null> => {
       const supabase = getSupabaseBrowserClient();
       const { data, error } = await supabase
         .from('users')
@@ -20,7 +25,7 @@ export function useProfile(userId: string | undefined) {
         throw error;
       }
 
-      return data;
+      return profileRowToSessionProfile(data);
     },
     enabled: !!userId,
     staleTime: 1000 * 60 * 5,
@@ -32,20 +37,31 @@ export function useUpdateProfile() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ userId, updates }: { userId: string; updates: ProfileUpdate }) => {
+    mutationFn: async ({
+      userId,
+      updates,
+    }: {
+      userId: string;
+      updates: UpdateSessionProfileInput | ProfileUpdate;
+    }) => {
       const supabase = getSupabaseBrowserClient();
+      const normalizedUpdates = sessionProfileToProfileUpdate(
+        updates as UpdateSessionProfileInput
+      );
       const { data, error } = await supabase
         .from('users')
-        .update(updates)
+        .update(normalizedUpdates)
         .eq('id', userId)
         .select()
         .single();
 
       if (error) throw error;
-      return data;
+      return profileRowToSessionProfile(data);
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: authKeys.profile(data.id) });
+      if (data?.id) {
+        queryClient.invalidateQueries({ queryKey: authKeys.profile(data.id) });
+      }
       toast.success('프로필이 업데이트되었습니다');
     },
   });

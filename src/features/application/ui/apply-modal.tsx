@@ -24,8 +24,9 @@ import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/
 import { Alert, AlertDescription } from '@/shared/ui/shadcn/alert';
 import { cn } from '@/shared/lib/utils';
 import { useAuth, useUpdateProfile } from '@/shared/session';
+import type { SessionProfile, UpdateSessionProfileInput } from '@/shared/session';
 import { useCreateApplication, useUserTeams } from '@/features/application';
-import type { ParticipantInfo, Profile, UserMetadata, UserUpdate, Json } from '@/shared/types/database.types';
+import type { ParticipantInfo, UserMetadata } from '@/shared/types/database.types';
 import { POSITION_OPTIONS, POSITION_DEFAULT, PositionValue } from '@/shared/config/match-constants';
 import { SKILL_LEVELS } from '@/shared/config/skill-constants';
 import { AlertTriangle } from 'lucide-react';
@@ -49,7 +50,7 @@ interface ApplyFormData {
 }
 
 // DB Profile → Form Data 변환
-function profileToFormData(dbProfile: Profile | null): ApplyFormData {
+function profileToFormData(dbProfile: SessionProfile | null): ApplyFormData {
   if (!dbProfile) {
     return { height: '', age: '', weight: '', position: '', teamId: '' };
   }
@@ -69,12 +70,12 @@ function profileToFormData(dbProfile: Profile | null): ApplyFormData {
 // 프로필에서 비어있는 필드만 업데이트할 데이터 생성
 function getProfileUpdates(
   formData: ApplyFormData,
-  currentProfile: Profile | null
-): UserUpdate | null {
+  currentProfile: SessionProfile | null
+): UpdateSessionProfileInput | null {
   const metadata = (currentProfile?.metadata || {}) as UserMetadata & { age?: number; skill_level?: number };
   const currentPosition = currentProfile?.positions?.[0];
 
-  const updates: UserUpdate = {};
+  const updates: UpdateSessionProfileInput = {};
   let hasUpdates = false;
 
   // metadata 업데이트
@@ -94,7 +95,7 @@ function getProfileUpdates(
   }
 
   if (Object.keys(metadataUpdates).length > 0) {
-    updates.metadata = { ...metadata, ...metadataUpdates } as Json;
+    updates.metadata = { ...metadata, ...metadataUpdates };
   }
 
   // positions 업데이트
