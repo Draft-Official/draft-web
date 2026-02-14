@@ -1,4 +1,4 @@
-import { GuestListMatch } from '../model/types';
+import type { MatchListItemDTO } from '../model/types';
 
 // --- Date Utils ---
 
@@ -84,10 +84,62 @@ export interface FilterOptions {
     gameFormats?: string[]; // '3vs3', '5vs5'
 }
 
+interface ParsedPositionQuota {
+    current: number;
+    max: number;
+}
+
+interface ParsedPositions {
+    all?: ParsedPositionQuota;
+    g?: ParsedPositionQuota;
+    f?: ParsedPositionQuota;
+    c?: ParsedPositionQuota;
+}
+
+function parsePriceAmount(priceDisplay: string): number {
+    if (priceDisplay === '무료') return 0;
+    if (priceDisplay.startsWith('음료수')) return 0;
+    return Number(priceDisplay.replace(/[^\d]/g, '')) || 0;
+}
+
+function parsePositionsDisplay(positionsDisplay: string): ParsedPositions {
+    const parsed: ParsedPositions = {};
+    const parts = positionsDisplay.split(',').map((part) => part.trim());
+
+    for (const part of parts) {
+        const matched = part.match(/^(포지션 무관|가드|포워드|센터)\s+(\d+)\/(\d+)$/);
+        if (!matched) continue;
+        const [, label, currentRaw, maxRaw] = matched;
+        const quota = { current: Number(currentRaw), max: Number(maxRaw) };
+        if (label === '포지션 무관') parsed.all = quota;
+        if (label === '가드') parsed.g = quota;
+        if (label === '포워드') parsed.f = quota;
+        if (label === '센터') parsed.c = quota;
+    }
+
+    return parsed;
+}
+
+function parseAgeDisplay(ageDisplay: string | null): { min: number; max: number | null } | null {
+    if (!ageDisplay) return null;
+
+    const higher = ageDisplay.match(/^(\d+)대\s+이상$/);
+    if (higher) {
+        return { min: Number(higher[1]), max: null };
+    }
+
+    const range = ageDisplay.match(/^(\d+)대\s*~\s*(\d+)대$/);
+    if (range) {
+        return { min: Number(range[1]), max: Number(range[2]) };
+    }
+
+    return null;
+}
+
 export const filterMatches = (
-    matches: GuestListMatch[],
+    matches: MatchListItemDTO[],
     options: FilterOptions
-): GuestListMatch[] => {
+): MatchListItemDTO[] => {
     let filtered = [...matches];
 
     // 1. Date Filter
@@ -98,7 +150,7 @@ export const filterMatches = (
     // 2. Location Filter
     if (options.locations.length > 0) {
         filtered = filtered.filter(m => {
-            const matchAddress = m.location.address || '';
+            const matchAddress = m.gymAddress || '';
             return options.locations.some(selectedLoc => {
                 if (selectedLoc.includes('전체')) {
                     const region = selectedLoc.split(' ')[0];
@@ -123,9 +175,11 @@ export const filterMatches = (
     // 4. Position Filter
     if (options.positions.length > 0) {
         filtered = filtered.filter(m => {
-            if (options.positions.includes('포지션 무관')) return true;
+            const positions = parsePositionsDisplay(m.positionsDisplay);
+            const hasAllVacancy = !!positions.all && positions.all.current < positions.all.max;
+            if (options.positions.includes('포지션 무관')) return hasAllVacancy;
 
-            const posMap: Record<string, keyof GuestListMatch['positionsUI']> = {
+            const posMap: Record<string, keyof ParsedPositions> = {
                 '가드': 'g',
                 '포워드': 'f',
                 '센터': 'c',
@@ -135,12 +189,9 @@ export const filterMatches = (
                 const posKey = posMap[posLabel];
                 if (!posKey) return false;
 
-                const posData = m.positionsUI[posKey];
-                // Check specific position
-                if (posData && posData.status === 'open') return true;
-
-                // Check "All" (포지션 무관)
-                if (m.positionsUI.all && m.positionsUI.all.status === 'open') return true;
+                const posData = positions[posKey];
+                if (posData && posData.current < posData.max) return true;
+                if (hasAllVacancy) return true;
 
                 return false;
             });
@@ -149,7 +200,7 @@ export const filterMatches = (
 
     // 5. Price Filter
     if (options.priceMax !== null && options.priceMax !== undefined) {
-        filtered = filtered.filter(m => m.price.amount <= options.priceMax!);
+        filtered = filtered.filter(m => parsePriceAmount(m.priceDisplay) <= options.priceMax!);
     }
 
     // 6. Hide Closed Filter (독립적으로 적용)
@@ -182,16 +233,22 @@ export const filterMatches = (
 
     // 7. Detailed Filters (Gender, Age, GameFormat)
     if (options.genders && options.genders.length > 0) {
-         filtered = filtered.filter(m => m.gender && options.genders!.includes(m.gender));
+         filtered = filtered.filter(m => m.genderRule && options.genders!.includes(m.genderRule));
     }
 
     if (options.ages && options.ages.length > 0) {
         filtered = filtered.filter(m => {
-            // ageMin/ageMax로 ageRange 계산
-            if (!m.ageMin || !m.ageMax) return false;
             if (options.ages!.includes('any')) return true;
-            const ageRange = `${m.ageMin}대 ~ ${m.ageMax}대`;
-            return options.ages!.some(age => ageRange.includes(age));
+
+            const ageRange = parseAgeDisplay(m.ageDisplay);
+            if (!ageRange) return false;
+
+            return options.ages!.some((age) => {
+                const ageDecade = age === '50+' ? 50 : Number(age);
+                if (Number.isNaN(ageDecade)) return false;
+                if (ageRange.max === null) return ageDecade >= ageRange.min;
+                return ageDecade >= ageRange.min && ageDecade <= ageRange.max;
+            });
         });
     }
 
@@ -202,8 +259,8 @@ export const filterMatches = (
     return filtered;
 };
 
-export const groupMatchesByDate = (matches: GuestListMatch[]): Record<string, GuestListMatch[]> => {
-    const grouped: Record<string, GuestListMatch[]> = {};
+export const groupMatchesByDate = (matches: MatchListItemDTO[]): Record<string, MatchListItemDTO[]> => {
+    const grouped: Record<string, MatchListItemDTO[]> = {};
     matches.forEach(match => {
         if (!grouped[match.dateISO]) grouped[match.dateISO] = [];
         grouped[match.dateISO].push(match);

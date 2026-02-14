@@ -154,9 +154,9 @@ export default function GuestMatchListPage() {
                 <div key={dateISO}>
                   {groupMatches.map((match) => (
                     <MatchListItem
-                      key={match.id}
+                      key={match.matchId}
                       match={match}
-                      applicationStatus={applicationStatusMap.get(match.id)}
+                      applicationStatus={applicationStatusMap.get(match.matchId)}
                     />
                   ))}
                 </div>
