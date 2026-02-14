@@ -38,6 +38,11 @@ export interface MyNotificationSettingsDTO {
   notifyPayment: boolean;
 }
 
+export type MyNotificationSettingField =
+  | 'notifyApplication'
+  | 'notifyMatch'
+  | 'notifyPayment';
+
 export type UpdateMyProfileInput = MyProfileFormDTO;
 
 /**

@@ -3,14 +3,8 @@ import { useAuth } from '@/shared/session';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { createSettingsService } from './settings-api';
 import { settingsKeys } from './keys';
-import type { UserSettings } from '@/shared/types/database.types';
-
-const DEFAULT_SETTINGS: Omit<UserSettings, 'user_id' | 'created_at' | 'updated_at'> = {
-  notify_announcement: true,
-  notify_application: true,
-  notify_match: true,
-  notify_payment: true,
-};
+import { userSettingsToMyNotificationSettingsDTO } from '../lib';
+import type { MyNotificationSettingsDTO } from '../model/types';
 
 export function useUserSettings() {
   const { user } = useAuth();
@@ -18,19 +12,11 @@ export function useUserSettings() {
 
   return useQuery({
     queryKey: settingsKeys.byUser(userId!),
-    queryFn: async () => {
+    queryFn: async (): Promise<MyNotificationSettingsDTO> => {
       const supabase = getSupabaseBrowserClient();
       const service = createSettingsService(supabase);
       const settings = await service.getUserSettings(userId!);
-      if (!settings) {
-        return {
-          user_id: userId!,
-          ...DEFAULT_SETTINGS,
-          created_at: '',
-          updated_at: '',
-        } as UserSettings;
-      }
-      return settings;
+      return userSettingsToMyNotificationSettingsDTO(settings);
     },
     enabled: !!userId,
   });

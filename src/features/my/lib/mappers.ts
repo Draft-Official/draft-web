@@ -1,5 +1,8 @@
 import type { SessionProfile, SessionProfileMetadata, UpdateSessionProfileInput } from '@/shared/session';
+import type { UserSettings, UserSettingsUpdate } from '@/shared/types/database.types';
 import type {
+  MyNotificationSettingField,
+  MyNotificationSettingsDTO,
   MyProfileFormDTO,
   MyProfileViewDTO,
   MyTeamOptionDTO,
@@ -87,5 +90,40 @@ export function toMyProfileViewDTO(params: {
     userName,
     userInitials: userName.slice(0, 2),
     displayTeamName,
+  };
+}
+
+const DEFAULT_NOTIFICATION_SETTINGS: MyNotificationSettingsDTO = {
+  notifyAnnouncement: true,
+  notifyApplication: true,
+  notifyMatch: true,
+  notifyPayment: true,
+};
+
+export function userSettingsToMyNotificationSettingsDTO(
+  settings: UserSettings | null
+): MyNotificationSettingsDTO {
+  if (!settings) return DEFAULT_NOTIFICATION_SETTINGS;
+
+  return {
+    notifyAnnouncement: settings.notify_announcement,
+    notifyApplication: settings.notify_application,
+    notifyMatch: settings.notify_match,
+    notifyPayment: settings.notify_payment,
+  };
+}
+
+const NOTIFICATION_FIELD_MAP: Record<MyNotificationSettingField, keyof UserSettingsUpdate> = {
+  notifyApplication: 'notify_application',
+  notifyMatch: 'notify_match',
+  notifyPayment: 'notify_payment',
+};
+
+export function myNotificationUpdateToUserSettingsUpdate(input: {
+  field: MyNotificationSettingField;
+  value: boolean;
+}): Omit<UserSettingsUpdate, 'user_id'> {
+  return {
+    [NOTIFICATION_FIELD_MAP[input.field]]: input.value,
   };
 }

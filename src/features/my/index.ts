@@ -2,6 +2,7 @@
 // Model Types
 // ============================================
 export type {
+  MyNotificationSettingField,
   MyNotificationSettingsDTO,
   MyProfileFormDTO,
   MyProfileViewDTO,
@@ -17,8 +18,10 @@ export { isProfileComplete } from './model/types';
 // Mappers
 // ============================================
 export {
+  myNotificationUpdateToUserSettingsUpdate,
   myProfileFormDTOToUpdateSessionProfileInput,
   sessionProfileToMyProfileFormDTO,
+  userSettingsToMyNotificationSettingsDTO,
   toMyProfileViewDTO,
   toMyTeamOptions,
 } from './lib';
