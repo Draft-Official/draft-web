@@ -1,16 +1,33 @@
 /**
  * Match Query Keys
- * Structured keys for both GUEST_RECRUIT and TEAM_MATCH
+ * Single source of truth for match-related React Query keys
  */
 
 export const matchKeys = {
   all: ['matches'] as const,
 
-  lists: (filter?: { type?: string; status?: string }) =>
-    [...matchKeys.all, 'list', filter] as const,
+  lists: (filters?: Record<string, unknown>) =>
+    filters
+      ? ([...matchKeys.all, 'list', filters] as const)
+      : ([...matchKeys.all, 'list'] as const),
+
+  // alias for backward compatibility
+  list: (filters?: Record<string, unknown>) =>
+    matchKeys.lists(filters),
+
+  listInfinite: (filters?: Record<string, unknown>) =>
+    filters
+      ? ([...matchKeys.lists(), 'infinite', filters] as const)
+      : ([...matchKeys.lists(), 'infinite'] as const),
+
+  details: () =>
+    [...matchKeys.all, 'detail'] as const,
 
   detail: (id: string) =>
-    [...matchKeys.all, 'detail', id] as const,
+    [...matchKeys.details(), id] as const,
+
+  byHost: (hostId: string) =>
+    [...matchKeys.all, 'host', hostId] as const,
 
   // Guest Recruit specific
   guestRecruit: {

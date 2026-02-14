@@ -4,7 +4,7 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
-import { matchKeys } from '@/shared/api/keys';
+import { matchKeys } from '@/entities/match';
 import { useAuth } from '@/shared/session';
 
 /**

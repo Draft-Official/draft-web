@@ -18,7 +18,7 @@ export type {
 // ============================================
 // API & Queries
 // ============================================
-export { matchKeys } from '@/shared/api/keys';
+export { matchKeys } from '@/entities/match';
 export { useRecruitingMatches, useMatch, useRecruitingMatchesInfinite } from './api/queries';
 export { matchRowToGuestListMatch, guestListMatchToMatch } from './api/match-mapper';
 
