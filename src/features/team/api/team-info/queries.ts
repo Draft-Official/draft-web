@@ -7,8 +7,8 @@ import { useQuery } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { createTeamService, teamRowToEntity } from '@/entities/team';
 import { teamKeys } from '../keys';
-import type { Team, TeamListItem } from '../../model/types';
-import type { RegularDayValue } from '@/shared/config/team-constants';
+import { toMyTeamListItemDTO, toTeamInfoDTO } from '../../lib';
+import type { TeamInfoDTO, MyTeamListItemDTO } from '../../model/types';
 
 /**
  * 팀 ID로 팀 정보 조회
@@ -16,12 +16,13 @@ import type { RegularDayValue } from '@/shared/config/team-constants';
 export function useTeam(teamId: string | null | undefined) {
   return useQuery({
     queryKey: teamKeys.detail(teamId || ''),
-    queryFn: async (): Promise<Team | null> => {
+    queryFn: async (): Promise<TeamInfoDTO | null> => {
       if (!teamId) return null;
       const supabase = getSupabaseBrowserClient();
       const service = createTeamService(supabase);
       const row = await service.getTeam(teamId);
-      return row ? teamRowToEntity(row) : null;
+      if (!row) return null;
+      return toTeamInfoDTO(teamRowToEntity(row));
     },
     enabled: !!teamId,
   });
@@ -33,16 +34,15 @@ export function useTeam(teamId: string | null | undefined) {
 export function useTeamByCode(code: string | null | undefined) {
   return useQuery({
     queryKey: teamKeys.detailByCode(code || ''),
-    queryFn: async (): Promise<(Team & { homeGymName: string | null }) | null> => {
+    queryFn: async (): Promise<TeamInfoDTO | null> => {
       if (!code) return null;
       const supabase = getSupabaseBrowserClient();
       const service = createTeamService(supabase);
       const row = await service.getTeamByCode(code);
       if (!row) return null;
-      return {
-        ...teamRowToEntity(row),
+      return toTeamInfoDTO(teamRowToEntity(row), {
         homeGymName: row.gyms?.name ?? null,
-      };
+      });
     },
     enabled: !!code,
   });
@@ -54,21 +54,16 @@ export function useTeamByCode(code: string | null | undefined) {
 export function useMyTeams(userId: string | null | undefined) {
   return useQuery({
     queryKey: teamKeys.myTeams(userId || ''),
-    queryFn: async (): Promise<TeamListItem[]> => {
+    queryFn: async (): Promise<MyTeamListItemDTO[]> => {
       if (!userId) return [];
       const supabase = getSupabaseBrowserClient();
       const service = createTeamService(supabase);
       const rows = await service.getMyTeams(userId);
-      return rows.map((row) => ({
-        id: row.id,
-        code: row.code || '',
-        name: row.name,
-        logoUrl: row.logo_url,
-        role: row.role,
-        regularDay: row.regular_day as RegularDayValue | null,
-        regularTime: row.regular_start_time?.slice(0, 5) ?? null,
-        homeGymName: row.home_gym_name,
-      }));
+      return rows.map((row) =>
+        toMyTeamListItemDTO(teamRowToEntity(row), row.role, {
+          homeGymName: row.home_gym_name,
+        })
+      );
     },
     enabled: !!userId,
   });
