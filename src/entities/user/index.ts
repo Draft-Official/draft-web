@@ -7,3 +7,8 @@ export type {
   CreateUserInput,
   UpdateUserInput,
 } from './model/types';
+
+// ============================================
+// API Mapper
+// ============================================
+export { userRowToEntity } from './api/mapper';

@@ -4,29 +4,42 @@
  */
 import { useQuery, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
-import { createMatchService, matchKeys } from '@/entities/match';
+import { createMatchService, matchKeys, matchRowToEntity } from '@/entities/match';
+import { gymRowToEntity } from '@/entities/gym';
+import { userRowToEntity } from '@/entities/user';
+import { teamRowToEntity } from '@/entities/team';
+import type { MatchWithRelations } from '@/shared/types/database.types';
 import { matchRowToGuestListMatch } from '@/features/match/api/match-mapper';
-import { GuestListMatch } from '@/features/match/model/types';
+import { toMatchListItemDTO } from '@/features/match/lib/mappers';
+import { GuestListMatch, MatchListItemDTO } from '@/features/match/model/types';
 
 /**
  * 모집중 매치 목록 조회
- * @returns GuestListMatch[] 형태로 변환된 매치 목록
+ * @returns MatchListItemDTO[] 형태로 변환된 매치 목록
  */
 export function useRecruitingMatches() {
   return useQuery({
     queryKey: matchKeys.lists(),
-    queryFn: async () => {
+    queryFn: async (): Promise<MatchListItemDTO[]> => {
       console.log('[useRecruitingMatches] Fetching matches...');
       const supabase = getSupabaseBrowserClient();
       const matchService = createMatchService(supabase);
 
-      const rows = await matchService.getRecruitingMatches();
+      const rows = (await matchService.getRecruitingMatches()) as MatchWithRelations[];
       console.log('[useRecruitingMatches] Raw rows:', rows);
 
-      // DB Row -> 클라이언트 타입 변환
-      const mapped = rows.map(matchRowToGuestListMatch);
-      console.log('[useRecruitingMatches] Mapped matches:', mapped);
-      return mapped;
+      const dtos = rows
+        .filter((row) => row.gym && row.host)
+        .map((row) => {
+          const match = matchRowToEntity(row);
+          const gym = gymRowToEntity(row.gym!);
+          const host = userRowToEntity(row.host!);
+          const team = row.team ? teamRowToEntity(row.team) : null;
+          return toMatchListItemDTO(match, gym, host, team);
+        });
+
+      console.log('[useRecruitingMatches] Mapped DTOs:', dtos);
+      return dtos;
     },
   });
 }
@@ -54,8 +67,9 @@ export function useMatch(matchId: string) {
     enabled: !!matchId,
     // 리스트 캐시에서 초기값 제공 → 즉시 렌더링
     initialData: () => {
-      const listCache = queryClient.getQueryData<GuestListMatch[]>(matchKeys.lists());
-      return listCache?.find(m => m.id === matchId);
+      const listCache = queryClient.getQueryData<(GuestListMatch | MatchListItemDTO)[]>(matchKeys.lists());
+      if (!listCache) return undefined;
+      return listCache.find((m): m is GuestListMatch => 'id' in m && m.id === matchId);
     },
     // 초기값은 즉시 stale 처리 → 백그라운드 refetch 트리거
     initialDataUpdatedAt: 0,
@@ -75,10 +89,19 @@ export function useRecruitingMatchesInfinite() {
       const matchService = createMatchService(supabase);
 
       const result = await matchService.getRecruitingMatchesPaginated(pageParam);
+      const rows = result.matches as MatchWithRelations[];
 
-      // DB Row -> 클라이언트 타입 변환
-      const matches = result.matches.map(matchRowToGuestListMatch);
-      console.log('[useRecruitingMatchesInfinite] Mapped matches:', matches.length);
+      const matches = rows
+        .filter((row) => row.gym && row.host)
+        .map((row) => {
+          const match = matchRowToEntity(row);
+          const gym = gymRowToEntity(row.gym!);
+          const host = userRowToEntity(row.host!);
+          const team = row.team ? teamRowToEntity(row.team) : null;
+          return toMatchListItemDTO(match, gym, host, team);
+        });
+
+      console.log('[useRecruitingMatchesInfinite] Mapped DTO matches:', matches.length);
 
       return {
         matches,
