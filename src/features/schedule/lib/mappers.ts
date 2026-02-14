@@ -16,11 +16,11 @@ import { formatMatchDate, formatMatchTime } from '@/shared/lib/date';
 import { SKILL_LEVEL_NAMES } from '@/shared/config/skill-constants';
 import { getPositionLabel } from '@/shared/config/match-constants';
 import type {
-  ManagedMatch,
+  ScheduleMatchListItemDTO,
   MatchType,
   MatchStatus,
-  Guest,
-  HostMatchDetail,
+  MatchApplicantDTO,
+  HostMatchDetailDTO,
   RecruitmentMode,
   PositionQuota,
 } from '../model/types';
@@ -80,7 +80,7 @@ export function getGuestStatus(application: Application) {
 export function applicationToGuest(
   app: ApplicationWithUser,
   matchHistory?: { count: number; lastDate?: string }
-): Guest {
+): MatchApplicantDTO {
   const participants = (app.participants_info as ParticipantInfo[] | null) || [];
   const position = participants[0]?.position || 'G';
   const positionLabel = getPositionLabel(position, 'combined');
@@ -138,8 +138,9 @@ export function applicationToGuest(
 export function matchToManagedMatch(
   match: MatchWithRelations,
   type: 'host' | 'guest'
-): ManagedMatch {
+): ScheduleMatchListItemDTO {
   const matchType: MatchType = type === 'host' ? 'host' : 'guest';
+  const scheduleMode = type === 'host' ? 'managing' : 'participating';
 
   // Match status 변환 (시간 기반 파생 포함)
   const status = getMatchStatus(match.status || 'RECRUITING', match.start_time, match.end_time);
@@ -150,7 +151,9 @@ export function matchToManagedMatch(
 
   return {
     id: match.id,
-    type: matchType,
+    matchType,
+    scheduleMode,
+    type: matchType, // legacy compatibility
     status,
     teamName: match.team?.name || match.manual_team_name || '팀명 미정',
     date: formatMatchDate(match.start_time),
@@ -178,7 +181,7 @@ export function matchToManagedMatch(
 /**
  * DB Match → UI HostMatchDetail 변환
  */
-export function matchToHostMatchDetail(match: MatchWithRelations): HostMatchDetail {
+export function matchToHostMatchDetail(match: MatchWithRelations): HostMatchDetailDTO {
   const recruitmentSetup = match.recruitment_setup as RecruitmentSetup | null;
   const recruitmentMode: RecruitmentMode =
     recruitmentSetup?.type === 'POSITION' ? 'position' : 'total';
@@ -301,4 +304,3 @@ function getPositionQuotas(setup?: RecruitmentSetup): PositionQuota[] {
       };
     });
 }
-
