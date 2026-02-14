@@ -5,7 +5,7 @@ import {
   extractGymDataV3,
 } from './match-create-mapper';
 import { MatchCreateFormData } from '@/features/match-create/model/schema';
-import { createGymService } from '@/shared/api/gym-api';
+import { createGymService } from '@/entities/gym';
 import { logRequest, logResponse, logSupabaseQuery, logSupabaseResult } from '@/shared/lib/logger';
 
 export class MatchCreateService {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/shared/api/supabase/server';
+import { createGymService } from '@/entities/gym';
 
 /**
  * GET /api/gyms?kakaoPlaceId=xxx
@@ -18,20 +19,9 @@ export async function GET(request: NextRequest) {
 
   try {
     const supabase = await createServerSupabaseClient();
+    const gymService = createGymService(supabase);
 
-    const { data: gym, error } = await supabase
-      .from('gyms')
-      .select('id, name, address, facilities, kakao_place_id')
-      .eq('kakao_place_id', kakaoPlaceId)
-      .maybeSingle();
-
-    if (error) {
-      console.error('[API] Gym lookup error:', error);
-      return NextResponse.json(
-        { error: 'Failed to lookup gym' },
-        { status: 500 }
-      );
-    }
+    const gym = await gymService.getGymByKakaoPlaceId(kakaoPlaceId);
 
     // gym이 없으면 null 반환 (신규 체육관)
     return NextResponse.json({ gym });

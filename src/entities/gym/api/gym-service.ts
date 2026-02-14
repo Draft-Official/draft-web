@@ -39,17 +39,9 @@ export class GymService {
 
     try {
       // 1. kakao_place_id로 검색 (Primary Key)
-      logSupabaseQuery('gyms', 'SELECT', undefined, { kakao_place_id: gymData.kakaoPlaceId });
+      const existingGym = await this.getGymByKakaoPlaceId(gymData.kakaoPlaceId);
 
-      const { data: existingGym, error: lookupError } = await this.supabase
-        .from('gyms')
-        .select('id, facilities')
-        .eq('kakao_place_id', gymData.kakaoPlaceId)
-        .single();
-
-      logSupabaseResult('gyms', 'SELECT', existingGym, lookupError);
-
-      if (!lookupError && existingGym) {
+      if (existingGym) {
         // 기존 gym 발견: facilities 완전 덮어쓰기 (Latest Wins)
         // 새 데이터가 있으면 기존 데이터를 완전히 교체
         if (gymData.facilities && Object.keys(gymData.facilities).length > 0) {
@@ -143,7 +135,7 @@ export class GymService {
   }
 
   /**
-   * 체육관 정보 조회
+   * 체육관 정보 조회 (ID로)
    */
   async getGym(gymId: string): Promise<Gym | null> {
     logRequest(this.SERVICE_NAME, 'getGym', { gymId });
@@ -163,6 +155,30 @@ export class GymService {
     }
 
     logResponse(this.SERVICE_NAME, 'getGym', data);
+    return data;
+  }
+
+  /**
+   * 카카오 place_id로 체육관 조회
+   */
+  async getGymByKakaoPlaceId(kakaoPlaceId: string): Promise<Gym | null> {
+    logRequest(this.SERVICE_NAME, 'getGymByKakaoPlaceId', { kakaoPlaceId });
+    logSupabaseQuery('gyms', 'SELECT', undefined, { kakao_place_id: kakaoPlaceId });
+
+    const { data, error } = await this.supabase
+      .from('gyms')
+      .select('*')
+      .eq('kakao_place_id', kakaoPlaceId)
+      .maybeSingle();
+
+    logSupabaseResult('gyms', 'SELECT', data, error);
+
+    if (error) {
+      logResponse(this.SERVICE_NAME, 'getGymByKakaoPlaceId', undefined, error);
+      return null;
+    }
+
+    logResponse(this.SERVICE_NAME, 'getGymByKakaoPlaceId', data);
     return data;
   }
 

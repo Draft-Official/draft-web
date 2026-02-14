@@ -102,7 +102,7 @@ export function useLocationSearch(): UseLocationSearchReturn {
     // Gym 조회 및 프리필
     if (data.kakaoPlaceId) {
       try {
-        const { lookupGymByKakaoPlaceId } = await import('@/shared/api/gym');
+        const { lookupGymByKakaoPlaceId } = await import('@/entities/gym');
         const existingGym = await lookupGymByKakaoPlaceId(data.kakaoPlaceId);
 
         if (existingGym && existingGym.facilities) {

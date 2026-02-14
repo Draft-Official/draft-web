@@ -9,7 +9,7 @@ import {
   AgeRange,
   Json,
 } from '@/shared/types/database.types';
-import { GymData } from '@/shared/api/gym-api';
+import { GymData } from '@/entities/gym';
 import { MatchCreateFormData } from '@/features/match-create/model/schema';
 
 // ==============================================

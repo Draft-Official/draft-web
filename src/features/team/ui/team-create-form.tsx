@@ -12,7 +12,7 @@ import { useCreateTeam } from '@/features/team/api/core/mutations';
 import { useAuth } from '@/features/auth/model/auth-context';
 import { useLocationSearch } from '@/features/match-create/lib/hooks/use-location-search';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
-import { createGymService } from '@/shared/api/gym-api';
+import { createGymService } from '@/entities/gym';
 
 import { StepProgressBar } from './components/step-progress-bar';
 import { TeamCreateStepInfo } from './components/team-create-step-info';
