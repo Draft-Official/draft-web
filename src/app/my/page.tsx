@@ -8,50 +8,14 @@ import { NotificationSettingsSection } from '@/features/my/ui/notification-setti
 import { AccountSection } from '@/features/my/ui/account-section';
 import { PaymentSection } from '@/features/my/ui/payment-section';
 import { MyPageFooter } from '@/features/my/ui/my-page-footer';
-import { ProfileData } from '@/features/my/model/types';
+import {
+  myProfileFormDTOToUpdateSessionProfileInput,
+  toMyProfileViewDTO,
+  toMyTeamOptions,
+  type UpdateMyProfileInput,
+} from '@/features/my';
 import { useAuth, useUpdateProfile } from '@/shared/session';
 import { useMyTeams } from '@/features/team/api/team-info/queries';
-import type { UserUpdate, UserMetadata } from '@/shared/types/database.types';
-import type { SessionProfile } from '@/shared/session';
-
-// DB Profile → UI ProfileData 변환
-function profileToFormData(dbProfile: SessionProfile | null): ProfileData | null {
-  if (!dbProfile) return null;
-
-  const metadata = dbProfile.metadata as UserMetadata & { age?: number; skill_level?: number; display_team_id?: string };
-  const position = dbProfile.positions?.[0];
-
-  return {
-    nickname: dbProfile.nickname || '',
-    height: metadata?.height?.toString() || '',
-    age: metadata?.age?.toString() || '',
-    weight: metadata?.weight?.toString() || '',
-    position: (position as ProfileData['position']) || '',  // Already 'G', 'F', 'C'
-    skillLevel: metadata?.skill_level || 1,
-    team: metadata?.display_team_id || '',
-  };
-}
-
-// UI ProfileData → DB UserUpdate 변환
-function formDataToUpdate(
-  formData: ProfileData,
-  teams: { id: string; name: string }[]
-): UserUpdate {
-  const selectedTeam = formData.team ? teams.find((t) => t.id === formData.team) : null;
-
-  return {
-    nickname: formData.nickname.trim() || null,
-    positions: formData.position ? [formData.position] : null,  // Already code
-    metadata: {
-      height: formData.height ? parseInt(formData.height, 10) : undefined,
-      age: formData.age ? parseInt(formData.age, 10) : undefined,
-      weight: formData.weight ? parseInt(formData.weight, 10) : undefined,
-      skill_level: formData.skillLevel,
-      display_team_id: selectedTeam?.id ?? null,
-      display_team_name: selectedTeam?.name ?? null,
-    },
-  };
-}
 
 export default function MyPage() {
   const { user, profile: dbProfile, refreshProfile, isLoading: authLoading } = useAuth();
@@ -61,22 +25,22 @@ export default function MyPage() {
   // 소속 팀 목록 조회
   const { data: myTeams = [] } = useMyTeams(user?.id);
   const teamOptions = useMemo(
-    () => myTeams.map((t) => ({ id: t.id, name: t.name })),
+    () => toMyTeamOptions(myTeams),
     [myTeams]
   );
 
-  // DB 프로필을 UI용 ProfileData로 변환
-  const profile = useMemo(() => profileToFormData(dbProfile), [dbProfile]);
+  const profileView = useMemo(
+    () =>
+      toMyProfileViewDTO({
+        sessionProfile: dbProfile,
+        userEmail: user?.email,
+        teamOptions,
+      }),
+    [dbProfile, user?.email, teamOptions]
+  );
 
-  // 선택된 대표 팀 이름 조회
-  const displayTeamName = useMemo(() => {
-    if (!profile?.team) return undefined;
-    const found = myTeams.find((t) => t.id === profile.team);
-    if (found) return found.name;
-    // myTeams에 없으면 metadata에 저장된 이름 사용
-    const metadata = dbProfile?.metadata as { display_team_name?: string } | null;
-    return metadata?.display_team_name || undefined;
-  }, [profile?.team, myTeams, dbProfile?.metadata]);
+  const profile = profileView.profile;
+  const displayTeamName = profileView.displayTeamName;
 
   // 로딩 중일 때 스켈레톤 UI
   if (authLoading) {
@@ -92,14 +56,14 @@ export default function MyPage() {
     );
   }
 
-  const handleProfileComplete = async (data: ProfileData) => {
+  const handleProfileComplete = async (data: UpdateMyProfileInput) => {
     if (!user) {
       console.error('User not logged in');
       return;
     }
 
     try {
-      const updates = formDataToUpdate(data, teamOptions);
+      const updates = myProfileFormDTOToUpdateSessionProfileInput(data, teamOptions);
       await updateProfileMutation.mutateAsync({ userId: user.id, updates });
       await refreshProfile();
     } catch (error) {
@@ -111,9 +75,8 @@ export default function MyPage() {
     setIsModalOpen(true);
   };
 
-  // 사용자 이름과 이니셜
-  const userName = dbProfile?.nickname || dbProfile?.real_name || user?.email?.split('@')[0] || '사용자';
-  const userInitials = userName.slice(0, 2);
+  const userName = profileView.userName;
+  const userInitials = profileView.userInitials;
 
   return (
     <div className="bg-background min-h-full p-4 space-y-6 pb-24">
