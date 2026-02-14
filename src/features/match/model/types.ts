@@ -60,6 +60,13 @@ export interface GuestMatchListItemDTO {
   // Computed UI fields
   priceDisplay: string; // "10,000원" | "무료" | "음료수 2병"
   positionsDisplay: string; // "가드 1/3, 포워드 0/2"
+  positions: {
+    all?: GuestMatchPositionStatus;
+    g?: GuestMatchPositionStatus;
+    f?: GuestMatchPositionStatus;
+    c?: GuestMatchPositionStatus;
+    bigman?: GuestMatchPositionStatus;
+  };
   levelDisplay: string | null; // "중수(B) 이상"
   ageDisplay: string | null; // "20대~30대"
   isNew: boolean; // Created within 24 hours

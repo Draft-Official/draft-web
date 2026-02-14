@@ -18,6 +18,45 @@ import {
 } from '@/shared/lib/formatters';
 import { formatPositions } from './formatters';
 
+function toPositionStatuses(recruitmentSetup: Match['recruitmentSetup']): GuestMatchListItemDTO['positions'] {
+  const positions: GuestMatchListItemDTO['positions'] = {};
+
+  if (recruitmentSetup.type === 'ANY') {
+    const max = recruitmentSetup.max_count;
+    const current = recruitmentSetup.current_count;
+    positions.all = {
+      status: current >= max && max > 0 ? 'closed' : 'open',
+      max,
+      current,
+    };
+    return positions;
+  }
+
+  const quotaByPosition = recruitmentSetup.positions;
+  const uiKeyMap = {
+    G: 'g',
+    F: 'f',
+    C: 'c',
+    B: 'bigman',
+  } as const;
+
+  for (const positionKey of Object.keys(quotaByPosition) as (keyof typeof uiKeyMap)[]) {
+    const quota = quotaByPosition[positionKey];
+    if (!quota || quota.max <= 0) continue;
+
+    const current = quota.current ?? 0;
+    const max = quota.max;
+
+    positions[uiKeyMap[positionKey]] = {
+      status: current >= max ? 'closed' : 'open',
+      max,
+      current,
+    };
+  }
+
+  return positions;
+}
+
 /**
  * Match + related entities → GuestMatchListItemDTO
  *
@@ -64,6 +103,7 @@ export function toGuestMatchListItemDTO(
     // Computed UI fields
     priceDisplay: formatPrice(match.costType, match.costAmount),
     positionsDisplay: formatPositions(match.recruitmentSetup),
+    positions: toPositionStatuses(match.recruitmentSetup),
     levelDisplay: formatLevelRange(match.levelRange),
     ageDisplay: formatAgeRange(match.ageRange),
     isNew: isWithin24Hours(match.createdAt),
@@ -90,40 +130,18 @@ export function toGuestMatchDetailDTO(
   const listItem = toGuestMatchListItemDTO(match, gym, host, team);
 
   // Calculate recruitment status + detailed position status
-  const positions: GuestMatchDetailDTO['positions'] = {};
+  const positions = toPositionStatuses(match.recruitmentSetup) as GuestMatchDetailDTO['positions'];
   let total = 0;
   let current = 0;
 
   if (match.recruitmentSetup.type === 'ANY') {
     total = match.recruitmentSetup.max_count;
     current = match.recruitmentSetup.current_count;
-    positions.all = {
-      status: current >= total && total > 0 ? 'closed' : 'open',
-      max: total,
-      current,
-    };
   } else if (match.recruitmentSetup.type === 'POSITION') {
-    const quotaByPosition = match.recruitmentSetup.positions;
-    const uiKeyMap = {
-      G: 'g',
-      F: 'f',
-      C: 'c',
-      B: 'bigman',
-    } as const;
-
-    for (const positionKey of Object.keys(quotaByPosition) as (keyof typeof uiKeyMap)[]) {
-      const quota = quotaByPosition[positionKey];
-      if (quota && quota.max > 0) {
-        const positionCurrent = quota.current ?? 0;
-        const positionMax = quota.max;
-        positions[uiKeyMap[positionKey]] = {
-          status: positionCurrent >= positionMax ? 'closed' : 'open',
-          max: positionMax,
-          current: positionCurrent,
-        };
-        total += positionMax;
-        current += positionCurrent;
-      }
+    for (const quota of Object.values(match.recruitmentSetup.positions)) {
+      if (!quota || quota.max <= 0) continue;
+      total += quota.max;
+      current += quota.current ?? 0;
     }
   }
 

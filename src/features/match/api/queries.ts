@@ -94,7 +94,7 @@ export function useMatch(matchId: string) {
         levelMax: null,
         ageRange: listItem.ageDisplay,
         facilities: null,
-        positions: {},
+        positions: listItem.positions,
         rule: null,
         hostName: listItem.hostNickname,
         hostImage: listItem.hostAvatar,

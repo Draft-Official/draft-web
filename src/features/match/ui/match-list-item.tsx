@@ -10,6 +10,7 @@ import { cn } from '@/shared/lib/utils';
 import type { ApplicationStatusValue } from '@/shared/config/application-constants';
 import { getDayLabel } from '@/features/match/lib/utils';
 import type { GuestMatchListItemDTO } from '@/features/match/model/types';
+import { PositionChip } from './position-chip';
 
 interface MatchListItemProps {
   match: GuestMatchListItemDTO;
@@ -25,6 +26,13 @@ const STATUS_BADGE_CONFIG: Record<string, { label: string; variant: 'warning' | 
 
 export const MatchListItem = React.memo(function MatchListItem({ match, applicationStatus }: MatchListItemProps) {
   const router = useRouter();
+  const hasPositionChips = Boolean(
+    match.positions.all ||
+    match.positions.g ||
+    match.positions.f ||
+    match.positions.c ||
+    match.positions.bigman
+  );
 
   const handleClick = () => {
     router.push(`/matches/${match.matchId}`);
@@ -101,9 +109,54 @@ export const MatchListItem = React.memo(function MatchListItem({ match, applicat
           "flex flex-wrap gap-1.5 mt-1",
           match.isClosed && "opacity-50"
         )}>
-          <span className="inline-flex items-center px-2 py-0.5 rounded-[6px] border border-slate-300 text-[11px] h-[22px] font-medium text-slate-900 whitespace-nowrap">
-            {match.positionsDisplay}
-          </span>
+          {hasPositionChips ? (
+            <>
+              {match.positions.all && (
+                <PositionChip
+                  label="포지션 무관"
+                  status={match.positions.all.status}
+                  max={match.positions.all.max}
+                  current={match.positions.all.current}
+                />
+              )}
+              {match.positions.g && (
+                <PositionChip
+                  label="가드"
+                  status={match.positions.g.status}
+                  max={match.positions.g.max}
+                  current={match.positions.g.current}
+                />
+              )}
+              {match.positions.f && (
+                <PositionChip
+                  label="포워드"
+                  status={match.positions.f.status}
+                  max={match.positions.f.max}
+                  current={match.positions.f.current}
+                />
+              )}
+              {match.positions.c && (
+                <PositionChip
+                  label="센터"
+                  status={match.positions.c.status}
+                  max={match.positions.c.max}
+                  current={match.positions.c.current}
+                />
+              )}
+              {match.positions.bigman && (
+                <PositionChip
+                  label="빅맨(F/C)"
+                  status={match.positions.bigman.status}
+                  max={match.positions.bigman.max}
+                  current={match.positions.bigman.current}
+                />
+              )}
+            </>
+          ) : (
+            <span className="inline-flex items-center px-2 py-0.5 rounded-[6px] border border-slate-300 text-[11px] h-[22px] font-medium text-slate-900 whitespace-nowrap">
+              {match.positionsDisplay}
+            </span>
+          )}
         </div>
       </div>
 
