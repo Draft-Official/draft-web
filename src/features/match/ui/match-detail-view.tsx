@@ -36,7 +36,7 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   // 경기관리 > 참여에서 들어온 경우
-  const isFromSchedule = searchParams.get('from') === 'schedule';
+  const isFromSchedule = searchParams?.get('from') === 'schedule';
 
   // 내 신청 정보 조회
   const { data: myApplication, isLoading: isLoadingApplication } = useQuery({

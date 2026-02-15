@@ -26,6 +26,12 @@
       "@/*": [
         "./*"
       ],
+      "@/pages/*": [
+        "./src/pages/*"
+      ],
+      "@/app/*": [
+        "./src/app/*"
+      ],
       "@/components/*": [
         "./src/components/*"
       ],

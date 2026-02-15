@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "check:entities-cross-import": "sh scripts/check-entities-cross-import.sh",
+    "check:route-adapter-boundary": "sh scripts/check-route-adapter-boundary.sh",
     "lint": "npm run check:entities-cross-import && eslint"
   },
   "dependencies": {
