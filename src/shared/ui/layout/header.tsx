@@ -9,7 +9,7 @@ interface HeaderProps {
 }
 
 export function Header({ rightSlot }: HeaderProps) {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? '';
   const MAIN_PATHS = ['/', '/team', '/schedule', '/my'];
   const isMainPage = MAIN_PATHS.includes(pathname);
 

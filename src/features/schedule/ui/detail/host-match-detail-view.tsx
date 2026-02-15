@@ -44,7 +44,8 @@ import { MatchActionButton } from './match-action-button';
 export function HostMatchDetailView() {
   const router = useRouter();
   const params = useParams();
-  const matchId = params.id as string;
+  const idParam = params?.id;
+  const matchId = Array.isArray(idParam) ? (idParam[0] ?? '') : (idParam ?? '');
 
   // React Query hooks
   const { data: match, isLoading: isLoadingMatch } = useHostMatchDetail(matchId);
