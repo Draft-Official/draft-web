@@ -7,7 +7,6 @@ This directory contains page-level composition for the product.
 - Root special adapters (`app/loading.tsx`, `app/error.tsx`, `app/not-found.tsx`) should also re-export from `@/pages/_root/*`.
 - FSD app-layer runtime modules live under `src/app-layer/*` and are imported via `@/app-layer/*`.
 - Route groups are used for file organization only:
-  - `app/(home)/*` for home entry
   - `app/(auth)/*` for login/signup/auth callback routes
-  - `app/(main)/*` for main product routes
+  - `app/(main)/*` for home entry and main product routes
 - Do not place business composition logic in `app/**`; keep it in `src/pages/*`.
