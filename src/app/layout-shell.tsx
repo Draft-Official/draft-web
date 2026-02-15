@@ -7,7 +7,7 @@ import { Header as LayoutHeader } from "@/shared/ui/layout/header";
 import { SignupVerifyGuard } from "@/features/auth/ui/signup-verify-guard";
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? '';
   const isSignupVerify = pathname.startsWith('/signup/verify');
 
   if (isSignupVerify) {

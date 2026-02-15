@@ -8,7 +8,7 @@ import { useScrollDirection } from '@/shared/lib/hooks/use-scroll-direction';
 
 export function BottomNav() {
   const router = useRouter();
-  const pathname = usePathname();
+  const pathname = usePathname() ?? '';
   const isScrolledDown = useScrollDirection(); // Shared scroll logic
 
   const NAV_ITEMS = [

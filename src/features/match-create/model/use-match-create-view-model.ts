@@ -26,13 +26,13 @@ import { getNext14Days } from '@/features/match-create/lib/utils';
 export function useMatchCreateViewModel() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const editMatchId = searchParams?.get('edit');
+  const editMatchId = searchParams?.get('edit') ?? null;
   const isEditMode = !!editMatchId;
 
   const methods = useForm<MatchCreateSubmitFormValues>();
   const { setValue } = methods;
 
-  const [selectedDate, setSelectedDate] = useState<string | null>(() => getNext14Days()[0].dateISO);
+  const [selectedDate, setSelectedDate] = useState<string | null>(() => getNext14Days()[0]?.dateISO ?? null);
 
   const [isPositionMode, setIsPositionMode] = useState(false);
   const [isFlexBigman, setIsFlexBigman] = useState(false);
