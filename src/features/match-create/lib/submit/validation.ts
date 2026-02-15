@@ -3,6 +3,10 @@ import type {
   MatchCreateContactType,
   MatchCreateSubmitFormValues,
 } from '@/features/match-create/model/submit-form.types';
+import type {
+  MatchCreateSubmitValidationResult,
+  SelectedLocationForSubmit,
+} from './types';
 
 interface ValidationInput {
   form: MatchCreateSubmitFormValues;
@@ -16,27 +20,6 @@ interface ValidationInput {
     bigman: number;
   };
   totalCount: number;
-}
-
-interface ValidationError {
-  sectionId: 'section-basic-info' | 'section-recruitment' | 'section-operations';
-  message: string;
-}
-
-interface ValidationSuccess {
-  opsHost: string;
-  normalizedContactType: MatchCreateContactType;
-  opsContactContent: string;
-}
-
-export type MatchCreateSubmitValidationResult =
-  | { ok: true; data: ValidationSuccess }
-  | { ok: false; error: ValidationError };
-
-export interface SelectedLocationForSubmit extends LocationData {
-  x: string;
-  y: string;
-  kakaoPlaceId: string;
 }
 
 function isValidSelectedLocation(locationData: LocationData | null): locationData is SelectedLocationForSubmit {
@@ -189,6 +172,7 @@ export function validateMatchCreateSubmit({
   return {
     ok: true,
     data: {
+      locationData,
       opsHost,
       normalizedContactType,
       opsContactContent,

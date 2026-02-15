@@ -6,7 +6,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import {
   GENDER_DEFAULT,
-  COURT_SIZE_DEFAULT,
   MATCH_FORMAT_DEFAULT,
   GenderValue,
   PlayStyleValue,
@@ -14,33 +13,15 @@ import {
   CourtSizeValue,
   MatchFormatValue,
 } from '@/shared/config/match-constants';
+import { useLocationSearch } from '@/shared/lib/hooks/use-location-search';
 import { useCreateMatch, useSaveMatchCreateDefaults, useUpdateMatch } from '@/features/match-create/api/mutations';
 import { useMatchCreateBootstrap, useMatchEditPrefill, useMyRecentMatches } from '@/features/match-create/api/queries';
-import type { MatchCreateFormData, } from '@/features/match-create/model/schema';
 import type { RecentMatchListItemDTO } from '@/features/match-create/model/types';
-import { useLocationSearch } from '@/features/match-create/lib/hooks/use-location-search';
-import { usePrefillFromRecentMatch } from '@/features/match-create/lib/hooks/use-prefill-from-recent-match';
+import type { MatchCreateSubmitFormValues } from '@/features/match-create/model/submit-form.types';
+import { usePrefillFromRecentMatch } from '@/features/match-create/model/hooks/use-prefill-from-recent-match';
+import { nextSelectedAges } from '@/features/match-create/lib/age-range';
+import { buildMatchCreatePayload, validateMatchCreateSubmit } from '@/features/match-create/lib/submit';
 import { getNext14Days } from '@/features/match-create/lib/utils';
-
-const AGE_VALUE_MAP_GLOBAL: Record<string, number> = { '20': 20, '30': 30, '40': 40, '50+': 50 };
-
-function convertSelectedAgesToRange(selectedAges: string[]): { min: number; max: number | null } | undefined {
-  if (selectedAges.length === 0 || selectedAges.includes('any')) {
-    return undefined;
-  }
-
-  const sortedAges = [...selectedAges].sort(
-    (a, b) => (AGE_VALUE_MAP_GLOBAL[a] || 0) - (AGE_VALUE_MAP_GLOBAL[b] || 0)
-  );
-
-  const firstAge = sortedAges[0];
-  const lastAge = sortedAges[sortedAges.length - 1];
-
-  const min = AGE_VALUE_MAP_GLOBAL[firstAge] || 20;
-  const max = lastAge === '50+' ? null : (AGE_VALUE_MAP_GLOBAL[lastAge] || null);
-
-  return { min, max };
-}
 
 export function useMatchCreateViewModel() {
   const router = useRouter();
@@ -48,7 +29,7 @@ export function useMatchCreateViewModel() {
   const editMatchId = searchParams?.get('edit');
   const isEditMode = !!editMatchId;
 
-  const methods = useForm();
+  const methods = useForm<MatchCreateSubmitFormValues>();
   const { setValue, formState: { errors } } = methods;
 
   const [isApplyingEditData, setIsApplyingEditData] = useState(false);
@@ -186,65 +167,8 @@ export function useMatchCreateViewModel() {
     setSelectedAges(newAges);
   };
 
-  const AGE_VALUE_MAP: Record<string, number> = { '20': 20, '30': 30, '40': 40, '50+': 50 };
-  const AGE_ORDER = ['20', '30', '40', '50+'];
-
   const handleAgeSelection = (age: string) => {
-    if (age === 'any') {
-      setSelectedAges(['any']);
-      return;
-    }
-
-    if (selectedAges.includes('any')) {
-      setSelectedAges([age]);
-      return;
-    }
-
-    const isRemoving = selectedAges.includes(age);
-    const sortAges = (ages: string[]) => ages.sort((a, b) => (AGE_VALUE_MAP[a] || 0) - (AGE_VALUE_MAP[b] || 0));
-
-    if (isRemoving) {
-      const sortedCurrent = sortAges([...selectedAges]);
-      const removeIndex = sortedCurrent.indexOf(age);
-
-      if (removeIndex === -1) return;
-
-      const leftSegment = sortedCurrent.slice(0, removeIndex);
-      const rightSegment = sortedCurrent.slice(removeIndex + 1);
-
-      if (leftSegment.length >= rightSegment.length) {
-        setSelectedAges(leftSegment.length > 0 ? leftSegment : []);
-      } else {
-        setSelectedAges(rightSegment);
-      }
-      return;
-    }
-
-    let newAges = [...selectedAges, age];
-    newAges = newAges.filter(a => a !== 'any');
-
-    if (newAges.length >= 2) {
-      const numericAges = newAges
-        .map(a => AGE_VALUE_MAP[a])
-        .filter((n): n is number => n !== undefined)
-        .sort((a, b) => a - b);
-
-      const min = numericAges[0];
-      const max = numericAges[numericAges.length - 1];
-
-      const filledAges: string[] = [];
-
-      AGE_ORDER.forEach(ageStr => {
-        const val = AGE_VALUE_MAP[ageStr];
-        if (val >= min && val <= max) {
-          filledAges.push(ageStr);
-        }
-      });
-
-      newAges = filledAges;
-    }
-
-    setSelectedAges(newAges);
+    setSelectedAges((prev) => nextSelectedAges(prev, age));
   };
 
   const handleLevelChange = (min: number, max: number) => {
@@ -309,162 +233,65 @@ export function useMatchCreateViewModel() {
     }
   };
 
-  const onSubmit = async (data: any) => {
-    if (!selectedDate) {
-      toast.error('⚠️ 기본 정보를 확인해주세요: 날짜를 선택해주세요.');
-      scrollToSection('section-basic-info');
+  const onSubmit = async (data: MatchCreateSubmitFormValues) => {
+    const validationResult = validateMatchCreateSubmit({
+      form: data,
+      selectedDate,
+      locationData,
+      isPositionMode,
+      positions,
+      totalCount,
+    });
+
+    if (!validationResult.ok) {
+      toast.error(validationResult.error.message);
+      scrollToSection(validationResult.error.sectionId);
       return;
     }
 
-    if (!locationData || !locationData.kakaoPlaceId || !locationData.x || !locationData.y) {
-      toast.error('⚠️ 기본 정보를 확인해주세요: 장소를 검색하여 선택해주세요.');
-      scrollToSection('section-basic-info');
-      return;
-    }
+    if (!selectedDate) return;
 
-    if (isPositionMode) {
-      const totalPositions = positions.guard + positions.forward + positions.center + positions.bigman;
-      if (totalPositions === 0) {
-        toast.error('⚠️ 모집 인원을 설정해주세요: 최소 1명 이상 모집해야 합니다.');
-        scrollToSection('section-recruitment');
-        return;
-      }
-    } else if (totalCount === 0) {
-      toast.error('⚠️ 모집 인원을 설정해주세요: 최소 1명 이상 모집해야 합니다.');
-      scrollToSection('section-recruitment');
-      return;
-    }
+    const {
+      locationData: selectedLocationData,
+      opsHost,
+      normalizedContactType,
+      opsContactContent,
+    } = validationResult.data;
 
-    const opsHost = data.operations?.selectedHost;
-    if (!opsHost) {
-      toast.error('⚠️ 운영 정보를 확인해주세요: 주최자를 선택해주세요.');
-      scrollToSection('section-operations');
-      return;
-    }
-
-    if (opsHost === 'me' && (!data.manualTeamName || data.manualTeamName.trim() === '')) {
-      toast.error('⚠️ 운영 정보를 확인해주세요: 개인 주최 시 팀 이름을 입력해주세요.');
-      scrollToSection('section-operations');
-      return;
-    }
-
-    if (!data.bankName || !data.accountNumber || !data.accountHolder) {
-      toast.error('⚠️ 운영 정보를 확인해주세요: 계좌 정보를 모두 입력해주세요.');
-      scrollToSection('section-operations');
-      return;
-    }
-
-    const accountHolderRegex = /^[가-힣]{2,10}$/;
-    if (!accountHolderRegex.test(data.accountHolder)) {
-      toast.error('⚠️ 운영 정보를 확인해주세요: 예금주는 한글 2-10자로 입력해주세요.');
-      scrollToSection('section-operations');
-      return;
-    }
-
-    const accountNumberRegex = /^\d{10,16}$/;
-    if (!accountNumberRegex.test(data.accountNumber)) {
-      toast.error('⚠️ 운영 정보를 확인해주세요: 계좌번호는 숫자 10-16자리로 입력해주세요.');
-      scrollToSection('section-operations');
-      return;
-    }
-
-    const opsContactType = data.operations?.contactType;
-    const normalizedContactType = opsContactType === 'KAKAO_OPEN_CHAT' ? 'KAKAO_OPEN_CHAT' : 'PHONE';
-    const opsContactContent = opsContactType === 'PHONE' ? data.phoneNumber : data.kakaoLink;
-
-    if (!opsContactContent) {
-      toast.error('⚠️ 운영 정보를 확인해주세요: 연락처를 입력해주세요.');
-      scrollToSection('section-operations');
-      return;
-    }
-
-    if (opsContactType === 'PHONE') {
-      const phoneRegex = /^01[0-9]-?\d{3,4}-?\d{4}$/;
-      if (!phoneRegex.test(opsContactContent)) {
-        toast.error('⚠️ 운영 정보를 확인해주세요: 올바른 전화번호 형식으로 입력해주세요 (예: 010-1234-5678)');
-        scrollToSection('section-operations');
-        return;
-      }
-    }
-
-    if (opsContactType === 'KAKAO_OPEN_CHAT' && !opsContactContent.startsWith('http')) {
-      toast.error('⚠️ 운영 정보를 확인해주세요: 올바른 오픈채팅 링크를 입력해주세요.');
-      scrollToSection('section-operations');
-      return;
-    }
-
-    const startTime = data.startTime || '19:00';
-    const duration = parseFloat(data.duration || '2');
-
-    const [startHour, startMin] = startTime.split(':').map(Number);
-    const totalMinutes = startHour * 60 + startMin + (duration * 60);
-    const endHour = Math.floor(totalMinutes / 60) % 24;
-    const endMin = totalMinutes % 60;
-    const endTime = `${String(endHour).padStart(2, '0')}:${String(endMin).padStart(2, '0')}`;
-
-    const payload: MatchCreateFormData = {
-      title: data.title || '농구 경기',
-      date: selectedDate,
-      startTime,
-      endTime,
-      location: {
-        name: locationData.buildingName || locationData.address,
-        address: locationData.address,
-        latitude: parseFloat(locationData.y),
-        longitude: parseFloat(locationData.x),
-        kakaoPlaceId: locationData.kakaoPlaceId,
-      },
-      recruitment: isPositionMode ? {
-        type: 'position',
-        guard: positions.guard,
-        forward: isFlexBigman ? 0 : positions.forward,
-        center: isFlexBigman ? 0 : positions.center,
-        bigman: isFlexBigman ? positions.bigman : 0,
-        isFlexBigman,
-      } : {
-        type: 'any',
-        count: totalCount,
-      },
+    const payload = buildMatchCreatePayload({
+      form: data,
+      selectedDate,
+      locationData: selectedLocationData,
+      feeType,
+      isPositionMode,
+      isFlexBigman,
+      positions,
+      totalCount,
       matchFormat,
-      gameFormat: isGameFormatSelected ? gameFormatType : undefined,
-      level: levelMin,
+      gameFormatType,
+      isGameFormatSelected,
       levelMin,
       levelMax,
-      gender: gender as any,
-      ageRange: convertSelectedAgesToRange(selectedAges),
-      rules: {
-        quarterTime: isRulesSelected && ruleMinutes ? Number(ruleMinutes) : undefined,
-        quarterCount: isRulesSelected && ruleQuarters ? Number(ruleQuarters) : undefined,
-        fullGames: isRulesSelected && ruleGames ? Number(ruleGames) : undefined,
-        referee: isRefereeSelected ? refereeType : undefined,
-      },
-      facilities: {
-        parking: parkingCost,
-        parkingDetail: parkingDetail || undefined,
-        water: hasWater,
-        acHeat: hasAcHeat,
-        shower: hasShower,
-        courtSize: courtSize || COURT_SIZE_DEFAULT,
-        ball: hasBall,
-        beverage: hasBeverage,
-      },
-      isFlexBigman: isPositionMode ? isFlexBigman : false,
-      requirements: [],
-      costInputType: feeType === 'cost' ? 'money' : 'beverage',
-      contactType: normalizedContactType,
-      contactContent: opsContactContent || '',
-      price: Number(data.fee || 0),
-      bank: data.bankName,
-      accountNumber: data.accountNumber,
-      accountHolder: data.accountHolder || '예금주',
-      refundPolicy: '환불 규정...',
-      notice: data.description,
-      selectedTeamId: opsHost === 'me' ? null : opsHost,
-      manualTeamName: opsHost === 'me' ? (data.manualTeamName || '') : '',
-    };
-
-    if (data.accountHolder) payload.accountHolder = data.accountHolder;
-    if (data.refundPolicy) payload.refundPolicy = data.refundPolicy;
+      gender,
+      selectedAges,
+      isRulesSelected,
+      ruleMinutes,
+      ruleQuarters,
+      ruleGames,
+      refereeType,
+      isRefereeSelected,
+      parkingCost,
+      parkingDetail,
+      hasWater,
+      hasAcHeat,
+      hasShower,
+      courtSize,
+      hasBall,
+      hasBeverage,
+      opsHost,
+      normalizedContactType,
+      opsContactContent,
+    });
 
     const handleSuccess = async () => {
       if (data.operations?.saveAsDefault && currentUser?.id) {
@@ -473,13 +300,13 @@ export function useMatchCreateViewModel() {
             userId: currentUser.id,
             selectedHost: opsHost,
             accountInfo: {
-              bank: data.bankName,
-              number: data.accountNumber,
-              holder: data.accountHolder,
+              bank: data.bankName || '',
+              number: data.accountNumber || '',
+              holder: data.accountHolder || '',
             },
             contactInfo: {
               type: normalizedContactType,
-              content: opsContactContent || '',
+              content: opsContactContent,
             },
             hostNotice: data.description || '',
           });

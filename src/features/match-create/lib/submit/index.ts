@@ -1,6 +1,10 @@
 export { buildMatchCreatePayload } from './payload';
 export {
   validateMatchCreateSubmit,
-  type MatchCreateSubmitValidationResult,
-  type SelectedLocationForSubmit,
 } from './validation';
+export type {
+  MatchCreateSubmitValidationError,
+  MatchCreateSubmitValidationResult,
+  MatchCreateSubmitValidationSuccess,
+  SelectedLocationForSubmit,
+} from './types';

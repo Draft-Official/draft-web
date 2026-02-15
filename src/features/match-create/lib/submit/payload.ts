@@ -12,7 +12,7 @@ import type {
   MatchCreateSubmitFormValues,
 } from '@/features/match-create/model/submit-form.types';
 import { convertSelectedAgesToRange } from '@/features/match-create/lib/age-range';
-import type { SelectedLocationForSubmit } from '@/features/match-create/lib/submit/validation';
+import type { SelectedLocationForSubmit } from './types';
 
 interface BuildPayloadInput {
   form: MatchCreateSubmitFormValues;
