@@ -1,8 +1,12 @@
 import { useCallback } from 'react';
-import type { UseFormReturn } from 'react-hook-form';
-import type { MatchWithRelations } from '@/shared/types/database.types';
-import type { GenderValue, MatchFormatValue } from '@/shared/config/match-constants';
-import { MatchToPrefillMapper } from '@/features/match-create/mappers/match-to-prefill-mapper';
+import type {
+  GenderValue,
+  MatchFormatValue,
+  PlayStyleValue,
+  RefereeTypeValue,
+} from '@/shared/config/match-constants';
+import type { LocationData, MatchCreatePrefillDTO } from '@/features/match-create/model/types';
+import { MatchCreatePrefillMapper } from '@/features/match-create/mappers/match-create-prefill-mapper';
 
 /**
  * 최근 경기 데이터를 현재 폼에 프리필하는 훅
@@ -12,7 +16,7 @@ import { MatchToPrefillMapper } from '@/features/match-create/mappers/match-to-p
  * 
  * @ example
  * ```tsx
- * const { fillFromRecentMatch } = useRecentMatchPrefill({
+ * const { fillFromRecentMatch } = usePrefillFromRecentMatch({
  *   setValue,
  *   setFeeType,
  *   setGender,
@@ -20,17 +24,17 @@ import { MatchToPrefillMapper } from '@/features/match-create/mappers/match-to-p
  * });
  * 
  * // 사용
- * const handleSelect = async (match: MatchWithRelations) => {
+ * const handleSelect = async (match: MatchCreatePrefillDTO) => {
  *   await fillFromRecentMatch(match);
  * };
  * ```
  */
-export function useRecentMatchPrefill(params: {
+export function usePrefillFromRecentMatch(params: {
   // react-hook-form
-  setValue: UseFormReturn<any>['setValue'];
+  setValue: (name: string, value: unknown) => void;
 
   // Location handler (from hook)
-  handleLocationSelect: (location: any) => Promise<void>;
+  handleLocationSelect: (location: LocationData) => Promise<void>;
 
   // State setters
   setFeeType: (v: 'cost' | 'beverage') => void;
@@ -43,11 +47,11 @@ export function useRecentMatchPrefill(params: {
   setGender: (v: GenderValue) => void;
   setLevelMin: (v: number) => void;
   setLevelMax: (v: number) => void;
-  setGameFormatType: (v: any) => void;
+  setGameFormatType: (v: PlayStyleValue | undefined) => void;
   setRuleMinutes: (v: string) => void;
   setRuleQuarters: (v: string) => void;
   setRuleGames: (v: string) => void;
-  setRefereeType: (v: any) => void;
+  setRefereeType: (v: RefereeTypeValue | undefined) => void;
 }) {
   const {
     setValue,
@@ -69,15 +73,15 @@ export function useRecentMatchPrefill(params: {
     setRefereeType,
   } = params;
 
-  const fillFromRecentMatch = useCallback(async (match: MatchWithRelations) => {
+  const fillFromRecentMatch = useCallback(async (match: MatchCreatePrefillDTO) => {
     // Mapper 클래스 사용
-    const mapper = new MatchToPrefillMapper(match);
+    const mapper = new MatchCreatePrefillMapper(match);
     const data = mapper.toFormData();
 
     // 1. 날짜는 매핑하지 않음 - 사용자가 직접 선택
 
     // 2. 장소 정보
-    if (data.location) {
+    if (data.location?.locationInfo) {
       await handleLocationSelect(data.location.locationInfo);
       setValue('location', data.location.gymName);
     }

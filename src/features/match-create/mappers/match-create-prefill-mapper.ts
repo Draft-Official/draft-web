@@ -1,12 +1,11 @@
-import type { MatchWithRelations, AccountInfo, OperationInfo, MatchRule, LevelRange, AgeRange } from '@/shared/types/database.types';
-import type { LocationData } from '@/features/match-create/model/types';
+import type { LocationData, MatchCreatePrefillDTO } from '@/features/match-create/model/types';
 
 /**
  * 기존 경기 데이터를 폼 프리필용 데이터로 변환하는 Mapper 클래스
  * 
  * @example
  * ```ts
- * const mapper = new MatchToPrefillMapper(recentMatch);
+ * const mapper = new MatchCreatePrefillMapper(recentMatch);
  * const prefillData = mapper.toFormData();
  * 
  * // 개별로 원하는 데이터만 추출
@@ -14,8 +13,8 @@ import type { LocationData } from '@/features/match-create/model/types';
  * const timeInfo = mapper.mapTimeInfo();
  * ```
  */
-export class MatchToPrefillMapper {
-  constructor(private match: MatchWithRelations) {}
+export class MatchCreatePrefillMapper {
+  constructor(private match: MatchCreatePrefillDTO) {}
 
   /**
    * 전체 폼 데이터를 반환
@@ -39,21 +38,18 @@ export class MatchToPrefillMapper {
    * 장소 정보 매핑
    */
   mapLocation(): { locationInfo: LocationData | null; gymName: string } | null {
-    const gymData = this.match.gym;
-    if (!gymData) return null;
-
     const locationInfo: LocationData = {
-      address: gymData.address,
-      buildingName: gymData.name,
+      address: this.match.gymAddress,
+      buildingName: this.match.gymName,
       placeUrl: '',
-      x: String(gymData.longitude),
-      y: String(gymData.latitude),
-      kakaoPlaceId: gymData.kakao_place_id || '',
+      x: String(this.match.gymLongitude),
+      y: String(this.match.gymLatitude),
+      kakaoPlaceId: this.match.kakaoPlaceId || '',
     };
 
     return {
       locationInfo,
-      gymName: gymData.name,
+      gymName: this.match.gymName,
     };
   }
 
@@ -61,10 +57,10 @@ export class MatchToPrefillMapper {
    * 시간 정보 매핑
    */
   mapTimeInfo(): { startTime: string; duration: string } | null {
-    if (!this.match.start_time || !this.match.end_time) return null;
+    if (!this.match.startTimeISO || !this.match.endTimeISO) return null;
 
-    const startDate = new Date(this.match.start_time);
-    const endDate = new Date(this.match.end_time);
+    const startDate = new Date(this.match.startTimeISO);
+    const endDate = new Date(this.match.endTimeISO);
 
     // KST 기준으로 시간 포맷 (SSR/CSR 간 일관성 보장)
     const startTime = startDate.toLocaleTimeString('ko-KR', {
@@ -89,9 +85,9 @@ export class MatchToPrefillMapper {
    */
   mapPricing() {
     return {
-      fee: String(this.match.cost_amount || 0),
-      feeType: this.match.cost_type === 'BEVERAGE' ? 'beverage' as const : 'cost' as const,
-      hasBeverage: this.match.provides_beverage || false,
+      fee: String(this.match.costAmount || 0),
+      feeType: this.match.costType === 'BEVERAGE' ? 'beverage' as const : 'cost' as const,
+      hasBeverage: this.match.providesBeverage || false,
     };
   }
 
@@ -99,7 +95,7 @@ export class MatchToPrefillMapper {
    * 계좌 정보 매핑
    */
   mapAccount() {
-    const accountInfo = this.match.account_info as AccountInfo | null;
+    const accountInfo = this.match.accountInfo;
     return {
       bankName: accountInfo?.bank || '',
       accountNumber: accountInfo?.number || '',
@@ -111,7 +107,7 @@ export class MatchToPrefillMapper {
    * 연락처 정보 매핑
    */
   mapContact() {
-    const operationInfo = this.match.operation_info as OperationInfo | null;
+    const operationInfo = this.match.operationInfo;
     if (!operationInfo?.type) return null;
 
     return {
@@ -126,8 +122,8 @@ export class MatchToPrefillMapper {
    */
   mapHost() {
     return {
-      selectedHost: this.match.team_id || 'me',
-      manualTeamName: this.match.manual_team_name || '',
+      selectedHost: this.match.teamId || 'me',
+      manualTeamName: this.match.manualTeamName || '',
     };
   }
 
@@ -135,15 +131,14 @@ export class MatchToPrefillMapper {
    * 공지사항 매핑
    */
   mapNotice() {
-    const operationInfo = this.match.operation_info as OperationInfo | null;
-    return operationInfo?.notice || '';
+    return this.match.notice || '';
   }
 
   /**
    * 모집 설정 매핑
    */
   mapRecruitment() {
-    const recruitment = this.match.recruitment_setup as any;
+    const recruitment = this.match.recruitmentSetup as any;
 
     if (recruitment?.type === 'POSITION') {
       const pos = recruitment.positions || {};
@@ -173,16 +168,16 @@ export class MatchToPrefillMapper {
    */
   mapSpecs() {
     // level_range JSONB 컬럼에서 읽기
-    const levelRange = this.match.level_range as LevelRange | null;
+    const levelRange = this.match.levelRange;
     const levelMin = levelRange?.min ?? 4;
     const levelMax = levelRange?.max ?? 4;
 
     // age_range JSONB 컬럼에서 읽기
-    const ageRange = this.match.age_range as AgeRange | null;
+    const ageRange = this.match.ageRange;
 
     return {
-      matchFormat: this.match.match_format || 'FIVE_ON_FIVE',
-      gender: (this.match.gender_rule || 'MALE'),
+      matchFormat: this.match.matchFormat || 'FIVE_ON_FIVE',
+      gender: (this.match.genderRule || 'MALE'),
       level: levelMin,
       levelMin,
       levelMax,
@@ -194,7 +189,7 @@ export class MatchToPrefillMapper {
    * 경기 형식 매핑
    */
   mapGameFormat() {
-    const matchRule = this.match.match_rule as MatchRule | null;
+    const matchRule = this.match.matchRule;
 
     if (!matchRule) return null;
 
