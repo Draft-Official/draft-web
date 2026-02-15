@@ -1,6 +1,6 @@
 @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
 
-@config "../../tailwind.config.ts";
+@config "../tailwind.config.ts";
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";

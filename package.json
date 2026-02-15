@@ -9,7 +9,8 @@
     "start": "next start",
     "check:entities-cross-import": "sh scripts/check-entities-cross-import.sh",
     "check:route-adapter-boundary": "sh scripts/check-route-adapter-boundary.sh",
-    "lint": "npm run check:entities-cross-import && eslint"
+    "check:architecture": "npm run check:entities-cross-import && npm run check:route-adapter-boundary",
+    "lint": "npm run check:architecture && eslint"
   },
   "dependencies": {
     "@base-ui/react": "^1.1.0",

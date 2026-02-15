@@ -27,10 +27,10 @@
         "./*"
       ],
       "@/pages/*": [
-        "./src/page-views/*"
+        "./src/pages/*"
       ],
       "@/app/*": [
-        "./src/app/*"
+        "./src/app-layer/*"
       ],
       "@/components/*": [
         "./src/components/*"
@@ -60,7 +60,6 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
   "exclude": [
