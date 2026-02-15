@@ -29,7 +29,7 @@
       "@/pages/*": [
         "./src/pages/*"
       ],
-      "@/app/*": [
+      "@/app-layer/*": [
         "./src/app-layer/*"
       ],
       "@/components/*": [

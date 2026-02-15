@@ -9,7 +9,8 @@
     "start": "next start",
     "check:entities-cross-import": "sh scripts/check-entities-cross-import.sh",
     "check:route-adapter-boundary": "sh scripts/check-route-adapter-boundary.sh",
-    "check:architecture": "npm run check:entities-cross-import && npm run check:route-adapter-boundary",
+    "check:app-layer-alias": "sh scripts/check-app-layer-alias.sh",
+    "check:architecture": "npm run check:entities-cross-import && npm run check:route-adapter-boundary && npm run check:app-layer-alias",
     "lint": "npm run check:architecture && eslint"
   },
   "dependencies": {
