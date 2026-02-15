@@ -6,7 +6,7 @@ import type {
   RefereeTypeValue,
 } from '@/shared/config/match-constants';
 import { COURT_SIZE_DEFAULT } from '@/shared/config/match-constants';
-import type { MatchCreateFormData } from '@/features/match-create/model/schema';
+import type { MatchCreateFormData } from '@/features/match-create/model/form-data.types';
 import type {
   MatchCreateContactType,
   MatchCreateSubmitFormValues,
@@ -116,9 +116,9 @@ export function buildMatchCreatePayload({
       ? {
           type: 'position',
           guard: positions.guard,
-          forward: isFlexBigman ? 0 : positions.forward,
-          center: isFlexBigman ? 0 : positions.center,
-          bigman: isFlexBigman ? positions.bigman : 0,
+          forward: positions.forward,
+          center: positions.center,
+          bigman: positions.bigman,
           isFlexBigman,
         }
       : {

@@ -4,7 +4,7 @@ import {
   toMatchInsertDataV3,
   extractGymDataV3,
 } from './match-create-mapper';
-import { MatchCreateFormData } from '@/features/match-create/model/schema';
+import type { MatchCreateFormData } from '@/features/match-create/model/form-data.types';
 import { createGymService } from '@/entities/gym';
 import { logRequest, logResponse, logSupabaseQuery, logSupabaseResult } from '@/shared/lib/logger';
 

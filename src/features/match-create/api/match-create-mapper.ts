@@ -10,7 +10,7 @@ import {
   Json,
 } from '@/shared/types/database.types';
 import { GymData } from '@/entities/gym';
-import { MatchCreateFormData } from '@/features/match-create/model/schema';
+import type { MatchCreateFormData } from '@/features/match-create/model/form-data.types';
 
 // ==============================================
 // 1. Gym Data Extraction

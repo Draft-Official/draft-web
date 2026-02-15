@@ -1,7 +1,7 @@
 // ============================================
 // Model Types
 // ============================================
-export type { MatchCreateFormData } from './model/schema';
+export type { MatchCreateFormData } from './model/form-data.types';
 export type { MatchCreateSubmitFormValues } from './model/submit-form.types';
 export type {
   MatchCreateUserDTO,

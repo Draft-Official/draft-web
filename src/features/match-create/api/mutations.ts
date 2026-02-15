@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { matchKeys } from '@/entities/match';
 import { createMatchCreateService } from './match-create-api';
-import { MatchCreateFormData } from '@/features/match-create/model/schema';
+import type { MatchCreateFormData } from '@/features/match-create/model/form-data.types';
 import { useAuth } from '@/shared/session';
 import { createAuthService } from '@/shared/api/auth-service';
 import { createTeamService } from '@/entities/team';
