@@ -11,7 +11,7 @@ import { TimePickerSelect } from '@/shared/ui/base/time-picker-select';
 import { cn } from '@/shared/lib/utils';
 
 import { StepHeader } from './step-header';
-import { SelectedLocationCard } from '@/features/match-create/ui/components/selected-location-card';
+import { LocationCard } from '@/shared/ui/composite/location-card';
 import { REGULAR_DAY_OPTIONS, type RegularDayValue } from '@/shared/config/team-constants';
 import type { LocationData } from '@/shared/types/location.types';
 
@@ -122,7 +122,7 @@ export function TeamCreateStepSchedule({
       <div className="space-y-2">
         <Label className="text-sm font-bold text-slate-700">홈구장</Label>
         {locationData ? (
-          <SelectedLocationCard
+          <LocationCard
             location={locationData}
             isExistingGym={isExistingGym}
             onClear={onClearLocation}

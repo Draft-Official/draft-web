@@ -9,6 +9,9 @@ import { matchKeys } from '@/entities/match';
 import { createMatchCreateService } from './match-create-api';
 import { MatchCreateFormData } from '@/features/match-create/model/schema';
 import { useAuth } from '@/shared/session';
+import { createAuthService } from '@/shared/api/auth-service';
+import { createTeamService } from '@/entities/team';
+import type { MatchCreateDefaultsSaveDTO } from '@/features/match-create/model/types';
 
 /**
  * 매치 생성
@@ -102,6 +105,65 @@ export function useUpdateMatch() {
       const errorMessage = error?.message || error?.error_description || JSON.stringify(error);
       console.error('Match update error:', error);
       toast.error(`경기 수정 실패: ${errorMessage}`);
+    },
+  });
+}
+
+/**
+ * 운영 정보 기본값 저장
+ */
+export function useSaveMatchCreateDefaults() {
+  return useMutation({
+    mutationFn: async (input: MatchCreateDefaultsSaveDTO) => {
+      const supabase = getSupabaseBrowserClient();
+      const authService = createAuthService(supabase);
+      const teamService = createTeamService(supabase);
+
+      if (input.selectedHost === 'me') {
+        await authService.updateOperationsDefaults(input.userId, {
+          accountInfo: {
+            bank: input.accountInfo.bank,
+            number: input.accountInfo.number,
+            holder: input.accountInfo.holder,
+          },
+          operationInfo: {
+            type: input.contactInfo.type,
+            url: input.contactInfo.type === 'KAKAO_OPEN_CHAT' ? input.contactInfo.content : undefined,
+            notice: input.hostNotice,
+          },
+        });
+
+        if (input.contactInfo.type === 'PHONE') {
+          await authService.updateProfile(input.userId, {
+            phone: input.contactInfo.content,
+          });
+        }
+        return;
+      }
+
+      await teamService.updateTeamDefaults(input.selectedHost, {
+        accountInfo: {
+          bank: input.accountInfo.bank,
+          number: input.accountInfo.number,
+          holder: input.accountInfo.holder,
+        },
+        operationInfo: {
+          notice: input.hostNotice,
+        },
+      });
+
+      await authService.updateOperationsDefaults(input.userId, {
+        operationInfo: {
+          type: input.contactInfo.type,
+          url: input.contactInfo.type === 'KAKAO_OPEN_CHAT' ? input.contactInfo.content : undefined,
+        },
+      });
+
+      if (input.contactInfo.type === 'PHONE') {
+        await authService.updateProfile(input.userId, {
+          phone: input.contactInfo.content,
+        });
+      }
     },
   });
 }

@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
-import { Team, User } from '@/shared/types/database.types';
 import { Input } from '@/shared/ui/base/input';
 import { Label } from '@/shared/ui/base/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/base/select';
@@ -11,11 +10,12 @@ import { Textarea } from '@/shared/ui/base/textarea';
 import { BankCombobox } from '@/shared/ui/base/bank-combobox';
 import { FileText, MessageCircle, Phone, UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
-import { AccountInfo, OperationInfo } from '@/shared/types/jsonb.types';
+import type { AccountInfo, OperationInfo } from '@/shared/types/jsonb.types';
+import type { MatchCreateTeamOptionDTO, MatchCreateUserDTO } from '@/features/match-create/model/types';
 
 // Helper to safely cast JSONB to specific type
-const getAccountInfo = (info: any): AccountInfo => info as AccountInfo || {};
-const getOperationInfo = (info: any): OperationInfo => info as OperationInfo || {};
+const getAccountInfo = (info: MatchCreateUserDTO['accountInfo'] | MatchCreateTeamOptionDTO['accountInfo']): Partial<AccountInfo> => info ?? {};
+const getOperationInfo = (info: MatchCreateUserDTO['operationInfo'] | MatchCreateTeamOptionDTO['operationInfo']): Partial<OperationInfo> => info ?? {};
 
 export interface OperationsData {
   selectedHost: 'me' | string; // 'me' or team_id
@@ -33,9 +33,9 @@ export interface OperationsData {
 }
 
 interface MatchCreateOperationsProps {
-  user: User | null;
-  teams: Team[];
-  onDataChange: (data: OperationsData) => void;
+  user: MatchCreateUserDTO | null;
+  teams: MatchCreateTeamOptionDTO[];
+  onDataChange?: (data: OperationsData) => void;
   // initialData removed as we rely on form context now
 }
 
@@ -44,7 +44,7 @@ export function MatchCreateOperations({
   teams,
   onDataChange,
 }: MatchCreateOperationsProps) {
-  const { register, watch, setValue, getValues } = useFormContext();
+  const { register, watch, setValue } = useFormContext();
   
   // Watch form values for UI updates and data sync
   // Note: We use register to bind inputs, but we watch them for the onDataChange effect
@@ -62,8 +62,8 @@ export function MatchCreateOperations({
   // Refactored: No auto-selection of 'me'. User must select.
 
   // Check if user has existing info
-  const userAccount = user ? getAccountInfo(user.account_info) : null;
-  const userOps = user ? getOperationInfo(user.operation_info) : null;
+  const userAccount = user ? getAccountInfo(user.accountInfo) : null;
+  const userOps = user ? getOperationInfo(user.operationInfo) : null;
 
   const hasExistingInfo = Boolean(
     userAccount?.bank &&
@@ -80,8 +80,8 @@ export function MatchCreateOperations({
 
     if (value === 'me' && user) {
       // Reset to user defaults
-      const userAccount = getAccountInfo(user.account_info);
-      const userOps = getOperationInfo(user.operation_info);
+      const userAccount = getAccountInfo(user.accountInfo);
+      const userOps = getOperationInfo(user.operationInfo);
 
       const bank = userAccount.bank || '';
       const number = userAccount.number || '';
@@ -96,7 +96,6 @@ export function MatchCreateOperations({
       setValue('accountNumber', number);
       setValue('accountHolder', holder);
       setValue('description', notice);
-       setValue('description', notice);
       // Contact type logic
       setValue('operations.contactType', contact);
       
@@ -113,8 +112,8 @@ export function MatchCreateOperations({
       // Find team and set team defaults
       const team = teams.find((t) => t.id === value);
       if (team) {
-        const teamAccount = getAccountInfo(team.account_info);
-        const teamOps = getOperationInfo(team.operation_info);
+        const teamAccount = getAccountInfo(team.accountInfo);
+        const teamOps = getOperationInfo(team.operationInfo);
 
         const bank = teamAccount.bank || '';
         const number = teamAccount.number || '';
@@ -128,7 +127,7 @@ export function MatchCreateOperations({
 
         // Contact info from user (always defaults to user's contact initially)
         if (user) {
-          const userOps = getOperationInfo(user.operation_info);
+          const userOps = getOperationInfo(user.operationInfo);
           const contact = userOps.type || 'PHONE';
           setValue('operations.contactType', contact);
           
@@ -146,6 +145,8 @@ export function MatchCreateOperations({
 
   // Sync data to parent via onDataChange
   useEffect(() => {
+    if (!onDataChange) return;
+
     onDataChange({
       selectedHost,
       accountInfo: {
@@ -155,7 +156,7 @@ export function MatchCreateOperations({
       },
       contactInfo: {
         type: contactType,
-        content: kakaoLink,
+        content: contactType === 'PHONE' ? phoneNumber : kakaoLink,
       },
       hostNotice: description,
       saveAsDefault,
@@ -166,6 +167,7 @@ export function MatchCreateOperations({
     accountNumber,
     accountHolder,
     contactType,
+    phoneNumber,
     kakaoLink,
     description,
     saveAsDefault,
@@ -382,4 +384,3 @@ export function MatchCreateOperations({
     </section>
   );
 }
-

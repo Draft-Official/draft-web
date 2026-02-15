@@ -3,32 +3,14 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/shared/ui/base/dialog';
 import { X, MapPin, Loader2 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
-import type { MatchWithRelations } from '@/shared/types/database.types';
+import type { RecentMatchListItemDTO } from '@/features/match-create/model/types';
 
 interface RecentMatchesDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  matches: MatchWithRelations[];
+  matches: RecentMatchListItemDTO[];
   isLoading: boolean;
-  onSelect: (match: MatchWithRelations) => void;
-}
-
-// 날짜 포맷 (YYYY-MM-DD → MM/DD (요일))
-function formatDate(isoString: string): string {
-  const date = new Date(isoString);
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-  const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
-  const weekday = weekdays[date.getDay()];
-  return `${month}/${day} (${weekday})`;
-}
-
-// 가격 포맷
-function formatPrice(amount: number | null, costType: string): string {
-  if (costType === 'FREE') return '무료';
-  if (costType === 'BEVERAGE' && amount) return `음료 ${amount}병`;
-  if (!amount) return '무료';
-  return `${amount.toLocaleString()}원`;
+  onSelect: (match: RecentMatchListItemDTO) => void;
 }
 
 export function RecentMatchesDialog({
@@ -63,15 +45,9 @@ export function RecentMatchesDialog({
           ) : (
             <div className="space-y-1">
               {matches.map((match) => {
-                const teamName = match.team?.name || match.manual_team_name;
-                const isTeam = !!match.team_id;
-                const gymName = match.gym?.name || '장소 미정';
-                const date = formatDate(match.start_time);
-                const price = formatPrice(match.cost_amount, match.cost_type);
-
                 return (
                   <button
-                    key={match.id}
+                    key={match.matchId}
                     type="button"
                     onClick={() => onSelect(match)}
                     className={cn(
@@ -83,22 +59,22 @@ export function RecentMatchesDialog({
                     <div className="flex items-center justify-between mb-1">
                       <span className={cn(
                         "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium",
-                        isTeam
+                        match.isTeamHost
                           ? "bg-orange-50 text-orange-700"
                           : "bg-slate-100 text-slate-600"
                       )}>
-                        {isTeam ? '🏀' : '🙋‍♂️'} {isTeam ? teamName : '개인'}
+                        {match.isTeamHost ? '🏀' : '🙋‍♂️'} {match.hostLabel}
                       </span>
-                      <span className="text-sm text-slate-500">{date}</span>
+                      <span className="text-sm text-slate-500">{match.dateLabel}</span>
                     </div>
 
                     {/* Bottom Row: Gym Name + Price */}
                     <div className="flex items-center justify-between">
                       <span className="inline-flex items-center gap-1 text-sm text-slate-500">
                         <MapPin className="w-3.5 h-3.5" />
-                        {gymName}
+                        {match.gymLabel}
                       </span>
-                      <span className="text-sm font-medium text-slate-700">{price}</span>
+                      <span className="text-sm font-medium text-slate-700">{match.priceLabel}</span>
                     </div>
                   </button>
                 );
