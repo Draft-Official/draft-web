@@ -29,9 +29,6 @@
       "@/pages/*": [
         "./src/pages/*"
       ],
-      "@/app-layer/*": [
-        "./src/app-layer/*"
-      ],
       "@/components/*": [
         "./src/components/*"
       ],

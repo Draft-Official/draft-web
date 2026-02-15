@@ -2,9 +2,9 @@ import "@seed-design/css/base.css";
 import type { Metadata } from "next";
 import "./globals.css";
 
-import { Providers } from "@/app-layer/providers";
+import { Providers } from "./providers";
 import { Toaster } from "sonner";
-import { LayoutShell } from "@/app-layer/layout-shell";
+import { LayoutShell } from "./layout-shell";
 import { Geist } from "next/font/google";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
