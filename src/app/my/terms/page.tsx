@@ -1,5 +1,1 @@
-import { TermsPageView } from '@/features/my/ui/terms-page-view';
-
-export default function TermsPage() {
-  return <TermsPageView />;
-}
+export { default } from '@/pages/my/terms/page';
