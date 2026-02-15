@@ -1,7 +1,6 @@
 # FSD Pages Layer
 
-This directory contains page-level composition for the product.
+This directory is reserved by Next.js Pages Router in `src` projects.
 
-- `src/pages/*` owns route UI composition and data orchestration wiring.
-- Next route adapter files (`src/app/**/page.tsx` and later `app/**/page.tsx`) should stay thin and re-export from `@/pages/*`.
-- Do not create or use `root/pages`; keep all page composition in `src/pages/*`.
+For FSD page composition, use `src/page-views` and import via `@/pages/*` alias.
+Route adapters in `src/app/**/page.tsx` should continue to target `@/pages/*`.

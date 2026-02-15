@@ -1,16 +1,17 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useMatch, MatchDetailView } from '@/features/match';
-import { TeamExerciseDetailView } from '@/features/schedule';
+import { useMatch } from '@/features/match';
+import { HostMatchDetailView, TeamExerciseManageView } from '@/features/schedule';
 import { Loader2 } from 'lucide-react';
 
 // TODO: DB에 match_type 컬럼 추가 후 실제 타입 분기 구현
 type MatchType = 'GUEST_RECRUIT' | 'TEAM_REGULAR' | 'PICKUP_GAME';
 
-export default function MatchDetailPage() {
+export default function MatchManagePage() {
   const params = useParams();
-  const id = params.id as string;
+  const idParam = params?.id;
+  const id = Array.isArray(idParam) ? (idParam[0] ?? '') : (idParam ?? '');
 
   const { data: matchData, isLoading, error } = useMatch(id);
 
@@ -37,16 +38,16 @@ export default function MatchDetailPage() {
   // 현재는 matchData에 type 필드가 없으므로 기본값 사용
   const matchType: MatchType = (matchData as { type?: MatchType }).type ?? 'GUEST_RECRUIT';
 
-  // 타입별 View 분기
+  // 타입별 관리 View 분기
   switch (matchType) {
     case 'TEAM_REGULAR':
-      // 팀 정기전용 뷰
-      return <TeamExerciseDetailView />;
+      // 팀 정기전 관리용 뷰
+      return <TeamExerciseManageView />;
 
     case 'GUEST_RECRUIT':
     case 'PICKUP_GAME':
     default:
-      // 게스트 모집 / 픽업 게임용 뷰
-      return <MatchDetailView match={matchData} />;
+      // 게스트 모집 / 픽업 게임 관리용 뷰 (호스트)
+      return <HostMatchDetailView />;
   }
 }
