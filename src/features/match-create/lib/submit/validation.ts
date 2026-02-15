@@ -172,6 +172,7 @@ export function validateMatchCreateSubmit({
   return {
     ok: true,
     data: {
+      selectedDate,
       locationData,
       opsHost,
       normalizedContactType,

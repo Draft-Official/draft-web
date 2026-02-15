@@ -16,7 +16,6 @@ import type {
   MatchCreateTeamOptionDTO,
   MatchCreateUserDTO,
   RecentMatchListItemDTO,
-  LocationData,
 } from '@/features/match-create/model/types';
 
 type UserRow = Database['public']['Tables']['users']['Row'];
@@ -139,15 +138,5 @@ export function toRecentMatchListItemDTO(match: MatchWithGymTeamRow): RecentMatc
     hostLabel,
     gymLabel: prefill.gymName,
     isTeamHost,
-  };
-}
-
-export function toLocationDataFromPrefill(prefill: MatchCreatePrefillDTO): LocationData {
-  return {
-    address: prefill.gymAddress,
-    buildingName: prefill.gymName,
-    x: prefill.gymLongitude ? String(prefill.gymLongitude) : undefined,
-    y: prefill.gymLatitude ? String(prefill.gymLatitude) : undefined,
-    kakaoPlaceId: prefill.kakaoPlaceId ?? undefined,
   };
 }

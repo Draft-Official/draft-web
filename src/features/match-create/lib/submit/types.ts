@@ -13,6 +13,7 @@ export interface MatchCreateSubmitValidationError {
 }
 
 export interface MatchCreateSubmitValidationSuccess {
+  selectedDate: string;
   locationData: SelectedLocationForSubmit;
   opsHost: string;
   normalizedContactType: MatchCreateContactType;

@@ -30,13 +30,7 @@ export function useMatchCreateViewModel() {
   const isEditMode = !!editMatchId;
 
   const methods = useForm<MatchCreateSubmitFormValues>();
-  const { setValue, formState: { errors } } = methods;
-
-  useEffect(() => {
-    if (Object.keys(errors).length > 0) {
-      console.log('[Form Errors]', errors);
-    }
-  }, [errors]);
+  const { setValue } = methods;
 
   const [selectedDate, setSelectedDate] = useState<string | null>(() => getNext14Days()[0].dateISO);
 

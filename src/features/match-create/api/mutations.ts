@@ -55,24 +55,9 @@ export function useCreateMatch() {
         throw new Error('로그인이 필요합니다');
       }
       const hostId = user.id;
-
-      console.log('[useCreateMatch] hostId:', hostId);
-      console.log('[useCreateMatch] input:', input);
-
       const supabase = getSupabaseBrowserClient();
-      console.log('[useCreateMatch] supabase client created');
-
       const matchCreateService = createMatchCreateService(supabase);
-      console.log('[useCreateMatch] matchCreateService created, calling createMatch...');
-
-      try {
-        const result = await matchCreateService.createMatch(hostId, input);
-        console.log('[useCreateMatch] createMatch result:', result);
-        return result;
-      } catch (err) {
-        console.error('[useCreateMatch] createMatch error:', err);
-        throw err;
-      }
+      return matchCreateService.createMatch(hostId, input);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: matchKeys.lists() });
@@ -107,21 +92,9 @@ export function useUpdateMatch() {
       }
       const hostId = user.id;
 
-      console.log('[useUpdateMatch] matchId:', input.matchId);
-      console.log('[useUpdateMatch] hostId:', hostId);
-      console.log('[useUpdateMatch] input:', input.form);
-
       const supabase = getSupabaseBrowserClient();
       const matchCreateService = createMatchCreateService(supabase);
-
-      try {
-        const result = await matchCreateService.updateMatch(input.matchId, hostId, input.form);
-        console.log('[useUpdateMatch] updateMatch result:', result);
-        return result;
-      } catch (err) {
-        console.error('[useUpdateMatch] updateMatch error:', err);
-        throw err;
-      }
+      return matchCreateService.updateMatch(input.matchId, hostId, input.form);
     },
     onSuccess: (_, variables) => {
       // 관련 쿼리 무효화

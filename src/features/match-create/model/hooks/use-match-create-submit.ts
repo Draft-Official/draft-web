@@ -103,9 +103,8 @@ export function useMatchCreateSubmit({
       return;
     }
 
-    if (!selectedDate) return;
-
     const {
+      selectedDate: validatedSelectedDate,
       locationData: selectedLocationData,
       opsHost,
       normalizedContactType,
@@ -114,7 +113,7 @@ export function useMatchCreateSubmit({
 
     const payload = buildMatchCreatePayload({
       form: data,
-      selectedDate,
+      selectedDate: validatedSelectedDate,
       locationData: selectedLocationData,
       feeType: facilities.feeType,
       isPositionMode: recruitment.isPositionMode,
