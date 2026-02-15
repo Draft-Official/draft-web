@@ -10,17 +10,17 @@ import {
   GenderValue,
   PlayStyleValue,
   RefereeTypeValue,
-  CourtSizeValue,
   MatchFormatValue,
 } from '@/shared/config/match-constants';
 import { useLocationSearch } from '@/shared/lib/hooks/use-location-search';
-import { useCreateMatch, useSaveMatchCreateDefaults, useUpdateMatch } from '@/features/match-create/api/mutations';
 import { useMatchCreateBootstrap, useMatchEditPrefill, useMyRecentMatches } from '@/features/match-create/api/queries';
 import type { RecentMatchListItemDTO } from '@/features/match-create/model/types';
 import type { MatchCreateSubmitFormValues } from '@/features/match-create/model/submit-form.types';
+import { useMatchCreateFacilities } from '@/features/match-create/model/hooks/use-match-create-facilities';
+import { useMatchCreateEditPrefillLoader } from '@/features/match-create/model/hooks/use-match-create-edit-prefill-loader';
+import { useMatchCreateSubmit } from '@/features/match-create/model/hooks/use-match-create-submit';
 import { usePrefillFromRecentMatch } from '@/features/match-create/model/hooks/use-prefill-from-recent-match';
 import { nextSelectedAges } from '@/features/match-create/lib/age-range';
-import { buildMatchCreatePayload, validateMatchCreateSubmit } from '@/features/match-create/lib/submit';
 import { getNext14Days } from '@/features/match-create/lib/utils';
 
 export function useMatchCreateViewModel() {
@@ -31,9 +31,6 @@ export function useMatchCreateViewModel() {
 
   const methods = useForm<MatchCreateSubmitFormValues>();
   const { setValue, formState: { errors } } = methods;
-
-  const [isApplyingEditData, setIsApplyingEditData] = useState(false);
-  const [editDataLoaded, setEditDataLoaded] = useState(false);
 
   useEffect(() => {
     if (Object.keys(errors).length > 0) {
@@ -47,15 +44,6 @@ export function useMatchCreateViewModel() {
   const [isFlexBigman, setIsFlexBigman] = useState(false);
   const [positions, setPositions] = useState({ guard: 0, forward: 0, center: 0, bigman: 0 });
   const [totalCount, setTotalCount] = useState(1);
-
-  const [parkingCost, setParkingCost] = useState<string>('');
-  const [parkingDetail, setParkingDetail] = useState('');
-  const [hasWater, setHasWater] = useState(false);
-  const [hasAcHeat, setHasAcHeat] = useState(false);
-  const [hasBall, setHasBall] = useState(false);
-  const [hasBeverage, setHasBeverage] = useState(false);
-  const [hasShower, setHasShower] = useState(false);
-  const [courtSize, setCourtSize] = useState<CourtSizeValue | ''>('');
 
   const [matchFormat, setMatchFormat] = useState<MatchFormatValue>(MATCH_FORMAT_DEFAULT);
   const [gender, setGender] = useState<GenderValue>(GENDER_DEFAULT);
@@ -81,7 +69,6 @@ export function useMatchCreateViewModel() {
   const [showRecentMatchesDialog, setShowRecentMatchesDialog] = useState(false);
   const { data: recentMatches, isLoading: isLoadingRecentMatches } = useMyRecentMatches();
   const { data: editPrefillData, isLoading: isLoadingEditPrefill } = useMatchEditPrefill(isEditMode ? editMatchId : null);
-  const isLoadingEditData = isEditMode && (isLoadingEditPrefill || isApplyingEditData);
 
   const [showTip, setShowTip] = useState(false);
 
@@ -110,41 +97,29 @@ export function useMatchCreateViewModel() {
     openKakaoMap,
   } = useLocationSearch();
 
+  const {
+    parkingCost,
+    setParkingCost,
+    parkingDetail,
+    setParkingDetail,
+    hasWater,
+    setHasWater,
+    hasAcHeat,
+    setHasAcHeat,
+    hasBall,
+    setHasBall,
+    hasBeverage,
+    setHasBeverage,
+    hasShower,
+    setHasShower,
+    courtSize,
+    setCourtSize,
+  } = useMatchCreateFacilities({
+    gymFacilities,
+    isExistingGym,
+  });
+
   const calendarDates = useMemo(() => getNext14Days(), []);
-
-  useEffect(() => {
-    if (gymFacilities) {
-      setHasBall(gymFacilities.ball ?? false);
-      setHasWater(gymFacilities.water_purifier ?? false);
-      setHasAcHeat(gymFacilities.air_conditioner ?? false);
-      setHasShower(gymFacilities.shower ?? false);
-
-      if (gymFacilities.parking) {
-        let parkingFee = gymFacilities.parking_fee ?? '0';
-        if (parkingFee === '무료') {
-          parkingFee = '0';
-        }
-        setParkingCost(parkingFee);
-      } else {
-        setParkingCost('');
-      }
-      setParkingDetail(gymFacilities.parking_location ?? '');
-
-      if (gymFacilities.court_size_type) {
-        setCourtSize(gymFacilities.court_size_type);
-      } else {
-        setCourtSize('');
-      }
-    } else if (gymFacilities === null && isExistingGym === false) {
-      setHasBall(false);
-      setHasWater(false);
-      setHasAcHeat(false);
-      setHasShower(false);
-      setParkingCost('');
-      setParkingDetail('');
-      setCourtSize('');
-    }
-  }, [gymFacilities, isExistingGym]);
 
   const handleInputFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setTimeout(() => {
@@ -196,77 +171,26 @@ export function useMatchCreateViewModel() {
     setRefereeType,
   });
 
-  useEffect(() => {
-    const loadEditData = async () => {
-      if (!isEditMode || !editPrefillData || editDataLoaded) return;
+  const { isApplyingEditData } = useMatchCreateEditPrefillLoader({
+    isEditMode,
+    editPrefillData,
+    fillFromRecentMatch,
+    setSelectedDate,
+  });
+  const isLoadingEditData = isEditMode && (isLoadingEditPrefill || isApplyingEditData);
 
-      setIsApplyingEditData(true);
-      try {
-        await fillFromRecentMatch(editPrefillData);
-
-        if (editPrefillData.startTimeISO) {
-          const dateISO = editPrefillData.startTimeISO.split('T')[0];
-          setSelectedDate(dateISO);
-        }
-
-        setEditDataLoaded(true);
-      } catch (error) {
-        console.error('Failed to load match data:', error);
-        toast.error('경기 정보를 불러오는데 실패했습니다.');
-      } finally {
-        setIsApplyingEditData(false);
-      }
-    };
-
-    loadEditData();
-  }, [isEditMode, editPrefillData, editDataLoaded, fillFromRecentMatch]);
-
-  const { mutate: createMatch, isPending: isCreating } = useCreateMatch();
-  const { mutate: updateMatch, isPending: isUpdating } = useUpdateMatch();
-  const { mutateAsync: saveMatchCreateDefaults } = useSaveMatchCreateDefaults();
-  const isPending = isCreating || isUpdating;
-
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  };
-
-  const onSubmit = async (data: MatchCreateSubmitFormValues) => {
-    const validationResult = validateMatchCreateSubmit({
-      form: data,
-      selectedDate,
-      locationData,
-      isPositionMode,
-      positions,
-      totalCount,
-    });
-
-    if (!validationResult.ok) {
-      toast.error(validationResult.error.message);
-      scrollToSection(validationResult.error.sectionId);
-      return;
-    }
-
-    if (!selectedDate) return;
-
-    const {
-      locationData: selectedLocationData,
-      opsHost,
-      normalizedContactType,
-      opsContactContent,
-    } = validationResult.data;
-
-    const payload = buildMatchCreatePayload({
-      form: data,
-      selectedDate,
-      locationData: selectedLocationData,
-      feeType,
+  const { isPending, onSubmit } = useMatchCreateSubmit({
+    isEditMode,
+    editMatchId,
+    selectedDate,
+    locationData,
+    recruitment: {
       isPositionMode,
       isFlexBigman,
       positions,
       totalCount,
+    },
+    matchSpec: {
       matchFormat,
       gameFormatType,
       isGameFormatSelected,
@@ -280,6 +204,9 @@ export function useMatchCreateViewModel() {
       ruleGames,
       refereeType,
       isRefereeSelected,
+    },
+    facilities: {
+      feeType,
       parkingCost,
       parkingDetail,
       hasWater,
@@ -288,54 +215,16 @@ export function useMatchCreateViewModel() {
       courtSize,
       hasBall,
       hasBeverage,
-      opsHost,
-      normalizedContactType,
-      opsContactContent,
-    });
-
-    const handleSuccess = async () => {
-      if (data.operations?.saveAsDefault && currentUser?.id) {
-        try {
-          await saveMatchCreateDefaults({
-            userId: currentUser.id,
-            selectedHost: opsHost,
-            accountInfo: {
-              bank: data.bankName || '',
-              number: data.accountNumber || '',
-              holder: data.accountHolder || '',
-            },
-            contactInfo: {
-              type: normalizedContactType,
-              content: opsContactContent,
-            },
-            hostNotice: data.description || '',
-          });
-        } catch (saveDefaultsError) {
-          console.error('Failed to save defaults:', saveDefaultsError);
-        }
-      }
-
+    },
+    currentUserId: currentUser?.id,
+    onSuccessNavigate: () => {
       if (isEditMode) {
         router.back();
       } else {
         router.push('/');
       }
-    };
-
-    const handleError = (err: Error) => {
-      console.error(err);
-      toast.error(isEditMode ? `경기 수정에 실패했습니다: ${err.message}` : `경기 생성에 실패했습니다: ${err.message}`);
-    };
-
-    if (isEditMode && editMatchId) {
-      updateMatch(
-        { matchId: editMatchId, form: payload },
-        { onSuccess: handleSuccess, onError: handleError }
-      );
-    } else {
-      createMatch(payload, { onSuccess: handleSuccess, onError: handleError });
-    }
-  };
+    },
+  });
 
   const locationDivRef = useRef<HTMLDivElement>(null);
 

@@ -8,7 +8,7 @@ import type {
 } from '@/shared/config/match-constants';
 import type { LocationData, MatchCreatePrefillDTO } from '@/features/match-create/model/types';
 import type { MatchCreateSubmitFormValues } from '@/features/match-create/model/submit-form.types';
-import { toMatchCreatePrefillFormData } from '@/features/match-create/lib/prefill/match-create-prefill-form-data';
+import { toMatchCreatePrefillFormData } from '@/features/match-create/model/mappers/match-create-prefill-form-data';
 
 interface UsePrefillFromRecentMatchParams {
   setValue: UseFormSetValue<MatchCreateSubmitFormValues>;

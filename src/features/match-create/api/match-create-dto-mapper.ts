@@ -17,7 +17,7 @@ import type {
   MatchCreateUserDTO,
   RecentMatchListItemDTO,
   LocationData,
-} from '../model/types';
+} from '@/features/match-create/model/types';
 
 type UserRow = Database['public']['Tables']['users']['Row'];
 type TeamRow = Database['public']['Tables']['teams']['Row'];

@@ -159,7 +159,7 @@ export const matchCreateSchema = z.object({
   selectedTeamId: z.string().optional().nullable(),
   manualTeamName: z.string().optional(), // 개인 주최 시 필수 입력
 }).refine(
-  (data: any) => {
+  (data) => {
     // 개인 주최 시 (selectedTeamId가 없거나 'me'일 때) 팀이름 필수
     if (!data.selectedTeamId || data.selectedTeamId === 'me') {
       return data.manualTeamName && data.manualTeamName.trim().length > 0;
@@ -171,7 +171,7 @@ export const matchCreateSchema = z.object({
     path: ['manualTeamName'],
   }
 ).refine(
-  (data: any) => {
+  (data) => {
     // Validate that end time is after start time
     const [startHour, startMin] = data.startTime.split(':').map(Number);
     const [endHour, endMin] = data.endTime.split(':').map(Number);
@@ -184,7 +184,7 @@ export const matchCreateSchema = z.object({
     path: ['endTime'],
   }
 ).refine(
-  (data: any) => {
+  (data) => {
     // Validate position recruitment totals
     if (data.recruitment.type === 'position') {
       const total = data.recruitment.guard + data.recruitment.forward + data.recruitment.center;

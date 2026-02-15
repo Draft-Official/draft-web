@@ -75,12 +75,13 @@ export class MatchCreateService {
 
     try {
       const { matchData, gymId } = await this.prepareMatchData(hostId, form);
-      delete (matchData as any).status; // 수정 시 기존 상태 유지
+      const { status, ...updateData } = matchData; // 수정 시 기존 상태 유지
+      void status;
 
-      logSupabaseQuery('matches', 'UPDATE', matchData, { id: matchId });
+      logSupabaseQuery('matches', 'UPDATE', updateData, { id: matchId });
       const { data: match, error } = await this.supabase
         .from('matches')
-        .update(matchData)
+        .update(updateData)
         .eq('id', matchId)
         .eq('host_id', hostId)
         .select()
