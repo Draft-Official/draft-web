@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { createServerSupabaseClient } from '@/shared/api/supabase/server';
 import { AppError } from '@/shared/lib/errors';
 import { createPhoneVerificationRequest } from '@/features/auth/server/phone-verification/request';
 import type { VerificationRequestResponse } from '@/shared/types/phone-verification.types';
+import { appError, internalError, ok, unauthorized } from '@/shared/server/http/route-response';
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,10 +16,7 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json(
-        { error: '로그인이 필요합니다.' },
-        { status: 401 }
-      );
+      return unauthorized();
     }
 
     const response: VerificationRequestResponse = await createPhoneVerificationRequest(
@@ -27,15 +25,11 @@ export async function POST(request: NextRequest) {
       rawPhone
     );
 
-    return NextResponse.json(response);
+    return ok(response);
   } catch (error) {
     if (error instanceof AppError) {
-      return NextResponse.json({ error: error.message }, { status: error.statusCode });
+      return appError(error);
     }
-    console.error('[phone-verification] Unexpected error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return internalError('[phone-verification] Unexpected error:', error, 'Internal server error');
   }
 }

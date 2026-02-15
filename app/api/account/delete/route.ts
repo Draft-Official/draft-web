@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/shared/api/supabase/server';
 import { AppError } from '@/shared/lib/errors';
+import { appError, internalError, ok, unauthorized } from '@/shared/server/http/route-response';
 import {
   deleteAccountByUserId,
   getConfirmedApplicantCountForDelete,
@@ -16,18 +16,17 @@ export async function GET() {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: '로그인이 필요합니다.' }, { status: 401 });
+      return unauthorized();
     }
 
     const confirmedCount = await getConfirmedApplicantCountForDelete(user.id);
 
-    return NextResponse.json({ confirmedCount });
+    return ok({ confirmedCount });
   } catch (error) {
     if (error instanceof AppError) {
-      return NextResponse.json({ error: error.message }, { status: error.statusCode });
+      return appError(error);
     }
-    console.error('[account-delete] GET error:', error);
-    return NextResponse.json({ error: '확인 중 오류가 발생했습니다.' }, { status: 500 });
+    return internalError('[account-delete] GET error:', error, '확인 중 오류가 발생했습니다.');
   }
 }
 
@@ -41,17 +40,16 @@ export async function POST() {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: '로그인이 필요합니다.' }, { status: 401 });
+      return unauthorized();
     }
 
     await deleteAccountByUserId(user.id);
 
-    return NextResponse.json({ success: true });
+    return ok({ success: true });
   } catch (error) {
     if (error instanceof AppError) {
-      return NextResponse.json({ error: error.message }, { status: error.statusCode });
+      return appError(error);
     }
-    console.error('[account-delete] Unexpected error:', error);
-    return NextResponse.json({ error: '계정 삭제 중 오류가 발생했습니다.' }, { status: 500 });
+    return internalError('[account-delete] Unexpected error:', error, '계정 삭제 중 오류가 발생했습니다.');
   }
 }

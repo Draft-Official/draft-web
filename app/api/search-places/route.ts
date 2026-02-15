@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { AppError } from '@/shared/lib/errors';
 import { searchKakaoPlaces } from '@/shared/server/kakao/search-places';
+import { appError, internalError, ok } from '@/shared/server/http/route-response';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -8,15 +9,11 @@ export async function GET(request: NextRequest) {
 
   try {
     const data = await searchKakaoPlaces(keyword ?? '');
-    return NextResponse.json(data);
+    return ok(data);
   } catch (error) {
     if (error instanceof AppError) {
-      return NextResponse.json({ error: error.message }, { status: error.statusCode });
+      return appError(error);
     }
-    console.error('[Server] Failed to search places:', error);
-    return NextResponse.json(
-      { error: 'Failed to search places' },
-      { status: 500 }
-    );
+    return internalError('[Server] Failed to search places:', error, 'Failed to search places');
   }
 }

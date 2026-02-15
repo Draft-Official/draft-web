@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { createServerSupabaseClient } from '@/shared/api/supabase/server';
 import { checkPhoneVerificationCode } from '@/features/auth/server/phone-verification/check';
 import type { VerificationCheckResponse } from '@/shared/types/phone-verification.types';
+import { internalError, ok, unauthorized, apiError } from '@/shared/server/http/route-response';
 
 export async function GET(request: NextRequest) {
   try {
@@ -9,10 +10,7 @@ export async function GET(request: NextRequest) {
     const code = searchParams.get('code');
 
     if (!code) {
-      return NextResponse.json(
-        { error: 'code is required' },
-        { status: 400 }
-      );
+      return apiError('code is required', 400, 'VALIDATION_ERROR');
     }
 
     const supabase = await createServerSupabaseClient();
@@ -21,10 +19,7 @@ export async function GET(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json(
-        { error: '로그인이 필요합니다.' },
-        { status: 401 }
-      );
+      return unauthorized();
     }
 
     const response: VerificationCheckResponse = await checkPhoneVerificationCode(
@@ -32,12 +27,8 @@ export async function GET(request: NextRequest) {
       user.id,
       code
     );
-    return NextResponse.json(response);
+    return ok(response);
   } catch (error) {
-    console.error('[phone-verification/check] Error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return internalError('[phone-verification/check] Error:', error, 'Internal server error');
   }
 }
