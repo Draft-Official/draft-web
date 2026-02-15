@@ -13,6 +13,7 @@ import { useAuth } from '@/shared/session';
 import { useLocationSearch } from '@/shared/lib/hooks/use-location-search';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { createGymService } from '@/entities/gym';
+import { createTeamService } from '@/entities/team';
 
 import { StepProgressBar } from './components/step-progress-bar';
 import { TeamCreateStepInfo } from './components/team-create-step-info';
@@ -129,9 +130,10 @@ export function TeamCreateForm() {
 
     setIsCheckingCode(true);
     try {
-      const response = await fetch(`/api/team/check-code?code=${value}`);
-      const data = await response.json();
-      setCodeStatus(data.available ? 'available' : 'taken');
+      const supabase = getSupabaseBrowserClient();
+      const teamService = createTeamService(supabase);
+      const exists = await teamService.checkTeamCodeExists(value);
+      setCodeStatus(exists ? 'taken' : 'available');
     } catch {
       setCodeStatus('idle');
     } finally {

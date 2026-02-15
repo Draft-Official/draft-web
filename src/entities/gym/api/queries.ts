@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
+import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { gymKeys } from './keys';
-import type { Gym } from '../model/types';
+import { createGymService } from './gym-service';
 import type { GymFacilities } from '@/shared/types/jsonb.types';
 
 /**
@@ -21,16 +22,18 @@ export async function lookupGymByKakaoPlaceId(
   kakaoPlaceId: string
 ): Promise<GymLookupResult | null> {
   try {
-    const response = await fetch(
-      `/api/gyms?kakaoPlaceId=${encodeURIComponent(kakaoPlaceId)}`
-    );
+    const supabase = getSupabaseBrowserClient();
+    const gymService = createGymService(supabase);
+    const gym = await gymService.getGymByKakaoPlaceId(kakaoPlaceId);
+    if (!gym) return null;
 
-    if (!response.ok) {
-      throw new Error('Failed to lookup gym');
-    }
-
-    const { gym } = await response.json();
-    return gym || null;
+    return {
+      id: gym.id,
+      name: gym.name,
+      address: gym.address,
+      facilities: (gym.facilities as GymFacilities) ?? null,
+      kakao_place_id: gym.kakao_place_id,
+    };
   } catch (error) {
     console.error('[Client] Gym lookup error:', error);
     return null;
