@@ -28,7 +28,7 @@ npm run lint        # Run ESLint
 
 ## Architecture (Quick Reference)
 
-This project uses **Feature-Based Architecture** with a 3-folder structure:
+This project uses **Feature-Sliced Design (FSD)** with a 4-folder structure:
 
 ```
 src/
@@ -37,32 +37,30 @@ src/
 │   ├── layout.tsx
 │   ├── providers.tsx
 │   ├── matches/
-│   ├── tournaments/
-│   ├── schedule/
 │   ├── team/
-│   ├── my/
-│   └── api/
+│   └── my/
 │
-├── features/               # Feature modules (domain logic)
+├── entities/               # Business domain entities (독립적)
+│   ├── team/               # Team domain
+│   │   ├── model/types.ts  # Team types
+│   │   ├── api/            # Team service
+│   │   └── index.ts
+│   ├── match/              # Match domain
+│   ├── gym/                # Gym domain
+│   └── application/        # Application domain
+│
+├── features/               # User features (entities 조합)
 │   ├── auth/               # Authentication
-│   │   ├── api/            # API layer (Supabase, React Query)
-│   │   ├── model/          # Types, Context
-│   │   ├── ui/             # UI components
-│   │   └── index.ts        # Barrel export
 │   ├── match/              # Match management
-│   ├── schedule/           # Schedule management
-│   ├── application/        # Application submissions
 │   ├── team/               # Team management
 │   └── my/                 # User profile
 │
-└── shared/                 # Cross-cutting resources
-    ├── api/                # Infrastructure (Supabase, React Query)
-    ├── ui/
-    │   ├── base/           # shadcn/ui components
-    │   └── layout/         # Layout components
+└── shared/                 # Infrastructure & utilities
+    ├── api/                # Supabase, React Query
+    ├── ui/                 # UI kit
     ├── lib/                # Utilities
-    ├── config/             # Global config
-    └── types/              # Global types
+    ├── config/             # Constants
+    └── types/              # Technical types only
 ```
 
 → **For detailed architecture**: See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
@@ -73,35 +71,443 @@ Always use these TypeScript path aliases:
 
 ```typescript
 @/*                    # Root directory (./src/)
-@/features/*           # src/features/*
-@/shared/*             # src/shared/*
+@/entities/*           # src/entities/* (domain entities)
+@/features/*           # src/features/* (user features)
+@/shared/*             # src/shared/* (infrastructure)
 ```
 
-### Layer Dependency Rules
+### Layer Dependency Rules (FSD)
 
 ```
-app/ → features/ + shared/
-features/ → shared/
-Features DO NOT import from other features
+app/      → entities/ + features/ + shared/
+features/ → entities/ + shared/
+entities/ → shared/
+
+entities DO NOT import from other entities (독립적!)
+features DO NOT import from other features
 ```
 
-**Important**: Features should NOT import from other features. Extract shared logic to `src/shared/`.
+**핵심 원칙:**
+1. **entities** = 순수 데이터 모델 (독립적, ID만 참조)
+2. **features** = 사용자 기능 (여러 entities 조합)
+3. **shared** = 인프라 & 기술 타입만
 
-**Cross-import 허용 예외**: 다음 모듈은 인프라 성격으로 다른 feature에서 import 허용:
-- `features/auth` — 인증 컨텍스트 (`useAuth`)
-- `features/match/api` — Match DB 서비스 (`createMatchService`)
-- `features/application/api` — Application DB 서비스 (`createApplicationService`)
+**예시:**
+```typescript
+// ✅ entities - 독립적 (ID만 참조)
+// entities/match/model/types.ts
+export interface Match {
+  id: string;
+  gymId: string;    // Gym ID만 (Gym 객체 참조 X)
+  teamId?: string;  // Team ID만
+}
 
-### Data Layer Rules
+// ✅ features - entities 조합
+// features/match-detail/ui/match-detail-view.tsx
+import { Match } from '@/entities/match';
+import { Gym } from '@/entities/gym';
+import { Team } from '@/entities/team';
 
-**JSONB Fields Usage**:
-- Use `account_info` and `operation_info` JSONB columns instead of legacy flat fields.
-- Always use explicit types from `@/shared/types/jsonb.types` when casting JSONB data.
-- **Pattern**: `const account = (user.account_info as unknown as AccountInfo) || {};`
+function MatchDetail({ matchId }) {
+  const match = useMatch(matchId);
+  const gym = useGym(match.gymId);      // Feature에서 조합!
+  const team = useTeam(match.teamId);   // Feature에서 조합!
+}
+```
+
+---
+
+## FSD Type Placement Rules ⚠️
+
+**CRITICAL: Always check DB schema FIRST before deciding type placement!**
+
+### 실수 방지 체크리스트
+
+타입을 정의하기 전에 **반드시** 다음 순서로 확인:
+
+1. ✅ **DB 스키마 확인** - 실제로 어떤 컬럼이 있는지?
+2. ✅ **JSONB 타입 확인** - `shared/types/jsonb.types.ts`에 이미 있는지?
+3. ✅ **Entity 소유권 판단** - 이 데이터가 어느 entity에 속하는지?
+4. ✅ **공통 타입 여부** - 여러 entity에서 사용하는지?
+
+### Rule 1: 위치 정보는 Gym의 속성
+
+```typescript
+// ❌ 잘못된 가정
+// entities/match/model/types.ts
+export interface Location {
+  latitude: number;
+  longitude: number;
+}
+export interface Match {
+  location: Location;  // Match가 Location을 소유?
+}
+
+// ✅ 올바른 구조 (DB 스키마 기반)
+// entities/gym/model/types.ts
+export interface Gym {
+  id: string;
+  name: string;
+  latitude: number;   // Gym의 속성!
+  longitude: number;  // Gym의 속성!
+}
+
+// entities/match/model/types.ts
+export interface Match {
+  id: string;
+  gymId: string;  // Gym ID만!
+}
+
+// features/match-detail/ (UI에서 조합)
+const match = useMatch(matchId);
+const gym = useGym(match.gymId);
+// gym.latitude, gym.longitude 사용
+```
+
+### Rule 2: JSONB 공통 타입은 shared/types/
+
+```typescript
+// ✅ shared/types/jsonb.types.ts
+// 사용 테이블: users, teams, matches (여러 테이블!)
+export interface OperationInfo {
+  type: 'PHONE' | 'KAKAO_OPEN_CHAT';
+  phone?: string;
+  url?: string;
+}
+
+export interface AccountInfo {
+  bank?: string;
+  number?: string;
+  holder?: string;
+}
+
+// ✅ entities에서 사용
+// entities/team/model/types.ts
+import { OperationInfo, AccountInfo } from '@/shared/types/jsonb.types';
+export interface Team {
+  accountInfo: AccountInfo | null;
+  operationInfo: OperationInfo | null;
+}
+
+// entities/match/model/types.ts
+import { OperationInfo } from '@/shared/types/jsonb.types';
+export interface Match {
+  operationInfo: OperationInfo | null;
+}
+```
+
+### Rule 3: UI 편의 타입 vs DB 타입 구분
+
+```typescript
+// DB에는 이렇게 저장됨
+// matches 테이블
+cost_type: 'FREE' | 'PAID' | 'BEVERAGE'
+cost_amount: number
+
+// ❌ entities에 UI 편의 타입 정의 금지
+export interface PriceInfo {
+  type: CostTypeValue;
+  amount: number;
+  displayText: string;  // UI 편의 필드
+}
+
+// ✅ entities는 DB 그대로
+export interface Match {
+  costType: CostTypeValue;
+  costAmount: number;
+}
+
+// ✅ UI 로직은 features/에서
+// features/match/lib/format-price.ts
+export function formatPrice(match: Match): string {
+  if (match.costType === 'FREE') return '무료';
+  if (match.costType === 'BEVERAGE') return `음료수 ${match.costAmount}병`;
+  return `${match.costAmount.toLocaleString()}원`;
+}
+```
+
+### Rule 4: shared/types/는 기술 타입만
+
+```typescript
+// ✅ shared/types/에 있어야 할 것들
+shared/types/
+  ├── database.types.ts      // Supabase 생성 타입
+  ├── jsonb.types.ts         // DB JSONB 스키마
+  └── phone-verification.types.ts  // 인프라 타입
+
+// ❌ shared/types/에 있으면 안 되는 것들
+shared/types/
+  ├── notification.types.ts  // → entities/notification/
+  ├── match.types.ts         // → entities/match/
+  └── team.types.ts          // → entities/team/
+
+// 판단 기준: "비즈니스 도메인 개념인가?"
+// Yes → entities/
+// No → shared/types/
+```
+
+### Common Mistakes ⚠️
+
+**실수 1: features/의 타입을 entities의 타입으로 착각**
+
+```typescript
+// features/match/model/types.ts 파일을 보고 착각
+export interface Location { ... }  // UI 편의 타입
+export interface GuestListMatch { ... }  // UI용 조합 타입
+
+// → 실제 DB에는 없는 타입들!
+// → DB 스키마를 먼저 확인했어야 함
+```
+
+**실수 2: Cross-import 필요하다고 착각**
+
+```typescript
+// ❌ 잘못된 생각
+// "Team이 Match 타입을 사용하니까 @x cross-import 필요해!"
+
+// ✅ 올바른 구조
+// entities는 독립적! ID만 참조!
+export interface Team {
+  id: string;
+}
+
+export interface Match {
+  teamId?: string;  // Team ID만
+}
+
+// features에서 조합!
+const match = useMatch(matchId);
+const team = useTeam(match.teamId);
+```
+
+**실수 3: 공통 JSONB 타입을 특정 entity 전용으로 착각**
+
+```typescript
+// ❌ OperationInfo를 Match 전용이라고 착각
+// entities/match/model/types.ts
+export interface OperationInfo { ... }
+
+// ✅ 실제로는 여러 테이블에서 사용
+// shared/types/jsonb.types.ts
+// 사용 테이블: users, teams, matches
+export interface OperationInfo { ... }
+```
+
+**실수 4: Nested props 사용 (React anti-pattern)**
+
+```typescript
+// ❌ 중첩된 객체 구조 (읽기 어렵고 디버깅 힘듦)
+interface MatchCardProps {
+  match: Match;
+  gym: Gym;
+  host: User;
+  ui: {
+    showBadge: boolean;
+    priceDisplay: string;
+  };
+}
+
+// ✅ Flat props (React 공식 권장)
+interface MatchCardProps {
+  matchId: string;
+  gymName: string;
+  gymAddress: string;
+  latitude: number;
+  longitude: number;
+  hostName: string;
+  showBadge: boolean;
+  priceDisplay: string;
+}
+
+// features/match/ui/components/match-card.tsx
+// Flat DTO를 컴포넌트에 전달
+export function MatchCard(props: MatchCardProps) { ... }
+```
+
+**실수 5: N개의 개별 쿼리 실행 (N+1 문제)**
+
+```typescript
+// ❌ N개의 개별 service 호출
+const match = await matchService.getMatch(id);
+const gym = await gymService.getGym(match.gymId);
+const host = await userService.getUser(match.hostId);
+const team = await teamService.getTeam(match.teamId);
+// → 4번의 개별 쿼리! (느림)
+
+// ✅ JOIN 쿼리 한 번에 (features에서)
+// features/match/api/queries.ts
+const { data } = await supabase
+  .from('matches')
+  .select(`
+    *,
+    gyms(*),
+    users!matches_host_id_fkey(*),
+    teams(*)
+  `)
+  .eq('id', matchId)
+  .single();
+// → 1번의 쿼리! (빠름)
+```
+
+**실수 6: Entities 간 직접 import (Cross-dependency)**
+
+```typescript
+// ❌ Entity에서 다른 entity import (의존성 발생!)
+// entities/application/api/mutations.ts
+import { matchKeys } from '@/entities/match';  // ❌ Cross-dependency!
+
+export function useCreateApplication() {
+  return useMutation({
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: matchKeys.detail(data.match_id) });  // ❌
+    }
+  });
+}
+
+// ✅ Features에서 orchestration
+// features/application/api/mutations.ts
+import { matchKeys } from '@/entities/match';
+import { applicationKeys } from '@/entities/application';
+
+export function useCreateApplication() {
+  return useMutation({
+    onSuccess: (data) => {
+      // ✅ Features에서 여러 entities invalidate!
+      queryClient.invalidateQueries({ queryKey: applicationKeys.byMatch(data.match_id) });
+      queryClient.invalidateQueries({ queryKey: matchKeys.detail(data.match_id) });
+    }
+  });
+}
+```
+
+**핵심:**
+- Entities = 완전히 독립적! 다른 entities import 금지!
+- Features = 여러 entities 조합 및 orchestration
+- **예외**: 2개 이상 entities에서 사용하는 공통 유틸은 `shared/`로
+- **프로젝트 로컬 규칙**: FSD 공식 문서에서 `@x` cross-import를 제한적으로 허용하더라도, 이 프로젝트는 `@x`를 사용하지 않고 `entities` 간 cross-import를 전면 금지한다.
+
+### 올바른 접근 순서
+
+1. **DB 스키마 확인**
+   ```sql
+   \d matches  -- PostgreSQL
+   -- 또는 Supabase Table Editor 확인
+   ```
+
+2. **shared/types/jsonb.types.ts 확인**
+   - 이미 정의된 공통 타입 있는지 확인
+   - 주석에 "사용 테이블" 명시되어 있음
+
+3. **entities/ 타입 정의**
+   - DB 컬럼 그대로 매핑
+   - ID만 참조 (객체 참조 X)
+   - JSONB 타입은 shared에서 import
+
+4. **features/ UI 로직**
+   - 여러 entities 조합
+   - UI 편의 함수/타입 정의
+   - 표시 형식 변환
 
 ---
 
 ## File Structure Rules
+
+### Public API (index.ts) - FSD Official Rules
+
+**핵심 원칙**: Each slice exports a public API via `index.ts` at the slice root level only.
+
+#### Required index.ts Locations
+
+```
+✅ entities/{entity}/index.ts       # Slice-level only
+✅ features/{feature}/index.ts      # Slice-level only
+✅ shared/{segment}/index.ts        # Segment-level (ui/base, api, etc.)
+```
+
+#### Forbidden index.ts Locations
+
+```
+❌ entities/*/model/index.ts        # NO segment-level index
+❌ entities/*/api/index.ts          # NO segment-level index
+❌ features/*/model/index.ts        # NO segment-level index
+❌ features/*/api/index.ts          # NO segment-level index
+❌ features/*/ui/index.ts           # NO segment-level index
+```
+
+#### Why No Segment-Level Index?
+
+1. **Performance** - Reduces intermediate barrel files that slow down builds
+2. **Circular imports** - Prevents accidental circular dependencies within slices
+3. **FSD official** - Per [feature-sliced.design](https://feature-sliced.design/docs/reference/public-api), only slice-level public API
+
+#### Slice-Level Index Pattern
+
+**DO:** Explicitly list exports (no wildcards)
+
+```typescript
+// ✅ entities/match/index.ts (slice-level)
+// Model Types
+export type {
+  ClientMatch,
+  CreateMatchInput,
+  UpdateMatchInput,
+} from './model/types';
+
+// API Service & Queries
+export { MatchService, createMatchService } from './api/match-service';
+export { matchKeys } from './api/keys';
+export { useMatches, useMatch } from './api/queries';
+```
+
+**DON'T:** Use wildcard exports or segment-level index
+
+```typescript
+// ❌ Wildcard exports (bad discoverability)
+export * from './api';
+export * from './model';
+
+// ❌ Segment-level index (performance issue)
+// entities/match/api/index.ts  <-- Should NOT exist
+```
+
+#### Within-Slice Imports
+
+**NEVER** import through the slice's own index.ts - use direct relative paths:
+
+```typescript
+// ❌ Creates circular import
+// entities/match/api/queries.ts
+import { Match } from '../';  // Through index.ts
+
+// ✅ Direct relative path
+import { Match } from '../model/types';
+```
+
+#### Cross-Slice Imports
+
+**ALWAYS** use absolute path through slice-level index:
+
+```typescript
+// ✅ Import from another slice
+import { Match } from '@/entities/match';
+
+// ❌ Deep import bypassing public API
+import { Match } from '@/entities/match/model/types';
+```
+
+#### Shared Layer Special Rule
+
+For `shared/`, create **individual index per segment** (not one giant barrel):
+
+```
+✅ shared/ui/base/index.ts          # Per-segment
+✅ shared/ui/layout/index.ts        # Per-segment
+✅ shared/api/index.ts              # Per-segment
+
+❌ shared/index.ts                  # Monolithic barrel (bad for tree-shaking)
+```
+
+---
 
 ### 3-Folder Architecture
 
@@ -410,23 +816,38 @@ Mobile: Full-width app-like experience
 ## Critical Rules
 
 ### DO ✅
-- Use 3-folder architecture (`app/`, `features/`, `shared/`)
+- Use FSD 4-folder architecture (`app/`, `entities/`, `features/`, `shared/`)
 - Keep routing logic in `app/` directory only
-- Use TypeScript path aliases (`@/features/*`, `@/shared/*`)
+- Use TypeScript path aliases (`@/entities/*`, `@/features/*`, `@/shared/*`)
 - ALL filenames in kebab-case
-- Access DB through feature API layers
+- **Check DB schema FIRST** before defining types
+- Check `shared/types/jsonb.types.ts` for existing common types
 - Use React Query for all data fetching
 - Follow mobile-first design (max-w-[430px])
 - Use Primary color `#FF6600` for brand elements
 
 ### DON'T ❌
 - Put business logic in `app/` directory
+- Import entities from other entities (독립적!)
 - Import features from other features
+- Put business domain types in `shared/types/` (only technical types!)
+- Assume type ownership without checking DB schema
+- Create UI convenience types in entities (keep entities pure)
 - Use PascalCase for filenames
 - Access Supabase directly from UI components
 - Use relative imports when aliases exist
 - Create components wider than 430px
 - Change sticky `top` values without testing scroll
+
+### FSD Quick Check ⚠️
+
+타입을 만들기 전에:
+1. ✅ DB 스키마 확인했나?
+2. ✅ `shared/types/jsonb.types.ts` 확인했나?
+3. ✅ 이 타입이 어느 entity에 속하는지 명확한가?
+4. ✅ 여러 entity에서 사용하는 공통 타입인가?
+
+→ 명확하지 않으면 DB 스키마부터 다시 확인!
 
 ---
 
@@ -461,6 +882,6 @@ For deeper context, refer to:
 
 ---
 
-**Last Updated**: 2026-01-25  
-**Maintainer**: @beom  
+**Last Updated**: 2026-02-14 (Added FSD type placement rules)
+**Maintainer**: @beom
 **Project**: Draft - 농구 용병 모집 플랫폼

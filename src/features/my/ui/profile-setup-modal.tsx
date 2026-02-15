@@ -22,14 +22,14 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/base/avatar';
 import { cn } from '@/shared/lib/utils';
 import { filterNumericInput } from '@/shared/lib/input-utils';
 import { SkillSlider } from './skill-slider';
-import { ProfileData } from '../model/types';
-import { POSITION_OPTIONS } from '@/shared/config/constants';
+import { MyProfileFormDTO } from '../model/types';
+import { POSITION_OPTIONS } from '@/shared/config/match-constants';
 
 interface ProfileSetupModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onComplete: (data: ProfileData) => void;
-  initialData?: ProfileData;
+  onComplete: (data: MyProfileFormDTO) => void;
+  initialData?: MyProfileFormDTO;
   isEditing?: boolean;
   teams?: { id: string; name: string }[];
 }
@@ -42,7 +42,7 @@ export function ProfileSetupModal({
   isEditing = false,
   teams = [],
 }: ProfileSetupModalProps) {
-  const [formData, setFormData] = useState<ProfileData>({
+  const [formData, setFormData] = useState<MyProfileFormDTO>({
     nickname: initialData?.nickname || '',
     height: initialData?.height || '',
     age: initialData?.age || '',

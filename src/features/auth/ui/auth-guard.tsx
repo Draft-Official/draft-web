@@ -5,7 +5,7 @@
  * 인증이 필요한 컴포넌트를 감싸는 래퍼
  */
 import React from 'react';
-import { useAuth } from '../model/auth-context';
+import { useAuth } from '@/shared/session';
 
 interface AuthGuardProps {
   children: React.ReactNode;

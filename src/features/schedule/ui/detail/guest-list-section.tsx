@@ -4,7 +4,7 @@ import { Users } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { Badge } from '@/shared/ui/base/badge';
 import { Button } from '@/shared/ui/base/button';
-import type { Guest, GuestStatus } from '../../model/types';
+import type { MatchApplicantDTO, GuestStatus } from '../../model/types';
 
 // 탭 설정
 const GUEST_TABS: { status: GuestStatus; label: string }[] = [
@@ -25,15 +25,15 @@ const EMPTY_MESSAGES: Record<GuestStatus, string> = {
 };
 
 interface GuestListSectionProps {
-  guests: Guest[];
+  guests: MatchApplicantDTO[];
   selectedTab: GuestStatus;
   onTabChange: (status: GuestStatus) => void;
   isEnded: boolean;
-  onGuestClick: (guest: Guest) => void;
-  onApprove: (guest: Guest) => void;
-  onReject: (guest: Guest) => void;
-  onConfirmPayment: (guest: Guest) => void;
-  onCancelClick: (guest: Guest) => void;
+  onGuestClick: (guest: MatchApplicantDTO) => void;
+  onApprove: (guest: MatchApplicantDTO) => void;
+  onReject: (guest: MatchApplicantDTO) => void;
+  onConfirmPayment: (guest: MatchApplicantDTO) => void;
+  onCancelClick: (guest: MatchApplicantDTO) => void;
 }
 
 export function GuestListSection({
@@ -103,7 +103,7 @@ export function GuestListSection({
 }
 
 interface GuestListItemProps {
-  guest: Guest;
+  guest: MatchApplicantDTO;
   isEnded: boolean;
   onClick: () => void;
   onApprove: () => void;

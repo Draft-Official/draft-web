@@ -7,17 +7,17 @@ import { Users, Info } from 'lucide-react';
 import { ContactModal } from '@/features/match/ui/components/detail/contact-modal';
 import { toast } from 'sonner';
 import { Alert, AlertDescription } from '@/shared/ui/shadcn/alert';
-import type { ClientTeam } from '@/features/team/model/types';
+import type { TeamInfoDTO } from '@/features/team/model/types';
 
 interface TeamInfoSectionProps {
-  team: ClientTeam;
+  team: TeamInfoDTO;
 }
 
 export function TeamInfoSection({ team }: TeamInfoSectionProps) {
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
   const handleContactClick = () => {
-    if (!team.contactInfo) {
+    if (!team.operationInfo) {
       toast.error('연락처 정보가 없습니다.');
       return;
     }
@@ -40,7 +40,7 @@ export function TeamInfoSection({ team }: TeamInfoSectionProps) {
             <div className="text-[13px] font-bold text-slate-900">{team.name}</div>
           </div>
         </div>
-        {team.contactInfo && (
+        {team.operationInfo && (
           <Button
             variant="outline"
             size="sm"
@@ -63,12 +63,12 @@ export function TeamInfoSection({ team }: TeamInfoSectionProps) {
       </div>
 
       {/* Contact Modal */}
-      {team.contactInfo && (
+      {team.operationInfo && (
         <ContactModal
           open={isContactModalOpen}
           onOpenChange={setIsContactModalOpen}
-          contactType={team.contactInfo.type}
-          contactValue={team.contactInfo.value}
+          contactType={team.operationInfo.type}
+          contactValue={(team.operationInfo.type === 'PHONE' ? team.operationInfo.phone : team.operationInfo.url) || ''}
         />
       )}
     </section>

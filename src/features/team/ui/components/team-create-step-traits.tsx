@@ -6,10 +6,10 @@ import { Settings } from 'lucide-react';
 import { Label } from '@/shared/ui/base/label';
 import { Chip } from '@/shared/ui/base/chip';
 import { SkillRangeSlider } from '@/shared/ui/base/skill-range-slider';
+import { AgeRangeSelector } from '@/shared/ui/composite/age-range-selector';
 
 import { StepHeader } from './step-header';
-import { AgeSelector } from '@/features/match-create/ui/components/age-selector';
-import { GENDER_OPTIONS, type GenderValue } from '@/shared/config/constants';
+import { GENDER_OPTIONS, type GenderValue } from '@/shared/config/match-constants';
 
 interface TeamCreateStepTraitsProps {
   gender: GenderValue;
@@ -52,7 +52,7 @@ export function TeamCreateStepTraits({
       {/* 나이 */}
       <div className="space-y-3">
         <Label className="text-sm font-bold text-slate-700">평균 나이</Label>
-        <AgeSelector
+        <AgeRangeSelector
           selectedAges={selectedAges}
           onSelect={onAgeSelection}
           onRangeUpdate={(ages) => setValue('selectedAges', ages)}

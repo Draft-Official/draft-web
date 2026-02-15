@@ -17,11 +17,12 @@ import { TimePickerSelect } from '@/shared/ui/base/time-picker-select';
 import { DateStrip } from '@/features/match/ui/components/date-strip';
 import { SelectedLocationCard } from './selected-location-card';
 import type { LocationData } from '@/features/match-create/model/types';
+import type { DateOption } from '@/features/match-create/lib/utils';
 
 interface MatchCreateBasicInfoProps {
   selectedDate: string | null;
   setSelectedDate: (date: string) => void;
-  calendarDates: any[];
+  calendarDates: DateOption[];
   location: string;
   handleLocationSearch: (query: string) => void;
   handleInputFocus: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
@@ -86,6 +87,8 @@ export function MatchCreateBasicInfo({
   isExistingGym = false,
   onClearLocation
 }: MatchCreateBasicInfoProps) {
+  void openKakaoMap;
+
   const { register, control, setValue, getValues, watch } = useFormContext();
   const methods = { getValues }; // Helper to match prev code
 
@@ -127,7 +130,7 @@ export function MatchCreateBasicInfo({
             <Label className="text-sm font-bold text-slate-600 flex items-center gap-2">
                 경기 날짜
                 {selectedDate && (() => {
-                    const [_, m, d] = selectedDate.split('-');
+                    const [, m, d] = selectedDate.split('-');
                     const endTime = calculateEndTime(startTime, duration);
                     const timeRange = `${formatTimeDisplay(startTime)} ~ ${formatTimeDisplay(endTime)}`;
                     return (

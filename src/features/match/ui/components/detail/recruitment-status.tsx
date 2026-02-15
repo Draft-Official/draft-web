@@ -2,11 +2,11 @@
 
 import React from 'react';
 import { cn } from '@/shared/lib/utils';
-import { Match } from '@/features/match/model/types';
-import { POSITION_LABELS } from '@/shared/config/constants';
+import { GuestMatchDetailDTO } from '@/features/match/model/types';
+import { POSITION_LABELS } from '@/shared/config/match-constants';
 
 interface RecruitmentStatusProps {
-  match: Match;
+  match: GuestMatchDetailDTO;
 }
 
 export function RecruitmentStatus({ match }: RecruitmentStatusProps) {

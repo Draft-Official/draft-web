@@ -4,17 +4,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
-import { createApplicationService } from '@/features/application/api/application-api';
-import type { ParticipantInfo } from '@/shared/types/database.types';
+import { createApplicationService } from '@/entities/application';
+import { matchKeys } from '@/entities/match';
+import type { CreateApplicationDTO } from '../model/types';
 import { applicationKeys } from './keys';
-import { matchKeys } from '@/shared/api/keys';
-
-interface CreateApplicationInput {
-  matchId: string;
-  userId: string;
-  participantsInfo: ParticipantInfo[];
-  teamId?: string | null;
-}
 
 /**
  * 경기 신청 생성
@@ -23,10 +16,10 @@ export function useCreateApplication() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ matchId, userId, participantsInfo, teamId }: CreateApplicationInput) => {
+    mutationFn: async ({ matchId, userId, participants, teamId }: CreateApplicationDTO) => {
       const supabase = getSupabaseBrowserClient();
       const applicationService = createApplicationService(supabase);
-      return applicationService.createApplicationV2(matchId, userId, participantsInfo, teamId);
+      return applicationService.createApplicationV2(matchId, userId, participants, teamId);
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: applicationKeys.byMatch(data.match_id) });

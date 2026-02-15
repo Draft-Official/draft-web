@@ -6,9 +6,9 @@ import { Badge } from '@/shared/ui/base/badge';
 import { Button } from '@/shared/ui/base/button';
 import { PaymentConfirmDialog } from './payment-confirm-dialog';
 import { cn } from '@/shared/lib/utils';
-import type { ManagedMatch } from '../../model/types';
-import type { ClientNotification } from '@/shared/types/notification.types';
-import { NOTIFICATION_TYPE_DESCRIPTIONS } from '@/shared/config/constants';
+import type { ScheduleMatchListItemDTO } from '../../model/types';
+import type { UnreadMatchNotificationDTO } from '@/features/notification';
+import { NOTIFICATION_TYPE_DESCRIPTIONS } from '@/shared/config/match-constants';
 import {
   MATCH_TYPE_LABELS,
   MATCH_TYPE_COLORS,
@@ -18,8 +18,8 @@ import {
 } from '../../config/constants';
 
 interface MatchCardProps {
-  match: ManagedMatch;
-  notifications?: ClientNotification[];
+  match: ScheduleMatchListItemDTO;
+  notifications?: UnreadMatchNotificationDTO[];
   onClick: (matchId: string) => void;
   onConfirmPayment?: (applicationId: string, matchId: string) => void;
 }
@@ -74,10 +74,10 @@ export function MatchCard({ match, notifications, onClick, onConfirmPayment }: M
             variant="outline"
             className={cn(
               'text-xs !font-bold border px-2.5 py-1',
-              MATCH_TYPE_COLORS[match.type]
+              MATCH_TYPE_COLORS[match.matchType]
             )}
           >
-            {MATCH_TYPE_LABELS[match.type]}
+            {MATCH_TYPE_LABELS[match.matchType]}
           </Badge>
 
           <Badge
@@ -121,7 +121,7 @@ export function MatchCard({ match, notifications, onClick, onConfirmPayment }: M
         </div>
 
         {/* Bottom Section - Type Specific Info */}
-        {match.type === 'guest' && (
+        {match.matchType === 'guest' && (
           <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
             <div className="flex items-baseline gap-1.5">
               <span className="font-bold text-slate-900 text-lg">
@@ -149,7 +149,7 @@ export function MatchCard({ match, notifications, onClick, onConfirmPayment }: M
           </div>
         )}
 
-        {match.type === 'host' && (
+        {match.matchType === 'host' && (
           <div className="pt-3 border-t border-slate-100 flex items-center gap-6">
             <div className="flex items-center gap-2">
               <Users className="w-5 h-5 text-slate-400" />
@@ -163,7 +163,7 @@ export function MatchCard({ match, notifications, onClick, onConfirmPayment }: M
           </div>
         )}
 
-        {match.type === 'team' && (
+        {match.matchType === 'team' && (
           <div className="pt-3 border-t border-slate-100 flex items-center gap-2">
             <Users className="w-5 h-5 text-slate-400" />
             <span className="text-sm text-slate-500">참여 인원</span>
@@ -171,7 +171,7 @@ export function MatchCard({ match, notifications, onClick, onConfirmPayment }: M
           </div>
         )}
 
-        {match.type === 'tournament' && (
+        {match.matchType === 'tournament' && (
           <div className="pt-3 border-t border-slate-100">
             <div className="flex items-center gap-2 text-slate-600">
               <Trophy className="w-5 h-5 text-slate-400" />

@@ -11,7 +11,7 @@ import {
   MATCH_STATUS_LABELS,
   MATCH_STATUS_STYLES,
   type MatchStatusValue,
-} from '@/shared/config/constants';
+} from '@/shared/config/match-constants';
 import {
   TEAM_VOTE_STATUS_LABELS,
   TEAM_VOTE_STATUS_STYLES,

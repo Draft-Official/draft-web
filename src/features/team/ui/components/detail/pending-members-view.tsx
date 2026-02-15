@@ -4,12 +4,12 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { useSafeBack } from '@/shared/lib/hooks';
-import { useTeamByCode } from '@/features/team/api/core/queries';
+import { useTeamByCode } from '@/features/team/api/team-info/queries';
 import { usePendingMembers, useMyMembership } from '@/features/team/api/membership/queries';
 import { useApproveJoinRequest, useRejectJoinRequest } from '@/features/team/api/membership/mutations';
-import { useAuth } from '@/features/auth/model/auth-context';
+import { useAuth } from '@/shared/session';
 import { Button } from '@/shared/ui/shadcn/button';
-import type { ClientTeamMember } from '@/features/team/model/types';
+import type { TeamMember } from '@/features/team/model/types';
 
 interface PendingMembersViewProps {
   code: string;
@@ -85,7 +85,7 @@ function Header({ onBack, title }: { onBack: () => void; title?: string }) {
 }
 
 interface PendingMemberItemProps {
-  member: ClientTeamMember;
+  member: TeamMember;
   onApprove: () => void;
   onReject: () => void;
   isLoading: boolean;

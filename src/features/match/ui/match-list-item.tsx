@@ -7,39 +7,15 @@ import { Button } from '@/shared/ui/base/button';
 import { Badge } from '@/shared/ui/base/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/base/avatar';
 import { cn } from '@/shared/lib/utils';
-import { ApplicationStatusValue } from "@/src/shared/config/application-constants";
-import { getDayLabel, isNewMatch } from '@/features/match/lib/utils';
-import { GuestListMatch } from '@/features/match/model/types';
+import type { ApplicationStatusValue } from '@/shared/config/application-constants';
+import { getDayLabel } from '@/features/match/lib/utils';
+import type { GuestMatchListItemDTO } from '@/features/match/model/types';
+import { PositionChip } from './position-chip';
 
 interface MatchListItemProps {
-  match: GuestListMatch;
+  match: GuestMatchListItemDTO;
   applicationStatus?: ApplicationStatusValue;
 }
-
-// --- Constants (대문자 키 사용 - DB와 동일) ---
-const GENDER_CONFIG: Record<string, { label: string; className: string }> = {
-  MALE: { label: '남성', className: 'text-blue-600 bg-blue-50 border-blue-200' },
-  FEMALE: { label: '여성', className: 'text-pink-600 bg-pink-50 border-pink-200' },
-  MIXED: { label: '성별 무관', className: 'text-purple-600 bg-purple-50 border-purple-200' },
-};
-
-// --- Position Chip Component ---
-const PositionChip = ({ label, max, current, status }: { label: string; max: number; current: number; status?: 'open' | 'closed' }) => {
-  const isClosed = status === 'closed';
-
-  return (
-    <div className={cn(
-      "flex items-center justify-center px-2 py-0.5 rounded-[6px] border text-[11px] h-[22px] font-medium transition-colors whitespace-nowrap",
-      isClosed
-        ? "bg-slate-100 border-slate-100 text-slate-400"
-        : "bg-white border-slate-300 text-slate-900"
-    )}>
-      <span className="leading-none tracking-tight">
-        {label} <span className={cn("ml-0.5", isClosed ? "text-slate-400" : "text-[#FF6600] font-bold")}>{current}</span><span className="text-slate-300">/</span>{max}
-      </span>
-    </div>
-  );
-};
 
 // 신청 상태별 Badge 설정
 const STATUS_BADGE_CONFIG: Record<string, { label: string; variant: 'warning' | 'info' | 'success' }> = {
@@ -50,12 +26,17 @@ const STATUS_BADGE_CONFIG: Record<string, { label: string; variant: 'warning' | 
 
 export const MatchListItem = React.memo(function MatchListItem({ match, applicationStatus }: MatchListItemProps) {
   const router = useRouter();
+  const hasPositionChips = Boolean(
+    match.positions.all ||
+    match.positions.g ||
+    match.positions.f ||
+    match.positions.c ||
+    match.positions.bigman
+  );
 
   const handleClick = () => {
-    router.push(`/matches/${match.id}`);
+    router.push(`/matches/${match.matchId}`);
   };
-
-  const genderInfo = GENDER_CONFIG[match.gender];
 
   return (
     <div
@@ -74,7 +55,7 @@ export const MatchListItem = React.memo(function MatchListItem({ match, applicat
             "font-bold truncate leading-tight text-[17px]",
             match.isClosed ? "text-slate-400" : "text-slate-900"
           )}>
-            {match.title}
+            {match.gymName}
           </h3>
           
           <span className={cn(
@@ -85,11 +66,11 @@ export const MatchListItem = React.memo(function MatchListItem({ match, applicat
               "w-3 h-3 shrink-0",
               match.isClosed ? "text-slate-300" : "text-slate-400"
             )} />
-            {match.location.address}
+            {match.gymAddress}
           </span>
           
           {/* NEW Badge */}
-          {isNewMatch(match.createdAt) && (
+          {match.isNew && (
             <Badge variant="destructive" className="text-[10px] px-1.5 py-0 h-[18px]">
               NEW
             </Badge>
@@ -128,40 +109,53 @@ export const MatchListItem = React.memo(function MatchListItem({ match, applicat
           "flex flex-wrap gap-1.5 mt-1",
           match.isClosed && "opacity-50"
         )}>
-          {match.positionsUI.all ? (
-            <PositionChip
-              label="포지션 무관"
-              max={match.positionsUI.all.max}
-              current={match.positionsUI.all.current}
-              status={match.positionsUI.all.status}
-            />
-          ) : (
+          {hasPositionChips ? (
             <>
-              {match.positionsUI.g && (
+              {match.positions.all && (
+                <PositionChip
+                  label="포지션 무관"
+                  status={match.positions.all.status}
+                  max={match.positions.all.max}
+                  current={match.positions.all.current}
+                />
+              )}
+              {match.positions.g && (
                 <PositionChip
                   label="가드"
-                  max={match.positionsUI.g.max}
-                  current={match.positionsUI.g.current}
-                  status={match.positionsUI.g.status}
+                  status={match.positions.g.status}
+                  max={match.positions.g.max}
+                  current={match.positions.g.current}
                 />
               )}
-              {match.positionsUI.f && (
+              {match.positions.f && (
                 <PositionChip
                   label="포워드"
-                  max={match.positionsUI.f.max}
-                  current={match.positionsUI.f.current}
-                  status={match.positionsUI.f.status}
+                  status={match.positions.f.status}
+                  max={match.positions.f.max}
+                  current={match.positions.f.current}
                 />
               )}
-              {match.positionsUI.c && (
+              {match.positions.c && (
                 <PositionChip
                   label="센터"
-                  max={match.positionsUI.c.max}
-                  current={match.positionsUI.c.current}
-                  status={match.positionsUI.c.status}
+                  status={match.positions.c.status}
+                  max={match.positions.c.max}
+                  current={match.positions.c.current}
+                />
+              )}
+              {match.positions.bigman && (
+                <PositionChip
+                  label="빅맨(F/C)"
+                  status={match.positions.bigman.status}
+                  max={match.positions.bigman.max}
+                  current={match.positions.bigman.current}
                 />
               )}
             </>
+          ) : (
+            <span className="inline-flex items-center px-2 py-0.5 rounded-[6px] border border-slate-300 text-[11px] h-[22px] font-medium text-slate-900 whitespace-nowrap">
+              {match.positionsDisplay}
+            </span>
           )}
         </div>
       </div>
@@ -172,7 +166,7 @@ export const MatchListItem = React.memo(function MatchListItem({ match, applicat
         {match.teamName ? (
           <div className="flex items-start gap-2">
             <Avatar className="w-6 h-6">
-              {match.isPersonalHost ? (
+              {!match.teamId ? (
                 <>
                   <AvatarImage src="/logos/preset/logo-01.webp" alt="기본 팀 로고" />
                   <AvatarFallback className="bg-slate-200 text-xs text-slate-500 font-bold">
@@ -181,7 +175,7 @@ export const MatchListItem = React.memo(function MatchListItem({ match, applicat
                 </>
               ) : (
                 <>
-                  <AvatarImage src={match.teamLogo} alt={match.teamName} />
+                  <AvatarImage src={match.teamLogo ?? undefined} alt={match.teamName} />
                   <AvatarFallback className="bg-slate-200 text-xs text-slate-500 font-bold">
                     {match.teamName.slice(0, 1)}
                   </AvatarFallback>

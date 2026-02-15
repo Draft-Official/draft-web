@@ -24,3 +24,9 @@ export const SKILL_LEVEL_NAMES: Record<number, string> = {
   6: '상급2',
   7: '선출',
 };
+
+export function getLevelLabel(level: number | string, fallback = ''): string {
+  const normalized = typeof level === 'string' ? Number(level) : level;
+  if (!Number.isFinite(normalized)) return fallback;
+  return SKILL_LEVEL_NAMES[normalized] ?? fallback;
+}

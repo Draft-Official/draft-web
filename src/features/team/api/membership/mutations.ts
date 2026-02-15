@@ -6,18 +6,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { teamMemberKeys, teamKeys } from '../keys';
-import {
-  createJoinRequest,
-  approveJoinRequest,
-  rejectJoinRequest,
-  updateMemberRole,
-  removeMember,
-  leaveTeam,
-  transferLeadership,
-} from './api';
-import { createVotesForNewMember } from '../match/api';
-import { teamMemberRowToClient } from '../mapper';
-import type { ClientTeamMember } from '../../model/types';
+import { createTeamService, teamMemberRowToEntity } from '@/entities/team';
+import { toTeamMembershipDTO } from '../../lib';
+import type { TeamMembershipDTO } from '../../model/types';
 import type { TeamRoleValue } from '@/shared/config/team-constants';
 
 /**
@@ -33,10 +24,11 @@ export function useJoinTeam() {
     }: {
       teamId: string;
       userId: string;
-    }): Promise<ClientTeamMember> => {
+    }): Promise<TeamMembershipDTO> => {
       const supabase = getSupabaseBrowserClient();
-      const row = await createJoinRequest(supabase, teamId, userId);
-      return teamMemberRowToClient(row);
+      const service = createTeamService(supabase);
+      const row = await service.createJoinRequest(teamId, userId);
+      return toTeamMembershipDTO(teamMemberRowToEntity(row));
     },
     onSuccess: (data, { teamId, userId }) => {
       // 멤버십 캐시 갱신
@@ -66,13 +58,14 @@ export function useApproveJoin() {
     }: {
       membershipId: string;
       teamId: string;
-    }): Promise<ClientTeamMember> => {
+    }): Promise<TeamMembershipDTO> => {
       const supabase = getSupabaseBrowserClient();
-      const row = await approveJoinRequest(supabase, membershipId);
-      const member = teamMemberRowToClient(row);
+      const service = createTeamService(supabase);
+      const row = await service.approveJoinRequest(membershipId);
+      const member = toTeamMembershipDTO(teamMemberRowToEntity(row));
 
       // 새 팀원에게 진행 중인 경기들의 투표 생성
-      await createVotesForNewMember(supabase, teamId, member.userId);
+      await service.createVotesForNewMember(teamId, member.userId);
 
       return member;
     },
@@ -107,10 +100,11 @@ export function useRejectJoin() {
     }: {
       membershipId: string;
       teamId: string;
-    }): Promise<ClientTeamMember> => {
+    }): Promise<TeamMembershipDTO> => {
       const supabase = getSupabaseBrowserClient();
-      const row = await rejectJoinRequest(supabase, membershipId);
-      return teamMemberRowToClient(row);
+      const service = createTeamService(supabase);
+      const row = await service.rejectJoinRequest(membershipId);
+      return toTeamMembershipDTO(teamMemberRowToEntity(row));
     },
     onSuccess: (_, { teamId }) => {
       // 대기자 목록 갱신
@@ -136,10 +130,11 @@ export function useUpdateRole() {
       membershipId: string;
       teamId: string;
       newRole: TeamRoleValue;
-    }): Promise<ClientTeamMember> => {
+    }): Promise<TeamMembershipDTO> => {
       const supabase = getSupabaseBrowserClient();
-      const row = await updateMemberRole(supabase, membershipId, newRole);
-      return teamMemberRowToClient(row);
+      const service = createTeamService(supabase);
+      const row = await service.updateMemberRole(membershipId, newRole);
+      return toTeamMembershipDTO(teamMemberRowToEntity(row));
     },
     onSuccess: (data, { teamId }) => {
       // 팀원 목록 갱신
@@ -172,7 +167,8 @@ export function useRemoveMember() {
       userId: string;
     }): Promise<void> => {
       const supabase = getSupabaseBrowserClient();
-      await removeMember(supabase, membershipId);
+      const service = createTeamService(supabase);
+      await service.removeMember(membershipId);
     },
     onSuccess: (_, { teamId, userId }) => {
       // 팀원 목록 갱신
@@ -206,7 +202,8 @@ export function useLeaveTeam() {
       userId: string;
     }): Promise<void> => {
       const supabase = getSupabaseBrowserClient();
-      await leaveTeam(supabase, teamId, userId);
+      const service = createTeamService(supabase);
+      await service.leaveTeam(teamId, userId);
     },
     onSuccess: (_, { teamId, userId }) => {
       // 팀원 목록 갱신
@@ -232,11 +229,12 @@ export function useApproveJoinRequest(teamId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (membershipId: string): Promise<ClientTeamMember> => {
+    mutationFn: async (membershipId: string): Promise<TeamMembershipDTO> => {
       const supabase = getSupabaseBrowserClient();
-      const row = await approveJoinRequest(supabase, membershipId);
-      const member = teamMemberRowToClient(row);
-      await createVotesForNewMember(supabase, teamId, member.userId);
+      const service = createTeamService(supabase);
+      const row = await service.approveJoinRequest(membershipId);
+      const member = toTeamMembershipDTO(teamMemberRowToEntity(row));
+      await service.createVotesForNewMember(teamId, member.userId);
       return member;
     },
     onSuccess: () => {
@@ -253,10 +251,11 @@ export function useRejectJoinRequest(teamId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (membershipId: string): Promise<ClientTeamMember> => {
+    mutationFn: async (membershipId: string): Promise<TeamMembershipDTO> => {
       const supabase = getSupabaseBrowserClient();
-      const row = await rejectJoinRequest(supabase, membershipId);
-      return teamMemberRowToClient(row);
+      const service = createTeamService(supabase);
+      const row = await service.rejectJoinRequest(membershipId);
+      return toTeamMembershipDTO(teamMemberRowToEntity(row));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: teamMemberKeys.pending(teamId) });
@@ -281,7 +280,8 @@ export function useTransferLeadership() {
       newLeaderId: string;
     }): Promise<void> => {
       const supabase = getSupabaseBrowserClient();
-      await transferLeadership(supabase, teamId, currentLeaderId, newLeaderId);
+      const service = createTeamService(supabase);
+      await service.transferLeadership(teamId, currentLeaderId, newLeaderId);
     },
     onSuccess: (_, { teamId, currentLeaderId, newLeaderId }) => {
       // 팀원 목록 갱신

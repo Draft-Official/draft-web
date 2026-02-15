@@ -1,5 +1,6 @@
 export interface VerificationRequestResponse {
   smsUri: string;
+  recipient: string;
   code: string;
   expiresAt: string;
 }

@@ -3,8 +3,10 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
+import type { ApplicationStatusValue } from '@/shared/config/application-constants';
+import { toUserApplicationItemDTO, toUserTeamOptionDTO } from '../lib';
+import type { UserApplicationItemDTO, UserTeamOptionDTO } from '../model/types';
 import { applicationKeys } from './keys';
-import type { ApplicationStatusValue } from "@/src/shared/config/application-constants";
 
 /**
  * 사용자의 활성 신청 목록 조회 (매치 리스트에서 신청 상태 표시용)
@@ -13,7 +15,7 @@ import type { ApplicationStatusValue } from "@/src/shared/config/application-con
 export function useUserApplications(userId: string | undefined) {
   return useQuery({
     queryKey: applicationKeys.byUser(userId!),
-    queryFn: async () => {
+    queryFn: async (): Promise<UserApplicationItemDTO[]> => {
       if (!userId) return [];
 
       const supabase = getSupabaseBrowserClient();
@@ -25,7 +27,12 @@ export function useUserApplications(userId: string | undefined) {
 
       if (error) throw error;
 
-      return (data || []) as Array<{ match_id: string; status: ApplicationStatusValue }>;
+      const rows = (data || []) as Array<{
+        match_id: string;
+        status: ApplicationStatusValue;
+      }>;
+
+      return rows.map(toUserApplicationItemDTO);
     },
     enabled: !!userId,
     staleTime: 1000 * 60 * 5, // 5분간 캐시 유지
@@ -38,7 +45,7 @@ export function useUserApplications(userId: string | undefined) {
 export function useUserTeams(userId: string | undefined) {
   return useQuery({
     queryKey: [...applicationKeys.all, 'user-teams', userId],
-    queryFn: async () => {
+    queryFn: async (): Promise<UserTeamOptionDTO[]> => {
       if (!userId) return [];
 
       const supabase = getSupabaseBrowserClient();
@@ -57,8 +64,14 @@ export function useUserTeams(userId: string | undefined) {
 
       if (error) throw error;
 
-      // team 정보만 추출
-      return data?.map((item) => item.team).filter(Boolean) || [];
+      const rows = (data || []) as Array<{
+        team: { id: string; name: string; logo_url: string | null } | null;
+      }>;
+
+      return rows
+        .map((item) => item.team)
+        .filter((team): team is { id: string; name: string; logo_url: string | null } => !!team)
+        .map(toUserTeamOptionDTO);
     },
     enabled: !!userId,
   });

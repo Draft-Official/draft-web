@@ -9,16 +9,16 @@ import { Textarea } from '@/shared/ui/base/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/base/select';
 import { DateStrip, DateOption } from '@/features/match/ui/components/date-strip';
 import { TimePickerSelect } from '@/shared/ui/base/time-picker-select';
-import { SelectedLocationCard } from '@/features/match-create/ui/components/selected-location-card';
+import { LocationCard } from '@/shared/ui/composite/location-card';
 import { useCreateTeamMatch } from '@/features/team/api/match/mutations';
-import { useAuth } from '@/features/auth/model/auth-context';
+import { useAuth } from '@/shared/session';
 import { toast } from 'sonner';
-import type { ClientTeam } from '@/features/team/model/types';
+import type { Team } from '@/features/team/model/types';
 import type { RegularDayValue } from '@/shared/config/team-constants';
-import type { LocationData } from '@/features/match-create/model/types';
+import type { LocationData } from '@/shared/types/location.types';
 
 interface TeamMatchCreateFormProps {
-  team: ClientTeam & { homeGymName: string | null };
+  team: Team & { homeGymName: string | null };
   onClose?: () => void;
 }
 
@@ -293,7 +293,7 @@ export function TeamMatchCreateForm({ team, onClose }: TeamMatchCreateFormProps)
           <div className="space-y-2">
             <Label className="text-sm font-bold text-slate-900">장소</Label>
             {locationData ? (
-              <SelectedLocationCard
+              <LocationCard
                 location={locationData}
                 isExistingGym={true}
                 onClear={() => {

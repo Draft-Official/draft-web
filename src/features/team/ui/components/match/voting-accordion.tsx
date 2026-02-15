@@ -11,25 +11,15 @@ import {
 } from '@/shared/ui/shadcn/accordion';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/base/avatar';
 import { VoteChangeDialog } from './vote-change-dialog';
-import type { Application } from '@/shared/types/database.types';
-import type { VotingSummary } from '@/features/team/model/types';
+import type { TeamVoteDTO, VotingSummary } from '@/features/team/model/types';
 import type { TeamVoteStatusValue } from '@/shared/config/team-constants';
-import { TEAM_VOTE_STATUS_LABELS } from '@/shared/config/team-constants';
 
 interface VotingAccordionProps {
-  votes: Application[];
+  votes: TeamVoteDTO[];
   votingSummary: VotingSummary | null | undefined;
   isAdmin: boolean;
   matchId: string;
   isVotingClosed: boolean;
-}
-
-interface VoterWithUser extends Application {
-  users?: {
-    id: string;
-    nickname: string | null;
-    avatar_url: string | null;
-  } | null;
 }
 
 export function VotingAccordion({
@@ -39,28 +29,25 @@ export function VotingAccordion({
   matchId,
   isVotingClosed,
 }: VotingAccordionProps) {
-  const [selectedMember, setSelectedMember] = useState<VoterWithUser | null>(null);
-
-  // 투표를 상태별로 분류
-  const votersWithUser = votes as VoterWithUser[];
+  const [selectedMember, setSelectedMember] = useState<TeamVoteDTO | null>(null);
 
   // 참석 (CONFIRMED + LATE)
-  const attendingVoters = votersWithUser.filter(
+  const attendingVoters = votes.filter(
     (v) => v.status === 'CONFIRMED' || v.status === 'LATE'
   );
   const confirmedVoters = attendingVoters.filter((v) => v.status === 'CONFIRMED');
   const lateVoters = attendingVoters.filter((v) => v.status === 'LATE');
 
   // 불참
-  const notAttendingVoters = votersWithUser.filter((v) => v.status === 'NOT_ATTENDING');
+  const notAttendingVoters = votes.filter((v) => v.status === 'NOT_ATTENDING');
 
   // 미정
-  const maybeVoters = votersWithUser.filter((v) => v.status === 'MAYBE');
+  const maybeVoters = votes.filter((v) => v.status === 'MAYBE');
 
   // 미투표
-  const pendingVoters = votersWithUser.filter((v) => v.status === 'PENDING');
+  const pendingVoters = votes.filter((v) => v.status === 'PENDING');
 
-  const handleMemberClick = (voter: VoterWithUser) => {
+  const handleMemberClick = (voter: TeamVoteDTO) => {
     // 투표 마감 시 클릭 불가
     if (isAdmin && !isVotingClosed) {
       setSelectedMember(voter);
@@ -205,9 +192,9 @@ export function VotingAccordion({
           open={!!selectedMember}
           onOpenChange={(open) => !open && setSelectedMember(null)}
           matchId={matchId}
-          memberId={selectedMember.user_id}
-          memberName={selectedMember.users?.nickname || '알 수 없음'}
-          currentVote={selectedMember.status as TeamVoteStatusValue}
+          memberId={selectedMember.userId}
+          memberName={selectedMember.userNickname || '알 수 없음'}
+          currentVote={selectedMember.status}
         />
       )}
     </div>
@@ -215,7 +202,7 @@ export function VotingAccordion({
 }
 
 interface VoterItemProps {
-  voter: VoterWithUser;
+  voter: TeamVoteDTO;
   showLateTag?: boolean;
   showMaybeTag?: boolean;
   showReason?: boolean;
@@ -234,9 +221,8 @@ function VoterItem({
   const [isExpanded, setIsExpanded] = useState(false);
   const [showFullReason, setShowFullReason] = useState(false);
 
-  const user = voter.users;
-  const nickname = user?.nickname || '알 수 없음';
-  const avatarUrl = user?.avatar_url;
+  const nickname = voter.userNickname || '알 수 없음';
+  const avatarUrl = voter.userAvatarUrl;
   const hasReason = showReason && !!voter.description;
 
   // 사유가 50자 이상이면 더보기 필요

@@ -16,13 +16,11 @@ import {
 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import {
-  NOTIFICATION_TYPE_LABELS,
-  NOTIFICATION_TYPE_DESCRIPTIONS,
   type NotificationTypeValue,
-} from '@/shared/config/constants';
+} from '@/shared/config/match-constants';
 import { useMarkNotificationAsRead } from '../api/mutations';
 import { formatRelativeTime } from '../lib/format-time';
-import type { ClientNotification } from '../model/types';
+import type { NotificationListItemDTO } from '../model/types';
 
 const NOTIFICATION_ICONS: Record<NotificationTypeValue, LucideIcon> = {
   APPLICATION_APPROVED: CheckCircle,
@@ -38,7 +36,7 @@ const NOTIFICATION_ICONS: Record<NotificationTypeValue, LucideIcon> = {
 };
 
 interface NotificationItemProps {
-  notification: ClientNotification;
+  notification: NotificationListItemDTO;
 }
 
 export function NotificationItem({ notification }: NotificationItemProps) {
@@ -46,27 +44,13 @@ export function NotificationItem({ notification }: NotificationItemProps) {
   const markAsRead = useMarkNotificationAsRead();
 
   const Icon = NOTIFICATION_ICONS[notification.type];
-  const label = NOTIFICATION_TYPE_LABELS[notification.type];
-  const description = notification.announcementMessage
-    ?? NOTIFICATION_TYPE_DESCRIPTIONS[notification.type];
-
-  // 호스트가 받는 알림 → manage 페이지로 라우팅
-  const HOST_NOTIFICATION_TYPES = new Set([
-    'NEW_APPLICATION',
-    'GUEST_CANCELED',
-    'GUEST_PAYMENT_CONFIRMED',
-  ]);
-
   function handleClick() {
     if (!notification.isRead) {
       markAsRead.mutate({ notificationId: notification.id });
     }
 
-    if (notification.matchId) {
-      const path = HOST_NOTIFICATION_TYPES.has(notification.type)
-        ? `/matches/${notification.matchId}/manage`
-        : `/matches/${notification.matchId}`;
-      router.push(path);
+    if (notification.targetPath) {
+      router.push(notification.targetPath);
     }
   }
 
@@ -90,10 +74,10 @@ export function NotificationItem({ notification }: NotificationItemProps) {
           'text-sm',
           !notification.isRead ? 'font-semibold text-slate-900' : 'font-medium text-slate-700'
         )}>
-          {label}
+          {notification.title}
         </p>
         <p className="text-sm text-slate-500 mt-0.5 line-clamp-2">
-          {description}
+          {notification.description}
         </p>
         <p className="text-xs text-slate-400 mt-1">
           {formatRelativeTime(notification.createdAt)}

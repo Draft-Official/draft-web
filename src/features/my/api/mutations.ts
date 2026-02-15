@@ -1,11 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@/features/auth';
+import { useAuth } from '@/shared/session';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { createSettingsService } from './settings-api';
 import { settingsKeys } from './keys';
-import type { UserSettings } from '@/shared/types/database.types';
-
-type NotificationField = 'notify_application' | 'notify_match' | 'notify_payment';
+import { myNotificationUpdateToUserSettingsUpdate } from '../lib';
+import type { MyNotificationSettingField, MyNotificationSettingsDTO } from '../model/types';
 
 export function useUpdateNotificationSetting() {
   const queryClient = useQueryClient();
@@ -13,18 +12,27 @@ export function useUpdateNotificationSetting() {
   const userId = user?.id;
 
   return useMutation({
-    mutationFn: async ({ field, value }: { field: NotificationField; value: boolean }) => {
+    mutationFn: async ({
+      field,
+      value,
+    }: {
+      field: MyNotificationSettingField;
+      value: boolean;
+    }) => {
       const supabase = getSupabaseBrowserClient();
       const service = createSettingsService(supabase);
-      return service.upsertUserSettings(userId!, { [field]: value });
+      return service.upsertUserSettings(
+        userId!,
+        myNotificationUpdateToUserSettingsUpdate({ field, value })
+      );
     },
     onMutate: async ({ field, value }) => {
       const queryKey = settingsKeys.byUser(userId!);
       await queryClient.cancelQueries({ queryKey });
 
-      const previous = queryClient.getQueryData<UserSettings>(queryKey);
+      const previous = queryClient.getQueryData<MyNotificationSettingsDTO>(queryKey);
 
-      queryClient.setQueryData<UserSettings>(queryKey, (old) => {
+      queryClient.setQueryData<MyNotificationSettingsDTO>(queryKey, (old) => {
         if (!old) return old;
         return { ...old, [field]: value };
       });

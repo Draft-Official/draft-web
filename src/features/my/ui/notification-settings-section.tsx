@@ -2,20 +2,19 @@
 
 import { Card } from '@/shared/ui/base/card';
 import { Switch } from '@/shared/ui/base/switch';
-import { useAuth } from '@/features/auth';
-import { useUserSettings, useUpdateNotificationSetting } from '@/features/my/api';
-
-type NotificationField = 'notify_application' | 'notify_match' | 'notify_payment';
+import { useAuth } from '@/shared/session';
+import { useUserSettings, useUpdateNotificationSetting } from '@/features/my';
+import type { MyNotificationSettingField } from '../model/types';
 
 interface NotificationSetting {
-  field: NotificationField;
+  field: MyNotificationSettingField;
   label: string;
 }
 
 const NOTIFICATION_SETTINGS: NotificationSetting[] = [
-  { field: 'notify_application', label: '신청 알림' },
-  { field: 'notify_match', label: '경기 알림' },
-  { field: 'notify_payment', label: '결제 알림' },
+  { field: 'notifyApplication', label: '신청 알림' },
+  { field: 'notifyMatch', label: '경기 알림' },
+  { field: 'notifyPayment', label: '결제 알림' },
 ];
 
 export function NotificationSettingsSection() {

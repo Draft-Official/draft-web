@@ -1,17 +1,85 @@
 /**
  * Match Create Feature Types
  */
+import type { MatchFormatValue, GenderValue, CostTypeValue } from '@/shared/config/match-constants';
+import type { TeamRoleValue } from '@/shared/config/team-constants';
+import type {
+  AccountInfo,
+  OperationInfo,
+  MatchRule,
+  RecruitmentSetup,
+  LevelRange,
+  AgeRange,
+} from '@/shared/types/jsonb.types';
 
-/**
- * Kakao Map에서 가져온 장소 정보
- * Gym 조회 및 location 표시에 사용
- */
-export interface LocationData {
-  address: string; // 도로명 주소 또는 지번 주소
-  buildingName?: string; // 건물명 (예: "서초종합체육관")
-  bname?: string; // 동 이름 (지역 필터링용)
-  placeUrl?: string; // Kakao Map URL
-  x?: string; // Longitude (경도)
-  y?: string; // Latitude (위도)
-  kakaoPlaceId?: string; // 카카오 place_id (Gym 중복 방지용)
+export type { LocationData } from '@/shared/types/location.types';
+
+export interface MatchCreateUserDTO {
+  id: string;
+  phone: string | null;
+  accountInfo: AccountInfo | null;
+  operationInfo: OperationInfo | null;
+}
+
+export interface MatchCreateTeamOptionDTO {
+  id: string;
+  name: string;
+  role: TeamRoleValue;
+  homeGymName: string | null;
+  accountInfo: AccountInfo | null;
+  operationInfo: OperationInfo | null;
+}
+
+export interface MatchCreateBootstrapDTO {
+  user: MatchCreateUserDTO | null;
+  teams: MatchCreateTeamOptionDTO[];
+}
+
+export interface MatchCreateDefaultsSaveDTO {
+  userId: string;
+  selectedHost: 'me' | string;
+  accountInfo: {
+    bank: string;
+    number: string;
+    holder: string;
+  };
+  contactInfo: {
+    type: 'PHONE' | 'KAKAO_OPEN_CHAT';
+    content: string;
+  };
+  hostNotice: string;
+}
+
+export interface MatchCreatePrefillDTO {
+  matchId: string;
+  startTimeISO: string;
+  endTimeISO: string;
+  teamId: string | null;
+  teamName: string | null;
+  manualTeamName: string | null;
+  gymName: string;
+  gymAddress: string;
+  gymLatitude: number;
+  gymLongitude: number;
+  kakaoPlaceId: string | null;
+  matchFormat: MatchFormatValue | null;
+  genderRule: GenderValue | null;
+  costType: CostTypeValue | null;
+  costAmount: number | null;
+  providesBeverage: boolean;
+  accountInfo: AccountInfo | null;
+  operationInfo: OperationInfo | null;
+  recruitmentSetup: RecruitmentSetup | null;
+  levelRange: LevelRange | null;
+  ageRange: AgeRange | null;
+  matchRule: MatchRule | null;
+  notice: string | null;
+}
+
+export interface RecentMatchListItemDTO extends MatchCreatePrefillDTO {
+  dateLabel: string;
+  priceLabel: string;
+  hostLabel: string;
+  gymLabel: string;
+  isTeamHost: boolean;
 }

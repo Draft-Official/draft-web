@@ -12,7 +12,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ notificationSlot }: SidebarProps) {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? '';
 
   const NAV_ITEMS = [
     { label: '홈', href: '/', icon: Home },

@@ -4,10 +4,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/ui/shadcn/tabs';
 import { cn } from '@/shared/lib/utils';
-import { useTeamByCode } from '../api/core/queries';
+import { useTeamByCode } from '../api/team-info/queries';
 import { useTeamMembers, usePendingMembers, useMyMembership, useTeamMemberCount } from '../api/membership/queries';
 import { useTeamMatches } from '../api/match/queries';
-import { useAuth } from '@/features/auth/model/auth-context';
+import { useAuth } from '@/shared/session';
 import { useSafeBack } from '@/shared/lib/hooks';
 import {
   TeamDetailHeader,
@@ -32,7 +32,7 @@ export function TeamDetailView({ code }: TeamDetailViewProps) {
   const handleBack = useSafeBack('/team');
 
   // URL에서 탭 상태 읽기 (home, schedule, members)
-  const viewParam = searchParams.get('view');
+  const viewParam = searchParams?.get('view');
   const currentView = viewParam === 'schedule' || viewParam === 'members' ? viewParam : 'home';
 
   // 팀 정보 조회

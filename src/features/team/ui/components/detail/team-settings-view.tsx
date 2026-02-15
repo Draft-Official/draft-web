@@ -7,12 +7,11 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { cn } from '@/shared/lib/utils';
 import { useSafeBack } from '@/shared/lib/hooks';
-import { useTeamByCode } from '@/features/team/api/core/queries';
+import { useTeamByCode } from '@/features/team/api/team-info/queries';
 import { useMyMembership, useTeamMembers } from '@/features/team/api/membership/queries';
-import { useAuth } from '@/features/auth/model/auth-context';
+import { useAuth } from '@/shared/session';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
-import { deleteTeam } from '@/features/team/api/core/api';
-import { leaveTeam } from '@/features/team/api/membership/api';
+import { createTeamService } from '@/entities/team';
 import { teamKeys, teamMemberKeys } from '@/features/team/api/keys';
 import {
   AlertDialog,
@@ -68,7 +67,8 @@ export function TeamSettingsView({ code }: TeamSettingsViewProps) {
     mutationFn: async () => {
       if (!team?.id) throw new Error('팀 정보가 없습니다');
       const supabase = getSupabaseBrowserClient();
-      await deleteTeam(supabase, team.id);
+      const service = createTeamService(supabase);
+      await service.deleteTeam(team.id);
     },
     onSuccess: () => {
       toast.success('팀이 삭제되었습니다');
@@ -86,7 +86,8 @@ export function TeamSettingsView({ code }: TeamSettingsViewProps) {
     mutationFn: async () => {
       if (!team?.id || !user?.id) throw new Error('정보가 없습니다');
       const supabase = getSupabaseBrowserClient();
-      await leaveTeam(supabase, team.id, user.id);
+      const service = createTeamService(supabase);
+      await service.leaveTeam(team.id, user.id);
     },
     onSuccess: () => {
       toast.success('팀에서 탈퇴했습니다');

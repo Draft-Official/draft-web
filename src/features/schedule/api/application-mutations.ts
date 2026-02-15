@@ -5,10 +5,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
-import { createApplicationService } from '@/features/application/api/application-api';
-import type { CancelOptions } from '@/features/application/api/application-api';
+import { createApplicationService } from '@/entities/application';
+import { matchKeys } from '@/entities/match';
+import type { CancelOptions } from '@/entities/application';
 import { matchManagementKeys } from './keys';
-import { matchKeys } from '@/shared/api/keys';
 
 /**
  * 신청 승인 (PENDING → approved_at 설정, 입금대기 상태)

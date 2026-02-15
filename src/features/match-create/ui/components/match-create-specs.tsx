@@ -6,7 +6,7 @@ import {
   GENDER_OPTIONS,
   GenderValue,
   MatchFormatValue
-} from '@/shared/config/constants';
+} from '@/shared/config/match-constants';
 import { AgeSelector } from './age-selector';
 import { SkillRangeSlider } from '@/shared/ui/base/skill-range-slider';
 

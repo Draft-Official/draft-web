@@ -2,11 +2,11 @@
 
 import { Car, Droplets, Thermometer, BoxSelect, Droplet, CircleDot } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
-import type { Match } from '@/shared/types/database.types';
+import type { TeamMatchDetailDTO } from '@/features/team/model/types';
 
 interface FacilitySectionProps {
-  match: Match;
-  gym: {
+  match: TeamMatchDetailDTO;
+  gym?: {
     name: string;
     address: string;
   };
@@ -24,10 +24,8 @@ interface FacilityInfo {
   air_conditioner?: boolean;
 }
 
-export function FacilitySection({ match, gym }: FacilitySectionProps) {
-  // gyms에서 시설 정보 추출
-  const gymsData = match as unknown as { gyms?: FacilityInfo & { name: string; address: string } };
-  const facilities: FacilityInfo = gymsData.gyms || {};
+export function FacilitySection({ match }: FacilitySectionProps) {
+  const facilities: FacilityInfo = match.facilities || {};
 
   // 주차 정보 처리
   const getParkingInfo = (): { value: string; isActive: boolean } => {

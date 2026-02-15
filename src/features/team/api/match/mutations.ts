@@ -6,19 +6,14 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { teamMatchKeys } from '../keys';
-import {
-  createTeamMatch,
-  upsertTeamVote,
-  closeVoting,
-  reopenVoting,
-  updateMemberVote,
-  updateTeamMatch,
-  cancelTeamMatch,
-  openGuestRecruitment,
-} from './api';
-import type { CreateTeamMatchInput, VoteInput } from '../../model/types';
+import { createTeamService } from '@/entities/team';
+import { matchRowToEntity } from '@/entities/match';
+import { applicationRowToEntity } from '@/entities/application';
+import { toTeamVoteDTO } from '../../lib';
+import type { CreateTeamMatchInput, VoteInput } from '@/entities/team/model/types';
 import type { TeamVoteStatusValue } from '@/shared/config/team-constants';
-import type { Match, Application } from '@/shared/types/database.types';
+import type { Match as MatchEntity } from '@/entities/match';
+import type { TeamVoteDTO } from '../../model/types';
 
 /**
  * 팀 매치 생성
@@ -33,17 +28,21 @@ export function useCreateTeamMatch() {
     }: {
       hostId: string;
       input: CreateTeamMatchInput;
-    }): Promise<Match> => {
+    }): Promise<MatchEntity> => {
       const supabase = getSupabaseBrowserClient();
-      return createTeamMatch(supabase, hostId, input);
+      const service = createTeamService(supabase);
+      const row = await service.createTeamMatch(hostId, input);
+      return matchRowToEntity(row);
     },
     onSuccess: (data, { input }) => {
       // 팀 매치 목록 갱신
       queryClient.invalidateQueries({
         queryKey: teamMatchKeys.byTeam(input.teamId),
       });
-      // 생성된 매치 캐시에 추가
-      queryClient.setQueryData(teamMatchKeys.detail(data.id), data);
+      // 생성된 매치 상세 갱신 (DTO 쿼리와 정합성 유지)
+      queryClient.invalidateQueries({
+        queryKey: teamMatchKeys.detail(data.id),
+      });
     },
   });
 }
@@ -61,9 +60,11 @@ export function useVote() {
     }: {
       userId: string;
       input: VoteInput;
-    }): Promise<Application> => {
+    }): Promise<TeamVoteDTO> => {
       const supabase = getSupabaseBrowserClient();
-      return upsertTeamVote(supabase, userId, input);
+      const service = createTeamService(supabase);
+      const row = await service.upsertTeamVote(userId, input);
+      return toTeamVoteDTO(applicationRowToEntity(row));
     },
     onSuccess: (data, { userId, input }) => {
       // 내 투표 캐시 갱신
@@ -96,13 +97,17 @@ export function useCloseVoting() {
     }: {
       matchId: string;
       teamId: string;
-    }): Promise<Match> => {
+    }): Promise<MatchEntity> => {
       const supabase = getSupabaseBrowserClient();
-      return closeVoting(supabase, matchId);
+      const service = createTeamService(supabase);
+      const row = await service.closeVoting(matchId);
+      return matchRowToEntity(row);
     },
-    onSuccess: (data, { matchId, teamId }) => {
-      // 매치 상세 갱신
-      queryClient.setQueryData(teamMatchKeys.detail(matchId), data);
+    onSuccess: (_, { matchId, teamId }) => {
+      // DTO 상세는 재조회로 동기화
+      queryClient.invalidateQueries({
+        queryKey: teamMatchKeys.detail(matchId),
+      });
       // 팀 매치 목록 갱신
       queryClient.invalidateQueries({
         queryKey: teamMatchKeys.byTeam(teamId),
@@ -130,13 +135,17 @@ export function useOpenGuestRecruitment() {
         maxCount?: number;
         positions?: Record<string, { max: number; current: number }>;
       };
-    }): Promise<Match> => {
+    }): Promise<MatchEntity> => {
       const supabase = getSupabaseBrowserClient();
-      return openGuestRecruitment(supabase, matchId, recruitmentSetup);
+      const service = createTeamService(supabase);
+      const row = await service.openGuestRecruitment(matchId, recruitmentSetup);
+      return matchRowToEntity(row);
     },
-    onSuccess: (data, { matchId, teamId }) => {
-      // 매치 상세 갱신
-      queryClient.setQueryData(teamMatchKeys.detail(matchId), data);
+    onSuccess: (_, { matchId, teamId }) => {
+      // DTO 상세는 재조회로 동기화
+      queryClient.invalidateQueries({
+        queryKey: teamMatchKeys.detail(matchId),
+      });
       // 팀 매치 목록 갱신
       queryClient.invalidateQueries({
         queryKey: teamMatchKeys.byTeam(teamId),
@@ -158,13 +167,17 @@ export function useReopenVoting() {
     }: {
       matchId: string;
       teamId: string;
-    }): Promise<Match> => {
+    }): Promise<MatchEntity> => {
       const supabase = getSupabaseBrowserClient();
-      return reopenVoting(supabase, matchId);
+      const service = createTeamService(supabase);
+      const row = await service.reopenVoting(matchId);
+      return matchRowToEntity(row);
     },
-    onSuccess: (data, { matchId, teamId }) => {
-      // 매치 상세 갱신
-      queryClient.setQueryData(teamMatchKeys.detail(matchId), data);
+    onSuccess: (_, { matchId, teamId }) => {
+      // DTO 상세는 재조회로 동기화
+      queryClient.invalidateQueries({
+        queryKey: teamMatchKeys.detail(matchId),
+      });
       // 팀 매치 목록 갱신
       queryClient.invalidateQueries({
         queryKey: teamMatchKeys.byTeam(teamId),
@@ -190,9 +203,11 @@ export function useUpdateMemberVote() {
       memberId: string;
       status: TeamVoteStatusValue;
       description?: string;
-    }): Promise<Application> => {
+    }): Promise<TeamVoteDTO> => {
       const supabase = getSupabaseBrowserClient();
-      return updateMemberVote(supabase, matchId, memberId, status, description);
+      const service = createTeamService(supabase);
+      const row = await service.updateMemberVote(matchId, memberId, status, description);
+      return toTeamVoteDTO(applicationRowToEntity(row));
     },
     onSuccess: (data, { matchId, memberId }) => {
       // 해당 멤버의 투표 캐시 갱신
@@ -228,13 +243,17 @@ export function useUpdateTeamMatch() {
         gymId?: string;
         operationInfo?: Record<string, unknown>;
       };
-    }): Promise<Match> => {
+    }): Promise<MatchEntity> => {
       const supabase = getSupabaseBrowserClient();
-      return updateTeamMatch(supabase, matchId, input);
+      const service = createTeamService(supabase);
+      const row = await service.updateTeamMatch(matchId, input);
+      return matchRowToEntity(row);
     },
-    onSuccess: (data, { matchId, teamId }) => {
-      // 매치 상세 갱신
-      queryClient.setQueryData(teamMatchKeys.detail(matchId), data);
+    onSuccess: (_, { matchId, teamId }) => {
+      // DTO 상세는 재조회로 동기화
+      queryClient.invalidateQueries({
+        queryKey: teamMatchKeys.detail(matchId),
+      });
       // 팀 매치 목록 갱신
       queryClient.invalidateQueries({
         queryKey: teamMatchKeys.byTeam(teamId),
@@ -256,13 +275,17 @@ export function useCancelTeamMatch() {
     }: {
       matchId: string;
       teamId: string;
-    }): Promise<Match> => {
+    }): Promise<MatchEntity> => {
       const supabase = getSupabaseBrowserClient();
-      return cancelTeamMatch(supabase, matchId);
+      const service = createTeamService(supabase);
+      const row = await service.cancelTeamMatch(matchId);
+      return matchRowToEntity(row);
     },
-    onSuccess: (data, { matchId, teamId }) => {
-      // 매치 상세 갱신
-      queryClient.setQueryData(teamMatchKeys.detail(matchId), data);
+    onSuccess: (_, { matchId, teamId }) => {
+      // DTO 상세는 재조회로 동기화
+      queryClient.invalidateQueries({
+        queryKey: teamMatchKeys.detail(matchId),
+      });
       // 팀 매치 목록 갱신
       queryClient.invalidateQueries({
         queryKey: teamMatchKeys.byTeam(teamId),

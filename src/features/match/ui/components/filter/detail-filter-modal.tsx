@@ -6,7 +6,7 @@ import { Button } from '@/shared/ui/base/button';
 import { Chip } from '@/shared/ui/base/chip';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/base/dialog";
 import { ScrollArea } from "@/shared/ui/base/scroll-area";
-import { GENDER_OPTIONS, MATCH_FORMAT_OPTIONS } from '@/shared/config/constants';
+import { GENDER_OPTIONS, MATCH_FORMAT_OPTIONS } from '@/shared/config/match-constants';
 import { cn } from '@/shared/lib/utils';
 
 interface DetailedFilterModalProps {

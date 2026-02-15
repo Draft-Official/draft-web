@@ -4,16 +4,16 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Calendar, RotateCcw, Loader2 } from "lucide-react";
 import { useLocalStorage } from "@/shared/lib/hooks/use-local-storage";
-import { useAuth } from "@/features/auth/model/auth-context";
-import { useUnreadNotifications, useMarkNotificationsAsReadByMatch } from "@/features/notification/api";
-import type { ClientNotification } from "@/shared/types/notification.types";
-import type { NotificationTypeValue } from "@/shared/config/constants";
+import { useAuth } from "@/shared/session";
+import { useUnreadNotifications, useMarkNotificationsAsReadByMatch } from "@/features/notification";
+import type { UnreadMatchNotificationDTO } from "@/features/notification";
+import type { NotificationTypeValue } from "@/shared/config/match-constants";
 import { FilterDropdown } from "./components/filter-dropdown";
 import { MatchCard } from "./components/match-card";
 import { ApplicationInfoDialog } from "./components/application-info-dialog";
 import { Toggle } from "@/shared/ui/shadcn/toggle";
-import { useHostedMatches, useParticipatingMatches, useConfirmPaymentByGuest, useCancelApplicationByGuest } from "../api";
-import type { MatchType, ManagedMatch } from "../model/types";
+import { useHostedMatches, useParticipatingMatches, useConfirmPaymentByGuest, useCancelApplicationByGuest } from "@/features/schedule";
+import type { MatchType, ScheduleMatchListItemDTO } from "../model/types";
 import {
   MATCH_TYPE_FILTER_OPTIONS,
   HOST_TYPE_FILTER_OPTIONS,
@@ -44,7 +44,7 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
   const [showPastMatches, setShowPastMatches] = useLocalStorage<"hide" | "show">("schedule_past_matches", "hide");
 
   // Bottom sheet state for guest application info
-  const [selectedMatch, setSelectedMatch] = useState<ManagedMatch | null>(null);
+  const [selectedMatch, setSelectedMatch] = useState<ScheduleMatchListItemDTO | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   // Fetch data from Supabase
@@ -71,7 +71,7 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
     ];
     const allowedTypes = viewMode === 'guest' ? GUEST_TYPES : HOST_TYPES;
 
-    const map = new Map<string, ClientNotification[]>();
+    const map = new Map<string, UnreadMatchNotificationDTO[]>();
     for (const n of unreadNotifications) {
       if (!n.matchId) continue;
       if (!allowedTypes.includes(n.type)) continue;
@@ -98,7 +98,7 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
   };
 
   const isLoading = viewMode === "host" ? isLoadingHosted : isLoadingParticipating;
-  const allMatches: ManagedMatch[] = viewMode === "host" ? hostedMatches : participatingMatches;
+  const allMatches: ScheduleMatchListItemDTO[] = viewMode === "host" ? hostedMatches : participatingMatches;
 
   // Filter matches
   const filteredMatches = useMemo(() => {
@@ -106,10 +106,10 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
 
     // Type filter - Multi-select (different options per mode)
     if (viewMode === "guest" && guestTypeFilter.length > 0) {
-      filtered = filtered.filter((m) => guestTypeFilter.includes(m.type as GuestTypeFilterValue));
+      filtered = filtered.filter((m) => guestTypeFilter.includes(m.matchType as GuestTypeFilterValue));
     }
     if (viewMode === "host" && hostTypeFilter.length > 0) {
-      filtered = filtered.filter((m) => hostTypeFilter.includes(m.type as HostTypeFilterValue));
+      filtered = filtered.filter((m) => hostTypeFilter.includes(m.matchType as HostTypeFilterValue));
     }
 
     // Status filter - Multi-select (탭별 분리)
@@ -142,7 +142,7 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
     }
 
     // 진행 중/예정 → 종료/취소 순, 각 그룹 내에서 가까운 시간순
-    const getTime = (m: ManagedMatch) => new Date(m.startTimeISO).getTime();
+    const getTime = (m: ScheduleMatchListItemDTO) => new Date(m.startTimeISO).getTime();
 
     const active = filtered.filter((m) => !PAST_MATCH_STATUSES.includes(m.status));
     const past = filtered.filter((m) => PAST_MATCH_STATUSES.includes(m.status));
@@ -166,7 +166,7 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
     if (!match) return;
 
     // 참여 탭에서 guest 타입 클릭 시 바텀시트 표시
-    if (viewMode === "guest" && match.type === "guest") {
+    if (viewMode === "guest" && match.matchType === "guest") {
       setSelectedMatch(match);
       setIsSheetOpen(true);
       return;
@@ -176,8 +176,8 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
     navigateToMatchDetail(match);
   };
 
-  const navigateToMatchDetail = (match: ManagedMatch) => {
-    if (match.type === "tournament") {
+  const navigateToMatchDetail = (match: ScheduleMatchListItemDTO) => {
+    if (match.matchType === "tournament") {
       // 대회는 별도 라우트
       if (viewMode === "host") {
         router.push(`/tournaments/${match.id}/manage`);
@@ -186,7 +186,7 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
       }
     } else {
       // host, team, guest 모두 matches로 통합
-      if (viewMode === "host" || match.type === "host") {
+      if (viewMode === "host" || match.matchType === "host") {
         router.push(`/matches/${match.id}/manage`);
       } else {
         // 참여 탭에서 들어가는 경우 from=schedule 파라미터 추가

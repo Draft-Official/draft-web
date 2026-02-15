@@ -14,14 +14,14 @@ import { Badge } from '@/shared/ui/base/badge';
 import { cn } from '@/shared/lib/utils';
 import { formatMatchDate, formatMatchTime } from '@/shared/lib/date';
 import { toast } from 'sonner';
-import type { ManagedMatch } from '../../model/types';
+import type { ScheduleMatchListItemDTO } from '../../model/types';
 import {
   MATCH_STATUS_LABELS,
   MATCH_STATUS_COLORS,
 } from '../../config/constants';
 
 interface ApplicationInfoDialogProps {
-  match: ManagedMatch | null;
+  match: ScheduleMatchListItemDTO | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onViewDetail: (matchId: string) => void;

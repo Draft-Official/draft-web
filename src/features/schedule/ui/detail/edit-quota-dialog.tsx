@@ -13,17 +13,17 @@ import {
   DialogDescription,
 } from '@/shared/ui/base/dialog';
 import { toast } from 'sonner';
-import type { HostMatchDetail, RecruitmentMode } from '../../model/types';
+import type { HostMatchDetailDTO, RecruitmentMode } from '../../model/types';
 import type { RecruitmentSetup } from '@/shared/types/database.types';
 
 interface EditQuotaDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  match: HostMatchDetail;
+  match: HostMatchDetailDTO;
   onSave: (setup: RecruitmentSetup) => void;
 }
 
-function getQuotaMax(match: HostMatchDetail, position: string): number {
+function getQuotaMax(match: HostMatchDetailDTO, position: string): number {
   return match.positionQuotas?.find(q => q.position === position)?.max ?? 0;
 }
 

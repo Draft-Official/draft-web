@@ -1,6 +1,6 @@
 'use client';
 
-import { useAuth } from '@/features/auth/model/auth-context';
+import { useAuth } from '@/shared/session';
 import { useNotifications } from '../api/queries';
 import { useMarkAllNotificationsAsRead } from '../api/mutations';
 import { NotificationItem } from './notification-item';

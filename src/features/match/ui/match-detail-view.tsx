@@ -16,15 +16,15 @@ import { PolicySection } from './components/detail/policy-section';
 import { MatchDetailBottomBar } from './components/detail/bottom-bar';
 import { ShareModal } from './components/detail/share-modal';
 import { KebabMenu } from './components/detail/kebab-menu';
-import { Match } from '@/features/match/model/types';
+import { GuestMatchDetailDTO } from '@/features/match/model/types';
 import { ApplyModal } from '@/features/application/ui/apply-modal';
-import { useAuth } from '@/features/auth/model/auth-context';
+import { useAuth } from '@/shared/session';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
-import { createApplicationService } from '@/features/application/api/application-api';
+import { createApplicationService } from '@/entities/application';
 import { matchManagementKeys } from '@/features/schedule/api/keys';
 
 interface MatchDetailViewProps {
-  match: Match;
+  match: GuestMatchDetailDTO;
 }
 
 export function MatchDetailView({ match }: MatchDetailViewProps) {
@@ -36,7 +36,7 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   // 경기관리 > 참여에서 들어온 경우
-  const isFromSchedule = searchParams.get('from') === 'schedule';
+  const isFromSchedule = searchParams?.get('from') === 'schedule';
 
   // 내 신청 정보 조회
   const { data: myApplication, isLoading: isLoadingApplication } = useQuery({

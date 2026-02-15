@@ -5,17 +5,36 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
+import { createTeamService, teamRowToEntity } from '@/entities/team';
+import { matchRowToEntity } from '@/entities/match';
+import { gymRowToEntity } from '@/entities/gym';
+import { applicationRowToEntity } from '@/entities/application';
+import { userRowToEntity } from '@/entities/user';
 import { teamMatchKeys } from '../keys';
 import {
-  getTeamMatches,
-  getTeamMatch,
-  getTeamVotes,
-  getVotingSummary,
-  getMyVote,
-  getMyPendingVoteMatches,
-} from './api';
-import type { VotingSummary } from '../../model/types';
-import type { Match, Application } from '@/shared/types/database.types';
+  toMyPendingTeamVoteMatchDTO,
+  toTeamMatchDetailDTO,
+  toTeamScheduleMatchItemDTO,
+  toTeamVoteDTO,
+} from '../../lib';
+import type {
+  MyPendingTeamVoteMatchDTO,
+  TeamMatchDetailDTO,
+  TeamScheduleMatchItemDTO,
+  TeamVoteDTO,
+  VotingSummary,
+} from '../../model/types';
+import type {
+  Application as ApplicationRow,
+  Gym as GymRow,
+  Match as MatchRow,
+  Team as TeamRow,
+  User as UserRow,
+} from '@/shared/types/database.types';
+
+type MatchWithGymRow = MatchRow & { gyms?: GymRow | null };
+type MatchWithGymTeamRow = MatchRow & { gyms?: GymRow | null; teams?: TeamRow | null };
+type VoteWithUserRow = ApplicationRow & { users?: UserRow | null };
 
 /**
  * 팀 매치 목록 조회
@@ -28,10 +47,17 @@ export function useTeamMatches(
     queryKey: options?.upcoming
       ? teamMatchKeys.upcoming(teamId || '')
       : teamMatchKeys.byTeam(teamId || ''),
-    queryFn: async (): Promise<Match[]> => {
+    queryFn: async (): Promise<TeamScheduleMatchItemDTO[]> => {
       if (!teamId) return [];
       const supabase = getSupabaseBrowserClient();
-      return getTeamMatches(supabase, teamId, options);
+      const service = createTeamService(supabase);
+      const rows = await service.getTeamMatches(teamId, options);
+      return rows.map((row) => {
+        const typed = row as MatchWithGymRow;
+        const match = matchRowToEntity(typed);
+        const gym = typed.gyms ? gymRowToEntity(typed.gyms) : null;
+        return toTeamScheduleMatchItemDTO(match, { gym });
+      });
     },
     enabled: !!teamId,
   });
@@ -43,10 +69,17 @@ export function useTeamMatches(
 export function useTeamMatch(matchId: string | null | undefined) {
   return useQuery({
     queryKey: teamMatchKeys.detail(matchId || ''),
-    queryFn: async (): Promise<Match | null> => {
+    queryFn: async (): Promise<TeamMatchDetailDTO | null> => {
       if (!matchId) return null;
       const supabase = getSupabaseBrowserClient();
-      return getTeamMatch(supabase, matchId);
+      const service = createTeamService(supabase);
+      const row = await service.getTeamMatch(matchId);
+      if (!row) return null;
+      const typed = row as MatchWithGymTeamRow;
+      const match = matchRowToEntity(typed);
+      const gym = typed.gyms ? gymRowToEntity(typed.gyms) : null;
+      const team = typed.teams ? teamRowToEntity(typed.teams) : null;
+      return toTeamMatchDetailDTO(match, { gym, team });
     },
     enabled: !!matchId,
   });
@@ -58,10 +91,17 @@ export function useTeamMatch(matchId: string | null | undefined) {
 export function useTeamVotes(matchId: string | null | undefined) {
   return useQuery({
     queryKey: teamMatchKeys.votingStatus(matchId || ''),
-    queryFn: async (): Promise<Application[]> => {
+    queryFn: async (): Promise<TeamVoteDTO[]> => {
       if (!matchId) return [];
       const supabase = getSupabaseBrowserClient();
-      return getTeamVotes(supabase, matchId);
+      const service = createTeamService(supabase);
+      const rows = await service.getTeamVotes(matchId);
+      return rows.map((row) => {
+        const typed = row as VoteWithUserRow;
+        const application = applicationRowToEntity(typed);
+        const user = typed.users ? userRowToEntity(typed.users) : null;
+        return toTeamVoteDTO(application, user);
+      });
     },
     enabled: !!matchId,
   });
@@ -79,7 +119,8 @@ export function useVotingSummary(
     queryFn: async (): Promise<VotingSummary | null> => {
       if (!matchId || !teamId) return null;
       const supabase = getSupabaseBrowserClient();
-      return getVotingSummary(supabase, matchId, teamId);
+      const service = createTeamService(supabase);
+      return service.getVotingSummary(matchId);
     },
     enabled: !!matchId && !!teamId,
   });
@@ -94,10 +135,13 @@ export function useMyVote(
 ) {
   return useQuery({
     queryKey: teamMatchKeys.myVote(matchId || '', userId || ''),
-    queryFn: async (): Promise<Application | null> => {
+    queryFn: async (): Promise<TeamVoteDTO | null> => {
       if (!matchId || !userId) return null;
       const supabase = getSupabaseBrowserClient();
-      return getMyVote(supabase, matchId, userId);
+      const service = createTeamService(supabase);
+      const row = await service.getMyVote(matchId, userId);
+      if (!row) return null;
+      return toTeamVoteDTO(applicationRowToEntity(row));
     },
     enabled: !!matchId && !!userId,
   });
@@ -115,10 +159,26 @@ export function useMyPendingVoteMatches(
 ) {
   return useQuery({
     queryKey: [...teamMatchKeys.myPendingVotes(userId || ''), options?.guestRecruitmentOnly ?? false],
-    queryFn: async () => {
+    queryFn: async (): Promise<MyPendingTeamVoteMatchDTO[]> => {
       if (!userId || teamIds.length === 0) return [];
       const supabase = getSupabaseBrowserClient();
-      return getMyPendingVoteMatches(supabase, teamIds, userId, options);
+      const service = createTeamService(supabase);
+      const rows = await service.getMyPendingVoteMatches(teamIds, userId, options);
+      return rows.map((item) => {
+        const matchWithGym = item.match as MatchWithGymRow;
+        const match = matchRowToEntity(matchWithGym);
+        const team = teamRowToEntity(item.team);
+        const myVote = item.myVote ? applicationRowToEntity(item.myVote) : null;
+        const gym = matchWithGym.gyms ? gymRowToEntity(matchWithGym.gyms) : null;
+
+        return toMyPendingTeamVoteMatchDTO(
+          match,
+          team,
+          myVote,
+          item.votingSummary,
+          gym
+        );
+      });
     },
     enabled: !!userId && teamIds.length > 0,
   });

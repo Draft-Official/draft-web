@@ -16,6 +16,7 @@ import { BankCombobox } from '@/shared/ui/base/bank-combobox';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { teamKeys } from '@/features/team/api/keys';
 import type { AccountInfo } from '@/shared/types/jsonb.types';
+import type { Json } from '@/shared/types/database.types';
 
 // 계좌번호 형식: 숫자와 하이픈만 허용
 const ACCOUNT_NUMBER_REGEX = /^[\d-]+$/;
@@ -54,7 +55,7 @@ export function AccountEditDialog({
       const accountInfo: AccountInfo = { bank, number, holder };
       const { error } = await supabase
         .from('teams')
-        .update({ account_info: accountInfo })
+        .update({ account_info: accountInfo as unknown as Json })
         .eq('id', teamId);
       if (error) throw error;
     },

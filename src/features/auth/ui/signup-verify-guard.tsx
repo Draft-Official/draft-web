@@ -2,14 +2,14 @@
 
 import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { useAuth } from '../model/auth-context';
+import { useAuth } from '@/shared/session';
 
 const EXCLUDED_PATHS = ['/signup/verify', '/auth', '/login'];
 
 export function SignupVerifyGuard({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading, profile } = useAuth();
   const router = useRouter();
-  const pathname = usePathname();
+  const pathname = usePathname() ?? '';
 
   const isExcluded = EXCLUDED_PATHS.some((p) => pathname.startsWith(p));
 

@@ -8,11 +8,12 @@ import { toast } from 'sonner';
 
 import { Button } from '@/shared/ui/base/button';
 
-import { useCreateTeam } from '@/features/team/api/core/mutations';
-import { useAuth } from '@/features/auth/model/auth-context';
-import { useLocationSearch } from '@/features/match-create/lib/hooks/use-location-search';
+import { useCreateTeam } from '@/features/team/api/team-info/mutations';
+import { useAuth } from '@/shared/session';
+import { useLocationSearch } from '@/shared/lib/hooks/use-location-search';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
-import { createGymService } from '@/shared/api/gym-api';
+import { createGymService } from '@/entities/gym';
+import { createTeamService } from '@/entities/team';
 
 import { StepProgressBar } from './components/step-progress-bar';
 import { TeamCreateStepInfo } from './components/team-create-step-info';
@@ -24,7 +25,7 @@ import {
   TEAM_CODE_ERROR_MESSAGE,
   type RegularDayValue,
 } from '@/shared/config/team-constants';
-import type { GenderValue } from '@/shared/config/constants';
+import type { GenderValue } from '@/shared/config/match-constants';
 import type { CreateTeamInput } from '@/features/team/model/types';
 import type { LevelRange, AgeRange } from '@/shared/types/jsonb.types';
 import { parseRegionFromAddress } from '@/shared/lib/parse-region';
@@ -129,9 +130,10 @@ export function TeamCreateForm() {
 
     setIsCheckingCode(true);
     try {
-      const response = await fetch(`/api/team/check-code?code=${value}`);
-      const data = await response.json();
-      setCodeStatus(data.available ? 'available' : 'taken');
+      const supabase = getSupabaseBrowserClient();
+      const teamService = createTeamService(supabase);
+      const exists = await teamService.checkTeamCodeExists(value);
+      setCodeStatus(exists ? 'taken' : 'available');
     } catch {
       setCodeStatus('idle');
     } finally {

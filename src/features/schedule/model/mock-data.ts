@@ -4,14 +4,14 @@
  */
 
 import type {
-  Guest,
+  MatchApplicantDTO,
   Participant,
-  HostMatchDetail,
-  TeamExerciseDetail,
-  TournamentDetail,
+  HostMatchDetailDTO,
+  TeamExerciseDetailDTO,
+  TournamentDetailDTO,
   GuestMatchDetail,
-  TeamExerciseManageDetail,
-  TournamentManageDetail,
+  TeamExerciseManageDetailDTO,
+  TournamentManageDetailDTO,
 } from './types';
 
 // ============================================
@@ -35,7 +35,7 @@ export const MOCK_PARTICIPANTS: Participant[] = [
 ];
 
 // 게스트 목록 (호스트 관리용)
-export const MOCK_GUESTS: Guest[] = [
+export const MOCK_GUESTS: MatchApplicantDTO[] = [
   { id: '1', name: '홍길동', position: '가드 (G)', level: '중급 (Lv.4)', ageGroup: '30대', height: '178cm', status: 'pending', matchHistory: { count: 3, lastDate: '2025.01.10' } },
   { id: '2', name: '김철수', position: '포워드 (F)', level: '상급 (Lv.6)', ageGroup: '20대', height: '185cm', status: 'pending' },
   { id: '3', name: '박영희', position: '센터 (C)', level: '중급 (Lv.5)', ageGroup: '30대', height: '190cm', status: 'pending' },
@@ -49,7 +49,7 @@ export const MOCK_GUESTS: Guest[] = [
 ];
 
 // 호스트 경기 상세 Mock
-export const MOCK_HOST_MATCH_DETAIL: HostMatchDetail = {
+export const MOCK_HOST_MATCH_DETAIL: HostMatchDetailDTO = {
   id: '2',
   date: '2025. 01. 22 (수)',
   time: '20:00',
@@ -67,7 +67,7 @@ export const MOCK_HOST_MATCH_DETAIL: HostMatchDetail = {
 };
 
 // 팀운동 상세 Mock
-export const MOCK_TEAM_EXERCISE_DETAIL: TeamExerciseDetail = {
+export const MOCK_TEAM_EXERCISE_DETAIL: TeamExerciseDetailDTO = {
   id: '3',
   teamName: '판교 드래곤즈',
   date: '2025. 01. 13 (월)',
@@ -79,7 +79,7 @@ export const MOCK_TEAM_EXERCISE_DETAIL: TeamExerciseDetail = {
 };
 
 // 대회 상세 Mock
-export const MOCK_TOURNAMENT_DETAIL: TournamentDetail = {
+export const MOCK_TOURNAMENT_DETAIL: TournamentDetailDTO = {
   id: '4',
   tournamentName: '2025 서울시 농구대회',
   round: '본선 16강',
@@ -133,7 +133,7 @@ export const MOCK_GUEST_MATCH_DETAIL: GuestMatchDetail = {
 // ============================================
 
 // 팀운동 관리 상세 Mock
-export const MOCK_TEAM_EXERCISE_MANAGE: TeamExerciseManageDetail = {
+export const MOCK_TEAM_EXERCISE_MANAGE: TeamExerciseManageDetailDTO = {
   id: '3',
   teamName: '판교 드래곤즈',
   date: '2025. 01. 13 (월)',
@@ -145,7 +145,7 @@ export const MOCK_TEAM_EXERCISE_MANAGE: TeamExerciseManageDetail = {
 };
 
 // 대회 관리 상세 Mock
-export const MOCK_TOURNAMENT_MANAGE: TournamentManageDetail = {
+export const MOCK_TOURNAMENT_MANAGE: TournamentManageDetailDTO = {
   id: '4',
   teamName: '용산 매버릭스',
   tournamentName: '2025 서울시 농구대회',

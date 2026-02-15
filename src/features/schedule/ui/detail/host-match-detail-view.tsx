@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from '@/shared/ui/base/dropdown-menu';
 import type { CancelTypeValue } from "@/src/shared/config/application-constants";
-import type { Guest, GuestStatus } from '../../model/types';
+import type { MatchApplicantDTO, GuestStatus } from '../../model/types';
 import {
   useHostMatchDetail,
   useMatchApplicants,
@@ -31,7 +31,7 @@ import {
   useUpdateRecruitmentSetup,
   useCreateAnnouncement,
   useCancelMatchFlow,
-} from '../../api';
+} from '@/features/schedule';
 import { GuestProfileDialog } from './guest-profile-dialog';
 import { EditQuotaDialog } from './edit-quota-dialog';
 import { CancelConfirmDialog } from './cancel-confirm-dialog';
@@ -44,7 +44,8 @@ import { MatchActionButton } from './match-action-button';
 export function HostMatchDetailView() {
   const router = useRouter();
   const params = useParams();
-  const matchId = params.id as string;
+  const idParam = params?.id;
+  const matchId = Array.isArray(idParam) ? (idParam[0] ?? '') : (idParam ?? '');
 
   // React Query hooks
   const { data: match, isLoading: isLoadingMatch } = useHostMatchDetail(matchId);
@@ -62,11 +63,11 @@ export function HostMatchDetailView() {
 
   // Local state
   const [selectedTab, setSelectedTab] = useState<GuestStatus>('pending');
-  const [selectedGuest, setSelectedGuest] = useState<Guest | null>(null);
+  const [selectedGuest, setSelectedGuest] = useState<MatchApplicantDTO | null>(null);
   const [isGuestProfileOpen, setIsGuestProfileOpen] = useState(false);
   const [isEditQuotaOpen, setIsEditQuotaOpen] = useState(false);
   const [isCancelConfirmOpen, setIsCancelConfirmOpen] = useState(false);
-  const [guestToCancel, setGuestToCancel] = useState<Guest | null>(null);
+  const [guestToCancel, setGuestToCancel] = useState<MatchApplicantDTO | null>(null);
   const [isAnnouncementOpen, setIsAnnouncementOpen] = useState(false);
   const [isMatchCancelOpen, setIsMatchCancelOpen] = useState(false);
 
@@ -105,28 +106,28 @@ export function HostMatchDetailView() {
     .reduce((sum, g) => sum + 1 + (g.companions?.length || 0), 0);
 
   // Handlers
-  const handleApprove = (guest: Guest) => {
+  const handleApprove = (guest: MatchApplicantDTO) => {
     approveMutation.mutate(
       { applicationId: guest.id, matchId },
       { onSuccess: () => setIsGuestProfileOpen(false) }
     );
   };
 
-  const handleConfirmPayment = (guest: Guest) => {
+  const handleConfirmPayment = (guest: MatchApplicantDTO) => {
     confirmMutation.mutate(
       { applicationId: guest.id, matchId },
       { onSuccess: () => setIsGuestProfileOpen(false) }
     );
   };
 
-  const handleReject = (guest: Guest) => {
+  const handleReject = (guest: MatchApplicantDTO) => {
     rejectMutation.mutate(
       { applicationId: guest.id, matchId },
       { onSuccess: () => setIsGuestProfileOpen(false) }
     );
   };
 
-  const handleCancel = (guest: Guest, cancelType?: CancelTypeValue) => {
+  const handleCancel = (guest: MatchApplicantDTO, cancelType?: CancelTypeValue) => {
     cancelMutation.mutate(
       {
         applicationId: guest.id,
@@ -137,12 +138,12 @@ export function HostMatchDetailView() {
     );
   };
 
-  const openGuestProfile = (guest: Guest) => {
+  const openGuestProfile = (guest: MatchApplicantDTO) => {
     setSelectedGuest(guest);
     setIsGuestProfileOpen(true);
   };
 
-  const openCancelConfirm = (guest: Guest) => {
+  const openCancelConfirm = (guest: MatchApplicantDTO) => {
     setGuestToCancel(guest);
     setIsCancelConfirmOpen(true);
   };

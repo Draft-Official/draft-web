@@ -21,14 +21,14 @@ import {
 } from '@/shared/ui/shadcn/alert-dialog';
 import { Button } from '@/shared/ui/shadcn/button';
 import { useTransferLeadership } from '@/features/team/api/membership/mutations';
-import type { ClientTeamMember } from '@/features/team/model/types';
+import type { TeamMember } from '@/features/team/model/types';
 
 interface DelegateLeaderDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   teamId: string;
   currentLeaderId: string;
-  members: ClientTeamMember[];
+  members: TeamMember[];
   onSuccess?: () => void;
 }
 

@@ -1,4 +1,4 @@
-import type { NotificationTypeValue } from '@/shared/config/constants';
+import type { NotificationTypeValue } from '@/shared/config/match-constants';
 
 /**
  * 클라이언트 알림 타입

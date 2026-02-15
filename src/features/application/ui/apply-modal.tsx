@@ -21,92 +21,20 @@ import {
 import { Switch } from '@/shared/ui/base/switch';
 import { Checkbox } from '@/shared/ui/shadcn/checkbox';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/shared/ui/shadcn/accordion';
-import { Alert, AlertDescription } from '@/shared/ui/shadcn/alert';
 import { cn } from '@/shared/lib/utils';
-import { useAuth } from '@/features/auth/model/auth-context';
-import { useUpdateProfile } from '@/features/auth/api/mutations';
-import { useCreateApplication } from '../api/mutations';
-import { useUserTeams } from '../api/queries';
-import type { ParticipantInfo, Profile, UserMetadata, UserUpdate, Json } from '@/shared/types/database.types';
-import { POSITION_OPTIONS, POSITION_DEFAULT, PositionValue } from '@/shared/config/constants';
+import { useAuth, useUpdateProfile } from '@/shared/session';
+import { useCreateApplication, useUserTeams } from '@/features/application';
+import type { ApplyCompanionDTO, ApplyFormDTO } from '../model/types';
+import {
+  buildCreateApplicationDTO,
+  buildProfileUpdateFromApplyForm,
+  sessionProfileToApplyFormDTO,
+  sessionProfileToApplyModalViewDTO,
+} from '../lib';
+import { POSITION_OPTIONS } from '@/shared/config/match-constants';
 import { SKILL_LEVELS } from '@/shared/config/skill-constants';
-import { AlertTriangle } from 'lucide-react';
 
 const MAX_COMPANIONS = 9;
-
-interface CompanionFormData {
-  name: string;
-  position: PositionValue | '';
-  height: string;
-  age: string;
-  skillLevel: string;
-}
-
-interface ApplyFormData {
-  height: string;
-  age: string;
-  weight: string;
-  position: PositionValue | '';  // DB codes: 'G', 'F', 'C'
-  teamId: string;
-}
-
-// DB Profile → Form Data 변환
-function profileToFormData(dbProfile: Profile | null): ApplyFormData {
-  if (!dbProfile) {
-    return { height: '', age: '', weight: '', position: '', teamId: '' };
-  }
-
-  const metadata = dbProfile.metadata as UserMetadata & { age?: number; skill_level?: number };
-  const position = dbProfile.positions?.[0];
-
-  return {
-    height: metadata?.height?.toString() || '',
-    age: metadata?.age?.toString() || '',
-    weight: metadata?.weight?.toString() || '',
-    position: (position as ApplyFormData['position']) || '',  // Already 'G', 'F', 'C'
-    teamId: '',
-  };
-}
-
-// 프로필에서 비어있는 필드만 업데이트할 데이터 생성
-function getProfileUpdates(
-  formData: ApplyFormData,
-  currentProfile: Profile | null
-): UserUpdate | null {
-  const metadata = (currentProfile?.metadata || {}) as UserMetadata & { age?: number; skill_level?: number };
-  const currentPosition = currentProfile?.positions?.[0];
-
-  const updates: UserUpdate = {};
-  let hasUpdates = false;
-
-  // metadata 업데이트
-  const metadataUpdates: Record<string, number> = {};
-
-  if (!metadata?.height && formData.height) {
-    metadataUpdates.height = parseInt(formData.height, 10);
-    hasUpdates = true;
-  }
-  if (!metadata?.age && formData.age) {
-    metadataUpdates.age = parseInt(formData.age, 10);
-    hasUpdates = true;
-  }
-  if (!metadata?.weight && formData.weight) {
-    metadataUpdates.weight = parseInt(formData.weight, 10);
-    hasUpdates = true;
-  }
-
-  if (Object.keys(metadataUpdates).length > 0) {
-    updates.metadata = { ...metadata, ...metadataUpdates } as Json;
-  }
-
-  // positions 업데이트
-  if (!currentPosition && formData.position) {
-    updates.positions = [formData.position];  // Already code
-    hasUpdates = true;
-  }
-
-  return hasUpdates ? updates : null;
-}
 
 interface ApplyModalProps {
   open: boolean;
@@ -128,7 +56,7 @@ export function ApplyModal({
   const updateProfile = useUpdateProfile();
   const { data: userTeams } = useUserTeams(user?.id);
 
-  const [formData, setFormData] = useState<ApplyFormData>({
+  const [formData, setFormData] = useState<ApplyFormDTO>({
     height: '',
     age: '',
     weight: '',
@@ -136,13 +64,13 @@ export function ApplyModal({
     teamId: '',
   });
   const [hasCompanions, setHasCompanions] = useState(false);
-  const [companions, setCompanions] = useState<CompanionFormData[]>([]);
+  const [companions, setCompanions] = useState<ApplyCompanionDTO[]>([]);
   const [isAgreed, setIsAgreed] = useState(false);
 
   // 프로필 데이터로 폼 초기화
   useEffect(() => {
     if (profile) {
-      setFormData(profileToFormData(profile));
+      setFormData(sessionProfileToApplyFormDTO(profile));
     }
   }, [profile]);
 
@@ -155,8 +83,7 @@ export function ApplyModal({
   };
 
   const getUserSkillLevel = (): string => {
-    const metadata = profile?.metadata as UserMetadata & { skill_level?: number } | null;
-    return metadata?.skill_level?.toString() || '';
+    return sessionProfileToApplyModalViewDTO(profile).userSkillLevel;
   };
 
   const addCompanion = () => {
@@ -169,7 +96,7 @@ export function ApplyModal({
     setCompanions(companions.filter((_, i) => i !== index));
   };
 
-  const updateCompanion = (index: number, field: keyof CompanionFormData, value: string) => {
+  const updateCompanion = (index: number, field: keyof ApplyCompanionDTO, value: string) => {
     setCompanions(companions.map((c, i) => (i === index ? { ...c, [field]: value } : c)));
   };
 
@@ -181,43 +108,23 @@ export function ApplyModal({
 
     if (!isFormValid() || !user) return;
 
-    const positionCode = formData.position || POSITION_DEFAULT;
-
-    const userSkillLevel = getUserSkillLevel();
-    const participantsInfo: ParticipantInfo[] = [
-      {
-        type: 'MAIN',
-        name: profile?.nickname || profile?.real_name || '',
-        position: positionCode,
-        ...(userSkillLevel ? { skillLevel: parseInt(userSkillLevel, 10) } : {}),
-      },
-      ...(hasCompanions
-        ? companions.map((c) => ({
-            type: 'GUEST' as const,
-            name: c.name,
-            position: c.position || POSITION_DEFAULT,
-            ...(c.height ? { height: parseInt(c.height, 10) } : {}),
-            ...(c.age ? { age: parseInt(c.age, 10) } : {}),
-            ...(c.skillLevel ? { skillLevel: parseInt(c.skillLevel, 10) } : {}),
-          }))
-        : []),
-    ];
-
     try {
       // 1. 프로필에 비어있는 필드가 있으면 자동 저장
-      const profileUpdates = getProfileUpdates(formData, profile);
+      const profileUpdates = buildProfileUpdateFromApplyForm(formData, profile);
       if (profileUpdates && user) {
         await updateProfile.mutateAsync({ userId: user.id, updates: profileUpdates });
         await refreshProfile();
       }
 
       // 2. 신청 생성
-      await createApplication.mutateAsync({
+      await createApplication.mutateAsync(buildCreateApplicationDTO({
         matchId,
         userId: user.id,
-        participantsInfo,
-        teamId: formData.teamId || null,
-      });
+        formData,
+        companions,
+        hasCompanions,
+        profile,
+      }));
 
       onOpenChange(false);
     } catch {
@@ -520,7 +427,7 @@ export function ApplyModal({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">팀 없음</SelectItem>
-                {userTeams?.map((team: { id: string; name: string }) => (
+                {userTeams?.map((team) => (
                   <SelectItem key={team.id} value={team.id}>
                     {team.name}
                   </SelectItem>

@@ -9,8 +9,8 @@ import {
   AgeRange,
   Json,
 } from '@/shared/types/database.types';
-import { GymData } from '@/shared/api/gym-api';
-import { MatchCreateFormData } from '@/features/match-create/model/schema';
+import { GymData } from '@/entities/gym';
+import type { MatchCreateFormData } from '@/features/match-create/model/form-data.types';
 
 // ==============================================
 // 1. Gym Data Extraction

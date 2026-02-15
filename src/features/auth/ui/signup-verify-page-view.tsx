@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth, useUpdateProfile } from '@/features/auth';
-import { PhoneVerificationForm } from '@/features/my/ui/phone-verification-form';
+import { useAuth, useUpdateProfile } from '@/shared/session';
+import { PhoneVerificationForm } from './phone-verification-form';
 import { Button } from '@/shared/ui/base/button';
 import { Input } from '@/shared/ui/base/input';
 import { Label } from '@/shared/ui/base/label';

@@ -9,16 +9,16 @@ import {
   DialogDescription,
 } from '@/shared/ui/base/dialog';
 import { formatMatchDate, formatMatchTime } from '@/shared/lib/date';
-import type { Guest } from '../../model/types';
+import type { MatchApplicantDTO } from '../../model/types';
 
 interface GuestProfileDialogProps {
-  guest: Guest | null;
+  guest: MatchApplicantDTO | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onApprove: (guest: Guest) => void;
-  onReject: (guest: Guest) => void;
-  onConfirmPayment: (guest: Guest) => void;
-  onCancel: (guest: Guest) => void;
+  onApprove: (guest: MatchApplicantDTO) => void;
+  onReject: (guest: MatchApplicantDTO) => void;
+  onConfirmPayment: (guest: MatchApplicantDTO) => void;
+  onCancel: (guest: MatchApplicantDTO) => void;
   isEnded?: boolean;
 }
 

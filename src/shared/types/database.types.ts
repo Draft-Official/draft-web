@@ -892,7 +892,7 @@ export type PositionType = 'G' | 'F' | 'C' | 'B';
 // JSONB Field Types
 // ============================================
 
-import type { CourtSizeValue } from '@/shared/config/constants';
+import type { CourtSizeValue } from '@/shared/config/match-constants';
 
 export interface GymFacilities {
   shower?: boolean;

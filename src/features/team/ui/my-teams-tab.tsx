@@ -4,14 +4,13 @@ import { Users, Loader2 } from 'lucide-react';
 import { Button } from '@/shared/ui/base/button';
 import { ScrollArea, ScrollBar } from '@/shared/ui/base/scroll-area';
 import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/shadcn/alert';
-import { useAuth } from '@/features/auth/model/auth-context';
-import { useMyTeams } from '../api/core/queries';
+import { useAuth } from '@/shared/session';
+import { useMyTeams } from '../api/team-info/queries';
 import { useMyPendingVoteMatches } from '../api/match/queries';
 import { useVote } from '../api/match/mutations';
 import { TeamProfileCard } from './components/team-profile-card';
 import { TeamMatchItem } from './components/team-match-item';
 import type { TeamVoteStatusValue } from '@/shared/config/team-constants';
-import type { MatchStatusValue } from '@/shared/config/constants';
 
 /**
  * 나의 팀 탭
@@ -132,52 +131,27 @@ function PendingVoteMatches({ teamIds, userId }: { teamIds: string[]; userId: st
 
   return (
     <div className="space-y-3">
-      {matches.map(({ match, team, myVote, votingSummary }) => {
-        // 날짜 포맷
-        const startDate = new Date(match.start_time);
-        const dateStr = formatMatchDate(startDate);
-        const timeStr = formatMatchTime(match.start_time);
-
-        // 체육관 정보
-        const gym = (match as typeof match & { gyms?: { name: string; address?: string } }).gyms;
-        const gymName = gym?.name || '장소 미정';
-
+      {matches.map((item) => {
         return (
           <TeamMatchItem
-            key={match.id}
-            id={match.id}
-            teamId={team.code}
-            teamName={team.name}
-            teamLogoUrl={team.logo_url}
-            date={dateStr}
-            time={timeStr}
-            gymName={gymName}
-            status={match.status as MatchStatusValue}
-            myVote={(myVote?.status || 'PENDING') as TeamVoteStatusValue}
-            myVoteReason={myVote?.description || undefined}
-            votingSummary={votingSummary}
-            onVote={(vote, reason) => handleVote(match.id, vote, reason)}
+            key={item.matchId}
+            id={item.matchId}
+            teamId={item.teamCode}
+            teamName={item.teamName}
+            teamLogoUrl={item.teamLogoUrl}
+            date={item.dateDisplay}
+            time={item.timeDisplay}
+            gymName={item.gymName}
+            gymAddress={item.gymAddress || undefined}
+            status={item.status}
+            myVote={item.myVote}
+            myVoteReason={item.myVoteReason || undefined}
+            votingSummary={item.votingSummary}
+            onVote={(vote, reason) => handleVote(item.matchId, vote, reason)}
             isVoting={voteMutation.isPending}
           />
         );
       })}
     </div>
   );
-}
-
-// 날짜 포맷 헬퍼
-function formatMatchDate(date: Date): string {
-  const year = date.getFullYear();
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-  const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
-  const dayName = dayNames[date.getDay()];
-  return `${year}. ${month}. ${day} (${dayName})`;
-}
-
-function formatMatchTime(isoString: string): string {
-  const date = new Date(isoString);
-  const hours = date.getHours().toString().padStart(2, '0');
-  const minutes = date.getMinutes().toString().padStart(2, '0');
-  return `${hours}:${minutes}`;
 }

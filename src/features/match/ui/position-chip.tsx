@@ -2,11 +2,10 @@
 
 import React from 'react';
 import { cn } from '@/shared/lib/utils';
-import { PositionStatusUI } from '../model/types';
 
 interface PositionChipProps {
   label: string;
-  status: PositionStatusUI['status'];
+  status: 'open' | 'closed';
   max: number;
   current: number;
 }

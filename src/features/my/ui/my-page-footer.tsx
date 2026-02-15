@@ -14,8 +14,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/shared/ui/base/dialog';
-import { useAuth } from '@/features/auth/model/auth-context';
-import { useDeleteAccount } from '@/features/auth/api/mutations';
+import { useAuth, useDeleteAccount } from '@/shared/session';
 
 export function MyPageFooter() {
   const { signOut } = useAuth();

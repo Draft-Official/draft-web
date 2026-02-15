@@ -3,6 +3,157 @@
  * Phase 2 확장성 가이드라인 준수
  */
 
+// ============================================
+// DTO Types (NEW)
+// ============================================
+
+// 일정 화면 모드
+export type ScheduleMode = 'participating' | 'managing';
+
+// 신청 동반인 DTO
+export interface MatchApplicantCompanionDTO {
+  name: string;
+  position: string;
+  height?: string;
+  age?: string;
+  skillLevel?: string;
+}
+
+// 신청 이력 DTO
+export interface MatchApplicantHistoryDTO {
+  count: number;
+  lastDate?: string;
+}
+
+// 경기 신청자 DTO (호스트 관리용)
+export interface MatchApplicantDTO extends Participant {
+  status: GuestStatus;
+  realName?: string;
+  paymentVerified?: boolean;
+  teamName?: string;
+  companions?: MatchApplicantCompanionDTO[];
+  appliedAt?: string;
+  accountInfo?: {
+    bank?: string;
+    number?: string;
+    holder?: string;
+  };
+  matchHistory?: MatchApplicantHistoryDTO;
+}
+
+// 경기 관리 리스트 아이템 DTO
+export interface ScheduleMatchListItemDTO {
+  id: string;
+  matchType: MatchType;
+  scheduleMode: ScheduleMode;
+  status: MatchStatus;
+  teamName: string;
+  date: string;
+  time: string;
+  startTimeISO: string;
+  location: string;
+  locationUrl?: string;
+
+  applicationId?: string;
+  approvalStatus?: string;
+  totalCost?: number;
+  perCost?: number;
+  companionCount?: number;
+  bankInfo?: {
+    bank: string;
+    account: string;
+    holder: string;
+  };
+  applicationInfo?: {
+    position: string;
+    appliedAt: string;
+    companions?: {
+      name: string;
+      position: string;
+    }[];
+    cancelReason?: string;
+  };
+
+  applicants?: number;
+  vacancies?: number;
+  participants?: number;
+  tournamentName?: string;
+  round?: string;
+
+  // Legacy compatibility field
+  type: MatchType;
+}
+
+// 호스트 경기 상세 DTO
+export interface HostMatchDetailDTO {
+  id: string;
+  date: string;
+  time: string;
+  endTimeISO: string;
+  location: string;
+  locationUrl: string;
+  teamName: string;
+  status: string;
+  recruitmentMode: RecruitmentMode;
+  positionQuotas?: PositionQuota[];
+  totalQuota?: {
+    current: number;
+    max: number;
+  };
+}
+
+// 팀운동 상세 DTO
+export interface TeamExerciseDetailDTO {
+  id: string;
+  teamName: string;
+  date: string;
+  time: string;
+  location: string;
+  locationUrl: string;
+  description: string;
+  participants: Participant[];
+}
+
+// 대회 상세 DTO
+export interface TournamentDetailDTO {
+  id: string;
+  tournamentName: string;
+  round: string;
+  date: string;
+  time: string;
+  location: string;
+  locationUrl: string;
+  tactics: string;
+  participants: Participant[];
+  teamName: string;
+}
+
+// 팀운동 관리 상세 DTO
+export interface TeamExerciseManageDetailDTO {
+  id: string;
+  teamName: string;
+  date: string;
+  time: string;
+  location: string;
+  locationUrl: string;
+  description: string;
+  participants: Participant[];
+}
+
+// 대회 관리 상세 DTO
+export interface TournamentManageDetailDTO {
+  id: string;
+  teamName: string;
+  tournamentName: string;
+  round: string;
+  date: string;
+  time: string;
+  location: string;
+  locationUrl: string;
+  description: string;
+  participants: Participant[];
+}
+
 // 경기 타입 (MVP + Phase 2)
 export type MatchType = 'guest' | 'host' | 'team' | 'tournament';
 
@@ -22,52 +173,6 @@ export type MatchStatus =
   | 'closed'
   | 'rejected';
 
-// 경기 관리 아이템 인터페이스
-export interface ManagedMatch {
-  id: string;
-  type: MatchType;
-  status: MatchStatus;
-  teamName: string;
-  date: string;       // YYYY. MM. DD (Day)
-  time: string;       // HH:mm
-  startTimeISO: string; // ISO timestamp (정렬용)
-  location: string;
-  locationUrl?: string;
-
-  // Guest specific
-  applicationId?: string; // 게스트 신청 ID (송금 완료 처리용)
-  approvalStatus?: string;
-  totalCost?: number;    // 총금액 (본인 + 동반인)
-  perCost?: number;      // 인당 금액
-  companionCount?: number; // 동반인 수
-  bankInfo?: {
-    bank: string;
-    account: string;
-    holder: string;
-  };
-  // 신청 정보 (바텀시트용)
-  applicationInfo?: {
-    position: string;
-    appliedAt: string;
-    companions?: {
-      name: string;
-      position: string;
-    }[];
-    cancelReason?: string; // 거절/취소 사유
-  };
-
-  // Host specific
-  applicants?: number;
-  vacancies?: number;
-
-  // Team specific
-  participants?: number;
-
-  // Tournament specific
-  tournamentName?: string;
-  round?: string;
-}
-
 // 필터 옵션 타입
 export interface FilterOption<T extends string = string> {
   value: T;
@@ -84,15 +189,6 @@ export type GuestStatus = 'pending' | 'payment_waiting' | 'confirmed' | 'rejecte
 // 모집 방식
 export type RecruitmentMode = 'position' | 'total';
 
-// 동반인 정보
-export interface CompanionInfo {
-  name: string;
-  position: string;
-  height?: string;
-  age?: string;
-  skillLevel?: string;
-}
-
 // 참여자 기본 정보
 export interface Participant {
   id: string;
@@ -104,75 +200,12 @@ export interface Participant {
   avatar?: string;
 }
 
-// 게스트 정보 (호스트 관리용)
-export interface Guest extends Participant {
-  status: GuestStatus;
-  realName?: string; // 실명 (호스트에게만 표시)
-  paymentVerified?: boolean; // 호스트 내부 관리용 입금 확인 여부
-  teamName?: string; // 신청 시 선택한 팀
-  companions?: CompanionInfo[];
-  appliedAt?: string; // 신청 시간 (ISO timestamp)
-  accountInfo?: {
-    bank?: string;
-    number?: string;
-    holder?: string;
-  };
-  matchHistory?: {
-    count: number;
-    lastDate?: string;
-  };
-}
-
 // 포지션별 모집 인원
 export interface PositionQuota {
   position: string;
   label: string;
   current: number;
   max: number;
-}
-
-// 호스트 경기 상세
-export interface HostMatchDetail {
-  id: string;
-  date: string;
-  time: string;
-  endTimeISO: string; // ISO timestamp for time-based status derivation
-  location: string;
-  locationUrl: string;
-  teamName: string;
-  status: string; // DB status (RECRUITING, CLOSED, etc.)
-  recruitmentMode: RecruitmentMode;
-  positionQuotas?: PositionQuota[];
-  totalQuota?: {
-    current: number;
-    max: number;
-  };
-}
-
-// 팀운동 상세
-export interface TeamExerciseDetail {
-  id: string;
-  teamName: string;
-  date: string;
-  time: string;
-  location: string;
-  locationUrl: string;
-  description: string;
-  participants: Participant[];
-}
-
-// 대회 상세
-export interface TournamentDetail {
-  id: string;
-  tournamentName: string;
-  round: string;
-  date: string;
-  time: string;
-  location: string;
-  locationUrl: string;
-  tactics: string;
-  participants: Participant[];
-  teamName: string;
 }
 
 // 게스트 경기 상세 (게스트 신청용)
@@ -237,29 +270,3 @@ export interface ParticipatingMatchRow {
 // ============================================
 // 관리 페이지 타입 정의
 // ============================================
-
-// 팀운동 관리 상세
-export interface TeamExerciseManageDetail {
-  id: string;
-  teamName: string;
-  date: string;
-  time: string;
-  location: string;
-  locationUrl: string;
-  description: string;
-  participants: Participant[];
-}
-
-// 대회 관리 상세
-export interface TournamentManageDetail {
-  id: string;
-  teamName: string;
-  tournamentName: string;
-  round: string;
-  date: string;
-  time: string;
-  location: string;
-  locationUrl: string;
-  description: string;
-  participants: Participant[];
-}

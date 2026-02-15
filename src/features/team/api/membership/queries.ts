@@ -5,15 +5,28 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
-import { teamMemberKeys } from '../keys';
 import {
-  getTeamMembers,
-  getPendingMembers,
-  getMembership,
-  getTeamMemberCount,
-} from './api';
-import { teamMemberRowToClient } from '../mapper';
-import type { ClientTeamMember } from '../../model/types';
+  createTeamService,
+  teamMemberRowToEntity,
+  type TeamMemberWithUserRow,
+} from '@/entities/team';
+import { teamMemberKeys } from '../keys';
+import { toTeamMembershipDTO } from '../../lib';
+import type { TeamMemberListItemDTO, TeamMembershipDTO } from '../../model/types';
+
+function mapTeamMemberWithUserRow(row: TeamMemberWithUserRow): TeamMemberListItemDTO {
+  const member = teamMemberRowToEntity(row);
+  const user = row.users
+    ? {
+        id: row.users.id,
+        nickname: row.users.nickname,
+        avatarUrl: row.users.avatar_url,
+        positions: row.users.positions,
+      }
+    : undefined;
+
+  return toTeamMembershipDTO(member, user);
+}
 
 /**
  * 팀원 목록 조회 (활성 팀원만)
@@ -21,11 +34,12 @@ import type { ClientTeamMember } from '../../model/types';
 export function useTeamMembers(teamId: string | null | undefined) {
   return useQuery({
     queryKey: teamMemberKeys.byTeam(teamId || ''),
-    queryFn: async (): Promise<ClientTeamMember[]> => {
+    queryFn: async (): Promise<TeamMemberListItemDTO[]> => {
       if (!teamId) return [];
       const supabase = getSupabaseBrowserClient();
-      const rows = await getTeamMembers(supabase, teamId);
-      return rows.map(teamMemberRowToClient);
+      const service = createTeamService(supabase);
+      const rows = await service.getTeamMembers(teamId);
+      return rows.map(mapTeamMemberWithUserRow);
     },
     enabled: !!teamId,
   });
@@ -37,11 +51,12 @@ export function useTeamMembers(teamId: string | null | undefined) {
 export function usePendingMembers(teamId: string | null | undefined) {
   return useQuery({
     queryKey: teamMemberKeys.pending(teamId || ''),
-    queryFn: async (): Promise<ClientTeamMember[]> => {
+    queryFn: async (): Promise<TeamMemberListItemDTO[]> => {
       if (!teamId) return [];
       const supabase = getSupabaseBrowserClient();
-      const rows = await getPendingMembers(supabase, teamId);
-      return rows.map(teamMemberRowToClient);
+      const service = createTeamService(supabase);
+      const rows = await service.getPendingMembers(teamId);
+      return rows.map(mapTeamMemberWithUserRow);
     },
     enabled: !!teamId,
   });
@@ -56,11 +71,12 @@ export function useMyMembership(
 ) {
   return useQuery({
     queryKey: teamMemberKeys.myMembership(teamId || '', userId || ''),
-    queryFn: async (): Promise<ClientTeamMember | null> => {
+    queryFn: async (): Promise<TeamMembershipDTO | null> => {
       if (!teamId || !userId) return null;
       const supabase = getSupabaseBrowserClient();
-      const row = await getMembership(supabase, teamId, userId);
-      return row ? teamMemberRowToClient(row) : null;
+      const service = createTeamService(supabase);
+      const row = await service.getMembership(teamId, userId);
+      return row ? toTeamMembershipDTO(teamMemberRowToEntity(row)) : null;
     },
     enabled: !!teamId && !!userId,
   });
@@ -75,7 +91,8 @@ export function useTeamMemberCount(teamId: string | null | undefined) {
     queryFn: async (): Promise<number> => {
       if (!teamId) return 0;
       const supabase = getSupabaseBrowserClient();
-      return getTeamMemberCount(supabase, teamId);
+      const service = createTeamService(supabase);
+      return service.getTeamMemberCount(teamId);
     },
     enabled: !!teamId,
   });

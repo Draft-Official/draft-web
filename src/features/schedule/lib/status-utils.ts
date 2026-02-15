@@ -30,7 +30,7 @@ export function resolveApplicationStatus(
   return 'pending';
 }
 
-/** GuestStatus → 게스트 참여 목록용 ManagedMatch status */
+/** GuestStatus → 게스트 참여 목록용 ScheduleMatchListItemDTO status */
 const GUEST_STATUS_TO_MATCH_STATUS: Record<GuestStatus, MatchStatus> = {
   confirmed: 'confirmed',
   rejected: 'cancelled',
@@ -48,7 +48,7 @@ const GUEST_STATUS_TO_APPROVAL_TEXT: Record<GuestStatus, string> = {
   pending: GUEST_APPROVAL_STATUS_TEXT.PENDING,
 };
 
-/** resolveApplicationStatus 결과를 ManagedMatch status로 변환 */
+/** resolveApplicationStatus 결과를 ScheduleMatchListItemDTO status로 변환 */
 export function toParticipatingMatchStatus(guestStatus: GuestStatus): MatchStatus {
   return GUEST_STATUS_TO_MATCH_STATUS[guestStatus];
 }

@@ -2,8 +2,8 @@
 
 import { useRouter } from 'next/navigation';
 import { Plus } from 'lucide-react';
-import { useRequireAuth } from '@/features/auth/model';
-import { LoginRequiredModal } from '@/features/auth/ui';
+import { useRequireAuth } from '@/shared/session';
+import { LoginRequiredModal } from '@/features/auth';
 
 export function RecruitFAB() {
   const router = useRouter();

@@ -3,13 +3,12 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Info } from 'lucide-react';
-import { useAuth, useProfile, useUpdateProfile } from '@/features/auth';
+import { useAuth, useProfile, useUpdateProfile } from '@/shared/session';
+import type { SessionAccountInfo } from '@/shared/session';
 import { BankCombobox } from '@/shared/ui/base/bank-combobox';
 import { Input } from '@/shared/ui/base/input';
 import { Label } from '@/shared/ui/base/label';
 import { Button } from '@/shared/ui/base/button';
-import type { AccountInfo } from '@/shared/types/jsonb.types';
-import type { Json } from '@/shared/types/database.types';
 
 export function BankAccountForm() {
   const { user } = useAuth();
@@ -23,10 +22,9 @@ export function BankAccountForm() {
   // 프로필 데이터로 초기화
   useEffect(() => {
     if (profile?.account_info) {
-      const accountInfo = profile.account_info as unknown as AccountInfo;
-      setBank(accountInfo.bank || '');
-      setAccountNumber(accountInfo.number || '');
-      setAccountHolder(accountInfo.holder || '');
+      setBank(profile.account_info.bank || '');
+      setAccountNumber(profile.account_info.number || '');
+      setAccountHolder(profile.account_info.holder || '');
     }
   }, [profile]);
 
@@ -43,7 +41,7 @@ export function BankAccountForm() {
       return;
     }
 
-    const accountInfo: AccountInfo = {
+    const accountInfo: SessionAccountInfo = {
       bank,
       number: accountNumber,
       holder: accountHolder,
@@ -53,7 +51,7 @@ export function BankAccountForm() {
       {
         userId: user.id,
         updates: {
-          account_info: accountInfo as unknown as Json,
+          account_info: accountInfo,
         },
       },
       {

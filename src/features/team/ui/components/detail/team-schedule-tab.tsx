@@ -6,11 +6,11 @@ import { Calendar, Clock, MapPin, ChevronLeft, ChevronRight } from 'lucide-react
 import { Card } from '@/shared/ui/shadcn/card';
 import { Button } from '@/shared/ui/shadcn/button';
 import { cn } from '@/shared/lib/utils';
-import type { Match } from '@/shared/types/database.types';
+import type { TeamScheduleMatchItemDTO } from '@/features/team/model/types';
 
 interface TeamScheduleTabProps {
   teamCode: string;
-  matches: Match[];
+  matches: TeamScheduleMatchItemDTO[];
   isLoading?: boolean;
 }
 
@@ -57,9 +57,9 @@ export function TeamScheduleTab({ teamCode, matches, isLoading }: TeamScheduleTa
       <div className="px-5 py-4 space-y-3">
         {currentMatches.map((match) => (
           <MatchCard
-            key={match.id}
+            key={match.matchId}
             match={match}
-            onClick={() => handleMatchClick(match.id)}
+            onClick={() => handleMatchClick(match.matchId)}
           />
         ))}
       </div>
@@ -111,22 +111,15 @@ export function TeamScheduleTab({ teamCode, matches, isLoading }: TeamScheduleTa
 
 // 매치 카드 컴포넌트
 interface MatchCardProps {
-  match: Match;
+  match: TeamScheduleMatchItemDTO;
   onClick: () => void;
 }
 
 function MatchCard({ match, onClick }: MatchCardProps) {
-  // 날짜/시간 포맷
-  const startDate = new Date(match.start_time);
-  const dateStr = formatDate(startDate);
-  const timeStr = formatTime(match.start_time);
-
-  // 체육관 정보
-  const gym = (match as Match & { gyms?: { name: string; address?: string } }).gyms;
-  const gymName = gym?.name || '장소 미정';
-
-  // 지난 경기 여부
-  const isPast = startDate < new Date();
+  const dateStr = match.dateDisplay;
+  const timeStr = match.timeDisplay;
+  const gymName = match.gymName || '장소 미정';
+  const isPast = match.isPast;
 
   return (
     <Card
@@ -156,21 +149,4 @@ function MatchCard({ match, onClick }: MatchCardProps) {
       </div>
     </Card>
   );
-}
-
-// 날짜 포맷 헬퍼
-function formatDate(date: Date): string {
-  const year = date.getFullYear();
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-  const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
-  const dayName = dayNames[date.getDay()];
-  return `${year}. ${month}. ${day} (${dayName})`;
-}
-
-function formatTime(isoString: string): string {
-  const date = new Date(isoString);
-  const hours = date.getHours().toString().padStart(2, '0');
-  const minutes = date.getMinutes().toString().padStart(2, '0');
-  return `${hours}:${minutes}`;
 }
