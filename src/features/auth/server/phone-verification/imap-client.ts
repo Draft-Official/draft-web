@@ -16,7 +16,9 @@ function extractBodyText(source: string): string {
     try {
       const decoded = Buffer.from(match[1].replace(/\s/g, ''), 'base64').toString('utf-8');
       parts.push(decoded);
-    } catch {}
+    } catch {
+      // ignore malformed payloads
+    }
   }
 
   const qpMatches = source.matchAll(
@@ -62,7 +64,6 @@ export async function checkVerificationEmail(
         { envelope: true, source: true }
       );
 
-      // break/return 하지 않고 끝까지 소비해야 logout이 행되지 않음
       for await (const msg of messages) {
         if (result.found) continue;
 
@@ -83,8 +84,8 @@ export async function checkVerificationEmail(
     } finally {
       lock.release();
     }
-  } catch (err) {
-    console.error('[IMAP] error:', err instanceof Error ? err.message : err);
+  } catch (error) {
+    console.error('[IMAP] error:', error instanceof Error ? error.message : error);
   } finally {
     client.close();
   }
