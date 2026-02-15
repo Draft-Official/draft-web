@@ -10,7 +10,8 @@ type MatchType = 'GUEST_RECRUIT' | 'TEAM_REGULAR' | 'PICKUP_GAME';
 
 export default function MatchManagePage() {
   const params = useParams();
-  const id = params.id as string;
+  const idParam = params?.id;
+  const id = Array.isArray(idParam) ? (idParam[0] ?? '') : (idParam ?? '');
 
   const { data: matchData, isLoading, error } = useMatch(id);
 

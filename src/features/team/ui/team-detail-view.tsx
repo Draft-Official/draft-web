@@ -32,7 +32,7 @@ export function TeamDetailView({ code }: TeamDetailViewProps) {
   const handleBack = useSafeBack('/team');
 
   // URL에서 탭 상태 읽기 (home, schedule, members)
-  const viewParam = searchParams.get('view');
+  const viewParam = searchParams?.get('view');
   const currentView = viewParam === 'schedule' || viewParam === 'members' ? viewParam : 'home';
 
   // 팀 정보 조회
