@@ -65,7 +65,7 @@ export function TeamFab({ teamCode, role }: TeamFabProps) {
   ];
 
   return (
-    <div className="fixed bottom-24 right-4 z-50 max-w-[430px]">
+    <div className="fixed bottom-24 right-4 z-50 max-w-[var(--layout-mobile-max)]">
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <button

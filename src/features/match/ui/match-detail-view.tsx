@@ -165,7 +165,7 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
   };
 
   return (
-    <div className="min-h-screen bg-white relative pb-[100px] max-w-[760px] mx-auto shadow-2xl shadow-slate-200">
+    <div className="min-h-screen bg-white relative pb-[100px] app-content-container shadow-2xl shadow-slate-200">
       
       {/* 1. Header (Sticky) */}
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-100 h-[52px] flex items-center justify-between px-2">

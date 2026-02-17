@@ -88,7 +88,7 @@ export function TeamExerciseDetailView() {
         </DropdownMenu>
       </header>
 
-      <div className="max-w-[760px] mx-auto p-4 space-y-4">
+      <div className="app-content-container p-4 space-y-4">
         {/* 경기 기본 정보 */}
         <section className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 space-y-3">
           <div className="flex items-center gap-2 text-xl font-bold text-slate-900">
@@ -241,8 +241,8 @@ export function TeamExerciseDetailView() {
       </Dialog>
 
       {/* 하단 고정 버튼 */}
-      <div className="fixed bottom-0 left-0 right-0 md:left-[240px] bg-white border-t border-slate-100 p-4 z-50">
-        <div className="max-w-[760px] mx-auto">
+      <div className="app-overlay-shell app-overlay-shell--with-sidebar bg-white border-t border-slate-100 p-4 z-50">
+        <div className="app-overlay-content">
           <Button
             onClick={() => setIsCancelConfirmOpen(true)}
             className="w-full bg-red-100 hover:bg-red-200 text-red-600 border border-red-200 h-14 rounded-xl font-bold"

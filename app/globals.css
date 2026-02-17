@@ -104,9 +104,53 @@
       -ms-overflow-style: none;  /* IE and Edge */
       scrollbar-width: none;  /* Firefox */
   }
+
+  .app-content-container {
+    width: 100%;
+    max-width: var(--layout-content-max);
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .app-mobile-container {
+    width: 100%;
+    max-width: var(--layout-mobile-max);
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .app-overlay-shell {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    pointer-events: none;
+  }
+
+  .app-overlay-shell--with-sidebar {
+    padding-left: 0;
+  }
+
+  @media (min-width: 1024px) {
+    .app-overlay-shell--with-sidebar {
+      padding-left: var(--layout-sidebar-width);
+    }
+  }
+
+  .app-overlay-content {
+    width: 100%;
+    max-width: var(--layout-content-max);
+    margin-left: auto;
+    margin-right: auto;
+    pointer-events: auto;
+  }
 }
 
 :root {
+  --layout-content-max: 760px;
+  --layout-mobile-max: 430px;
+  --layout-sidebar-width: 240px;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);

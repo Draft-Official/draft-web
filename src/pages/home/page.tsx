@@ -80,7 +80,7 @@ export default function GuestMatchListPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex justify-center font-sans">
-      <div className="w-full max-w-[760px] bg-white min-h-screen shadow-sm relative">
+      <div className="app-content-container bg-white min-h-screen shadow-sm relative">
 
         {/* --- Sticky Header & Filters --- */}
         <FilterBar

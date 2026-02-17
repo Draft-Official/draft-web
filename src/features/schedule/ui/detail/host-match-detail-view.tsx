@@ -236,7 +236,7 @@ export function HostMatchDetailView() {
         </div>
       </header>
 
-      <div className="max-w-[760px] mx-auto p-4 space-y-4">
+      <div className="app-content-container p-4 space-y-4">
         {/* 경기 기본 정보 */}
         <section className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 space-y-3">
           <div className="flex items-center gap-2 text-xl font-bold text-slate-900">

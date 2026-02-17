@@ -96,7 +96,7 @@ export function TournamentManageView() {
         </DropdownMenu>
       </header>
 
-      <div className="max-w-[760px] mx-auto p-4 space-y-4">
+      <div className="app-content-container p-4 space-y-4">
         {/* 대회 정보 */}
         <section className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 space-y-3">
           <div className="flex items-center gap-2 mb-4">
@@ -222,8 +222,8 @@ export function TournamentManageView() {
       </div>
 
       {/* Fixed Bottom Button */}
-      <div className="fixed bottom-0 left-0 right-0 md:left-[240px] bg-white border-t border-slate-100 p-4 z-50">
-        <div className="max-w-[760px] mx-auto">
+      <div className="app-overlay-shell app-overlay-shell--with-sidebar bg-white border-t border-slate-100 p-4 z-50">
+        <div className="app-overlay-content">
           <Button
             onClick={handleSave}
             className="w-full bg-primary hover:bg-primary/90 text-white h-14 rounded-xl font-bold"

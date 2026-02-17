@@ -113,7 +113,7 @@ export function MatchCreateView() {
 
   return (
     <FormProvider {...methods}>
-      <div className="min-h-screen bg-slate-100 max-w-[760px] mx-auto relative font-sans">
+      <div className="min-h-screen bg-slate-100 app-content-container relative font-sans">
         <header className="bg-white px-4 h-14 flex items-center justify-between border-b border-slate-100 sticky top-0 z-30">
           <div className="flex items-center gap-3">
             <button
