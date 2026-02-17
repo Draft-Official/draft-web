@@ -22,7 +22,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
 
   return (
     <SignupVerifyGuard>
-      <div className="flex justify-center min-h-screen bg-white">
+      <div className="flex justify-center min-h-screen bg-white lg:pl-[var(--layout-sidebar-width)]">
         {/* Desktop Sidebar (Left) */}
         <aside className="hidden lg:flex fixed left-0 top-0 h-full w-[var(--layout-sidebar-width)] bg-white z-30 justify-center">
           <div className="w-full h-full">
@@ -31,7 +31,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
         </aside>
 
         {/* Main Content Area (Center) */}
-        <main className="app-content-container lg:ml-[var(--layout-sidebar-width)] min-h-screen bg-white relative pb-20 lg:pb-0 border-x border-slate-100/50">
+        <main className="app-content-container min-h-screen bg-white relative pb-20 lg:pb-0 border-x border-slate-100/50">
           <div className="lg:hidden">
             <LayoutHeader />
           </div>
