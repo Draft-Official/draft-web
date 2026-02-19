@@ -17,24 +17,15 @@ import { TeamCreateTab } from './team-create-tab';
  */
 export function TeamPageTabs() {
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* 페이지 헤더 */}
-      <div className="bg-white sticky top-0 z-20 border-b border-slate-100">
-        <div className="flex items-center px-4 h-14">
-          <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">
-            팀
-          </h1>
-        </div>
-      </div>
-
-      <Tabs defaultValue="my-teams" className="w-full">
+    <div className="min-h-screen bg-background">
+      <Tabs defaultValue="my-teams" className="w-full gap-0">
         {/* 탭 헤더 */}
-        <div className="bg-white sticky top-14 z-20 border-b border-slate-100 px-4 py-2">
-          <TabsList className="w-full h-10">
-            <TabsTrigger value="my-teams" className="flex-1 font-bold">
+        <div className="bg-white sticky top-0 z-20 border-b border-slate-100 px-(--dimension-spacing-x-global-gutter) py-(--dimension-x2)">
+          <TabsList>
+            <TabsTrigger value="my-teams" className="font-bold text-base">
               나의 팀
             </TabsTrigger>
-            <TabsTrigger value="create-team" className="flex-1 font-bold">
+            <TabsTrigger value="create-team" className="font-bold text-base">
               <span className="flex items-center gap-1">
                 팀 생성하기
                 <Plus className="w-4 h-4" />
@@ -44,11 +35,11 @@ export function TeamPageTabs() {
         </div>
 
         {/* 탭 콘텐츠 */}
-        <TabsContent value="my-teams" className="mt-4">
+        <TabsContent value="my-teams" className="mt-(--dimension-spacing-y-component-default)">
           <MyTeamsTab />
         </TabsContent>
 
-        <TabsContent value="create-team" className="mt-4">
+        <TabsContent value="create-team" className="mt-(--dimension-spacing-y-component-default)">
           <TeamCreateTab />
         </TabsContent>
       </Tabs>

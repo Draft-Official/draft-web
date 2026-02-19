@@ -242,11 +242,11 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-20">
+    <div className="min-h-screen bg-background pb-(--dimension-spacing-y-screen-bottom)">
       {/* Header */}
-      <header className="bg-white border-b border-slate-200 px-5 py-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold text-slate-900">경기 관리</h1>
+      <header className="bg-white border-b border-slate-100">
+        <div className="flex items-center justify-between px-(--dimension-spacing-x-global-gutter) h-(--dimension-x14)">
+          <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">경기 관리</h1>
 
           {/* Guest/Host Toggle - Slide Animation */}
           <div className="flex items-center gap-3">
@@ -283,8 +283,8 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
       </header>
 
       {/* Filters - Single Row */}
-      <section className="bg-white border-b border-slate-100 px-5 py-3">
-        <div className="flex gap-2 overflow-x-auto hide-scrollbar items-center">
+      <section className="bg-white border-b border-slate-100 px-(--dimension-spacing-x-global-gutter) py-(--dimension-spacing-y-component-default)">
+        <div className="flex gap-(--dimension-spacing-x-between-chips) overflow-x-auto hide-scrollbar items-center">
           {/* Type Filter (Multi-select) - Different options per mode */}
           {viewMode === "guest" ? (
             <FilterDropdown
@@ -329,7 +329,7 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
             pressed={showPast}
             onPressedChange={(pressed) => setShowPastMatches(pressed ? "show" : "hide")}
             className={cn(
-              "rounded-full h-8 px-3 text-xs font-bold border transition-all",
+              "h-auto min-w-0 rounded-full px-(--dimension-x4) py-(--dimension-x2) text-sm font-medium border transition-all",
               showPast
                 ? "border-primary text-primary bg-brand-weak data-[state=on]:bg-brand-weak data-[state=on]:text-primary"
                 : "border-slate-200 text-slate-600"
@@ -342,7 +342,7 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
           {isFilterActive && (
             <button
               onClick={handleResetFilters}
-              className="flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700 transition-colors px-2 shrink-0 ml-auto"
+              className="flex items-center gap-(--dimension-x1) text-xs font-medium text-slate-500 hover:text-slate-700 transition-colors px-(--dimension-x2) shrink-0 ml-auto"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>초기화</span>
@@ -352,7 +352,7 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
       </section>
 
       {/* Match List */}
-      <section className="px-5 py-4 space-y-3">
+      <section className="px-(--dimension-spacing-x-global-gutter) py-(--dimension-spacing-y-component-default) space-y-(--dimension-spacing-y-component-default)">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-20">
             <Loader2 className="w-8 h-8 text-slate-400 animate-spin mb-4" />

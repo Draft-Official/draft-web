@@ -95,22 +95,22 @@ export function SkillRangeSlider({ minValue, maxValue, onChange }: SkillRangeSli
         <div className="flex gap-1 mt-3">
           {/* 초보 (1-2) */}
           <div className="flex gap-1" style={{ flex: 2 }}>
-            <div className="flex-1 h-[3px] rounded-full" style={{ backgroundColor: beginnerColor }} />
-            <div className="flex-1 h-[3px] rounded-full" style={{ backgroundColor: beginnerColor }} />
+            <div className="flex-1 h-(--dimension-x1) rounded-full" style={{ backgroundColor: beginnerColor }} />
+            <div className="flex-1 h-(--dimension-x1) rounded-full" style={{ backgroundColor: beginnerColor }} />
           </div>
           {/* 중급 (3-4) */}
           <div className="flex gap-1" style={{ flex: 2 }}>
-            <div className="flex-1 h-[3px] rounded-full" style={{ backgroundColor: intermediateColor }} />
-            <div className="flex-1 h-[3px] rounded-full" style={{ backgroundColor: intermediateColor }} />
+            <div className="flex-1 h-(--dimension-x1) rounded-full" style={{ backgroundColor: intermediateColor }} />
+            <div className="flex-1 h-(--dimension-x1) rounded-full" style={{ backgroundColor: intermediateColor }} />
           </div>
           {/* 상급 (5-6) */}
           <div className="flex gap-1" style={{ flex: 2 }}>
-            <div className="flex-1 h-[3px] rounded-full" style={{ backgroundColor: advancedColor }} />
-            <div className="flex-1 h-[3px] rounded-full" style={{ backgroundColor: advancedColor }} />
+            <div className="flex-1 h-(--dimension-x1) rounded-full" style={{ backgroundColor: advancedColor }} />
+            <div className="flex-1 h-(--dimension-x1) rounded-full" style={{ backgroundColor: advancedColor }} />
           </div>
           {/* 선출 (7) */}
           <div style={{ flex: 1 }}>
-            <div className="h-[3px] rounded-full" style={{ backgroundColor: eliteColor }} />
+            <div className="h-(--dimension-x1) rounded-full" style={{ backgroundColor: eliteColor }} />
           </div>
         </div>
 

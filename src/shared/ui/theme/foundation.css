@@ -114,9 +114,13 @@
   --color-fg-disabled: var(--color-palette-gray-500);
   --color-fg-placeholder: var(--color-palette-gray-600);
   --color-fg-critical: var(--color-palette-red-700);
+  --color-fg-critical-contrast: var(--color-palette-red-900);
   --color-fg-warning: var(--color-palette-yellow-700);
+  --color-fg-warning-contrast: var(--color-palette-yellow-900);
   --color-fg-informative: var(--color-palette-blue-700);
+  --color-fg-informative-contrast: var(--color-palette-blue-900);
   --color-fg-positive: var(--color-palette-green-700);
+  --color-fg-positive-contrast: var(--color-palette-green-900);
 
   --color-bg-brand-solid: var(--color-palette-draft-600);
   --color-bg-brand-solid-pressed: var(--color-palette-draft-700);
@@ -144,6 +148,7 @@
   --color-bg-critical-solid-pressed: var(--color-palette-red-800);
   --color-bg-critical-weak: var(--color-palette-red-100);
   --color-bg-critical-weak-pressed: var(--color-palette-red-200);
+  --color-bg-disabled: var(--color-palette-gray-200);
 
   --color-bg-warning-solid: var(--color-palette-yellow-700);
   --color-bg-warning-solid-pressed: var(--color-palette-yellow-800);
@@ -162,6 +167,8 @@
 
   --color-bg-overlay: var(--color-palette-static-black-alpha-700);
   --color-bg-overlay-muted: var(--color-palette-static-black-alpha-500);
+  --color-bg-layer-fill: var(--color-bg-layer-default-pressed);
+  --color-bg-magic-weak: #f9f2ee;
   --color-bg-transparent: #00000000;
   --color-bg-transparent-pressed: var(--color-palette-static-black-alpha-100);
 
@@ -177,9 +184,17 @@
   --color-stroke-neutral-subtle: var(--color-palette-static-black-alpha-200);
   --color-stroke-neutral-weak: var(--color-palette-gray-400);
   --color-stroke-critical: var(--color-palette-red-700);
+  --color-stroke-critical-solid: var(--color-palette-red-700);
+  --color-stroke-critical-weak: var(--color-palette-red-300);
   --color-stroke-warning: var(--color-palette-yellow-700);
+  --color-stroke-warning-solid: var(--color-palette-yellow-700);
+  --color-stroke-warning-weak: var(--color-palette-yellow-300);
   --color-stroke-informative: var(--color-palette-blue-700);
+  --color-stroke-informative-solid: var(--color-palette-blue-700);
+  --color-stroke-informative-weak: var(--color-palette-blue-300);
   --color-stroke-positive: var(--color-palette-green-700);
+  --color-stroke-positive-solid: var(--color-palette-green-700);
+  --color-stroke-positive-weak: var(--color-palette-green-300);
 
   /* Radius */
   --radius-r0_5: 2px;
@@ -213,6 +228,35 @@
   --space-x20: 80px;
   --space-x24: 96px;
   --space-x32: 128px;
+
+  /* Dimension aliases (Seed style) */
+  --dimension-x0_5: var(--space-x0_5);
+  --dimension-x1: var(--space-x1);
+  --dimension-x1_5: var(--space-x1_5);
+  --dimension-x2: var(--space-x2);
+  --dimension-x2_5: var(--space-x2_5);
+  --dimension-x3: var(--space-x3);
+  --dimension-x4: var(--space-x4);
+  --dimension-x5: var(--space-x5);
+  --dimension-x6: var(--space-x6);
+  --dimension-x7: var(--space-x7);
+  --dimension-x8: var(--space-x8);
+  --dimension-x9: var(--space-x9);
+  --dimension-x10: var(--space-x10);
+  --dimension-x12: var(--space-x12);
+  --dimension-x14: var(--space-x14);
+  --dimension-x16: var(--space-x16);
+  --dimension-x20: var(--space-x20);
+  --dimension-x24: var(--space-x24);
+  --dimension-x32: var(--space-x32);
+
+  /* Dimension semantic spacing */
+  --dimension-spacing-x-between-chips: var(--dimension-x2);
+  --dimension-spacing-x-global-gutter: var(--dimension-x4);
+  --dimension-spacing-y-component-default: var(--dimension-x3);
+  --dimension-spacing-y-nav-to-title: var(--dimension-x5);
+  --dimension-spacing-y-screen-bottom: var(--dimension-x14);
+  --dimension-spacing-y-between-text: var(--dimension-x1_5);
 
   /* Elevation */
   --elevation-s1: 0px 1px 4px 0px #00000014;

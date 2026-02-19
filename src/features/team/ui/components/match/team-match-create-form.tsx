@@ -256,8 +256,8 @@ export function TeamMatchCreateForm({ team, onClose }: TeamMatchCreateFormProps)
               selectedDate={selectedDate}
               onSelect={(date) => date && setSelectedDate(date)}
               showAllOption={false}
-              className="-mx-5 w-[calc(100%+40px)]"
-              listClassName="px-5"
+              className="-mx-(--dimension-spacing-x-global-gutter)"
+              listClassName="px-(--dimension-spacing-x-global-gutter)"
             />
           </div>
 

@@ -146,8 +146,8 @@ export function MatchCreateBasicInfo({
                 selectedDate={selectedDate}
                 onSelect={(date) => date && setSelectedDate(date)}
                 showAllOption={false}
-                className="-mx-5 w-[calc(100%+40px)]" // Negative margin to bleed to edge
-                listClassName="px-5" // Content alignment
+                className="-mx-(--dimension-spacing-x-global-gutter)"
+                listClassName="px-(--dimension-spacing-x-global-gutter)"
             />
         </div>
 

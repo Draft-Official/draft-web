@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import ScrollContainer from 'react-indiana-drag-scroll';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 
 export interface DateOption {
@@ -27,44 +27,98 @@ export function DateStrip({
   onSelect,
   showAllOption = false,
   className,
-  listClassName = 'px-4',
+  listClassName = 'px-(--dimension-spacing-x-global-gutter)',
 }: DateStripProps) {
+  const viewportRef = React.useRef<HTMLDivElement>(null);
+  const [canScrollPrev, setCanScrollPrev] = React.useState(false);
+  const [canScrollNext, setCanScrollNext] = React.useState(false);
+
+  const updateArrowState = React.useCallback(() => {
+    const el = viewportRef.current;
+    if (!el) return;
+
+    const maxScrollLeft = el.scrollWidth - el.clientWidth;
+    const threshold = 2;
+
+    setCanScrollPrev(el.scrollLeft > threshold);
+    setCanScrollNext(el.scrollLeft < maxScrollLeft - threshold);
+  }, []);
+
+  React.useEffect(() => {
+    const el = viewportRef.current;
+    if (!el) return;
+
+    updateArrowState();
+
+    const handleScroll = () => updateArrowState();
+    el.addEventListener('scroll', handleScroll, { passive: true });
+
+    let resizeObserver: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(() => updateArrowState());
+      resizeObserver.observe(el);
+      if (el.firstElementChild) {
+        resizeObserver.observe(el.firstElementChild);
+      }
+    }
+
+    return () => {
+      el.removeEventListener('scroll', handleScroll);
+      resizeObserver?.disconnect();
+    };
+  }, [dates.length, showAllOption, listClassName, updateArrowState]);
+
+  const handleArrowClick = React.useCallback((direction: 'prev' | 'next') => {
+    const el = viewportRef.current;
+    if (!el) return;
+
+    const targetLeft = direction === 'next' ? el.scrollWidth : 0;
+    el.scrollTo({ left: targetLeft, behavior: 'smooth' });
+  }, []);
+
   return (
-    <div className={cn('w-full', className)}>
-      <ScrollContainer className="w-full overflow-x-auto no-scrollbar cursor-grab active:cursor-grabbing">
-        <div className={cn('flex gap-2 pb-1 min-w-max', listClassName)}>
+    <div className={cn('relative w-full', className)}>
+      <div ref={viewportRef} className="w-full overflow-x-auto no-scrollbar scroll-smooth">
+        <div
+          className={cn(
+            'flex gap-(--dimension-spacing-x-between-chips) pb-1 min-w-max',
+            listClassName
+          )}
+        >
           {showAllOption && (
             <button
+              data-date-strip-item
               type="button"
               onClick={() => onSelect(null)}
               className={cn(
-                'flex flex-col items-center justify-center min-w-[64px] h-[64px] rounded-xl border transition-all active:scale-95 flex-shrink-0',
+                'flex flex-col items-center justify-center gap-(--dimension-spacing-y-between-text) min-w-[64px] h-[64px] rounded-xl border transition-colors active:scale-95 flex-shrink-0',
                 selectedDate === null
-                  ? 'bg-slate-900 border-slate-900 text-white shadow-md'
-                  : 'bg-white border-slate-100 text-slate-600 hover:bg-slate-50'
+                  ? 'bg-foreground border-foreground text-background'
+                  : 'bg-background border-border text-foreground/80 hover:bg-muted/60'
               )}
             >
-              <span className="text-[11px] font-medium mb-0.5">전체</span>
+              <span className="text-[11px] font-medium">전체</span>
               <span className="text-[13px] font-bold">보기</span>
             </button>
           )}
 
           {dates.map((d) => (
             <button
+              data-date-strip-item
               type="button"
               key={d.dateISO}
               onClick={() => onSelect(d.dateISO)}
               className={cn(
-                'flex flex-col items-center justify-center min-w-[64px] h-[64px] rounded-xl border transition-all active:scale-95 flex-shrink-0',
+                'flex flex-col items-center justify-center gap-(--dimension-spacing-y-between-text) min-w-[64px] h-[64px] rounded-xl border transition-colors active:scale-95 flex-shrink-0',
                 selectedDate === d.dateISO
-                  ? 'bg-slate-900 border-slate-900 text-white shadow-md'
-                  : 'bg-white border-slate-100 text-slate-400 hover:bg-slate-50'
+                  ? 'bg-foreground border-foreground text-background'
+                  : 'bg-background border-border text-muted-foreground hover:bg-muted/60'
               )}
             >
               <span
                 className={cn(
-                  'text-[11px] mb-1 font-medium',
-                  selectedDate === d.dateISO ? 'text-slate-300' : 'text-slate-500'
+                  'text-[11px] font-medium',
+                  selectedDate === d.dateISO ? 'text-background/80' : 'text-muted-foreground'
                 )}
               >
                 {d.dayStr}
@@ -73,7 +127,33 @@ export function DateStrip({
             </button>
           ))}
         </div>
-      </ScrollContainer>
+      </div>
+
+      {canScrollPrev && (
+        <div className="pointer-events-none absolute left-0 top-0 bottom-0 flex items-center">
+          <button
+            type="button"
+            aria-label="이전 날짜 보기"
+            onClick={() => handleArrowClick('prev')}
+            className="pointer-events-auto absolute left-1 inline-flex h-7 w-7 items-center justify-center rounded-full border border-border bg-background text-foreground hover:bg-muted"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
+      {canScrollNext && (
+        <div className="pointer-events-none absolute right-0 top-0 bottom-0 flex items-center">
+          <button
+            type="button"
+            aria-label="다음 날짜 보기"
+            onClick={() => handleArrowClick('next')}
+            className="pointer-events-auto absolute right-1 inline-flex h-7 w-7 items-center justify-center rounded-full border border-border bg-background text-foreground hover:bg-muted"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -187,7 +187,7 @@ export function FilterBar({
       />
 
       {/* 2. Scrollable Section: Date Strip & Filter Bar */}
-      <div className="bg-white shadow-sm border-b border-slate-100 pt-2">
+      <div className="bg-background border-b border-slate-100 pt-(--dimension-spacing-y-component-default)">
         {/* Date Strip */}
         <DateStrip
           dates={calendarDates}
@@ -196,10 +196,10 @@ export function FilterBar({
           showAllOption={true}
         />
 
-        <Separator className="bg-slate-200 mt-1.5" />
+        <Separator className="bg-slate-100/60 mt-1.5 mt-(--dimension-spacing-y-between-text)" />
 
         {/* Integrated Filter Bar */}
-        <div className="px-4 pt-1.5 pb-1.5 flex gap-2 overflow-x-auto no-scrollbar bg-white w-full items-center">
+        <div className="px-(--dimension-spacing-x-global-gutter) py-(--dimension-spacing-y-component-default) flex gap-(--dimension-spacing-x-between-chips) overflow-x-auto no-scrollbar bg-background w-full items-center">
 
         {/* (A) Location Filter */}
         <Chip 
