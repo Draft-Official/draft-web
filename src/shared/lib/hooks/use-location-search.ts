@@ -2,6 +2,12 @@ import { useState, useRef, useCallback } from 'react';
 import type { LocationData } from '@/shared/types/location.types';
 import type { GymFacilities } from '@/shared/types/jsonb.types';
 
+export interface LocationSearchResolvedValue {
+  locationData: LocationData | null;
+  isExistingGym: boolean;
+  gymFacilities: GymFacilities | null;
+}
+
 export interface UseLocationSearchReturn {
   location: string;
   locationData: LocationData | null;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, ArrowRight, Check, Loader2 } from 'lucide-react';
@@ -10,7 +10,6 @@ import { Button } from '@/shared/ui/shadcn/button';
 
 import { useCreateTeam } from '@/features/team/api/team-info/mutations';
 import { useAuth } from '@/shared/session';
-import { useLocationSearch } from '@/shared/lib/hooks/use-location-search';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { createGymService } from '@/entities/gym';
 import { createTeamService } from '@/entities/team';
@@ -25,10 +24,12 @@ import {
   TEAM_CODE_ERROR_MESSAGE,
   type RegularDayValue,
 } from '@/shared/config/team-constants';
+import type { LocationData } from '@/shared/types/location.types';
 import type { GenderValue } from '@/shared/config/match-constants';
 import type { CreateTeamInput } from '@/features/team/model/types';
 import type { LevelRange, AgeRange } from '@/shared/types/jsonb.types';
 import { parseRegionFromAddress } from '@/shared/lib/parse-region';
+import type { LocationSearchResolvedValue } from '@/shared/lib/hooks/use-location-search';
 
 interface TeamCreateFormData {
   // Step 1: 팀 정보
@@ -54,6 +55,7 @@ export function TeamCreateForm() {
   const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 3;
+  const [locationData, setLocationData] = useState<LocationData | null>(null);
 
   const methods = useForm<TeamCreateFormData>({
     defaultValues: {
@@ -73,17 +75,9 @@ export function TeamCreateForm() {
 
   const { handleSubmit, watch, setValue, trigger } = methods;
 
-  // Location search hook
-  const {
-    location,
-    locationData,
-    searchResults: locationSearchResults,
-    isDropdownOpen: showLocationDropdown,
-    isExistingGym,
-    handleSearch: handleLocationSearch,
-    handleSelect: handleLocationSelect,
-    handleClear: handleClearLocation,
-  } = useLocationSearch();
+  const handleLocationResolvedChange = useCallback((next: LocationSearchResolvedValue) => {
+    setLocationData(next.locationData);
+  }, []);
 
   // Team code validation state
   const [isCheckingCode, setIsCheckingCode] = useState(false);
@@ -362,14 +356,8 @@ export function TeamCreateForm() {
             {currentStep === 2 && (
               <TeamCreateStepSchedule
                 regularDay={regularDay}
-                location={location}
                 locationData={locationData}
-                locationSearchResults={locationSearchResults}
-                showLocationDropdown={showLocationDropdown}
-                isExistingGym={isExistingGym}
-                onLocationSearch={handleLocationSearch}
-                onLocationSelect={handleLocationSelect}
-                onClearLocation={handleClearLocation}
+                onLocationResolvedChange={handleLocationResolvedChange}
               />
             )}
 

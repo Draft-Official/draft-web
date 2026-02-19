@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
@@ -12,7 +12,9 @@ import {
   RefereeTypeValue,
   MatchFormatValue,
 } from '@/shared/config/match-constants';
-import { useLocationSearch } from '@/shared/lib/hooks/use-location-search';
+import type { GymFacilities } from '@/shared/types/jsonb.types';
+import type { LocationData } from '@/shared/types/location.types';
+import type { LocationSearchResolvedValue } from '@/shared/lib/hooks/use-location-search';
 import { useMatchCreateBootstrap, useMatchEditPrefill, useMyRecentMatches } from '@/features/match-create/api/queries';
 import type { RecentMatchListItemDTO } from '@/features/match-create/model/types';
 import type { MatchCreateSubmitFormValues } from '@/features/match-create/model/submit-form.types';
@@ -55,6 +57,9 @@ export function useMatchCreateViewModel() {
   const [isRefereeSelected, setIsRefereeSelected] = useState(false);
 
   const [feeType, setFeeType] = useState<'cost' | 'beverage'>('cost');
+  const [locationData, setLocationData] = useState<LocationData | null>(null);
+  const [isExistingGym, setIsExistingGym] = useState(false);
+  const [gymFacilities, setGymFacilities] = useState<GymFacilities | null>(null);
 
   const { data: bootstrapData } = useMatchCreateBootstrap();
   const currentUser = bootstrapData?.user ?? null;
@@ -78,18 +83,11 @@ export function useMatchCreateViewModel() {
     localStorage.setItem('hideMatchCreateTip', 'true');
   };
 
-  const {
-    location,
-    locationData,
-    searchResults: locationSearchResults,
-    isDropdownOpen: showLocationDropdown,
-    isExistingGym,
-    gymFacilities,
-    handleSearch: handleLocationSearch,
-    handleSelect: handleLocationSelect,
-    handleClear: handleClearLocation,
-    openKakaoMap,
-  } = useLocationSearch();
+  const handleLocationResolvedChange = useCallback((next: LocationSearchResolvedValue) => {
+    setLocationData(next.locationData);
+    setIsExistingGym(next.isExistingGym);
+    setGymFacilities(next.gymFacilities);
+  }, []);
 
   const {
     parkingCost,
@@ -115,7 +113,7 @@ export function useMatchCreateViewModel() {
 
   const calendarDates = useMemo(() => getNext14Days(), []);
 
-  const handleInputFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     setTimeout(() => {
       e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 300);
@@ -147,7 +145,7 @@ export function useMatchCreateViewModel() {
 
   const { fillFromRecentMatch } = usePrefillFromRecentMatch({
     setValue,
-    handleLocationSelect,
+    setLocationData,
     setFeeType,
     setHasBeverage,
     setIsPositionMode,
@@ -220,8 +218,6 @@ export function useMatchCreateViewModel() {
     },
   });
 
-  const locationDivRef = useRef<HTMLDivElement>(null);
-
   const onBack = () => router.back();
 
   const handleSelectRecentMatch = async (match: RecentMatchListItemDTO) => {
@@ -243,17 +239,10 @@ export function useMatchCreateViewModel() {
     setSelectedDate,
     calendarDates,
 
-    location,
     locationData,
-    locationSearchResults,
-    showLocationDropdown,
     isExistingGym,
-    handleLocationSearch,
-    handleLocationSelect,
-    handleClearLocation,
-    openKakaoMap,
+    handleLocationResolvedChange,
     handleInputFocus,
-    locationDivRef,
 
     feeType,
     setFeeType,

@@ -1,17 +1,15 @@
 'use client';
 
-import { useRef } from 'react';
 import { useFormContext, Controller } from 'react-hook-form';
-import { Calendar, MapPin } from 'lucide-react';
-
-import { Input } from '@/shared/ui/shadcn/input';
+import { Calendar } from 'lucide-react';
 import { Label } from '@/shared/ui/shadcn/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/shadcn/select';
 import { TimePickerSelect } from '@/shared/ui/composite/time-picker-select';
 import { cn } from '@/shared/lib/utils';
+import type { LocationSearchResolvedValue } from '@/shared/lib/hooks/use-location-search';
 
 import { StepHeader } from './step-header';
-import { LocationCard } from '@/shared/ui/composite/location-card';
+import { LocationSearchField } from '@/shared/ui/composite/location-search-field';
 import { REGULAR_DAY_OPTIONS, type RegularDayValue } from '@/shared/config/team-constants';
 import type { LocationData } from '@/shared/types/location.types';
 
@@ -28,29 +26,16 @@ const DURATION_OPTIONS = [
 
 interface TeamCreateStepScheduleProps {
   regularDay: RegularDayValue | '';
-  location: string;
   locationData: LocationData | null;
-  locationSearchResults: LocationData[];
-  showLocationDropdown: boolean;
-  isExistingGym: boolean;
-  onLocationSearch: (query: string) => void;
-  onLocationSelect: (data: LocationData) => void;
-  onClearLocation: () => void;
+  onLocationResolvedChange: (next: LocationSearchResolvedValue) => void;
 }
 
 export function TeamCreateStepSchedule({
   regularDay,
-  location,
   locationData,
-  locationSearchResults,
-  showLocationDropdown,
-  isExistingGym,
-  onLocationSearch,
-  onLocationSelect,
-  onClearLocation,
+  onLocationResolvedChange,
 }: TeamCreateStepScheduleProps) {
   const { control, setValue } = useFormContext();
-  const locationInputRef = useRef<HTMLDivElement>(null);
 
   return (
     <div className="space-y-6">
@@ -119,46 +104,12 @@ export function TeamCreateStepSchedule({
       </div>
 
       {/* 홈구장 */}
-      <div className="space-y-2">
-        <Label className="text-sm font-bold text-slate-700">홈구장</Label>
-        {locationData ? (
-          <LocationCard
-            location={locationData}
-            isExistingGym={isExistingGym}
-            onClear={onClearLocation}
-          />
-        ) : (
-          <div className="relative" ref={locationInputRef}>
-            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 z-10" />
-            <Input
-              placeholder="체육관 검색 (예: 서초종합체육관)"
-              value={location}
-              onChange={(e) => onLocationSearch(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
-              className="pl-10 h-12"
-            />
-            {showLocationDropdown && locationSearchResults.length > 0 && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-[200px] overflow-y-auto">
-                {locationSearchResults.map((result, index) => (
-                  <button
-                    key={index}
-                    type="button"
-                    onClick={() => onLocationSelect(result)}
-                    className="w-full px-4 py-3 text-left hover:bg-slate-50 border-b border-slate-100 last:border-b-0"
-                  >
-                    <div className="text-sm font-medium text-slate-900">
-                      {result.buildingName || result.address}
-                    </div>
-                    {result.buildingName && (
-                      <div className="text-xs text-slate-500">{result.address}</div>
-                    )}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+      <LocationSearchField
+        label="홈구장"
+        required
+        value={locationData}
+        onResolvedChange={onLocationResolvedChange}
+      />
     </div>
   );
 }

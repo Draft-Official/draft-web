@@ -3,8 +3,6 @@
 import { useRef } from 'react';
 import { useFormContext, Controller } from 'react-hook-form';
 import {
-  MapPin,
-  ExternalLink,
   Building2
 } from 'lucide-react';
 import { Input } from '@/shared/ui/shadcn/input';
@@ -15,30 +13,23 @@ import { Switch } from '@/shared/ui/shadcn/switch';
 import { TimePickerSelect } from '@/shared/ui/composite/time-picker-select';
 // import ScrollContainer from 'react-indiana-drag-scroll'; // Moved to internal component
 import { DateStrip } from '@/shared/ui/composite/date-strip';
-import { SelectedLocationCard } from './selected-location-card';
-import type { LocationData } from '@/features/match-create/model/types';
+import { LocationSearchField } from '@/shared/ui/composite/location-search-field';
+import type { LocationSearchResolvedValue } from '@/shared/lib/hooks/use-location-search';
+import type { LocationData } from '@/shared/types/location.types';
 import type { DateOption } from '@/features/match-create/lib/utils';
 
 interface MatchCreateBasicInfoProps {
   selectedDate: string | null;
   setSelectedDate: (date: string) => void;
   calendarDates: DateOption[];
-  location: string;
-  handleLocationSearch: (query: string) => void;
-  handleInputFocus: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  showLocationDropdown: boolean;
-  locationSearchResults: LocationData[];
-  handleLocationSelect: (data: LocationData) => void;
+  handleInputFocus: (e: React.FocusEvent<HTMLInputElement>) => void;
   locationData: LocationData | null;
-  openKakaoMap?: () => void; // Optional - not used when card is shown
-  locationInputRef: React.RefObject<HTMLDivElement | null>;
+  onLocationResolvedChange: (next: LocationSearchResolvedValue) => void;
   children?: React.ReactNode;
   feeType: "cost" | "beverage";
   setFeeType: (v: "cost" | "beverage") => void;
   hasBeverage: boolean;
   setHasBeverage: (v: boolean) => void;
-  isExistingGym?: boolean;
-  onClearLocation?: () => void;
 }
 
 const DURATION_OPTIONS = [
@@ -70,25 +61,15 @@ export function MatchCreateBasicInfo({
   selectedDate,
   setSelectedDate,
   calendarDates,
-  location,
-  handleLocationSearch,
   handleInputFocus,
-  showLocationDropdown,
-  locationSearchResults,
-  handleLocationSelect,
   locationData,
-  openKakaoMap,
-  locationInputRef,
+  onLocationResolvedChange,
   children,
   feeType,
   setFeeType,
   hasBeverage,
-  setHasBeverage,
-  isExistingGym = false,
-  onClearLocation
+  setHasBeverage
 }: MatchCreateBasicInfoProps) {
-  void openKakaoMap;
-
   const { register, control, setValue, getValues, watch } = useFormContext();
   const methods = { getValues }; // Helper to match prev code
 
@@ -191,80 +172,12 @@ export function MatchCreateBasicInfo({
             </div>
         </div>
 
-        {/* Location - Kakao Map Search */}
-        <div className="space-y-2">
-            <Label className="text-sm font-bold text-slate-900 mb-2 block">장소</Label>
-
-            {locationData ? (
-                <SelectedLocationCard
-                    location={locationData}
-                    isExistingGym={isExistingGym}
-                    onClear={() => onClearLocation?.()}
-                />
-            ) : (
-                <div className="relative" ref={locationInputRef}>
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 z-10" />
-                    <Input
-                        placeholder="체육관 검색 (예: 서초종합체육관)"
-                        value={location}
-                        onChange={(e) => handleLocationSearch(e.target.value)}
-                        onFocus={(e) => {
-                            handleInputFocus(e);
-                        }}
-                        className="pl-10 h-12 pr-12"
-                    />
-
-                    {/* Search Results Dropdown */}
-                    {showLocationDropdown && locationSearchResults.length > 0 && (
-                        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-[240px] overflow-y-auto">
-                            {locationSearchResults.map((result, index) => (
-                                <div
-                                    key={index}
-                                    className="w-full flex items-center justify-between border-b border-slate-100 last:border-b-0 hover:bg-slate-50 transition-colors group"
-                                >
-                                    {/* Main Select Action */}
-                                    <button
-                                        onClick={() => handleLocationSelect(result)}
-                                        className="flex-1 px-4 py-3 text-left flex items-start gap-2 min-w-0"
-                                        type="button"
-                                    >
-                                        <MapPin className="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0 group-hover:text-primary" />
-                                        <div className="flex-1 min-w-0">
-                                            {result.buildingName && (
-                                                <div className="text-sm font-bold text-slate-900 mb-0.5 truncate">
-                                                    {result.buildingName}
-                                                </div>
-                                            )}
-                                            <div className={cn(
-                                                "text-xs text-slate-600 truncate",
-                                                !result.buildingName && "text-sm font-medium text-slate-900"
-                                            )}>
-                                                {result.address}
-                                            </div>
-                                        </div>
-                                    </button>
-
-                                    {/* External Link Icon */}
-                                    {result.placeUrl && (
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                window.open(result.placeUrl, '_blank');
-                                            }}
-                                            className="px-3 py-3 text-slate-400 hover:text-primary transition-colors flex-shrink-0"
-                                            title="카카오맵에서 보기"
-                                            type="button"
-                                        >
-                                            <ExternalLink className="w-4 h-4" />
-                                        </button>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            )}
-        </div>
+        <LocationSearchField
+            label="장소"
+            value={locationData}
+            onResolvedChange={onLocationResolvedChange}
+            onInputFocus={handleInputFocus}
+        />
 
         {children}
 

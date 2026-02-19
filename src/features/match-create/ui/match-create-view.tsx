@@ -27,17 +27,10 @@ export function MatchCreateView() {
     setSelectedDate,
     calendarDates,
 
-    location,
     locationData,
-    locationSearchResults,
-    showLocationDropdown,
     isExistingGym,
-    handleLocationSearch,
-    handleLocationSelect,
-    handleClearLocation,
-    openKakaoMap,
+    handleLocationResolvedChange,
     handleInputFocus,
-    locationDivRef,
 
     feeType,
     setFeeType,
@@ -172,21 +165,13 @@ export function MatchCreateView() {
               selectedDate={selectedDate}
               setSelectedDate={setSelectedDate}
               calendarDates={calendarDates}
-              location={location}
-              handleLocationSearch={handleLocationSearch}
-              handleInputFocus={handleInputFocus}
-              showLocationDropdown={showLocationDropdown}
-              locationSearchResults={locationSearchResults}
-              handleLocationSelect={handleLocationSelect}
               locationData={locationData}
-              openKakaoMap={openKakaoMap}
-              locationInputRef={locationDivRef}
+              onLocationResolvedChange={handleLocationResolvedChange}
+              handleInputFocus={handleInputFocus}
               feeType={feeType}
               setFeeType={setFeeType}
               hasBeverage={hasBeverage}
               setHasBeverage={setHasBeverage}
-              isExistingGym={isExistingGym}
-              onClearLocation={handleClearLocation}
             >
               <MatchCreateFacilities
                 hasWater={hasWater} setHasWater={setHasWater}
