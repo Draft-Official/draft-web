@@ -20,7 +20,7 @@ export default async function RootLayout({
 }>) {
   return (
     <html lang="ko" className={geist.variable}>
-      <body className="antialiased text-foreground bg-background">
+      <body className="antialiased text-foreground bg-[var(--layout-root-bg)]">
         <Providers>
           <LayoutShell>{children}</LayoutShell>
         </Providers>

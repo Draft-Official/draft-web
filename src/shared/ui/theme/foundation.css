@@ -1,7 +1,8 @@
 :root {
   /* Seed palette (light) */
   --color-palette-gray-00: #ffffff;
-  --color-palette-paper-50: #FAF9F6;
+  --color-palette-paper-50: #faf9f6;
+  --color-palette-paper-100: #faf9f7;
   --color-palette-gray-50: #f8f9fa;
   --color-palette-gray-100: #f3f4f5;
   --color-palette-gray-200: #e6e8eb;
@@ -122,12 +123,12 @@
   --color-bg-brand-weak: var(--color-palette-draft-100);
   --color-bg-brand-weak-pressed: var(--color-palette-draft-200);
 
-  --color-bg-layer-basement: var(--color-palette-gray-200);
+  --color-bg-layer-basement: var(--color-palette-gray-00);
   --color-bg-layer-default: var(--color-palette-gray-00);
   --color-bg-layer-default-pressed: var(--color-palette-gray-100);
   --color-bg-layer-floating: var(--color-palette-gray-00);
   --color-bg-layer-floating-pressed: var(--color-palette-gray-100);
-  --color-bg-app-root: var(--color-palette-paper-50);
+  --color-bg-app-root: var(--color-palette-gray-00);
 
   --color-bg-neutral-solid: var(--color-palette-gray-1000);
   --color-bg-neutral-solid-muted: var(--color-palette-gray-800);

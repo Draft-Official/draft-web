@@ -7,7 +7,7 @@ import { Separator } from '@/shared/ui/shadcn/separator';
 import { Chip } from '@/shared/ui/shadcn/chip';
 import { RegionFilterModal } from './region-filter-modal';
 import { Header } from './components/header';
-import { DateStrip } from './components/date-strip';
+import { DateStrip } from '@/shared/ui/composite/date-strip';
 import { DetailedFilterModal } from './components/filter/detail-filter-modal';
 import { StartTimeFilterModal } from './components/filter/start-time-filter-modal';
 import { PriceFilter } from './components/filter/price-filter';

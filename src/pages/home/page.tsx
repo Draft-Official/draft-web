@@ -79,8 +79,8 @@ export default function GuestMatchListPage() {
   }, [filteredMatches]);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex justify-center font-sans">
-      <div className="app-content-container bg-white min-h-screen shadow-sm relative">
+    <div className="min-h-screen bg-background flex justify-center font-sans">
+      <div className="app-content-container bg-background min-h-screen relative">
 
         {/* --- Sticky Header & Filters --- */}
         <FilterBar

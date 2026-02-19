@@ -112,7 +112,7 @@ export function TeamMatchDetailView({
   const hasVoted = myVoteStatus && myVoteStatus !== 'PENDING';
 
   return (
-    <div className="min-h-screen bg-white relative pb-[100px] app-content-container shadow-2xl shadow-slate-200">
+    <div className="min-h-screen bg-background relative pb-[100px] app-content-container">
 
       {/* 1. Header (Sticky) */}
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-100 h-[52px] flex items-center justify-between px-2">

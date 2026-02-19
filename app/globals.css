@@ -13,6 +13,7 @@
   --layout-content-max: 760px;
   --layout-mobile-max: 430px;
   --layout-sidebar-width: 240px;
+  --layout-root-bg: var(--color-bg-app-root);
 }
 
 @theme inline {
@@ -71,7 +72,8 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
+    background-color: var(--layout-root-bg);
   }
 }
 

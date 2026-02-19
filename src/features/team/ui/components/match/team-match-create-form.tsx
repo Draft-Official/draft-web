@@ -7,7 +7,7 @@ import { Button } from '@/shared/ui/shadcn/button';
 import { Label } from '@/shared/ui/shadcn/label';
 import { Textarea } from '@/shared/ui/shadcn/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/shadcn/select';
-import { DateStrip, DateOption } from '@/features/match/ui/components/date-strip';
+import { DateStrip, type DateOption } from '@/shared/ui/composite/date-strip';
 import { TimePickerSelect } from '@/shared/ui/composite/time-picker-select';
 import { LocationCard } from '@/shared/ui/composite/location-card';
 import { useCreateTeamMatch } from '@/features/team/api/match/mutations';

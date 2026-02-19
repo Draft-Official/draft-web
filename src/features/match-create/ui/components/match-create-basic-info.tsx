@@ -14,7 +14,7 @@ import { cn } from '@/shared/lib/utils';
 import { Switch } from '@/shared/ui/shadcn/switch';
 import { TimePickerSelect } from '@/shared/ui/composite/time-picker-select';
 // import ScrollContainer from 'react-indiana-drag-scroll'; // Moved to internal component
-import { DateStrip } from '@/features/match/ui/components/date-strip';
+import { DateStrip } from '@/shared/ui/composite/date-strip';
 import { SelectedLocationCard } from './selected-location-card';
 import type { LocationData } from '@/features/match-create/model/types';
 import type { DateOption } from '@/features/match-create/lib/utils';
