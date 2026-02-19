@@ -12,7 +12,7 @@ import { Label } from '@/shared/ui/base/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/base/select';
 import { cn } from '@/shared/lib/utils';
 import { Switch } from '@/shared/ui/base/switch';
-import { TimePickerSelect } from '@/shared/ui/base/time-picker-select';
+import { TimePickerSelect } from '@/shared/ui/composite/time-picker-select';
 // import ScrollContainer from 'react-indiana-drag-scroll'; // Moved to internal component
 import { DateStrip } from '@/features/match/ui/components/date-strip';
 import { SelectedLocationCard } from './selected-location-card';

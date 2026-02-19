@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Minus, Plus } from 'lucide-react';
 import { Button } from '@/shared/ui/base/button';
-import { Chip } from '@/shared/ui/base/chip';
+import { Chip } from '@/shared/ui/composite/chip';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/base/dialog";
 import { ScrollArea } from "@/shared/ui/base/scroll-area";
 import { GENDER_OPTIONS, MATCH_FORMAT_OPTIONS } from '@/shared/config/match-constants';

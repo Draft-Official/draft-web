@@ -8,7 +8,7 @@ import { Label } from '@/shared/ui/base/label';
 import { Textarea } from '@/shared/ui/base/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/base/select';
 import { DateStrip, DateOption } from '@/features/match/ui/components/date-strip';
-import { TimePickerSelect } from '@/shared/ui/base/time-picker-select';
+import { TimePickerSelect } from '@/shared/ui/composite/time-picker-select';
 import { LocationCard } from '@/shared/ui/composite/location-card';
 import { useCreateTeamMatch } from '@/features/team/api/match/mutations';
 import { useAuth } from '@/shared/session';

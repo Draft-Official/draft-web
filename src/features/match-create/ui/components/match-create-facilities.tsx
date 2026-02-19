@@ -4,7 +4,7 @@ import { Input } from '@/shared/ui/base/input';
 import { Label } from '@/shared/ui/base/label';
 import { Button } from '@/shared/ui/base/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/shared/ui/base/dialog';
-import { Chip } from '@/shared/ui/base/chip';
+import { Chip } from '@/shared/ui/composite/chip';
 import { cn } from '@/shared/lib/utils';
 import { COURT_SIZE_OPTIONS, CourtSizeValue } from '@/shared/config/match-constants';
 import { X } from 'lucide-react';

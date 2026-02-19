@@ -4,8 +4,8 @@ import { useFormContext } from 'react-hook-form';
 import { Settings } from 'lucide-react';
 
 import { Label } from '@/shared/ui/base/label';
-import { Chip } from '@/shared/ui/base/chip';
-import { SkillRangeSlider } from '@/shared/ui/base/skill-range-slider';
+import { Chip } from '@/shared/ui/composite/chip';
+import { SkillRangeSlider } from '@/shared/ui/composite/skill-range-slider';
 import { AgeRangeSelector } from '@/shared/ui/composite/age-range-selector';
 
 import { StepHeader } from './step-header';

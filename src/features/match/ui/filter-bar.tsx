@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { RotateCcw } from 'lucide-react';
 import { Button } from '@/shared/ui/base/button';
 import { Separator } from '@/shared/ui/shadcn/separator';
-import { Chip } from '@/shared/ui/base/chip';
+import { Chip } from '@/shared/ui/composite/chip';
 import { RegionFilterModal } from './region-filter-modal';
 import { Header } from './components/header';
 import { DateStrip } from './components/date-strip';

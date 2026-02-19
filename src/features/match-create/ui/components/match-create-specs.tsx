@@ -1,5 +1,5 @@
 import { Label } from '@/shared/ui/base/label';
-import { Chip } from '@/shared/ui/base/chip';
+import { Chip } from '@/shared/ui/composite/chip';
 import { Settings } from 'lucide-react';
 import {
   MATCH_FORMAT_OPTIONS,
@@ -8,7 +8,7 @@ import {
   MatchFormatValue
 } from '@/shared/config/match-constants';
 import { AgeSelector } from './age-selector';
-import { SkillRangeSlider } from '@/shared/ui/base/skill-range-slider';
+import { SkillRangeSlider } from '@/shared/ui/composite/skill-range-slider';
 
 interface MatchCreateSpecsProps {
   matchFormat: MatchFormatValue;
