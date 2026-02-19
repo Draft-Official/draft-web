@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Chip } from '@/shared/ui/composite/chip';
+import { Chip } from '@/shared/ui/shadcn/chip';
 import { AGE_OPTIONS } from '@/shared/config/match-constants';
 
 interface AgeRangeSelectorProps {

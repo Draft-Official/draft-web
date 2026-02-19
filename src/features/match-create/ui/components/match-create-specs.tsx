@@ -1,5 +1,5 @@
 import { Label } from '@/shared/ui/base/label';
-import { Chip } from '@/shared/ui/composite/chip';
+import { Chip } from '@/shared/ui/shadcn/chip';
 import { Settings } from 'lucide-react';
 import {
   MATCH_FORMAT_OPTIONS,

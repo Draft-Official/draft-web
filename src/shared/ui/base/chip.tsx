@@ -1,1 +1,1 @@
-export { Chip } from '@/shared/ui/composite/chip';
+export { Chip } from '@/shared/ui/shadcn/chip';

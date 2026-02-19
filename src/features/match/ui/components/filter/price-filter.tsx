@@ -1,6 +1,6 @@
 'use client';
 
-import { Chip } from '@/shared/ui/composite/chip';
+import { Chip } from '@/shared/ui/shadcn/chip';
 import { cn } from '@/shared/lib/utils';
 import {
   DropdownMenu,

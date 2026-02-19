@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Chip } from '@/shared/ui/composite/chip';
+import { Chip } from '@/shared/ui/shadcn/chip';
 
 interface FilterChipProps {
   label: string;
