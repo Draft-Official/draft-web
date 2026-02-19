@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Megaphone } from 'lucide-react';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
-import { Card } from '@/shared/ui/base/card';
+import { Card } from '@/shared/ui/shadcn/card';
 
 interface PlatformAnnouncement {
   id: string;

@@ -10,6 +10,10 @@ interface SkillSliderProps {
 
 export function SkillSlider({ value, onChange }: SkillSliderProps) {
   const selectedSkill = SKILL_LEVELS.find(s => s.level === value) || SKILL_LEVELS[0];
+  const beginnerColor = 'var(--color-palette-green-500)';
+  const intermediateColor = 'var(--color-palette-yellow-600)';
+  const advancedColor = 'var(--color-palette-draft-600)';
+  const eliteColor = 'var(--color-palette-red-600)';
 
   return (
     <div className="space-y-4">
@@ -41,31 +45,31 @@ export function SkillSlider({ value, onChange }: SkillSliderProps) {
         <div className="flex gap-1 mt-1">
           {/* 초보 (1-2) */}
           <div className="flex gap-1" style={{ flex: 2 }}>
-            <div className="flex-1 h-[3px] rounded-full" style={{ backgroundColor: '#22C55E' }} />
-            <div className="flex-1 h-[3px] rounded-full" style={{ backgroundColor: '#22C55E' }} />
+            <div className="flex-1 h-[3px] rounded-full" style={{ backgroundColor: beginnerColor }} />
+            <div className="flex-1 h-[3px] rounded-full" style={{ backgroundColor: beginnerColor }} />
           </div>
           {/* 중급 (3-4) */}
           <div className="flex gap-1" style={{ flex: 2 }}>
-            <div className="flex-1 h-[3px] rounded-full" style={{ backgroundColor: '#EAB308' }} />
-            <div className="flex-1 h-[3px] rounded-full" style={{ backgroundColor: '#EAB308' }} />
+            <div className="flex-1 h-[3px] rounded-full" style={{ backgroundColor: intermediateColor }} />
+            <div className="flex-1 h-[3px] rounded-full" style={{ backgroundColor: intermediateColor }} />
           </div>
           {/* 상급 (5-6) */}
           <div className="flex gap-1" style={{ flex: 2 }}>
-            <div className="flex-1 h-[3px] rounded-full" style={{ backgroundColor: 'var(--color-fg-brand)' }} />
-            <div className="flex-1 h-[3px] rounded-full" style={{ backgroundColor: 'var(--color-fg-brand)' }} />
+            <div className="flex-1 h-[3px] rounded-full" style={{ backgroundColor: advancedColor }} />
+            <div className="flex-1 h-[3px] rounded-full" style={{ backgroundColor: advancedColor }} />
           </div>
           {/* 선출 (7) */}
           <div style={{ flex: 1 }}>
-            <div className="h-[3px] rounded-full" style={{ backgroundColor: '#EF4444' }} />
+            <div className="h-[3px] rounded-full" style={{ backgroundColor: eliteColor }} />
           </div>
         </div>
 
         {/* Labels */}
         <div className="flex gap-1 mt-2">
-          <div className="text-center font-medium text-xs" style={{ flex: 2, color: '#22C55E' }}>초보</div>
-          <div className="text-center font-medium text-xs" style={{ flex: 2, color: '#EAB308' }}>중급</div>
-          <div className="text-center font-medium text-xs" style={{ flex: 2, color: 'var(--color-fg-brand)' }}>상급</div>
-          <div className="text-center font-medium text-xs" style={{ flex: 1, color: '#EF4444' }}>선출</div>
+          <div className="text-center font-medium text-xs" style={{ flex: 2, color: beginnerColor }}>초보</div>
+          <div className="text-center font-medium text-xs" style={{ flex: 2, color: intermediateColor }}>중급</div>
+          <div className="text-center font-medium text-xs" style={{ flex: 2, color: advancedColor }}>상급</div>
+          <div className="text-center font-medium text-xs" style={{ flex: 1, color: eliteColor }}>선출</div>
         </div>
       </div>
 

@@ -16,8 +16,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/shared/ui/base/dialog';
-import { Button } from '@/shared/ui/base/button';
+} from '@/shared/ui/shadcn/dialog';
+import { Button } from '@/shared/ui/shadcn/button';
 
 interface KebabMenuProps {
   matchId: string;

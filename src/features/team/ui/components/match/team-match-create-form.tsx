@@ -3,10 +3,10 @@
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { X, Building2, FileText, Loader2 } from 'lucide-react';
-import { Button } from '@/shared/ui/base/button';
-import { Label } from '@/shared/ui/base/label';
-import { Textarea } from '@/shared/ui/base/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/base/select';
+import { Button } from '@/shared/ui/shadcn/button';
+import { Label } from '@/shared/ui/shadcn/label';
+import { Textarea } from '@/shared/ui/shadcn/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/shadcn/select';
 import { DateStrip, DateOption } from '@/features/match/ui/components/date-strip';
 import { TimePickerSelect } from '@/shared/ui/composite/time-picker-select';
 import { LocationCard } from '@/shared/ui/composite/location-card';

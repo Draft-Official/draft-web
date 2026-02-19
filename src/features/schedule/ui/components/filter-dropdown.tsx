@@ -1,12 +1,12 @@
 'use client';
 
 import { Check, ChevronDown } from 'lucide-react';
-import { Button } from '@/shared/ui/base/button';
+import { Button } from '@/shared/ui/shadcn/button';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/shared/ui/base/popover';
+} from '@/shared/ui/shadcn/popover';
 import { cn } from '@/shared/lib/utils';
 import type { FilterOption } from '../../model/types';
 

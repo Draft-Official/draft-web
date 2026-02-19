@@ -7,18 +7,18 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/shared/ui/base/dialog';
-import { Button } from '@/shared/ui/base/button';
-import { Input } from '@/shared/ui/base/input';
-import { Label } from '@/shared/ui/base/label';
+} from '@/shared/ui/shadcn/dialog';
+import { Button } from '@/shared/ui/shadcn/button';
+import { Input } from '@/shared/ui/shadcn/input';
+import { Label } from '@/shared/ui/shadcn/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/shared/ui/base/select';
-import { Switch } from '@/shared/ui/base/switch';
+} from '@/shared/ui/shadcn/select';
+import { Switch } from '@/shared/ui/shadcn/switch';
 import { Checkbox } from '@/shared/ui/shadcn/checkbox';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/shared/ui/shadcn/accordion';
 import { cn } from '@/shared/lib/utils';

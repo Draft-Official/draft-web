@@ -1,14 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/shared/ui/base/button';
+import { Button } from '@/shared/ui/shadcn/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/shared/ui/base/dialog';
+} from '@/shared/ui/shadcn/dialog';
 import { Loader2, Copy, Check } from 'lucide-react';
 import { toast } from 'sonner';
 

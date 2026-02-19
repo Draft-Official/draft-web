@@ -2,15 +2,15 @@
 
 import { useState } from 'react';
 import { Calendar, Clock, MapPin, Navigation, Shield, User, Users, AlertCircle, Copy, Check } from 'lucide-react';
-import { Button } from '@/shared/ui/base/button';
+import { Button } from '@/shared/ui/shadcn/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/shared/ui/base/dialog';
-import { Badge } from '@/shared/ui/base/badge';
+} from '@/shared/ui/shadcn/dialog';
+import { Badge } from '@/shared/ui/shadcn/badge';
 import { cn } from '@/shared/lib/utils';
 import { formatMatchDate, formatMatchTime } from '@/shared/lib/date';
 import { toast } from 'sonner';

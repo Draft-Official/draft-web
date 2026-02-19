@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { Minus, Plus } from 'lucide-react';
-import { Button } from '@/shared/ui/base/button';
+import { Button } from '@/shared/ui/shadcn/button';
 import { Chip } from '@/shared/ui/shadcn/chip';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/base/dialog";
-import { ScrollArea } from "@/shared/ui/base/scroll-area";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/shadcn/dialog";
+import { ScrollArea } from "@/shared/ui/shadcn/scroll-area";
 import { GENDER_OPTIONS, MATCH_FORMAT_OPTIONS } from '@/shared/config/match-constants';
 import { cn } from '@/shared/lib/utils';
 

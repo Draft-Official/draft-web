@@ -15,21 +15,21 @@ import {
   X,
   FileText,
 } from 'lucide-react';
-import { Button } from '@/shared/ui/base/button';
-import { Textarea } from '@/shared/ui/base/textarea';
+import { Button } from '@/shared/ui/shadcn/button';
+import { Textarea } from '@/shared/ui/shadcn/textarea';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/shared/ui/base/dropdown-menu';
+} from '@/shared/ui/shadcn/dropdown-menu';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/shared/ui/base/dialog';
+} from '@/shared/ui/shadcn/dialog';
 import { toast } from 'sonner';
 import type { TeamExerciseManageDetailDTO, Participant } from '../../model/types';
 import { MOCK_TEAM_EXERCISE_MANAGE } from '../../model/mock-data';

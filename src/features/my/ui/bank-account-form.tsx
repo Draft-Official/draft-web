@@ -5,10 +5,10 @@ import { toast } from 'sonner';
 import { Info } from 'lucide-react';
 import { useAuth, useProfile, useUpdateProfile } from '@/shared/session';
 import type { SessionAccountInfo } from '@/shared/session';
-import { BankCombobox } from '@/shared/ui/base/bank-combobox';
-import { Input } from '@/shared/ui/base/input';
-import { Label } from '@/shared/ui/base/label';
-import { Button } from '@/shared/ui/base/button';
+import { BankCombobox } from '@/shared/ui/composite/bank-combobox';
+import { Input } from '@/shared/ui/shadcn/input';
+import { Label } from '@/shared/ui/shadcn/label';
+import { Button } from '@/shared/ui/shadcn/button';
 
 export function BankAccountForm() {
   const { user } = useAuth();

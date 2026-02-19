@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { ChevronRight } from 'lucide-react';
-import { Badge } from '@/shared/ui/base/badge';
+import { Badge } from '@/shared/ui/shadcn/badge';
 import { cn } from '@/shared/lib/utils';
 import {
   TEAM_ROLE_LABELS,

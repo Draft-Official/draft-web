@@ -7,11 +7,11 @@ import {
   ExternalLink,
   Building2
 } from 'lucide-react';
-import { Input } from '@/shared/ui/base/input';
-import { Label } from '@/shared/ui/base/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/base/select';
+import { Input } from '@/shared/ui/shadcn/input';
+import { Label } from '@/shared/ui/shadcn/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/shadcn/select';
 import { cn } from '@/shared/lib/utils';
-import { Switch } from '@/shared/ui/base/switch';
+import { Switch } from '@/shared/ui/shadcn/switch';
 import { TimePickerSelect } from '@/shared/ui/composite/time-picker-select';
 // import ScrollContainer from 'react-indiana-drag-scroll'; // Moved to internal component
 import { DateStrip } from '@/features/match/ui/components/date-strip';

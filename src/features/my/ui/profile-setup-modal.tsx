@@ -7,18 +7,18 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/shared/ui/base/dialog';
-import { Button } from '@/shared/ui/base/button';
-import { Input } from '@/shared/ui/base/input';
-import { Label } from '@/shared/ui/base/label';
+} from '@/shared/ui/shadcn/dialog';
+import { Button } from '@/shared/ui/shadcn/button';
+import { Input } from '@/shared/ui/shadcn/input';
+import { Label } from '@/shared/ui/shadcn/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/shared/ui/base/select';
-import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/base/avatar';
+} from '@/shared/ui/shadcn/select';
+import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/shadcn/avatar';
 import { cn } from '@/shared/lib/utils';
 import { filterNumericInput } from '@/shared/lib/input-utils';
 import { SkillSlider } from './skill-slider';

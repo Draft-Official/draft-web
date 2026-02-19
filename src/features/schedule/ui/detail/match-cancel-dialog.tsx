@@ -1,14 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/shared/ui/base/button';
+import { Button } from '@/shared/ui/shadcn/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/shared/ui/base/dialog';
+} from '@/shared/ui/shadcn/dialog';
 import type { MatchApplicantDTO } from '../../model/types';
 
 const MAX_LENGTH = 1000;

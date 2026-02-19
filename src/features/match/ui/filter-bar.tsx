@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { RotateCcw } from 'lucide-react';
-import { Button } from '@/shared/ui/base/button';
+import { Button } from '@/shared/ui/shadcn/button';
 import { Separator } from '@/shared/ui/shadcn/separator';
 import { Chip } from '@/shared/ui/shadcn/chip';
 import { RegionFilterModal } from './region-filter-modal';

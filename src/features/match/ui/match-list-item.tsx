@@ -3,9 +3,9 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { MapPin } from 'lucide-react';
-import { Button } from '@/shared/ui/base/button';
-import { Badge } from '@/shared/ui/base/badge';
-import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/base/avatar';
+import { Button } from '@/shared/ui/shadcn/button';
+import { Badge } from '@/shared/ui/shadcn/badge';
+import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/shadcn/avatar';
 import { cn } from '@/shared/lib/utils';
 import type { ApplicationStatusValue } from '@/shared/config/application-constants';
 import { getDayLabel } from '@/features/match/lib/utils';

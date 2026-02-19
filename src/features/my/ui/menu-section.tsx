@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { Card } from '@/shared/ui/base/card';
+import { Card } from '@/shared/ui/shadcn/card';
 
 interface MenuItem {
   label: string;

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Calendar, Clock, MapPin, Navigation, Shield } from 'lucide-react';
 import { Card } from '@/shared/ui/shadcn/card';
-import { Badge } from '@/shared/ui/base/badge';
+import { Badge } from '@/shared/ui/shadcn/badge';
 import { Button } from '@/shared/ui/shadcn/button';
 import { cn } from '@/shared/lib/utils';
 import {

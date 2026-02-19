@@ -7,9 +7,9 @@ import { CheckCircle2, Info, Smartphone } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useAuth } from '@/shared/session';
 import { useIsMobile } from '@/shared/lib/hooks/use-is-mobile';
-import { Input } from '@/shared/ui/base/input';
-import { Label } from '@/shared/ui/base/label';
-import { Button } from '@/shared/ui/base/button';
+import { Input } from '@/shared/ui/shadcn/input';
+import { Label } from '@/shared/ui/shadcn/label';
+import { Button } from '@/shared/ui/shadcn/button';
 import { normalizePhoneNumber, formatPhoneNumber, PHONE_REGEX } from '@/shared/lib/phone-utils';
 import type {
   VerificationRequestResponse,

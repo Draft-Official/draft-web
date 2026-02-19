@@ -2,8 +2,10 @@
 
 import * as React from 'react';
 import { Check, ChevronsUpDown } from 'lucide-react';
+
+import { BANKS, OTHER_BANKS, POPULAR_BANKS } from '@/shared/config/bank-constants';
 import { cn } from '@/shared/lib/utils';
-import { Button } from '@/shared/ui/base/button';
+import { Button } from '@/shared/ui/shadcn/button';
 import {
   Command,
   CommandEmpty,
@@ -11,13 +13,8 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from '@/shared/ui/base/command';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/shared/ui/base/popover';
-import { POPULAR_BANKS, OTHER_BANKS, SECURITIES, BANKS } from '@/shared/config/bank-constants';
+} from '@/shared/ui/shadcn/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/shadcn/popover';
 
 interface BankComboboxProps {
   value: string;
@@ -43,11 +40,7 @@ export function BankCombobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={cn(
-            'justify-between font-normal',
-            !value && 'text-slate-500',
-            className
-          )}
+          className={cn('justify-between font-normal', !value && 'text-slate-500', className)}
         >
           {selectedBank ? selectedBank.label : placeholder}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -68,12 +61,7 @@ export function BankCombobox({
                     setOpen(false);
                   }}
                 >
-                  <Check
-                    className={cn(
-                      'mr-2 h-4 w-4',
-                      value === bank.value ? 'opacity-100' : 'opacity-0'
-                    )}
-                  />
+                  <Check className={cn('mr-2 h-4 w-4', value === bank.value ? 'opacity-100' : 'opacity-0')} />
                   {bank.label}
                 </CommandItem>
               ))}
@@ -88,12 +76,7 @@ export function BankCombobox({
                     setOpen(false);
                   }}
                 >
-                  <Check
-                    className={cn(
-                      'mr-2 h-4 w-4',
-                      value === bank.value ? 'opacity-100' : 'opacity-0'
-                    )}
-                  />
+                  <Check className={cn('mr-2 h-4 w-4', value === bank.value ? 'opacity-100' : 'opacity-0')} />
                   {bank.label}
                 </CommandItem>
               ))}

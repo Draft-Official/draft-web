@@ -3,15 +3,15 @@
 import { useState, useEffect } from 'react';
 import { Minus, Plus } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
-import { Button } from '@/shared/ui/base/button';
-import { Checkbox } from '@/shared/ui/base/checkbox';
+import { Button } from '@/shared/ui/shadcn/button';
+import { Checkbox } from '@/shared/ui/shadcn/checkbox';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/shared/ui/base/dialog';
+} from '@/shared/ui/shadcn/dialog';
 import { toast } from 'sonner';
 import type { HostMatchDetailDTO, RecruitmentMode } from '../../model/types';
 import type { RecruitmentSetup } from '@/shared/types/database.types';

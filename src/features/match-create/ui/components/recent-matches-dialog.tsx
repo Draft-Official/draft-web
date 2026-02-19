@@ -1,6 +1,6 @@
 'use client';
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/shared/ui/base/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/shared/ui/shadcn/dialog';
 import { X, MapPin, Loader2 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import type { RecentMatchListItemDTO } from '@/features/match-create/model/types';

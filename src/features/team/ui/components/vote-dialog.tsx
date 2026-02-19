@@ -9,7 +9,7 @@ import {
 } from '@/shared/ui/shadcn/dialog';
 import { RadioGroup } from '@/shared/ui/shadcn/radio-group';
 import { Textarea } from '@/shared/ui/shadcn/textarea';
-import { Button } from '@/shared/ui/base/button';
+import { Button } from '@/shared/ui/shadcn/button';
 import { cn } from '@/shared/lib/utils';
 import {
   TEAM_VOTE_OPTIONS,

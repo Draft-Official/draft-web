@@ -9,7 +9,7 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/shared/ui/base/popover';
+} from '@/shared/ui/shadcn/popover';
 import type { TeamRoleValue } from '@/shared/config/team-constants';
 
 interface TeamFabProps {

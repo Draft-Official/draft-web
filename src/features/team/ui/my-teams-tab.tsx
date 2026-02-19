@@ -1,8 +1,8 @@
 'use client';
 
 import { Users, Loader2 } from 'lucide-react';
-import { Button } from '@/shared/ui/base/button';
-import { ScrollArea, ScrollBar } from '@/shared/ui/base/scroll-area';
+import { Button } from '@/shared/ui/shadcn/button';
+import { ScrollArea, ScrollBar } from '@/shared/ui/shadcn/scroll-area';
 import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/shadcn/alert';
 import { useAuth } from '@/shared/session';
 import { useMyTeams } from '../api/team-info/queries';

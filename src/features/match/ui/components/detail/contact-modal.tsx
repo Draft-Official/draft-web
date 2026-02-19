@@ -8,8 +8,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/shared/ui/base/dialog';
-import { Button } from '@/shared/ui/base/button';
+} from '@/shared/ui/shadcn/dialog';
+import { Button } from '@/shared/ui/shadcn/button';
 import type { ContactTypeValue } from '@/shared/config/match-constants';
 
 interface ContactModalProps {

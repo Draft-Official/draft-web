@@ -13,20 +13,20 @@ import {
   FileText,
   Shield,
 } from 'lucide-react';
-import { Button } from '@/shared/ui/base/button';
+import { Button } from '@/shared/ui/shadcn/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/shared/ui/base/dropdown-menu';
+} from '@/shared/ui/shadcn/dropdown-menu';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/shared/ui/base/dialog';
+} from '@/shared/ui/shadcn/dialog';
 import { toast } from 'sonner';
 import type { Participant, TournamentDetailDTO } from '../../model/types';
 import { MOCK_TOURNAMENT_DETAIL } from '../../model/mock-data';

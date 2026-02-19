@@ -9,7 +9,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/shared/ui/shadcn/accordion';
-import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/base/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/shadcn/avatar';
 import { VoteChangeDialog } from './vote-change-dialog';
 import type { TeamVoteDTO, VotingSummary } from '@/features/team/model/types';
 import type { TeamVoteStatusValue } from '@/shared/config/team-constants';

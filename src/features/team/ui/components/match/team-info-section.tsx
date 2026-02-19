@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/base/avatar';
-import { Button } from '@/shared/ui/base/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/shadcn/avatar';
+import { Button } from '@/shared/ui/shadcn/button';
 import { Users, Info } from 'lucide-react';
 import { ContactModal } from '@/features/match/ui/components/detail/contact-modal';
 import { toast } from 'sonner';

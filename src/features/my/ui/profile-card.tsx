@@ -2,9 +2,9 @@
 
 import Link from 'next/link';
 import { Edit, LogIn } from 'lucide-react';
-import { Card } from '@/shared/ui/base/card';
-import { Button } from '@/shared/ui/base/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/base/avatar';
+import { Card } from '@/shared/ui/shadcn/card';
+import { Button } from '@/shared/ui/shadcn/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/shadcn/avatar';
 import { MyProfileFormDTO, SKILL_LEVEL_NAMES, isProfileComplete } from '../model/types';
 
 interface ProfileCardProps {

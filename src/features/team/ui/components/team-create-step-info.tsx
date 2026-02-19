@@ -4,8 +4,8 @@ import { useFormContext } from 'react-hook-form';
 import { Flag, Loader2, Check } from 'lucide-react';
 import Image from 'next/image';
 
-import { Input } from '@/shared/ui/base/input';
-import { Label } from '@/shared/ui/base/label';
+import { Input } from '@/shared/ui/shadcn/input';
+import { Label } from '@/shared/ui/shadcn/label';
 import { cn } from '@/shared/lib/utils';
 
 import { StepHeader } from './step-header';

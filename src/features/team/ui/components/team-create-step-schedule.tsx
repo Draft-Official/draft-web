@@ -4,9 +4,9 @@ import { useRef } from 'react';
 import { useFormContext, Controller } from 'react-hook-form';
 import { Calendar, MapPin } from 'lucide-react';
 
-import { Input } from '@/shared/ui/base/input';
-import { Label } from '@/shared/ui/base/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/base/select';
+import { Input } from '@/shared/ui/shadcn/input';
+import { Label } from '@/shared/ui/shadcn/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/shadcn/select';
 import { TimePickerSelect } from '@/shared/ui/composite/time-picker-select';
 import { cn } from '@/shared/lib/utils';
 

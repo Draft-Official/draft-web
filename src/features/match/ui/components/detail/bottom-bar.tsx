@@ -3,7 +3,7 @@
 import React from 'react';
 import { Loader2 } from 'lucide-react';
 import { GuestMatchDetailDTO } from '@/features/match/model/types';
-import { Button } from '@/shared/ui/base/button';
+import { Button } from '@/shared/ui/shadcn/button';
 import { cn } from '@/shared/lib/utils';
 
 interface BottomBarProps {

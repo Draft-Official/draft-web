@@ -1,5 +1,5 @@
-import { Input } from '@/shared/ui/base/input';
-import { Label } from '@/shared/ui/base/label';
+import { Input } from '@/shared/ui/shadcn/input';
+import { Label } from '@/shared/ui/shadcn/label';
 import { Chip } from '@/shared/ui/shadcn/chip';
 import { Info, Plus, Minus } from 'lucide-react';
 import { PLAY_STYLE_OPTIONS as GAME_FORMAT_OPTIONS, REFEREE_TYPE_OPTIONS as REFEREE_OPTIONS, PLAY_STYLE_DEFAULT, REFEREE_TYPE_DEFAULT, PlayStyleValue, RefereeTypeValue } from '@/shared/config/match-constants';

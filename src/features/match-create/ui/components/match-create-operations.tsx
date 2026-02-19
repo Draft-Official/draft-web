@@ -2,12 +2,12 @@
 
 import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
-import { Input } from '@/shared/ui/base/input';
-import { Label } from '@/shared/ui/base/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/base/select';
-import { Switch } from '@/shared/ui/base/switch';
-import { Textarea } from '@/shared/ui/base/textarea';
-import { BankCombobox } from '@/shared/ui/base/bank-combobox';
+import { Input } from '@/shared/ui/shadcn/input';
+import { Label } from '@/shared/ui/shadcn/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/shadcn/select';
+import { Switch } from '@/shared/ui/shadcn/switch';
+import { Textarea } from '@/shared/ui/shadcn/textarea';
+import { BankCombobox } from '@/shared/ui/composite/bank-combobox';
 import { FileText, MessageCircle, Phone, UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
 import type { AccountInfo, OperationInfo } from '@/shared/types/jsonb.types';

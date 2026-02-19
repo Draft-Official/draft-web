@@ -3,7 +3,7 @@
 import { FormProvider } from 'react-hook-form';
 import { RefreshCw, Zap, X, Loader2 } from 'lucide-react';
 
-import { Button } from '@/shared/ui/base/button';
+import { Button } from '@/shared/ui/shadcn/button';
 
 import { MatchCreateBasicInfo } from './components/match-create-basic-info';
 import { MatchCreateFacilities } from './components/match-create-facilities';

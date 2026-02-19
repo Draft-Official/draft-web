@@ -2,8 +2,8 @@
 
 import React, { useState } from 'react';
 import { GuestMatchDetailDTO } from '@/features/match/model/types';
-import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/base/avatar';
-import { Button } from '@/shared/ui/base/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/shadcn/avatar';
+import { Button } from '@/shared/ui/shadcn/button';
 import { MessageCircle, Users, Info } from 'lucide-react';
 import { ContactModal } from './contact-modal';
 import { toast } from 'sonner';

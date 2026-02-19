@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from '@/shared/ui/shadcn/dialog';
 import { RadioGroup } from '@/shared/ui/shadcn/radio-group';
-import { Button } from '@/shared/ui/base/button';
+import { Button } from '@/shared/ui/shadcn/button';
 import { cn } from '@/shared/lib/utils';
 import { toast } from 'sonner';
 import { useUpdateMemberVote } from '@/features/team/api/match/mutations';

@@ -17,7 +17,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/shared/ui/base/dropdown-menu';
+} from '@/shared/ui/shadcn/dropdown-menu';
 import type { CancelTypeValue } from "@/src/shared/config/application-constants";
 import type { MatchApplicantDTO, GuestStatus } from '../../model/types';
 import {

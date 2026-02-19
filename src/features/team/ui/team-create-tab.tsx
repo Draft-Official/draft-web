@@ -2,8 +2,8 @@
 
 import { useRouter } from 'next/navigation';
 import { Users, Calendar, Link2, ArrowRight } from 'lucide-react';
-import { Card } from '@/shared/ui/base/card';
-import { Button } from '@/shared/ui/base/button';
+import { Card } from '@/shared/ui/shadcn/card';
+import { Button } from '@/shared/ui/shadcn/button';
 
 interface BenefitItem {
   icon: React.ReactNode;

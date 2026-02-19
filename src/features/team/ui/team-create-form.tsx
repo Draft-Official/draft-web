@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, ArrowRight, Check, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { Button } from '@/shared/ui/base/button';
+import { Button } from '@/shared/ui/shadcn/button';
 
 import { useCreateTeam } from '@/features/team/api/team-info/mutations';
 import { useAuth } from '@/shared/session';

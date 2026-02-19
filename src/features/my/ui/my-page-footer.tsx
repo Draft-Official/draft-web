@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { LogOut, UserX, AlertTriangle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@/shared/ui/base/button';
+import { Button } from '@/shared/ui/shadcn/button';
 import {
   Dialog,
   DialogContent,
@@ -13,7 +13,7 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from '@/shared/ui/base/dialog';
+} from '@/shared/ui/shadcn/dialog';
 import { useAuth, useDeleteAccount } from '@/shared/session';
 
 export function MyPageFooter() {

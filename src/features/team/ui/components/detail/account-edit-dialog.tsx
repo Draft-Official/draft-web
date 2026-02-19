@@ -12,7 +12,7 @@ import {
 import { Button } from '@/shared/ui/shadcn/button';
 import { Input } from '@/shared/ui/shadcn/input';
 import { Label } from '@/shared/ui/shadcn/label';
-import { BankCombobox } from '@/shared/ui/base/bank-combobox';
+import { BankCombobox } from '@/shared/ui/composite/bank-combobox';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { teamKeys } from '@/features/team/api/keys';
 import type { AccountInfo } from '@/shared/types/jsonb.types';
