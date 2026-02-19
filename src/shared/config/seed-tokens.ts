@@ -1,11 +1,12 @@
 /**
  * Seed Design Token Configuration
- * Draft 브랜드 컬러로 커스터마이징된 Seed Design 토큰
+ * Foundation CSS와 동일한 기준의 토큰 상수.
+ * Source of truth는 CSS 변수이며, 이 파일은 코드 참조용이다.
  */
 
-// Draft Brand Colors (replacing Carrot)
-export const draftColors = {
-  draft: {
+// Base palette
+export const paletteColors = {
+  carrot: {
     100: '#FFF2EC',
     200: '#FFD9C8',
     300: '#FFB999',
@@ -19,8 +20,13 @@ export const draftColors = {
   },
 } as const;
 
+// Brand alias: draft -> carrot
+export const draftColors = {
+  draft: paletteColors.carrot,
+} as const;
+
 // Semantic Color Mapping
 export const semanticColors = {
-  primary: 'var(--color-palette-draft-600)',
+  primary: 'var(--color-fg-brand)',
   primaryForeground: 'var(--color-fg-neutral-inverted)',
 } as const;
