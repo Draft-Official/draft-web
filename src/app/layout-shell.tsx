@@ -12,8 +12,8 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
 
   if (isSignupVerify) {
     return (
-      <div className="flex justify-center min-h-screen bg-[var(--layout-root-bg)]">
-        <main className="app-mobile-container min-h-screen bg-[var(--layout-root-bg)] relative">
+      <div className="flex justify-center min-h-screen bg-background">
+        <main className="app-mobile-container min-h-screen bg-background relative">
           {children}
         </main>
       </div>
@@ -22,16 +22,16 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
 
   return (
     <SignupVerifyGuard>
-      <div className="flex justify-center min-h-screen bg-[var(--layout-root-bg)] lg:pl-[var(--layout-sidebar-width)]">
+      <div className="flex justify-center min-h-screen bg-background lg:pl-[var(--layout-sidebar-width)]">
         {/* Desktop Sidebar (Left) */}
-        <aside className="hidden lg:flex fixed left-0 top-0 h-full w-[var(--layout-sidebar-width)] bg-[var(--layout-root-bg)] z-30 justify-center">
+        <aside className="hidden lg:flex fixed left-0 top-0 h-full w-[var(--layout-sidebar-width)] bg-background z-30 justify-center">
           <div className="w-full h-full">
             <Sidebar />
           </div>
         </aside>
 
         {/* Main Content Area (Center) */}
-        <main className="app-content-container min-h-screen bg-[var(--layout-root-bg)] relative pb-20 lg:pb-0 border-x border-slate-100/50">
+        <main className="app-content-container min-h-screen bg-background relative pb-20 lg:pb-0 border-x border-slate-100/50">
           <div className="lg:hidden">
             <LayoutHeader />
           </div>
