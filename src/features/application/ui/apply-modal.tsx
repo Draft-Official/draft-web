@@ -100,9 +100,6 @@ export function ApplyModal({
     setCompanions(companions.map((c, i) => (i === index ? { ...c, [field]: value } : c)));
   };
 
-  const totalCount = 1 + (hasCompanions ? companions.length : 0);
-  const totalCost = (costAmount || 0) * totalCount;
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -446,7 +443,7 @@ export function ApplyModal({
                 <AccordionContent className="px-4 pb-4">
                   <ul className="space-y-3 text-sm text-slate-700">
                     <li>
-                      <strong>입금 확인 주의:</strong> '입금 완료' 버튼을 누르면 자동 확정 처리됩니다. <span className="text-red-600">실제 입금 없이 허위로 버튼을 누를 경우</span>, 즉시 계정이 영구 정지되며 형법상 사기죄 및 업무방해죄로 형사 고소될 수 있습니다.
+                      <strong>입금 확인 주의:</strong> &apos;입금 완료&apos; 버튼을 누르면 자동 확정 처리됩니다. <span className="text-red-600">실제 입금 없이 허위로 버튼을 누를 경우</span>, 즉시 계정이 영구 정지되며 형법상 사기죄 및 업무방해죄로 형사 고소될 수 있습니다.
                     </li>
                     <li>
                       <strong>매너 준수:</strong> 당일 노쇼(No-Show), 폭언, 비매너 플레이 적발 시 서비스 이용이 제한됩니다.

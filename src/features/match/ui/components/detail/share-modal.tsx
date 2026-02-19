@@ -45,8 +45,6 @@ export function ShareModal({
   const handleKakaoShare = () => {
     // 카카오톡 공유는 Kakao SDK가 필요하므로 링크 공유로 대체
     // 카카오톡 앱이 설치되어 있으면 카카오톡 공유 URL 스킴 사용
-    const kakaoShareUrl = `https://sharer.kakao.com/talk/friends/picker/link?app_key=javascript_key&url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(`${matchTitle} - ${matchDate} @ ${location}`)}`;
-
     // 간단한 링크 공유 방식으로 대체
     // 실제 Kakao SDK 연동 시 Kakao.Share.sendDefault() 사용 권장
     try {

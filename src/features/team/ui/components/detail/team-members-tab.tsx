@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { ChevronRight } from 'lucide-react';
 import { Badge } from '@/shared/ui/shadcn/badge';
 import { cn } from '@/shared/lib/utils';
@@ -104,9 +105,11 @@ function MemberRow({ member }: MemberRowProps) {
     <div className="flex items-center gap-3 py-3">
       {/* 아바타 */}
       {member.user?.avatarUrl ? (
-        <img
+        <Image
           src={member.user.avatarUrl}
           alt={member.user.nickname || '멤버'}
+          width={40}
+          height={40}
           className="w-10 h-10 rounded-full object-cover"
         />
       ) : (

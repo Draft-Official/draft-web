@@ -54,7 +54,6 @@ export function useApproveJoin() {
   return useMutation({
     mutationFn: async ({
       membershipId,
-      teamId,
     }: {
       membershipId: string;
       teamId: string;
@@ -96,7 +95,6 @@ export function useRejectJoin() {
   return useMutation({
     mutationFn: async ({
       membershipId,
-      teamId,
     }: {
       membershipId: string;
       teamId: string;
@@ -124,7 +122,6 @@ export function useUpdateRole() {
   return useMutation({
     mutationFn: async ({
       membershipId,
-      teamId,
       newRole,
     }: {
       membershipId: string;
@@ -159,8 +156,6 @@ export function useRemoveMember() {
   return useMutation({
     mutationFn: async ({
       membershipId,
-      teamId,
-      userId,
     }: {
       membershipId: string;
       teamId: string;

@@ -67,7 +67,7 @@ export function HostSection({ match }: HostSectionProps) {
         <div className="bg-slate-50 rounded-xl p-4 text-[13px] text-slate-600 leading-relaxed relative">
           <MessageCircle className="w-4 h-4 text-slate-300 absolute top-4 left-4" />
           <p className="pl-6 whitespace-pre-wrap">
-            "{match.hostMessage}"
+            &quot;{match.hostMessage}&quot;
           </p>
         </div>
       )}

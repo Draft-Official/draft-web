@@ -36,7 +36,6 @@ export function PhoneVerificationForm({ onComplete }: PhoneVerificationFormProps
   const [smsUri, setSmsUri] = useState('');
   const [recipient, setRecipient] = useState('');
   const [code, setCode] = useState('');
-  const [expiresAt, setExpiresAt] = useState('');
   const [remainingSeconds, setRemainingSeconds] = useState(0);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -139,7 +138,6 @@ export function PhoneVerificationForm({ onComplete }: PhoneVerificationFormProps
       setSmsUri(data.smsUri);
       setRecipient(data.recipient);
       setCode(data.code);
-      setExpiresAt(data.expiresAt);
 
       setStep('waiting');
       startTimer(data.expiresAt);
@@ -158,7 +156,6 @@ export function PhoneVerificationForm({ onComplete }: PhoneVerificationFormProps
     setCode('');
     setSmsUri('');
     setRecipient('');
-    setExpiresAt('');
   };
 
   const formatTime = (seconds: number) => {

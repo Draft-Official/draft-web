@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { cn } from '@/shared/lib/utils';
-import { getDayLabel, getShortDayLabel } from '@/features/match/lib/utils'; // You might need to adjust imports
 
 interface DateStripProps {
   selectedDateISO: string | null;

@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { MapPin, Clock, Loader2, Settings, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/shared/lib/utils';
@@ -35,7 +36,6 @@ export function TeamDetailHeader({ team, membership, homeGymName, isLoggedIn, cu
   // 멤버십 상태
   const isMember = membership?.status === 'ACCEPTED';
   const isPending = membership?.status === 'PENDING';
-  const isNonMember = !membership || membership.status === 'REJECTED';
 
   // 팀 로고 기본값
   const logoChar = team.name.charAt(0);
@@ -97,7 +97,7 @@ export function TeamDetailHeader({ team, membership, homeGymName, isLoggedIn, cu
         userId: user.id,
       });
       toast.success('가입 신청이 완료되었습니다');
-    } catch (error) {
+    } catch {
       toast.error('가입 신청에 실패했습니다');
     }
   };
@@ -113,9 +113,11 @@ export function TeamDetailHeader({ team, membership, homeGymName, isLoggedIn, cu
         {/* 로고 */}
         <div className="shrink-0">
           {team.logoUrl ? (
-            <img
+            <Image
               src={team.logoUrl}
               alt={`${team.name} 로고`}
+              width={64}
+              height={64}
               className="w-16 h-16 rounded-full object-cover"
             />
           ) : (

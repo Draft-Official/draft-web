@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { toast } from 'sonner';
 import { cn } from '@/shared/lib/utils';
 import {
@@ -106,9 +107,11 @@ export function DelegateLeaderDialog({
                       )}
                     >
                       {member.user?.avatarUrl ? (
-                        <img
+                        <Image
                           src={member.user.avatarUrl}
                           alt=""
+                          width={40}
+                          height={40}
                           className="w-10 h-10 rounded-full object-cover"
                         />
                       ) : (

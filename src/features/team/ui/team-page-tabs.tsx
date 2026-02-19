@@ -20,7 +20,7 @@ export function TeamPageTabs() {
     <div className="min-h-screen bg-background">
       <Tabs defaultValue="my-teams" className="w-full gap-0">
         {/* 탭 헤더 */}
-        <div className="bg-white sticky top-0 z-20 border-b border-slate-100 px-(--dimension-spacing-x-global-gutter) py-(--dimension-x2)">
+        <div className="bg-white sticky top-0 z-20 px-(--dimension-spacing-x-global-gutter) py-(--dimension-x2)">
           <TabsList>
             <TabsTrigger value="my-teams" className="font-bold text-base">
               나의 팀

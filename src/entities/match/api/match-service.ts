@@ -78,7 +78,7 @@ export class MatchService {
   /**
    * Create match (supports both types)
    */
-  async createMatch(data: any) {
+  async createMatch(data: Record<string, unknown>) {
     logRequest(this.SERVICE_NAME, 'createMatch', data);
 
     const { data: match, error } = await this.supabase
@@ -99,7 +99,7 @@ export class MatchService {
   /**
    * Update match
    */
-  async updateMatch(id: string, data: any) {
+  async updateMatch(id: string, data: Record<string, unknown>) {
     logRequest(this.SERVICE_NAME, 'updateMatch', { id, data });
 
     const { data: match, error } = await this.supabase

@@ -81,7 +81,6 @@ export function useDeleteTeam() {
   return useMutation({
     mutationFn: async ({
       teamId,
-      userId,
     }: {
       teamId: string;
       userId: string;

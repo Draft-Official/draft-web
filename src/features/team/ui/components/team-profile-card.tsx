@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { MapPin, Calendar } from 'lucide-react';
 import { Card } from '@/shared/ui/shadcn/card';
 import { cn } from '@/shared/lib/utils';
@@ -82,9 +83,11 @@ export function TeamProfileCard({
       {/* 팀 로고 */}
       <div className="flex justify-center mb-1">
         {logoUrl ? (
-          <img
+          <Image
             src={logoUrl}
             alt={`${name} 로고`}
+            width={56}
+            height={56}
             className="w-14 h-14 rounded-full object-cover"
           />
         ) : (

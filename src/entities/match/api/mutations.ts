@@ -11,7 +11,7 @@ export function useCreateMatch() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: Record<string, unknown>) => {
       const supabase = getSupabaseBrowserClient();
       const service = createMatchService(supabase);
       return service.createMatch(data);
@@ -30,7 +30,7 @@ export function useUpdateMatch() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+    mutationFn: async ({ id, data }: { id: string; data: Record<string, unknown> }) => {
       const supabase = getSupabaseBrowserClient();
       const service = createMatchService(supabase);
       return service.updateMatch(id, data);

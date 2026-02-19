@@ -24,6 +24,16 @@ export function useLocationSearch(): UseLocationSearchReturn {
   const [gymFacilities, setGymFacilities] = useState<GymFacilities | null>(null);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  interface KakaoPlaceResult {
+    road_address_name?: string;
+    address_name: string;
+    place_name: string;
+    place_url: string;
+    x: string;
+    y: string;
+    id: string;
+  }
+
   const formatLocation = (data: LocationData): string => {
     if (data.buildingName) {
       return `${data.address} (${data.buildingName})`;
@@ -48,7 +58,7 @@ export function useLocationSearch(): UseLocationSearchReturn {
       try {
         const { searchPlaces } = await import('@/shared/api/kakao-map');
         const results = await searchPlaces(query);
-        const mappedResults: LocationData[] = results.map((place: any) => ({
+        const mappedResults: LocationData[] = results.map((place: KakaoPlaceResult) => ({
           address: place.road_address_name || place.address_name,
           buildingName: place.place_name,
           bname: place.address_name.split(' ')[2],

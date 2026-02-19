@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { ArrowLeft, ChevronRight } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -154,9 +155,11 @@ export function TeamSettingsView({ code }: TeamSettingsViewProps) {
         {/* 팀 로고 + 이름 */}
         <div className="flex items-center gap-2">
           {team.logoUrl ? (
-            <img
+            <Image
               src={team.logoUrl}
               alt={team.name}
+              width={28}
+              height={28}
               className="w-7 h-7 rounded-full object-cover"
             />
           ) : (

@@ -1,7 +1,7 @@
 'use client';
 
 import { use } from 'react';
-import { notFound, redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { useTeamByCode } from '@/features/team/api/team-info/queries';
 import { useMyMembership } from '@/features/team/api/membership/queries';
 import { useAuth } from '@/shared/session';

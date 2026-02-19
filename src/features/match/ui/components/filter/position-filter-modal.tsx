@@ -32,7 +32,7 @@ export function PositionFilterModal({
       setTempSelectedPositions(prev => prev.includes('포지션 무관') ? [] : ['포지션 무관']);
     } else {
       setTempSelectedPositions(prev => {
-        let next = prev.filter(p => p !== '포지션 무관');
+        const next = prev.filter(p => p !== '포지션 무관');
         return next.includes(pos) ? next.filter(p => p !== pos) : [...next, pos];
       });
     }

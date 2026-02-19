@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -46,7 +45,6 @@ interface TeamProfileEditViewProps {
 }
 
 export function TeamProfileEditView({ code }: TeamProfileEditViewProps) {
-  const router = useRouter();
   const { user } = useAuth();
   const handleBack = useSafeBack(`/team/${code}/settings`);
 

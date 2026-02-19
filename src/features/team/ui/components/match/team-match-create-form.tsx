@@ -238,7 +238,7 @@ export function TeamMatchCreateForm({ team, onClose }: TeamMatchCreateFormProps)
             <Label className="text-sm font-bold text-slate-600 flex items-center gap-2">
               경기 날짜
               {selectedDate && (() => {
-                const [_, m, d] = selectedDate.split('-');
+                const [, m, d] = selectedDate.split('-');
                 const normalizedStartTime = normalizeTime(startTime);
                 const normalizedEndTime = normalizeTime(endTime);
                 return (

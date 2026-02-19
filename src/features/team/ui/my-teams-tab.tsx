@@ -65,9 +65,9 @@ export function MyTeamsTab() {
   return (
     <div className="pb-(--dimension-spacing-y-screen-bottom)">
       {/* 나의 팀 카드 섹션 */}
-      <section className="pt-0 pb-(--dimension-spacing-y-component-default)">
+      <section className="pb-(--dimension-spacing-y-component-default)">
         <ScrollArea className="w-full">
-          <div className="flex gap-(--dimension-spacing-y-component-default) px-(--dimension-spacing-x-global-gutter)">
+          <div className="flex gap-(--dimension-spacing-y-component-default) px-(--dimension-spacing-x-global-gutter) py-1">
             {teams.map((team) => (
               <TeamProfileCard
                 key={team.id}

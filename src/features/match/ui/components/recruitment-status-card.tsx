@@ -7,7 +7,6 @@ interface RecruitmentStatusCardProps {
   current?: number;
   max: number;
   onClick: () => void;
-  bgVariant?: 'default' | 'orange'; // default used for Guard in legacy code, but we will prefer orange
 }
 
 export function RecruitmentStatusCard({
@@ -17,7 +16,6 @@ export function RecruitmentStatusCard({
   current = 0,
   max,
   onClick,
-  bgVariant = 'orange' // Defaulting to orange style for consistency
 }: RecruitmentStatusCardProps) {
   const isOpen = status === 'open';
 

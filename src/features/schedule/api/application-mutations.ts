@@ -19,7 +19,6 @@ export function useApproveApplication() {
   return useMutation({
     mutationFn: async ({
       applicationId,
-      matchId,
     }: {
       applicationId: string;
       matchId: string;
@@ -68,7 +67,6 @@ export function useConfirmPaymentByGuest() {
   return useMutation({
     mutationFn: async ({
       applicationId,
-      matchId,
     }: {
       applicationId: string;
       matchId: string;
@@ -103,7 +101,7 @@ export function useConfirmPaymentByGuest() {
 
       if (notifError) throw notifError;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: matchManagementKeys.all,
       });
@@ -167,7 +165,6 @@ export function useVerifyPayment() {
   return useMutation({
     mutationFn: async ({
       applicationId,
-      matchId,
     }: {
       applicationId: string;
       matchId: string;
@@ -209,7 +206,6 @@ export function useRejectApplication() {
   return useMutation({
     mutationFn: async ({
       applicationId,
-      matchId,
     }: {
       applicationId: string;
       matchId: string;
@@ -249,7 +245,6 @@ export function useCancelApplicationByGuest() {
   return useMutation({
     mutationFn: async ({
       applicationId,
-      matchId,
     }: {
       applicationId: string;
       matchId: string;
@@ -262,7 +257,7 @@ export function useCancelApplicationByGuest() {
         cancelType: 'USER_REQUEST',
       });
     },
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: matchManagementKeys.participatingMatches(''),
       });
@@ -291,7 +286,6 @@ export function useCancelParticipation() {
   return useMutation({
     mutationFn: async ({
       applicationId,
-      matchId,
       cancelOptions,
     }: {
       applicationId: string;

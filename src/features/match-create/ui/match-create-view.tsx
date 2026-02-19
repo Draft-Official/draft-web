@@ -155,7 +155,7 @@ export function MatchCreateView() {
           <div className="mx-3 mt-3 p-3 bg-brand-weak rounded-xl flex items-center gap-3 relative animate-in fade-in slide-in-from-top-2 duration-300">
             <Zap className="w-5 h-5 text-primary flex-shrink-0 fill-draft-500" />
             <p className="text-sm font-bold text-brand-contrast pr-6">
-              딱 한 번만 작성하세요! 다음부턴 '불러오기'로 3초만에 개설가능!
+              딱 한 번만 작성하세요! 다음부턴 &apos;불러오기&apos;로 3초만에 개설가능!
             </p>
             <button
               onClick={handleDismissTip}

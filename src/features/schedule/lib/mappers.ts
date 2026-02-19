@@ -147,7 +147,7 @@ export function toScheduleMatchListItemDTO(
 
   // 모집 현황 계산
   const recruitmentSetup = match.recruitment_setup as RecruitmentSetup | null;
-  const { applicants, vacancies } = calculateRecruitmentStats(recruitmentSetup ?? undefined);
+  const { vacancies } = calculateRecruitmentStats(recruitmentSetup ?? undefined);
 
   return {
     id: match.id,
