@@ -83,8 +83,8 @@ export function ShareModal({
             className="h-14 justify-start gap-4 px-4 rounded-xl border-slate-200 hover:bg-slate-50"
             onClick={handleKakaoShare}
           >
-            <div className="w-10 h-10 bg-[#FEE500] rounded-lg flex items-center justify-center">
-              <MessageCircle className="w-5 h-5 text-[#3C1E1E]" />
+            <div className="w-10 h-10 bg-kakao rounded-lg flex items-center justify-center">
+              <MessageCircle className="w-5 h-5 text-kakao-foreground" />
             </div>
             <span className="text-sm font-medium text-slate-900">카카오톡 공유</span>
           </Button>

@@ -70,7 +70,7 @@ export function ContactModal({
               {isPhone ? (
                 <Phone className="w-5 h-5 text-slate-600" />
               ) : (
-                <MessageCircle className="w-5 h-5 text-[#3C1E1E]" />
+                <MessageCircle className="w-5 h-5 text-kakao-foreground" />
               )}
             </div>
             <div className="flex-1 min-w-0">
@@ -96,7 +96,7 @@ export function ContactModal({
 
             {isKakao && (
               <Button
-                className="flex-1 h-11 gap-2 bg-[#FEE500] hover:bg-[#FEE500]/90 text-[#3C1E1E]"
+                className="flex-1 h-11 gap-2 bg-kakao hover:bg-kakao/90 text-kakao-foreground"
                 onClick={handleOpenLink}
               >
                 <ExternalLink className="w-4 h-4" />

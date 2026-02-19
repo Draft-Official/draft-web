@@ -196,7 +196,7 @@ export function RegionFilterModal({ open, onOpenChange, onApply, selectedRegions
                             </button>
                             <button 
                                 onClick={handleApply}
-                                className="flex-1 h-12 bg-primary hover:bg-primary/90 text-white rounded-xl text-base font-bold shadow-md shadow-orange-100 transition-transform active:scale-[0.98] outline-none flex items-center justify-center gap-1.5"
+                                className="flex-1 h-12 bg-primary hover:bg-primary/90 text-white rounded-xl text-base font-bold shadow-md shadow-draft-100 transition-transform active:scale-[0.98] outline-none flex items-center justify-center gap-1.5"
                             >
                                 <span>적용하기</span>
                                 {tempSelected.length > 0 && (

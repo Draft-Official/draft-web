@@ -374,7 +374,7 @@ export function MatchCreateOperations({
           <input
             type="checkbox"
             {...register('operations.saveAsDefault')}
-            className="w-5 h-5 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
+            className="w-5 h-5 text-draft-500 border-gray-300 rounded focus:ring-draft-500"
           />
           <span className="text-sm text-slate-700">
             위 정보들을 내 기본정보로 저장하시겠습니까?

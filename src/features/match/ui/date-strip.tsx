@@ -34,7 +34,7 @@ export function DateStrip({ selectedDateISO, onDateSelect }: DateStripProps) {
         className={cn(
             "flex flex-col items-center justify-center min-w-[50px] h-[70px] rounded-2xl border transition-all flex-shrink-0",
              !selectedDateISO
-                ? "bg-[#191F28] text-white border-[#191F28]"
+                ? "bg-ink text-white border-ink"
                 : "bg-white text-gray-400 border-gray-100"
         )}
       >
@@ -53,14 +53,14 @@ export function DateStrip({ selectedDateISO, onDateSelect }: DateStripProps) {
                 className={cn(
                     "flex flex-col items-center justify-center min-w-[64px] h-[60px] rounded-xl border transition-all flex-shrink-0 gap-0.5",
                     isSelected 
-                        ? "bg-[#191F28] text-white border-[#191F28] shadow-md" 
+                        ? "bg-ink text-white border-ink shadow-md" 
                         : "bg-white border-gray-100 hover:border-gray-200"
                 )}
             >
                 <span className={cn("text-[11px] font-medium", isSelected ? "text-gray-300" : isSunday ? "text-red-500" : isSaturday ? "text-blue-500" : "text-gray-400")}>
                     {item.weekday}
                 </span>
-                <span className={cn("text-[17px] font-bold leading-none", isSelected ? "text-white" : "text-[#191F28]")}>
+                <span className={cn("text-[17px] font-bold leading-none", isSelected ? "text-white" : "text-ink")}>
                     {item.dayNum}
                 </span>
                 {item.isToday && (

@@ -106,7 +106,7 @@ export function TeamSettingsView({ code }: TeamSettingsViewProps) {
     'bg-purple-500',
     'bg-blue-500',
     'bg-green-500',
-    'bg-orange-500',
+    'bg-draft-500',
     'bg-pink-500',
   ];
   const logoColorIndex = (team?.name || '').charCodeAt(0) % logoColors.length;

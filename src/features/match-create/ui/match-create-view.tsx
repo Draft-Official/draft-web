@@ -153,13 +153,13 @@ export function MatchCreateView() {
 
         {showTip && !isEditMode && (
           <div className="mx-3 mt-3 p-3 bg-brand-weak rounded-xl flex items-center gap-3 relative animate-in fade-in slide-in-from-top-2 duration-300">
-            <Zap className="w-5 h-5 text-primary flex-shrink-0 fill-orange-500" />
+            <Zap className="w-5 h-5 text-primary flex-shrink-0 fill-draft-500" />
             <p className="text-sm font-bold text-brand-contrast pr-6">
               딱 한 번만 작성하세요! 다음부턴 '불러오기'로 3초만에 개설가능!
             </p>
             <button
               onClick={handleDismissTip}
-              className="absolute top-2 right-2 p-1 text-orange-400 hover:text-brand transition-colors"
+              className="absolute top-2 right-2 p-1 text-draft-400 hover:text-brand transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
@@ -239,7 +239,7 @@ export function MatchCreateView() {
             <Button
               type="submit"
               disabled={isPending || isLoadingEditData}
-              className="w-full h-14 text-lg font-bold bg-primary hover:bg-primary/90 text-white rounded-xl shadow-lg shadow-orange-100 disabled:opacity-50"
+              className="w-full h-14 text-lg font-bold bg-primary hover:bg-primary/90 text-white rounded-xl shadow-lg shadow-draft-100 disabled:opacity-50"
             >
               {isPending
                 ? (isEditMode ? '수정 중...' : '생성 중...')

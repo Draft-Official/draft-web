@@ -78,7 +78,7 @@ export default function LoginPage() {
         <Button 
             onClick={handleKakaoLogin}
             disabled={isLoading}
-            className="w-full bg-[#FEE500] hover:bg-[#FEE500]/90 text-black font-bold mb-4"
+            className="w-full bg-kakao hover:bg-kakao/90 text-kakao-foreground font-bold mb-4"
         >
             카카오로 시작하기
         </Button>

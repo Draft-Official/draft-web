@@ -334,7 +334,7 @@ export function TeamMatchCreateForm({ team, onClose }: TeamMatchCreateFormProps)
             type="button"
             onClick={handleSubmit}
             disabled={isPending || !team.homeGymId}
-            className="w-full h-14 text-lg font-bold bg-primary hover:bg-primary/90 text-white rounded-xl shadow-lg shadow-orange-100 disabled:opacity-50"
+            className="w-full h-14 text-lg font-bold bg-primary hover:bg-primary/90 text-white rounded-xl shadow-lg shadow-draft-100 disabled:opacity-50"
           >
             {isPending ? (
               <>

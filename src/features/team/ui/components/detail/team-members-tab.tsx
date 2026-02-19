@@ -92,7 +92,7 @@ function MemberRow({ member }: MemberRowProps) {
     'bg-purple-500',
     'bg-blue-500',
     'bg-green-500',
-    'bg-orange-500',
+    'bg-draft-500',
     'bg-pink-500',
   ];
   const avatarColorIndex = (member.user?.nickname || '').charCodeAt(0) % avatarColors.length;

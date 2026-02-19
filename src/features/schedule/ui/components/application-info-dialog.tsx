@@ -203,7 +203,7 @@ export function ApplicationInfoDialog({
                 <p className="text-sm font-medium text-brand-contrast">입금 계좌</p>
                 <button
                   onClick={handleCopyBankInfo}
-                  className="flex items-center gap-2 text-sm text-orange-900 hover:text-brand-contrast"
+                  className="flex items-center gap-2 text-sm text-draft-900 hover:text-brand-contrast"
                 >
                   <span>
                     {match.bankInfo.bank} {match.bankInfo.account} ({match.bankInfo.holder})

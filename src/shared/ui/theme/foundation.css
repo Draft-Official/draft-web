@@ -68,6 +68,10 @@
   --color-palette-red-900: #910f15;
   --color-palette-red-1000: #79050d;
 
+  --color-palette-kakao-500: #fee500;
+  --color-palette-kakao-foreground: #3c1e1e;
+  --color-palette-ink-900: #191f28;
+
   --color-palette-static-black-alpha-50: #0000000d;
   --color-palette-static-black-alpha-100: #00000014;
   --color-palette-static-black-alpha-200: #0000001f;
@@ -157,6 +161,10 @@
   --color-bg-overlay-muted: var(--color-palette-static-black-alpha-500);
   --color-bg-transparent: #00000000;
   --color-bg-transparent-pressed: var(--color-palette-static-black-alpha-100);
+
+  --color-bg-kakao: var(--color-palette-kakao-500);
+  --color-fg-kakao: var(--color-palette-kakao-foreground);
+  --color-fg-ink: var(--color-palette-ink-900);
 
   --color-stroke-brand-solid: var(--color-palette-draft-700);
   --color-stroke-brand-weak: var(--color-palette-draft-300);

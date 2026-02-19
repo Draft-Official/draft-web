@@ -101,8 +101,8 @@ export function SkillRangeSlider({ minValue, maxValue, onChange }: SkillRangeSli
           </div>
           {/* 상급 (5-6) */}
           <div className="flex gap-1" style={{ flex: 2 }}>
-            <div className="flex-1 h-[3px] rounded-full" style={{ backgroundColor: '#FF6600' }} />
-            <div className="flex-1 h-[3px] rounded-full" style={{ backgroundColor: '#FF6600' }} />
+            <div className="flex-1 h-[3px] rounded-full" style={{ backgroundColor: 'var(--color-fg-brand)' }} />
+            <div className="flex-1 h-[3px] rounded-full" style={{ backgroundColor: 'var(--color-fg-brand)' }} />
           </div>
           {/* 선출 (7) */}
           <div style={{ flex: 1 }}>
@@ -114,7 +114,7 @@ export function SkillRangeSlider({ minValue, maxValue, onChange }: SkillRangeSli
         <div className="flex gap-1 mt-2">
           <div className="text-center font-medium text-xs" style={{ flex: 2, color: '#22C55E' }}>초보</div>
           <div className="text-center font-medium text-xs" style={{ flex: 2, color: '#EAB308' }}>중급</div>
-          <div className="text-center font-medium text-xs" style={{ flex: 2, color: '#FF6600' }}>상급</div>
+          <div className="text-center font-medium text-xs" style={{ flex: 2, color: 'var(--color-fg-brand)' }}>상급</div>
           <div className="text-center font-medium text-xs" style={{ flex: 1, color: '#EF4444' }}>선출</div>
         </div>
       </div>
