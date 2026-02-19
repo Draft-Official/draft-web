@@ -31,7 +31,7 @@ const chipVariants = cva(
           // Inactive state: white background with gray text
           "bg-white text-slate-600 border-slate-300 hover:border-slate-400",
           // Active state: soft pastel orange background with brand orange text
-          "data-[active=true]:bg-[var(--color-bg-brand-weak)] data-[active=true]:text-[var(--color-fg-brand-contrast)] data-[active=true]:border-[var(--color-stroke-brand-weak)]",
+          "data-[active=true]:bg-brand-weak data-[active=true]:text-brand-contrast data-[active=true]:border-brand-stroke-weak",
         ],
         slate: [
           // Inactive state: white background with gray text
@@ -112,7 +112,7 @@ export const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(
           <ChevronDown
             className={cn(
               "w-3.5 h-3.5 flex-shrink-0",
-              isActive && variant === "orange" ? "text-[var(--color-fg-brand-contrast)]" : "text-gray-500"
+              isActive && variant === "orange" ? "text-brand-contrast" : "text-gray-500"
             )}
           />
         )}

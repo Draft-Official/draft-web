@@ -157,7 +157,7 @@ export function TeamExerciseDetailView() {
         {/* 오늘의 운동 */}
         <section className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 space-y-3">
           <h2 className="font-bold text-lg text-slate-900">오늘의 운동</h2>
-          <div className="bg-[var(--color-bg-brand-weak)] border border-[var(--color-stroke-brand-weak)] rounded-xl p-4">
+          <div className="bg-brand-weak border border-brand-stroke-weak rounded-xl p-4">
             <p className="text-slate-700 whitespace-pre-wrap leading-relaxed">
               {exercise.description}
             </p>

@@ -76,7 +76,7 @@ export const MATCH_STATUS_LABELS: Record<MatchStatus, string> = {
 export const MATCH_STATUS_COLORS: Record<MatchStatus, string> = {
   recruiting: 'bg-blue-100 text-blue-700 border-blue-200',
   waiting: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-  payment_waiting: 'bg-[var(--color-bg-brand-weak-pressed)] text-[var(--color-fg-brand-contrast)] border-[var(--color-stroke-brand-weak)]',
+  payment_waiting: 'bg-brand-weak-pressed text-brand-contrast border-brand-stroke-weak',
   voting: 'bg-blue-100 text-blue-700 border-blue-200',
   confirmed: 'bg-green-100 text-green-700 border-green-200',
   ongoing: 'bg-emerald-100 text-emerald-700 border-emerald-200',

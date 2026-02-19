@@ -117,7 +117,7 @@ export function RegionFilterModal({ open, onOpenChange, onApply, selectedRegions
                             {/* Select All */}
                             <button
                                 onClick={() => toggleSubRegion(`${activeRegionTab} 전체`)}
-                                className="w-full h-14 flex items-center justify-between px-5 border-b border-slate-50 active:bg-[var(--color-bg-brand-weak)] transition-colors text-left outline-none cursor-pointer group"
+                                className="w-full h-14 flex items-center justify-between px-5 border-b border-slate-50 active:bg-brand-weak transition-colors text-left outline-none cursor-pointer group"
                             >
                                 <span className={cn(
                                     "text-base", 
@@ -143,7 +143,7 @@ export function RegionFilterModal({ open, onOpenChange, onApply, selectedRegions
                                     <button
                                         key={loc}
                                         onClick={() => toggleSubRegion(fullLoc)}
-                                        className="w-full h-14 flex items-center justify-between px-5 border-b border-slate-50 active:bg-[var(--color-bg-brand-weak)] transition-colors text-left outline-none cursor-pointer group"
+                                        className="w-full h-14 flex items-center justify-between px-5 border-b border-slate-50 active:bg-brand-weak transition-colors text-left outline-none cursor-pointer group"
                                     >
                                         <span className={cn("text-base", isSelected ? "font-bold text-primary" : "text-slate-700")}>
                                             {loc}
@@ -169,7 +169,7 @@ export function RegionFilterModal({ open, onOpenChange, onApply, selectedRegions
                             <div className="w-full overflow-x-auto no-scrollbar px-4 py-3 border-b border-slate-50">
                                 <div className="flex gap-2">
                                     {tempSelected.map(loc => (
-                                        <div key={loc} className="flex items-center gap-1 bg-slate-100 text-primary border border-[var(--color-stroke-brand-weak)] pl-3 pr-2 py-1.5 rounded-lg text-xs font-bold animate-in fade-in zoom-in duration-200 whitespace-nowrap">
+                                        <div key={loc} className="flex items-center gap-1 bg-slate-100 text-primary border border-brand-stroke-weak pl-3 pr-2 py-1.5 rounded-lg text-xs font-bold animate-in fade-in zoom-in duration-200 whitespace-nowrap">
                                             {loc.endsWith('전체') ? loc : (loc.split(' ')[1] || loc)}
                                             <button 
                                                 onClick={(e) => { e.stopPropagation(); removeRegion(loc); }} 

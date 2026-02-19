@@ -133,7 +133,7 @@ export function MatchCreateView() {
               <button
                 type="button"
                 onClick={() => setShowRecentMatchesDialog(true)}
-                className="text-xs font-bold text-primary flex items-center gap-1 bg-[var(--color-bg-brand-weak)] px-2.5 py-1.5 rounded-full hover:bg-[var(--color-bg-brand-weak-pressed)] transition-colors"
+                className="text-xs font-bold text-primary flex items-center gap-1 bg-brand-weak px-2.5 py-1.5 rounded-full hover:bg-brand-weak-pressed transition-colors"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
                 최근 경기 불러오기
@@ -152,14 +152,14 @@ export function MatchCreateView() {
         )}
 
         {showTip && !isEditMode && (
-          <div className="mx-3 mt-3 p-3 bg-[var(--color-bg-brand-weak)] rounded-xl flex items-center gap-3 relative animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="mx-3 mt-3 p-3 bg-brand-weak rounded-xl flex items-center gap-3 relative animate-in fade-in slide-in-from-top-2 duration-300">
             <Zap className="w-5 h-5 text-primary flex-shrink-0 fill-orange-500" />
-            <p className="text-sm font-bold text-[var(--color-fg-brand-contrast)] pr-6">
+            <p className="text-sm font-bold text-brand-contrast pr-6">
               딱 한 번만 작성하세요! 다음부턴 '불러오기'로 3초만에 개설가능!
             </p>
             <button
               onClick={handleDismissTip}
-              className="absolute top-2 right-2 p-1 text-orange-400 hover:text-[var(--color-fg-brand)] transition-colors"
+              className="absolute top-2 right-2 p-1 text-orange-400 hover:text-brand transition-colors"
             >
               <X className="w-4 h-4" />
             </button>

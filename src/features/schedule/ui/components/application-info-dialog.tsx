@@ -199,11 +199,11 @@ export function ApplicationInfoDialog({
 
             {/* 입금 정보 (입금대기 상태) */}
             {isPaymentWaiting && match.bankInfo && (
-              <section className="bg-[var(--color-bg-brand-weak)] rounded-xl p-4 border border-[var(--color-stroke-brand-weak)] space-y-3">
-                <p className="text-sm font-medium text-[var(--color-fg-brand-contrast)]">입금 계좌</p>
+              <section className="bg-brand-weak rounded-xl p-4 border border-brand-stroke-weak space-y-3">
+                <p className="text-sm font-medium text-brand-contrast">입금 계좌</p>
                 <button
                   onClick={handleCopyBankInfo}
-                  className="flex items-center gap-2 text-sm text-orange-900 hover:text-[var(--color-fg-brand-contrast)]"
+                  className="flex items-center gap-2 text-sm text-orange-900 hover:text-brand-contrast"
                 >
                   <span>
                     {match.bankInfo.bank} {match.bankInfo.account} ({match.bankInfo.holder})
@@ -214,7 +214,7 @@ export function ApplicationInfoDialog({
                     <Copy className="w-4 h-4 shrink-0" />
                   )}
                 </button>
-                <p className="text-xs text-[var(--color-fg-brand)]">
+                <p className="text-xs text-brand">
                   입금 후 아래 &apos;송금 완료&apos; 버튼을 누르면 호스트에게 알림이 전송됩니다.
                 </p>
               </section>
@@ -297,7 +297,7 @@ export function ApplicationInfoDialog({
             <DialogDescription className="text-slate-600 pt-2">
               취소 후에는 다시 신청해야 합니다.
               {isPaymentWaiting && (
-                <span className="block mt-2 text-[var(--color-fg-brand)]">
+                <span className="block mt-2 text-brand">
                   이미 입금하셨다면 호스트에게 환불을 요청해 주세요.
                 </span>
               )}

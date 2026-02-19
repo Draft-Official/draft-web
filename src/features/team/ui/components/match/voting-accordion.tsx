@@ -262,7 +262,7 @@ function VoterItem({
               {nickname}
             </span>
             {showLateTag && (
-              <span className="px-1.5 py-0.5 text-xs font-medium bg-[var(--color-bg-brand-weak-pressed)] text-[var(--color-fg-brand)] rounded">
+              <span className="px-1.5 py-0.5 text-xs font-medium bg-brand-weak-pressed text-brand rounded">
                 늦참
               </span>
             )}

@@ -23,7 +23,7 @@ export const TEAM_ROLE_LABELS: Record<TeamRoleValue, string> = {
 };
 
 export const TEAM_ROLE_STYLES: Record<TeamRoleValue, { color: string; bgColor: string }> = {
-  LEADER: { color: 'text-primary', bgColor: 'bg-[var(--color-bg-brand-weak)]' },
+  LEADER: { color: 'text-primary', bgColor: 'bg-brand-weak' },
   MANAGER: { color: 'text-blue-600', bgColor: 'bg-blue-50' },
   MEMBER: { color: 'text-gray-600', bgColor: 'bg-gray-50' },
 };

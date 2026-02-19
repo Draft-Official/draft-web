@@ -35,7 +35,7 @@ export function AnnouncementSection({ announcements }: AnnouncementSectionProps)
   if (!announcements || announcements.length === 0) return null;
 
   return (
-    <div className="bg-[var(--color-bg-brand-weak)] px-5 py-4 space-y-3">
+    <div className="bg-brand-weak px-5 py-4 space-y-3">
       <div className="flex items-center gap-2">
         <Megaphone className="w-4 h-4 text-primary" />
         <h3 className="text-sm font-bold text-slate-900">공지</h3>

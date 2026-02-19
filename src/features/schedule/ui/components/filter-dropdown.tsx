@@ -63,7 +63,7 @@ export function FilterDropdown<T extends string>(props: FilterDropdownProps<T>) 
             className={cn(
               'rounded-full h-8 px-3 text-xs font-bold border transition-all flex items-center gap-1',
               isActive
-                ? 'border-primary text-primary bg-[var(--color-bg-brand-weak)]'
+                ? 'border-primary text-primary bg-brand-weak'
                 : 'border-slate-200 text-slate-600'
             )}
           >
@@ -112,7 +112,7 @@ export function FilterDropdown<T extends string>(props: FilterDropdownProps<T>) 
           className={cn(
             'rounded-full h-8 px-3 text-xs font-bold border transition-all flex items-center gap-1',
             isActive
-              ? 'border-primary text-primary bg-[var(--color-bg-brand-weak)]'
+              ? 'border-primary text-primary bg-brand-weak'
               : 'border-slate-200 text-slate-600'
           )}
         >

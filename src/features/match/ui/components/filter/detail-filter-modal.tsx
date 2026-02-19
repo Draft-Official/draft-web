@@ -136,7 +136,7 @@ export function DetailedFilterModal({
                         className={cn(
                           "h-12 rounded-xl border font-bold text-sm transition-all",
                           isSelected
-                            ? "border-primary bg-[var(--color-bg-brand-weak)] text-primary"
+                            ? "border-primary bg-brand-weak text-primary"
                             : "border-slate-200 text-slate-600 hover:bg-slate-50"
                         )}
                       >

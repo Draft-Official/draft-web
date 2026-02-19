@@ -23,7 +23,7 @@ export function RecruitmentStatusCard({
 
   // Styles
   const containerClass = isOpen
-    ? "bg-[var(--color-bg-brand-weak)]/30 border-[var(--color-stroke-brand-weak)]"
+    ? "bg-brand-weak/30 border-brand-stroke-weak"
     : "bg-slate-50 border-slate-200";
     
   // Override for 'default' variant if needed (e.g. strict legacy match), 

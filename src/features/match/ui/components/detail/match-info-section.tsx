@@ -49,7 +49,7 @@ export function MatchInfoSection({ match }: MatchInfoSectionProps) {
 
         {/* Level (3rd) - Accordion */}
         <div className="flex items-start gap-3">
-          <div className="w-9 h-9 rounded-full bg-[var(--color-bg-brand-weak)] flex items-center justify-center shrink-0">
+          <div className="w-9 h-9 rounded-full bg-brand-weak flex items-center justify-center shrink-0">
             <Trophy className="w-4 h-4 text-primary" />
           </div>
           <div className="flex-1 min-w-0">

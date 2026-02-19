@@ -149,7 +149,7 @@ export function ApplyModal({
         <form onSubmit={handleSubmit} className="space-y-5 mt-4">
           {/* 참가비 표시 */}
           {costAmount !== undefined && (
-            <div className="bg-[var(--color-bg-brand-weak)] rounded-xl p-4">
+            <div className="bg-brand-weak rounded-xl p-4">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-slate-600">참가비</span>
                 <span className="text-lg font-bold text-primary">

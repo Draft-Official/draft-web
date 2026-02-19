@@ -60,7 +60,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
       onClick={handleClick}
       className={cn(
         'w-full flex items-start gap-3 px-5 py-4 text-left transition-colors hover:bg-slate-50',
-        !notification.isRead && 'bg-[var(--color-bg-brand-weak)]/50'
+        !notification.isRead && 'bg-brand-weak/50'
       )}
     >
       {/* Icon */}

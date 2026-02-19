@@ -134,7 +134,7 @@ export function TeamCreateStepInfo({
               className={cn(
                 'aspect-square rounded-xl flex items-center justify-center overflow-hidden transition-all border-2',
                 logoId === logo.url
-                  ? 'border-primary bg-[var(--color-bg-brand-weak)]'
+                  ? 'border-primary bg-brand-weak'
                   : 'border-slate-200 bg-white hover:border-slate-300'
               )}
             >

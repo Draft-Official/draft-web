@@ -220,7 +220,7 @@ export function PhoneVerificationForm({ onComplete }: PhoneVerificationFormProps
         </div>
 
         {/* 안내 */}
-        <div className="flex items-start gap-2 p-3 bg-[var(--color-bg-brand-weak)] rounded-lg">
+        <div className="flex items-start gap-2 p-3 bg-brand-weak rounded-lg">
           <Smartphone className="h-4 w-4 text-primary mt-0.5 shrink-0" />
           <p className="text-sm text-slate-700">
             아래 버튼을 눌러 인증번호가 담긴 문자를 보내주세요. 문자 발송 후 자동으로 인증됩니다.

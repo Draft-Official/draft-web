@@ -331,7 +331,7 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
             className={cn(
               "rounded-full h-8 px-3 text-xs font-bold border transition-all",
               showPast
-                ? "border-primary text-primary bg-[var(--color-bg-brand-weak)] data-[state=on]:bg-[var(--color-bg-brand-weak)] data-[state=on]:text-primary"
+                ? "border-primary text-primary bg-brand-weak data-[state=on]:bg-brand-weak data-[state=on]:text-primary"
                 : "border-slate-200 text-slate-600"
             )}
           >

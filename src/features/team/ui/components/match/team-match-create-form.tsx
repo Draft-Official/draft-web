@@ -301,11 +301,11 @@ export function TeamMatchCreateForm({ team, onClose }: TeamMatchCreateFormProps)
                 }}
               />
             ) : (
-              <div className="p-4 bg-[var(--color-bg-brand-weak)]/30 border border-[var(--color-stroke-brand-weak)] rounded-xl">
-                <p className="text-sm text-[var(--color-fg-brand-contrast)] font-medium">
+              <div className="p-4 bg-brand-weak/30 border border-brand-stroke-weak rounded-xl">
+                <p className="text-sm text-brand-contrast font-medium">
                   홈구장이 설정되지 않았습니다.
                 </p>
-                <p className="text-xs text-[var(--color-fg-brand)] mt-1">
+                <p className="text-xs text-brand mt-1">
                   팀 설정에서 홈구장을 먼저 설정해주세요.
                 </p>
               </div>

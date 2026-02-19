@@ -48,7 +48,7 @@ export function PriceFilter({ selectedPriceMax, onPriceMaxChange }: PriceFilterP
           <DropdownMenuItem
             key={option.value ?? 'all'}
             onClick={() => onPriceMaxChange(option.value)}
-            className={cn(selectedPriceMax === option.value && 'bg-[var(--color-bg-brand-weak)] text-primary')}
+            className={cn(selectedPriceMax === option.value && 'bg-brand-weak text-primary')}
           >
             {option.label}
           </DropdownMenuItem>

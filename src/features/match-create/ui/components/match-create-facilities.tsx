@@ -61,7 +61,7 @@ export function MatchCreateFacilities({
                         정보가 다르다면 수정해 주세요
                     </span>
                 ) : (
-                    <span className="text-[11px] font-bold text-primary bg-[var(--color-bg-brand-weak)] px-2 py-0.5 rounded-full">
+                    <span className="text-[11px] font-bold text-primary bg-brand-weak px-2 py-0.5 rounded-full">
                         작성시 문의가 80% 감소해요!
                     </span>
                 )}
@@ -226,7 +226,7 @@ export function MatchCreateFacilities({
                     className={cn(
                       "w-full p-4 rounded-xl text-left border transition-all",
                       courtSize === opt.value
-                        ? "bg-[var(--color-bg-brand-weak)] border-primary ring-1 ring-primary"
+                        ? "bg-brand-weak border-primary ring-1 ring-primary"
                         : "bg-white border-slate-200 hover:bg-slate-50"
                     )}
                   >
