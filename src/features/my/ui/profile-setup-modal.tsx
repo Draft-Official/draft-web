@@ -21,7 +21,7 @@ import {
 import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/shadcn/avatar';
 import { cn } from '@/shared/lib/utils';
 import { filterNumericInput } from '@/shared/lib/input-utils';
-import { SkillSlider } from './skill-slider';
+import { SkillSlider } from '@/shared/ui/composite/skill-slider';
 import { MyProfileFormDTO } from '../model/types';
 import { POSITION_OPTIONS } from '@/shared/config/match-constants';
 

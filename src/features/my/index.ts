@@ -46,7 +46,7 @@ export { PaymentSection } from './ui/payment-section';
 export { SupportSection } from './ui/support-section';
 export { TermsPageView } from './ui/terms-page-view';
 export { FaqList } from './ui/faq-list';
-export { SkillSlider } from './ui/skill-slider';
+export { SkillSlider } from '@/shared/ui/composite/skill-slider';
 export { LegalPageLayout } from './ui/legal-page-layout';
 export { NotificationSettingsSection } from './ui/notification-settings-section';
 export { MenuSection } from './ui/menu-section';
