@@ -44,8 +44,8 @@ function GameFormatItem({
                 onClick={onOpen}
                 className="w-full text-left flex items-center gap-3 py-1 group"
             >
-                <Plus className="w-5 h-5 text-slate-400 group-hover:text-[#FF6600]" />
-                <span className="text-base font-medium text-slate-600 group-hover:text-[#FF6600]">
+                <Plus className="w-5 h-5 text-slate-400 group-hover:text-primary" />
+                <span className="text-base font-medium text-slate-600 group-hover:text-primary">
                     {title} 추가
                 </span>
             </button>

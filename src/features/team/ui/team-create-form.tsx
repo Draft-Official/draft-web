@@ -405,7 +405,7 @@ export function TeamCreateForm() {
                 type="button"
                 onClick={handleNext}
                 disabled={isNextDisabled}
-                className="flex-1 h-14 text-base font-bold bg-[#FF6600] hover:bg-[#FF6600]/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 h-14 text-base font-bold bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 다음
                 <ArrowRight className="w-4 h-4 ml-2" />
@@ -415,7 +415,7 @@ export function TeamCreateForm() {
                 key="submit-button"
                 type="submit"
                 disabled={isCreating}
-                className="flex-1 h-14 text-base font-bold bg-[#FF6600] hover:bg-[#FF6600]/90"
+                className="flex-1 h-14 text-base font-bold bg-primary hover:bg-primary/90"
               >
                 {isCreating ? (
                   <>

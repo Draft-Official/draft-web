@@ -47,7 +47,7 @@ export function NotificationList() {
             type="button"
             onClick={handleMarkAllAsRead}
             disabled={markAllAsRead.isPending}
-            className="text-sm text-[#FF6600] font-medium hover:text-[#FF6600]/80 disabled:opacity-50"
+            className="text-sm text-primary font-medium hover:text-primary/80 disabled:opacity-50"
           >
             모두 읽음
           </button>

@@ -99,7 +99,7 @@ export function StartTimeFilterModal({
           </Button>
           <Button
             onClick={handleApply}
-            className="flex-1 h-12 bg-[#FF6600] text-white rounded-xl font-bold hover:bg-[#FF6600]/90"
+            className="flex-1 h-12 bg-primary text-white rounded-xl font-bold hover:bg-primary/90"
           >
             적용하기
           </Button>

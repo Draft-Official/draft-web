@@ -299,7 +299,7 @@ export function MatchCreateOperations({
             </div>
             {/* Toggle: 전화번호 / 오픈채팅 */}
             <div className="flex items-center gap-2">
-              <span className={`text-xs font-bold ${contactType === 'PHONE' ? 'text-[#FF6600]' : 'text-slate-400'}`}>
+              <span className={`text-xs font-bold ${contactType === 'PHONE' ? 'text-primary' : 'text-slate-400'}`}>
                 <Phone className="w-3 h-3 inline mr-0.5" />
                 전화
               </span>
@@ -309,9 +309,9 @@ export function MatchCreateOperations({
                   setValue('operations.contactType', checked ? 'KAKAO_OPEN_CHAT' : 'PHONE');
                   // Value persistence: Do not reset content
                 }}
-                className="data-[state=checked]:bg-[#FF6600] data-[state=unchecked]:bg-slate-200"
+                className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-slate-200"
               />
-              <span className={`text-xs font-bold ${contactType === 'KAKAO_OPEN_CHAT' ? 'text-[#FF6600]' : 'text-slate-400'}`}>
+              <span className={`text-xs font-bold ${contactType === 'KAKAO_OPEN_CHAT' ? 'text-primary' : 'text-slate-400'}`}>
                 <MessageCircle className="w-3 h-3 inline mr-0.5" />
                 오픈채팅
               </span>
@@ -329,7 +329,7 @@ export function MatchCreateOperations({
                 {...register('phoneNumber')}
                 placeholder="010-1234-5678"
                 inputMode="tel"
-                className="pl-9 h-11 bg-white border-slate-200 text-sm focus-visible:ring-1 focus-visible:ring-[#FF6600] focus-visible:border-[#FF6600]"
+                className="pl-9 h-11 bg-white border-slate-200 text-sm focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary"
                 onChange={(e) => {
                   // 전화번호 자동 포맷팅 (숫자만 추출 후 하이픈 추가)
                   const digits = e.target.value.replace(/[^0-9]/g, '').slice(0, 11);
@@ -346,7 +346,7 @@ export function MatchCreateOperations({
               <Input
                 {...register('kakaoLink')}
                 placeholder="오픈채팅 링크"
-                className="pl-9 h-11 bg-white border-slate-200 text-sm focus-visible:ring-1 focus-visible:ring-[#FF6600] focus-visible:border-[#FF6600]"
+                className="pl-9 h-11 bg-white border-slate-200 text-sm focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary"
               />
             )}
           </div>

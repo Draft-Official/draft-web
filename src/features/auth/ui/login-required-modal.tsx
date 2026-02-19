@@ -48,7 +48,7 @@ export function LoginRequiredModal({
         <div className="flex flex-col gap-2 mt-4">
           <Button
             onClick={handleLogin}
-            className="w-full bg-[#FF6600] hover:bg-[#FF6600]/90 text-white"
+            className="w-full bg-primary hover:bg-primary/90 text-white"
           >
             로그인하기
           </Button>

@@ -61,7 +61,7 @@ export function MatchCreateFacilities({
                         정보가 다르다면 수정해 주세요
                     </span>
                 ) : (
-                    <span className="text-[11px] font-bold text-[#FF6600] bg-orange-50 px-2 py-0.5 rounded-full">
+                    <span className="text-[11px] font-bold text-primary bg-[var(--color-bg-brand-weak)] px-2 py-0.5 rounded-full">
                         작성시 문의가 80% 감소해요!
                     </span>
                 )}
@@ -182,7 +182,7 @@ export function MatchCreateFacilities({
             <div className="flex gap-2">
                 <Button
                     onClick={() => setShowParkingDialog(false)}
-                    className="flex-[2] h-12 bg-[#FF6600] hover:bg-[#FF6600]/90 text-white font-bold rounded-xl"
+                    className="flex-[2] h-12 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl"
                 >
                     확인
                 </Button>
@@ -226,7 +226,7 @@ export function MatchCreateFacilities({
                     className={cn(
                       "w-full p-4 rounded-xl text-left border transition-all",
                       courtSize === opt.value
-                        ? "bg-orange-50 border-[#FF6600] ring-1 ring-[#FF6600]"
+                        ? "bg-[var(--color-bg-brand-weak)] border-primary ring-1 ring-primary"
                         : "bg-white border-slate-200 hover:bg-slate-50"
                     )}
                   >
@@ -239,7 +239,7 @@ export function MatchCreateFacilities({
              <div className="flex gap-2">
                 <Button
                     onClick={() => setShowCourtSizeDialog(false)}
-                    className="flex-[2] h-12 bg-[#FF6600] hover:bg-[#FF6600]/90 text-white font-bold rounded-xl"
+                    className="flex-[2] h-12 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl"
                 >
                     확인
                 </Button>

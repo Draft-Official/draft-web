@@ -112,7 +112,7 @@ export default function GuestMatchListPage() {
           {isLoading ? (
             // Loading State
             <div className="flex flex-col items-center justify-center pt-20 px-6 text-center">
-              <div className="w-12 h-12 border-4 border-slate-200 border-t-[#FF6600] rounded-full animate-spin mb-4" />
+              <div className="w-12 h-12 border-4 border-slate-200 border-t-primary rounded-full animate-spin mb-4" />
               <p className="text-slate-500 text-sm">경기를 불러오는 중...</p>
             </div>
           ) : error ? (
@@ -127,7 +127,7 @@ export default function GuestMatchListPage() {
               </p>
               <button
                 onClick={() => window.location.reload()}
-                className="px-4 py-2 bg-[#FF6600] text-white rounded-lg text-sm font-medium"
+                className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium"
               >
                 새로고침
               </button>
@@ -143,8 +143,8 @@ export default function GuestMatchListPage() {
                 필터 조건을 변경해보시거나<br />직접 게스트를 모집해보는 건 어때요?
               </p>
               <div className="flex flex-col items-center gap-2 animate-bounce">
-                <span className="text-xs text-[#FF6600] font-bold">직접 모집하기</span>
-                <ArrowDown className="w-5 h-5 text-[#FF6600]" />
+                <span className="text-xs text-primary font-bold">직접 모집하기</span>
+                <ArrowDown className="w-5 h-5 text-primary" />
               </div>
             </div>
           ) : (

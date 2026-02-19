@@ -133,7 +133,7 @@ export function MatchCreateView() {
               <button
                 type="button"
                 onClick={() => setShowRecentMatchesDialog(true)}
-                className="text-xs font-bold text-[#FF6600] flex items-center gap-1 bg-orange-50 px-2.5 py-1.5 rounded-full hover:bg-orange-100 transition-colors"
+                className="text-xs font-bold text-primary flex items-center gap-1 bg-[var(--color-bg-brand-weak)] px-2.5 py-1.5 rounded-full hover:bg-[var(--color-bg-brand-weak-pressed)] transition-colors"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
                 최근 경기 불러오기
@@ -145,21 +145,21 @@ export function MatchCreateView() {
         {isLoadingEditData && (
           <div className="fixed inset-0 bg-white/80 z-50 flex items-center justify-center">
             <div className="flex flex-col items-center gap-3">
-              <Loader2 className="w-8 h-8 text-[#FF6600] animate-spin" />
+              <Loader2 className="w-8 h-8 text-primary animate-spin" />
               <p className="text-sm text-slate-600">경기 정보를 불러오는 중...</p>
             </div>
           </div>
         )}
 
         {showTip && !isEditMode && (
-          <div className="mx-3 mt-3 p-3 bg-orange-50 rounded-xl flex items-center gap-3 relative animate-in fade-in slide-in-from-top-2 duration-300">
-            <Zap className="w-5 h-5 text-[#FF6600] flex-shrink-0 fill-orange-500" />
-            <p className="text-sm font-bold text-orange-800 pr-6">
+          <div className="mx-3 mt-3 p-3 bg-[var(--color-bg-brand-weak)] rounded-xl flex items-center gap-3 relative animate-in fade-in slide-in-from-top-2 duration-300">
+            <Zap className="w-5 h-5 text-primary flex-shrink-0 fill-orange-500" />
+            <p className="text-sm font-bold text-[var(--color-fg-brand-contrast)] pr-6">
               딱 한 번만 작성하세요! 다음부턴 '불러오기'로 3초만에 개설가능!
             </p>
             <button
               onClick={handleDismissTip}
-              className="absolute top-2 right-2 p-1 text-orange-400 hover:text-orange-600 transition-colors"
+              className="absolute top-2 right-2 p-1 text-orange-400 hover:text-[var(--color-fg-brand)] transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
@@ -239,7 +239,7 @@ export function MatchCreateView() {
             <Button
               type="submit"
               disabled={isPending || isLoadingEditData}
-              className="w-full h-14 text-lg font-bold bg-[#FF6600] hover:bg-[#FF6600]/90 text-white rounded-xl shadow-lg shadow-orange-100 disabled:opacity-50"
+              className="w-full h-14 text-lg font-bold bg-primary hover:bg-primary/90 text-white rounded-xl shadow-lg shadow-orange-100 disabled:opacity-50"
             >
               {isPending
                 ? (isEditMode ? '수정 중...' : '생성 중...')

@@ -64,7 +64,7 @@ export function DateStrip({ selectedDateISO, onDateSelect }: DateStripProps) {
                     {item.dayNum}
                 </span>
                 {item.isToday && (
-                    <span className="text-[9px] font-medium text-[#FF6600]">오늘</span>
+                    <span className="text-[9px] font-medium text-primary">오늘</span>
                 )}
             </button>
         );

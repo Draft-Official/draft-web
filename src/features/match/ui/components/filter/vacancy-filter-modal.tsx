@@ -76,7 +76,7 @@ export function VacancyFilterModal({
         </div>
         <Button
           onClick={handleApply}
-          className="w-full h-12 bg-[#FF6600] text-white rounded-xl font-bold hover:bg-[#FF6600]/90"
+          className="w-full h-12 bg-primary text-white rounded-xl font-bold hover:bg-primary/90"
         >
           적용하기
         </Button>

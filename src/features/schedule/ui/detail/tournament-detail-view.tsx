@@ -170,7 +170,7 @@ export function TournamentDetailView() {
             <FileText className="w-5 h-5 text-primary" />
             <h2 className="font-bold text-lg text-slate-900">전술</h2>
           </div>
-          <div className="bg-orange-50 border border-orange-100 rounded-xl p-4">
+          <div className="bg-[var(--color-bg-brand-weak)] border border-[var(--color-stroke-brand-weak)] rounded-xl p-4">
             <p className="text-slate-700 whitespace-pre-wrap leading-relaxed">
               {tournament.tactics}
             </p>

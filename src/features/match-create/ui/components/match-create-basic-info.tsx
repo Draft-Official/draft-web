@@ -134,7 +134,7 @@ export function MatchCreateBasicInfo({
                     const endTime = calculateEndTime(startTime, duration);
                     const timeRange = `${formatTimeDisplay(startTime)} ~ ${formatTimeDisplay(endTime)}`;
                     return (
-                      <span className="text-[#FF6600]">
+                      <span className="text-primary">
                         {parseInt(m)}월 {parseInt(d)}일 {timeRange}
                       </span>
                     );
@@ -228,7 +228,7 @@ export function MatchCreateBasicInfo({
                                         className="flex-1 px-4 py-3 text-left flex items-start gap-2 min-w-0"
                                         type="button"
                                     >
-                                        <MapPin className="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0 group-hover:text-[#FF6600]" />
+                                        <MapPin className="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0 group-hover:text-primary" />
                                         <div className="flex-1 min-w-0">
                                             {result.buildingName && (
                                                 <div className="text-sm font-bold text-slate-900 mb-0.5 truncate">
@@ -251,7 +251,7 @@ export function MatchCreateBasicInfo({
                                                 e.stopPropagation();
                                                 window.open(result.placeUrl, '_blank');
                                             }}
-                                            className="px-3 py-3 text-slate-400 hover:text-[#FF6600] transition-colors flex-shrink-0"
+                                            className="px-3 py-3 text-slate-400 hover:text-primary transition-colors flex-shrink-0"
                                             title="카카오맵에서 보기"
                                             type="button"
                                         >
@@ -273,7 +273,7 @@ export function MatchCreateBasicInfo({
             <div className="flex items-center justify-between">
                 <Label className="text-sm font-bold text-slate-600">참가비 (1인)</Label>
                 <div className="flex items-center gap-2">
-                    <span className={cn("text-xs font-bold", feeType === 'cost' ? "text-[#FF6600]" : "text-slate-400")}>현금</span>
+                    <span className={cn("text-xs font-bold", feeType === 'cost' ? "text-primary" : "text-slate-400")}>현금</span>
                     <Switch
                         checked={feeType === 'beverage'}
                         onCheckedChange={(c) => {
@@ -295,9 +295,9 @@ export function MatchCreateBasicInfo({
                                 setValue('fee', lastCostRef.current || '10000');
                             }
                         }}
-                        className="data-[state=checked]:bg-[#FF6600] data-[state=unchecked]:bg-slate-200" 
+                        className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-slate-200" 
                     />
-                    <span className={cn("text-xs font-bold", feeType === 'beverage' ? "text-[#FF6600]" : "text-slate-400")}>음료</span>
+                    <span className={cn("text-xs font-bold", feeType === 'beverage' ? "text-primary" : "text-slate-400")}>음료</span>
                 </div>
             </div>
             <div className="relative">
@@ -328,7 +328,7 @@ export function MatchCreateBasicInfo({
                 <div className={cn(
                     "w-5 h-5 rounded border-2 flex items-center justify-center transition-colors",
                     hasBeverage
-                        ? "bg-[#FF6600] border-[#FF6600]"
+                        ? "bg-primary border-primary"
                         : "bg-white border-slate-300"
                 )}>
                     {hasBeverage && (

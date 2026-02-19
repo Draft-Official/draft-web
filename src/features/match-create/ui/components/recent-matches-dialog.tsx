@@ -60,7 +60,7 @@ export function RecentMatchesDialog({
                       <span className={cn(
                         "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium",
                         match.isTeamHost
-                          ? "bg-orange-50 text-orange-700"
+                          ? "bg-[var(--color-bg-brand-weak)] text-[var(--color-fg-brand-contrast)]"
                           : "bg-slate-100 text-slate-600"
                       )}>
                         {match.isTeamHost ? '🏀' : '🙋‍♂️'} {match.hostLabel}

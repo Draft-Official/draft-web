@@ -152,7 +152,7 @@ export function TeamProfileEditView({ code }: TeamProfileEditViewProps) {
                 className={cn(
                   'aspect-square rounded-xl flex items-center justify-center overflow-hidden transition-all border-2',
                   selectedLogo === logoUrl
-                    ? 'border-primary bg-orange-50'
+                    ? 'border-primary bg-[var(--color-bg-brand-weak)]'
                     : 'border-slate-200 bg-white hover:border-slate-300'
                 )}
               >

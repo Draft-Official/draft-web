@@ -136,7 +136,7 @@ export function DetailedFilterModal({
                         className={cn(
                           "h-12 rounded-xl border font-bold text-sm transition-all",
                           isSelected
-                            ? "border-[#FF6600] bg-orange-50 text-[#FF6600]"
+                            ? "border-primary bg-[var(--color-bg-brand-weak)] text-primary"
                             : "border-slate-200 text-slate-600 hover:bg-slate-50"
                         )}
                       >
@@ -231,7 +231,7 @@ export function DetailedFilterModal({
                     onClick={() => setTempHideClosed(!tempHideClosed)}
                     className={cn(
                       "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors",
-                      tempHideClosed ? "bg-[#FF6600]" : "bg-slate-200"
+                      tempHideClosed ? "bg-primary" : "bg-slate-200"
                     )}
                   >
                     <span
@@ -256,7 +256,7 @@ export function DetailedFilterModal({
           </Button>
           <Button
             onClick={handleApply}
-            className="flex-1 h-12 bg-[#FF6600] text-white rounded-xl font-bold hover:bg-[#FF6600]/90"
+            className="flex-1 h-12 bg-primary text-white rounded-xl font-bold hover:bg-primary/90"
           >
             적용하기
           </Button>

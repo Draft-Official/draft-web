@@ -102,10 +102,10 @@ export function RegionFilterModal({ open, onOpenChange, onApply, selectedRegions
                                                 : "text-slate-500 hover:bg-slate-100 bg-slate-50 font-medium"
                                         )}
                                     >
-                                        {isActive && <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-[#FF6600]" />}
+                                        {isActive && <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-primary" />}
                                         <span className="truncate">{region}</span>
                                         {count > 0 && (
-                                            <span className="text-[#FF6600] font-bold text-xs ml-1">{count}</span>
+                                            <span className="text-primary font-bold text-xs ml-1">{count}</span>
                                         )}
                                     </button>
                                 );
@@ -117,18 +117,18 @@ export function RegionFilterModal({ open, onOpenChange, onApply, selectedRegions
                             {/* Select All */}
                             <button
                                 onClick={() => toggleSubRegion(`${activeRegionTab} 전체`)}
-                                className="w-full h-14 flex items-center justify-between px-5 border-b border-slate-50 active:bg-orange-50 transition-colors text-left outline-none cursor-pointer group"
+                                className="w-full h-14 flex items-center justify-between px-5 border-b border-slate-50 active:bg-[var(--color-bg-brand-weak)] transition-colors text-left outline-none cursor-pointer group"
                             >
                                 <span className={cn(
                                     "text-base", 
-                                    tempSelected.includes(`${activeRegionTab} 전체`) ? "font-bold text-[#FF6600]" : "text-slate-700"
+                                    tempSelected.includes(`${activeRegionTab} 전체`) ? "font-bold text-primary" : "text-slate-700"
                                 )}>
                                     {activeRegionTab} 전체
                                 </span>
                                 <div className={cn(
                                     "w-5 h-5 rounded-[4px] border flex items-center justify-center transition-colors",
                                     tempSelected.includes(`${activeRegionTab} 전체`) 
-                                        ? "bg-[#FF6600] border-[#FF6600]" 
+                                        ? "bg-primary border-primary" 
                                         : "bg-white border-slate-300 group-hover:border-slate-400"
                                 )}>
                                     {tempSelected.includes(`${activeRegionTab} 전체`) && <Check className="w-3.5 h-3.5 text-white stroke-[3]" />}
@@ -143,15 +143,15 @@ export function RegionFilterModal({ open, onOpenChange, onApply, selectedRegions
                                     <button
                                         key={loc}
                                         onClick={() => toggleSubRegion(fullLoc)}
-                                        className="w-full h-14 flex items-center justify-between px-5 border-b border-slate-50 active:bg-orange-50 transition-colors text-left outline-none cursor-pointer group"
+                                        className="w-full h-14 flex items-center justify-between px-5 border-b border-slate-50 active:bg-[var(--color-bg-brand-weak)] transition-colors text-left outline-none cursor-pointer group"
                                     >
-                                        <span className={cn("text-base", isSelected ? "font-bold text-[#FF6600]" : "text-slate-700")}>
+                                        <span className={cn("text-base", isSelected ? "font-bold text-primary" : "text-slate-700")}>
                                             {loc}
                                         </span>
                                         <div className={cn(
                                             "w-5 h-5 rounded-[4px] border flex items-center justify-center transition-colors",
                                             isSelected 
-                                                ? "bg-[#FF6600] border-[#FF6600]" 
+                                                ? "bg-primary border-primary" 
                                                 : "bg-white border-slate-300 group-hover:border-slate-400"
                                         )}>
                                             {isSelected && <Check className="w-3.5 h-3.5 text-white stroke-[3]" />}
@@ -169,7 +169,7 @@ export function RegionFilterModal({ open, onOpenChange, onApply, selectedRegions
                             <div className="w-full overflow-x-auto no-scrollbar px-4 py-3 border-b border-slate-50">
                                 <div className="flex gap-2">
                                     {tempSelected.map(loc => (
-                                        <div key={loc} className="flex items-center gap-1 bg-slate-100 text-[#FF6600] border border-orange-100 pl-3 pr-2 py-1.5 rounded-lg text-xs font-bold animate-in fade-in zoom-in duration-200 whitespace-nowrap">
+                                        <div key={loc} className="flex items-center gap-1 bg-slate-100 text-primary border border-[var(--color-stroke-brand-weak)] pl-3 pr-2 py-1.5 rounded-lg text-xs font-bold animate-in fade-in zoom-in duration-200 whitespace-nowrap">
                                             {loc.endsWith('전체') ? loc : (loc.split(' ')[1] || loc)}
                                             <button 
                                                 onClick={(e) => { e.stopPropagation(); removeRegion(loc); }} 
@@ -196,7 +196,7 @@ export function RegionFilterModal({ open, onOpenChange, onApply, selectedRegions
                             </button>
                             <button 
                                 onClick={handleApply}
-                                className="flex-1 h-12 bg-[#FF6600] hover:bg-[#FF6600]/90 text-white rounded-xl text-base font-bold shadow-md shadow-orange-100 transition-transform active:scale-[0.98] outline-none flex items-center justify-center gap-1.5"
+                                className="flex-1 h-12 bg-primary hover:bg-primary/90 text-white rounded-xl text-base font-bold shadow-md shadow-orange-100 transition-transform active:scale-[0.98] outline-none flex items-center justify-center gap-1.5"
                             >
                                 <span>적용하기</span>
                                 {tempSelected.length > 0 && (

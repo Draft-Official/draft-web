@@ -21,7 +21,7 @@ export function LocationCard({ location, isExistingGym, onClear }: LocationCardP
     <div
       className={cn(
         'relative rounded-xl p-4 border transition-all',
-        isExistingGym ? 'bg-orange-50/30 border-orange-200 shadow-sm' : 'bg-white border-slate-200'
+        isExistingGym ? 'bg-[var(--color-bg-brand-weak)]/30 border-[var(--color-stroke-brand-weak)] shadow-sm' : 'bg-white border-slate-200'
       )}
     >
       <div className="flex justify-between items-start gap-3">
@@ -29,7 +29,7 @@ export function LocationCard({ location, isExistingGym, onClear }: LocationCardP
           <div className="flex items-center gap-2 mb-1">
             <h3 className="text-lg font-bold text-slate-900 truncate">{location.buildingName || location.address}</h3>
             {isExistingGym && (
-              <span className="shrink-0 px-1.5 py-0.5 text-[10px] font-bold text-[#FF6600] bg-orange-100 rounded-md">
+              <span className="shrink-0 px-1.5 py-0.5 text-[10px] font-bold text-primary bg-[var(--color-bg-brand-weak-pressed)] rounded-md">
                 등록된 체육관
               </span>
             )}
@@ -42,7 +42,7 @@ export function LocationCard({ location, isExistingGym, onClear }: LocationCardP
               <button
                 type="button"
                 onClick={openKakaoMap}
-                className="shrink-0 flex items-center gap-0.5 text-slate-400 hover:text-[#FF6600] transition-colors underline decoration-slate-300 hover:decoration-[#FF6600] underline-offset-2"
+                className="shrink-0 flex items-center gap-0.5 text-slate-400 hover:text-primary transition-colors underline decoration-slate-300 hover:decoration-primary underline-offset-2"
                 title="카카오맵에서 위치 보기"
               >
                 <MapPinned className="w-3 h-3" />

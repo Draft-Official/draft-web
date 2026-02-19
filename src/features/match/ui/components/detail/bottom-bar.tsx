@@ -42,7 +42,7 @@ export function MatchDetailBottomBar({
         <div className="app-overlay-content bg-white border-t border-slate-100 px-5 pt-4 pb-8 pointer-events-auto shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
           <Button
             size="lg"
-            className="w-full text-lg font-bold h-12 rounded-xl bg-[#FF6600] hover:bg-[#FF6600]/90 text-white"
+            className="w-full text-lg font-bold h-12 rounded-xl bg-primary hover:bg-primary/90 text-white"
             onClick={onManage}
           >
             경기 관리하기
@@ -131,7 +131,7 @@ export function MatchDetailBottomBar({
           size="lg"
           className={cn(
             "w-full text-lg font-bold h-12 rounded-xl",
-            isClosed ? "bg-slate-200 text-slate-500 hover:bg-slate-200" : "bg-[#FF6600] hover:bg-[#FF6600]/90 text-white"
+            isClosed ? "bg-slate-200 text-slate-500 hover:bg-slate-200" : "bg-primary hover:bg-primary/90 text-white"
           )}
           disabled={isClosed}
           onClick={onApply}

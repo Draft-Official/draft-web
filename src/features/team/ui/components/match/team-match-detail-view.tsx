@@ -201,7 +201,7 @@ export function TeamMatchDetailView({
               'w-full h-12 rounded-xl font-bold text-lg transition-all',
               isVotingClosed
                 ? 'bg-slate-200 text-slate-500 cursor-not-allowed'
-                : 'bg-[#FF6600] text-white hover:bg-[#FF6600]/90'
+                : 'bg-primary text-white hover:bg-primary/90'
             )}
           >
             {isVotingClosed

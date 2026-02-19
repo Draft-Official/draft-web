@@ -59,7 +59,7 @@ export function PositionFilterModal({
                 className={cn(
                   "h-12 rounded-xl border font-bold text-sm transition-all",
                   isSelected
-                    ? "border-[#FF6600] bg-orange-50 text-[#FF6600]"
+                    ? "border-primary bg-[var(--color-bg-brand-weak)] text-primary"
                     : "border-slate-200 text-slate-600 hover:bg-slate-50"
                 )}
               >
@@ -70,7 +70,7 @@ export function PositionFilterModal({
         </div>
         <Button
           onClick={handleApply}
-          className="w-full h-12 bg-[#FF6600] text-white rounded-xl font-bold hover:bg-[#FF6600]/90"
+          className="w-full h-12 bg-primary text-white rounded-xl font-bold hover:bg-primary/90"
         >
           적용하기
         </Button>

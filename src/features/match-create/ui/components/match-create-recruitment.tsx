@@ -68,13 +68,13 @@ export function MatchCreateRecruitment({
                 모집 인원
             </h2>
             <div className="flex items-center gap-2">
-                <span className={cn("text-xs font-bold", !isPositionMode ? "text-[#FF6600]" : "text-slate-400")}>포지션 무관</span>
+                <span className={cn("text-xs font-bold", !isPositionMode ? "text-primary" : "text-slate-400")}>포지션 무관</span>
                 <Switch 
                     checked={isPositionMode} 
                     onCheckedChange={setIsPositionMode} 
-                    className="data-[state=checked]:bg-[#FF6600] data-[state=unchecked]:bg-slate-200" 
+                    className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-slate-200" 
                 />
-                <span className={cn("text-xs font-bold", isPositionMode ? "text-[#FF6600]" : "text-slate-400")}>포지션별</span>
+                <span className={cn("text-xs font-bold", isPositionMode ? "text-primary" : "text-slate-400")}>포지션별</span>
             </div>
         </div>
 

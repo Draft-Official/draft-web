@@ -209,7 +209,7 @@ export const MatchListItem = React.memo(function MatchListItem({ match, applicat
           ) : (
             <Button
               size="sm"
-              className="h-8 px-3 text-xs font-bold rounded-lg shadow-sm transition-transform active:scale-95 bg-[#FF6600] hover:bg-[#FF6600]/90 text-white shadow-orange-100"
+              className="h-8 px-3 text-xs font-bold rounded-lg shadow-sm transition-transform active:scale-95 bg-primary hover:bg-primary/90 text-white shadow-orange-100"
             >
               신청하기
             </Button>

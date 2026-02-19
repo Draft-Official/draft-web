@@ -66,7 +66,7 @@ export function TeamCreateTab() {
             className="p-4 border border-slate-200 rounded-xl"
           >
             <div className="flex gap-3 items-center mb-2">
-              <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-primary flex-shrink-0">
+              <div className="w-12 h-12 rounded-xl bg-[var(--color-bg-brand-weak)] flex items-center justify-center text-primary flex-shrink-0">
                 {benefit.icon}
               </div>
               <h3 className="font-bold text-slate-900">{benefit.title}</h3>

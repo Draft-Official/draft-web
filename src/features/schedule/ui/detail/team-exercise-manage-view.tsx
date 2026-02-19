@@ -134,7 +134,7 @@ export function TeamExerciseManageView() {
                 onClick={handleAddParticipant}
                 variant="outline"
                 size="sm"
-                className="h-8 px-3 text-xs font-bold border-primary text-primary hover:bg-orange-50"
+                className="h-8 px-3 text-xs font-bold border-primary text-primary hover:bg-[var(--color-bg-brand-weak)]"
               >
                 <UserPlus className="w-3.5 h-3.5 mr-1" />
                 추가

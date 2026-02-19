@@ -24,9 +24,9 @@ export default function AuthLoginPage() {
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
           {/* 아이콘 */}
-          <div className="w-16 h-16 bg-orange-50 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-[var(--color-bg-brand-weak)] rounded-full flex items-center justify-center mx-auto mb-4">
             <svg
-              className="w-8 h-8 text-[#FF6600]"
+              className="w-8 h-8 text-primary"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -55,7 +55,7 @@ export default function AuthLoginPage() {
           {/* 버튼 */}
           <Button
             onClick={handleLogin}
-            className="w-full h-12 bg-[#FF6600] hover:bg-[#FF6600]/90 text-white font-bold rounded-lg"
+            className="w-full h-12 bg-primary hover:bg-primary/90 text-white font-bold rounded-lg"
           >
             로그인하기
           </Button>
