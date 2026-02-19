@@ -77,14 +77,14 @@ export function TimePickerSelect({
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="flex h-12 w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-bold hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-12 w-full items-center justify-between rounded-md border border-border bg-background px-3 py-2 text-sm font-bold hover:bg-muted/40 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <div className="flex items-center gap-2">
-            <Clock className="h-5 w-5 text-slate-400 flex-shrink-0" />
+            <Clock className="h-5 w-5 shrink-0 text-muted-foreground" />
             <span>{displayValue}</span>
           </div>
           <svg
-            className="h-4 w-4 text-slate-400"
+            className="h-4 w-4 text-muted-foreground"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -93,43 +93,43 @@ export function TimePickerSelect({
           </svg>
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-[280px] p-0 bg-white border border-slate-200 shadow-lg z-[100]" align="start">
+      <PopoverContent className="z-[100] w-[280px] p-0" align="start">
         {selectedPeriod === null ? (
           // Step 1: Select AM/PM
           <div className="p-2">
-            <div className="px-2 py-2 text-sm font-semibold text-slate-700">시간대 선택</div>
+            <div className="px-2 py-2 text-sm font-semibold text-foreground">시간대 선택</div>
             <div className="space-y-1">
               <button
                 type="button"
                 onClick={() => handlePeriodSelect('AM')}
-                className="w-full rounded-md px-3 py-2.5 text-left text-sm hover:bg-slate-100 transition-colors"
+                className="w-full rounded-md px-3 py-2.5 text-left text-sm transition-colors hover:bg-muted"
               >
-                <div className="font-semibold text-slate-900">오전</div>
-                <div className="text-xs text-slate-600">00:00 ~ 11:30</div>
+                <div className="font-semibold text-foreground">오전</div>
+                <div className="text-xs text-muted-foreground">00:00 ~ 11:30</div>
               </button>
               <button
                 type="button"
                 onClick={() => handlePeriodSelect('PM')}
-                className="w-full rounded-md px-3 py-2.5 text-left text-sm hover:bg-slate-100 transition-colors"
+                className="w-full rounded-md px-3 py-2.5 text-left text-sm transition-colors hover:bg-muted"
               >
-                <div className="font-semibold text-slate-900">오후</div>
-                <div className="text-xs text-slate-600">12:00 ~ 23:30</div>
+                <div className="font-semibold text-foreground">오후</div>
+                <div className="text-xs text-muted-foreground">12:00 ~ 23:30</div>
               </button>
             </div>
           </div>
         ) : (
           // Step 2: Select specific time
           <div className="flex flex-col max-h-[320px]">
-            <div className="flex items-center justify-between border-b border-slate-200 px-3 py-2.5 sticky top-0 bg-white">
+            <div className="sticky top-0 flex items-center justify-between border-b border-border bg-background px-3 py-2.5">
               <button
                 onClick={handleBack}
-                className="flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900 font-medium"
+                className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground"
                 type="button"
               >
                 <ChevronLeft className="h-4 w-4" />
                 뒤로
               </button>
-              <span className="text-sm font-semibold text-slate-900">
+              <span className="text-sm font-semibold text-foreground">
                 {selectedPeriod === 'AM' ? '오전' : '오후'}
               </span>
             </div>
@@ -145,8 +145,8 @@ export function TimePickerSelect({
                       className={cn(
                         "rounded-md px-3 py-2 text-sm font-medium transition-colors",
                         isSelected
-                          ? "bg-slate-900 text-white"
-                          : "hover:bg-slate-100 text-slate-900"
+                          ? "bg-primary text-primary-foreground"
+                          : "text-foreground hover:bg-muted"
                       )}
                     >
                       {opt.label}

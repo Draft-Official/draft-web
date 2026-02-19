@@ -29,7 +29,7 @@ export function SkillSlider({ value, onChange }: SkillSliderProps) {
                 "flex-1 h-10 rounded-lg transition-all",
                 skill.level <= value
                   ? ""
-                  : "bg-slate-200"
+                  : "bg-muted"
               )}
               style={{
                 backgroundColor: skill.level <= value ? skill.color : undefined
@@ -74,11 +74,11 @@ export function SkillSlider({ value, onChange }: SkillSliderProps) {
       </div>
 
       {/* Description Card */}
-      <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
+      <div className="rounded-lg border border-border bg-muted/40 p-4">
         <div className="flex items-start gap-2">
           <div>
-            <div className="font-semibold text-slate-900">{selectedSkill.name}</div>
-            <div className="text-sm text-slate-600 mt-1">{selectedSkill.description}</div>
+            <div className="font-semibold text-foreground">{selectedSkill.name}</div>
+            <div className="mt-1 text-sm text-muted-foreground">{selectedSkill.description}</div>
           </div>
         </div>
       </div>

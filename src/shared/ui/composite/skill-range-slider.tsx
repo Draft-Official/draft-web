@@ -57,7 +57,7 @@ export function SkillRangeSlider({ minValue, maxValue, onChange }: SkillRangeSli
     <div className="space-y-4">
       {/* Range Display */}
       <div className="flex justify-center">
-        <span className="text-sm font-medium text-slate-900">{getRangeDisplayText()}</span>
+        <span className="text-sm font-medium text-foreground">{getRangeDisplayText()}</span>
       </div>
 
       {/* Slider Track */}
@@ -72,7 +72,7 @@ export function SkillRangeSlider({ minValue, maxValue, onChange }: SkillRangeSli
                 "flex-1 h-10 rounded-lg transition-all relative",
                 isInRange(skill.level)
                   ? ""
-                  : "bg-slate-200"
+                  : "bg-muted"
               )}
               style={{
                 backgroundColor: isInRange(skill.level) ? skill.color : undefined,
@@ -82,10 +82,10 @@ export function SkillRangeSlider({ minValue, maxValue, onChange }: SkillRangeSli
             >
               {/* Min/Max indicators */}
               {skill.level === minValue && (
-                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-white rounded-full border-2 border-slate-900" />
+                <div className="absolute -bottom-1 left-1/2 h-2 w-2 -translate-x-1/2 rounded-full border-2 border-foreground bg-background" />
               )}
               {skill.level === maxValue && minValue !== maxValue && (
-                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-white rounded-full border-2 border-slate-900" />
+                <div className="absolute -bottom-1 left-1/2 h-2 w-2 -translate-x-1/2 rounded-full border-2 border-foreground bg-background" />
               )}
             </button>
           ))}
@@ -124,29 +124,29 @@ export function SkillRangeSlider({ minValue, maxValue, onChange }: SkillRangeSli
       </div>
 
       {/* Description Card */}
-      <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
+      <div className="rounded-lg border border-border bg-muted/40 p-4">
         {minValue === maxValue ? (
           <div className="flex items-start gap-2">
             <div>
-              <div className="font-semibold text-slate-900">{minSkill.name}</div>
-              <div className="text-sm text-slate-600 mt-1">{minSkill.description}</div>
+              <div className="font-semibold text-foreground">{minSkill.name}</div>
+              <div className="mt-1 text-sm text-muted-foreground">{minSkill.description}</div>
             </div>
           </div>
         ) : (
           <div className="space-y-3">
             <div className="flex items-start gap-2">
-              <div className="text-xs font-medium text-slate-500 w-8">최소</div>
+              <div className="w-8 text-xs font-medium text-muted-foreground">최소</div>
               <div className="flex-1">
-                <div className="font-semibold text-slate-900 text-sm">{minSkill.name}</div>
-                <div className="text-xs text-slate-600 mt-0.5">{minSkill.description}</div>
+                <div className="text-sm font-semibold text-foreground">{minSkill.name}</div>
+                <div className="mt-0.5 text-xs text-muted-foreground">{minSkill.description}</div>
               </div>
             </div>
-            <div className="border-t border-slate-200" />
+            <div className="border-t border-border" />
             <div className="flex items-start gap-2">
-              <div className="text-xs font-medium text-slate-500 w-8">최대</div>
+              <div className="w-8 text-xs font-medium text-muted-foreground">최대</div>
               <div className="flex-1">
-                <div className="font-semibold text-slate-900 text-sm">{maxSkill.name}</div>
-                <div className="text-xs text-slate-600 mt-0.5">{maxSkill.description}</div>
+                <div className="text-sm font-semibold text-foreground">{maxSkill.name}</div>
+                <div className="mt-0.5 text-xs text-muted-foreground">{maxSkill.description}</div>
               </div>
             </div>
           </div>

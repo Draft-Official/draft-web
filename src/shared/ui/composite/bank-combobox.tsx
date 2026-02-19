@@ -40,7 +40,7 @@ export function BankCombobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={cn('justify-between font-normal', !value && 'text-slate-500', className)}
+          className={cn('justify-between font-normal', !value && 'text-muted-foreground', className)}
         >
           {selectedBank ? selectedBank.label : placeholder}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />

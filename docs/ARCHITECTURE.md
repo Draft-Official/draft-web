@@ -1,6 +1,6 @@
 # Draft Web Architecture
 
-Last Updated: 2026-02-15
+Last Updated: 2026-02-19
 
 ## 1) 핵심 요약
 
@@ -172,7 +172,26 @@ npm run build
 ## 8) 디자인 시스템/스타일링 상태
 
 - 전역 스타일 엔트리는 `app/globals.css`다.
-- 스타일링은 Tailwind + shadcn + `src/shared/ui/base/*` 커스텀 컴포넌트 조합을 사용한다.
+- Foundation 토큰은 `src/shared/ui/theme/foundation.css`에서 관리한다.
+- shadcn 매핑 토큰은 `src/shared/ui/theme/shadcn-bridge.css`에서 관리한다.
+
+### 8.1 UI 레이어 규칙 (고정)
+
+- Primitive 컴포넌트: `src/shared/ui/shadcn/*`
+- Composite 컴포넌트: `src/shared/ui/composite/*`
+- 금지: `src/shared/ui/base/*` (레이어 삭제 완료, 재도입 금지)
+
+### 8.2 스타일 규칙 (고정)
+
+- 색상/보더/배경은 Foundation 또는 shadcn semantic token(`text-foreground`, `bg-muted`, `border-border` 등) 사용.
+- 신규 코드에서 `slate-*`, hex literal(`#...`) 직접 사용 금지.
+- 브랜드 계열은 `draft` alias 토큰(`--color-palette-draft-*`)을 우선 사용.
+
+### 8.3 컴포넌트 추가 규칙
+
+1. shadcn primitive가 이미 있으면 그대로 재사용한다.
+2. 없으면 shadcn CLI로 추가한다 (`npx shadcn add <component>`).
+3. 비즈니스 조합/복합 UI만 `composite`에 작성한다.
 
 ## 9) 현재 아키텍처 상태 평가
 

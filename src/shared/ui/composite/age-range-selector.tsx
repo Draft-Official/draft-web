@@ -73,7 +73,7 @@ export function AgeRangeSelector({ selectedAges, onSelect, onRangeUpdate }: AgeR
         className="flex-shrink-0"
       />
 
-      <div className="h-4 w-px bg-slate-200 mx-1" />
+      <div className="mx-1 h-4 w-px bg-border" />
 
       <div className="flex flex-wrap gap-2">
         {AGE_OPTIONS.map((age) => (
