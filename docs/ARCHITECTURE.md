@@ -171,9 +171,8 @@ npm run build
 
 ## 8) 디자인 시스템/스타일링 상태
 
-- `app/layout.tsx`에서 `@seed-design/css/base.css`를 로드한다.
 - 전역 스타일 엔트리는 `app/globals.css`다.
-- Seed foundation과 기존 Tailwind/shadcn 스타일이 공존 중이며, 점진적으로 정리한다.
+- 스타일링은 Tailwind + shadcn + `src/shared/ui/base/*` 커스텀 컴포넌트 조합을 사용한다.
 
 ## 9) 현재 아키텍처 상태 평가
 
