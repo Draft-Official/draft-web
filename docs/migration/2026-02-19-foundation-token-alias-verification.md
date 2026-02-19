@@ -1,5 +1,12 @@
 # Foundation Token Alias Verification (2026-02-19)
 
+## Latest Phase Commits
+
+- `b39e75a` refactor: add brand token utility aliases and replace raw var classes
+- `c803922` style: restore foundation-driven shadcn bridge mapping
+- `48e5a0d` refactor: replace remaining hardcoded brand/ui colors with token classes
+- `2a48ab7` refactor: align seed token config with carrot base and draft alias
+
 ## Commands Run
 
 ### 1) `npm run check:architecture`
@@ -25,5 +32,14 @@ Result: BUILD PASS (with known lint environment warning)
 - `app/globals.css` imports Foundation and shadcn bridge CSS
 - `src/shared/ui/theme/foundation.css` token layer loads successfully
 - `src/shared/ui/theme/shadcn-bridge.css` semantic alias mapping resolves
-- Branded hex class replacements (`#FF6600` hardcoded classes -> `primary` semantic classes) compile across affected pages
+- Brand utility aliases compile across app:
+  - `bg-brand-weak`, `bg-brand-weak-pressed`
+  - `text-brand`, `text-brand-contrast`
+  - `border-brand-stroke-weak`
+- Remaining UI hardcoded brand-related colors were replaced with token classes:
+  - `orange-*`, `#FEE500`, `#3C1E1E`, `#191F28` usage in UI components/pages
+- `seed-tokens.ts` now follows `carrot` base palette + `draft` alias structure for consistency with Foundation CSS
 
+## Notes
+
+- `#FF6600` remains only in palette source definitions (`tailwind.config.ts`, `src/shared/config/seed-tokens.ts`) and is intentional.
