@@ -1,7 +1,7 @@
 'use client';
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/shared/ui/shadcn/dialog';
-import { X, MapPin, Loader2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/ui/shadcn/dialog';
+import { MapPin, Loader2 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import type { RecentMatchListItemDTO } from '@/features/match-create/model/types';
 
@@ -28,10 +28,6 @@ export function RecentMatchesDialog({
             최근 경기 불러오기
           </DialogTitle>
         </DialogHeader>
-        <DialogClose className="absolute right-4 top-4 opacity-70 hover:opacity-100 transition-opacity">
-          <X className="h-5 w-5" />
-          <span className="sr-only">Close</span>
-        </DialogClose>
 
         <div className="py-2 max-h-[400px] overflow-y-auto">
           {isLoading ? (

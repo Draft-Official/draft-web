@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Calendar, Clock, MapPin, Navigation, Shield, User, Users, AlertCircle, Copy, Check } from 'lucide-react';
 import { Button } from '@/shared/ui/shadcn/button';
 import {
@@ -41,6 +41,15 @@ export function ApplicationInfoDialog({
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
 
+  useEffect(() => {
+    if (!open) {
+      setIsCancelDialogOpen(false);
+      setIsPaymentDialogOpen(false);
+    }
+  }, [open]);
+
+  const isMainDialogOpen = open && !isCancelDialogOpen && !isPaymentDialogOpen;
+
   if (!match) return null;
 
   const isCancelled = match.status === 'cancelled' || match.status === 'rejected';
@@ -75,7 +84,7 @@ export function ApplicationInfoDialog({
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
+      <Dialog open={isMainDialogOpen} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-sm mx-4 rounded-2xl p-5 max-h-[85vh] overflow-y-auto">
           <DialogHeader className="text-left pb-2">
             <div className="flex items-center justify-between">

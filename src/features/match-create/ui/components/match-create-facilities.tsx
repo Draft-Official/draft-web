@@ -3,11 +3,10 @@ import { useState, useRef } from 'react';
 import { Input } from '@/shared/ui/shadcn/input';
 import { Label } from '@/shared/ui/shadcn/label';
 import { Button } from '@/shared/ui/shadcn/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/shared/ui/shadcn/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/ui/shadcn/dialog';
 import { Toggle } from '@/shared/ui/shadcn/toggle';
 import { cn } from '@/shared/lib/utils';
 import { COURT_SIZE_OPTIONS, CourtSizeValue } from '@/shared/config/match-constants';
-import { X } from 'lucide-react';
 
 interface MatchCreateFacilitiesProps {
   hasWater: boolean;
@@ -140,10 +139,6 @@ export function MatchCreateFacilities({
           <DialogHeader>
             <DialogTitle>주차 정보</DialogTitle>
           </DialogHeader>
-          <DialogClose className="absolute right-6 top-6 opacity-70 hover:opacity-100 transition-opacity">
-            <X className="h-5 w-5" />
-            <span className="sr-only">Close</span>
-          </DialogClose>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label className="text-sm font-medium text-slate-700">시간당 주차 요금</Label>
@@ -213,10 +208,6 @@ export function MatchCreateFacilities({
           <DialogHeader>
             <DialogTitle>코트 크기</DialogTitle>
           </DialogHeader>
-          <DialogClose className="absolute right-6 top-6 opacity-70 hover:opacity-100 transition-opacity">
-            <X className="h-5 w-5" />
-            <span className="sr-only">Close</span>
-          </DialogClose>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <div className="space-y-2">
