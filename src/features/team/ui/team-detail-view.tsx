@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/ui/shadcn/tabs';
 import { cn } from '@/shared/lib/utils';
 import { useTeamByCode } from '../api/team-info/queries';
@@ -143,12 +144,17 @@ export function TeamDetailView({ code }: TeamDetailViewProps) {
           <TabsTrigger
             value="home"
             className={cn(
-              'flex-1 text-base font-medium py-3',
+              'relative flex-1 text-base font-medium py-3 after:hidden',
               'data-[state=active]:text-slate-900 data-[state=active]:font-bold',
-              'data-[state=active]:after:bg-slate-900'
             )}
           >
             홈
+            {currentView === 'home' && (
+              <motion.div
+                layoutId="team-detail-tab-indicator"
+                className="absolute bottom-0 left-0 right-0 h-0.5 bg-(--color-fg-neutral)"
+              />
+            )}
           </TabsTrigger>
           {/* 일정/멤버 탭은 멤버만 표시 */}
           {isMember && (
@@ -156,22 +162,32 @@ export function TeamDetailView({ code }: TeamDetailViewProps) {
               <TabsTrigger
                 value="schedule"
                 className={cn(
-                  'flex-1 text-base font-medium py-3',
+                  'relative flex-1 text-base font-medium py-3 after:hidden',
                   'data-[state=active]:text-slate-900 data-[state=active]:font-bold',
-                  'data-[state=active]:after:bg-slate-900'
                 )}
               >
                 일정
+                {currentView === 'schedule' && (
+                  <motion.div
+                    layoutId="team-detail-tab-indicator"
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-(--color-fg-neutral)"
+                  />
+                )}
               </TabsTrigger>
               <TabsTrigger
                 value="members"
                 className={cn(
-                  'flex-1 text-base font-medium py-3',
+                  'relative flex-1 text-base font-medium py-3 after:hidden',
                   'data-[state=active]:text-slate-900 data-[state=active]:font-bold',
-                  'data-[state=active]:after:bg-slate-900'
                 )}
               >
                 멤버
+                {currentView === 'members' && (
+                  <motion.div
+                    layoutId="team-detail-tab-indicator"
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-(--color-fg-neutral)"
+                  />
+                )}
               </TabsTrigger>
             </>
           )}

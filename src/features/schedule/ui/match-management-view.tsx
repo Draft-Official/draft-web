@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Calendar, RotateCcw, Loader2 } from "lucide-react";
 import { useLocalStorage } from "@/shared/lib/hooks/use-local-storage";
@@ -12,6 +13,7 @@ import { FilterDropdown } from "./components/filter-dropdown";
 import { MatchCard } from "./components/match-card";
 import { ApplicationInfoDialog } from "./components/application-info-dialog";
 import { Toggle } from "@/shared/ui/shadcn/toggle";
+import { Tabs, TabsList, TabsTrigger } from "@/shared/ui/shadcn/tabs";
 import { useHostedMatches, useParticipatingMatches, useConfirmPaymentByGuest, useCancelApplicationByGuest } from "@/features/schedule";
 import type { MatchType, ScheduleMatchListItemDTO } from "../model/types";
 import {
@@ -248,35 +250,29 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
         <div className="flex items-center justify-between px-(--dimension-spacing-x-global-gutter) h-(--dimension-x14)">
           <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">경기 관리</h1>
 
-          {/* Guest/Host Toggle - Slide Animation */}
+          {/* Guest/Host Toggle */}
           <div className="flex items-center gap-3">
-            <div className="relative flex items-center bg-slate-100 rounded-full p-1">
-              {/* Sliding Indicator */}
-              <div
-                className={cn(
-                  "absolute h-[calc(100%-8px)] w-[calc(50%-2px)] bg-slate-900 rounded-full transition-transform duration-300 ease-in-out",
-                  viewMode === "host" ? "translate-x-full" : "translate-x-0"
-                )}
-              />
-              <button
-                onClick={() => setViewMode("guest")}
-                className={cn(
-                  "relative z-10 px-4 py-1.5 text-sm font-bold rounded-full transition-colors duration-300",
-                  viewMode === "guest" ? "text-white" : "text-slate-600"
-                )}
-              >
-                참여
-              </button>
-              <button
-                onClick={() => setViewMode("host")}
-                className={cn(
-                  "relative z-10 px-4 py-1.5 text-sm font-bold rounded-full transition-colors duration-300",
-                  viewMode === "host" ? "text-white" : "text-slate-600"
-                )}
-              >
-                관리
-              </button>
-            </div>
+            <Tabs
+              value={viewMode}
+              onValueChange={(v) => setViewMode(v as "guest" | "host")}
+              className="w-auto gap-0"
+            >
+              <TabsList variant="default" className="relative rounded-full h-auto p-1 bg-neutral-100">
+                <motion.div
+                  className="absolute top-1 bottom-1 left-1 rounded-full bg-neutral-900 pointer-events-none"
+                  style={{ width: "calc(50% - 4px)" }}
+                  animate={{ x: viewMode === "host" ? "100%" : "0%" }}
+                  initial={false}
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                />
+                <TabsTrigger value="guest" className="relative z-10 rounded-full px-4 py-1.5 text-sm font-bold data-active:bg-transparent data-active:shadow-none data-active:text-white">
+                  참여
+                </TabsTrigger>
+                <TabsTrigger value="host" className="relative z-10 rounded-full px-4 py-1.5 text-sm font-bold data-active:bg-transparent data-active:shadow-none data-active:text-white">
+                  관리
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
             {notificationSlot}
           </div>
         </div>
