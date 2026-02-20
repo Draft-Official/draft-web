@@ -4,7 +4,7 @@ import { Input } from '@/shared/ui/shadcn/input';
 import { Label } from '@/shared/ui/shadcn/label';
 import { Button } from '@/shared/ui/shadcn/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/shared/ui/shadcn/dialog';
-import { Chip } from '@/shared/ui/shadcn/chip';
+import { Toggle } from '@/shared/ui/shadcn/toggle';
 import { cn } from '@/shared/lib/utils';
 import { COURT_SIZE_OPTIONS, CourtSizeValue } from '@/shared/config/match-constants';
 import { X } from 'lucide-react';
@@ -67,68 +67,70 @@ export function MatchCreateFacilities({
                 )}
             </div>
             <div className="flex flex-wrap gap-2">
-                <Chip
-                    variant="orange"
-                    label="🏀 농구공"
-                    isActive={hasBall}
-                    showCheckIcon={false}
-                    onClick={() => setHasBall(!hasBall)}
-                />
+                <Toggle
+                    variant="outline"
+                    pressed={hasBall}
+                    onPressedChange={() => setHasBall(!hasBall)}
+                    className="h-9 rounded-lg px-4 text-sm font-medium"
+                >
+                    🏀 농구공
+                </Toggle>
 
-                <Chip
-                    variant="orange"
-                    label="정수기"
-                    isActive={hasWater}
-                    showCheckIcon={false}
-                    onClick={() => setHasWater(!hasWater)}
-                />
+                <Toggle
+                    variant="outline"
+                    pressed={hasWater}
+                    onPressedChange={() => setHasWater(!hasWater)}
+                    className="h-9 rounded-lg px-4 text-sm font-medium"
+                >
+                    정수기
+                </Toggle>
 
-                <Chip
-                    variant="orange"
-                    label="냉난방"
-                    isActive={hasAcHeat}
-                    showCheckIcon={false}
-                    onClick={() => setHasAcHeat(!hasAcHeat)}
-                />
+                <Toggle
+                    variant="outline"
+                    pressed={hasAcHeat}
+                    onPressedChange={() => setHasAcHeat(!hasAcHeat)}
+                    className="h-9 rounded-lg px-4 text-sm font-medium"
+                >
+                    냉난방
+                </Toggle>
 
-                <Chip
-                    variant="orange"
-                    label="샤워실"
-                    isActive={hasShower}
-                    showCheckIcon={false}
-                    onClick={() => setHasShower(!hasShower)}
-                />
+                <Toggle
+                    variant="outline"
+                    pressed={hasShower}
+                    onPressedChange={() => setHasShower(!hasShower)}
+                    className="h-9 rounded-lg px-4 text-sm font-medium"
+                >
+                    샤워실
+                </Toggle>
 
-                <Chip
-                    variant="orange"
-                    label="주차"
-                    isActive={parkingCost !== ""}
-                    showCheckIcon={false}
-                    valueLabel={parkingCost === "0" ? "0원 (무료)" : (parkingCost ? `${Number(parkingCost).toLocaleString()}원/시간` : undefined)}
+                <Toggle
+                    variant="outline"
+                    pressed={parkingCost !== ""}
                     onClick={() => {
-                        // Always open dialog. If previously cleared, restore from ref.
                         if (parkingCost === "" && lastParkingCost.current !== "") {
-                             setParkingCost(lastParkingCost.current);
-                             setParkingDetail(lastParkingDetail.current);
+                            setParkingCost(lastParkingCost.current);
+                            setParkingDetail(lastParkingDetail.current);
                         }
                         setShowParkingDialog(true);
                     }}
-                />
+                    className="h-9 rounded-lg px-4 text-sm font-medium"
+                >
+                    주차{parkingCost !== "" ? (parkingCost === "0" ? " (무료)" : ` ${Number(parkingCost).toLocaleString()}원/시간`) : ""}
+                </Toggle>
 
-                <Chip
-                    variant="orange"
-                    label="코트 크기"
-                    isActive={courtSize !== ""}
-                    showCheckIcon={false}
-                    valueLabel={getCourtSizeLabel()}
+                <Toggle
+                    variant="outline"
+                    pressed={courtSize !== ""}
                     onClick={() => {
-                        // Always open dialog. If previously cleared, restore from ref.
                         if (courtSize === "" && lastCourtSize.current !== "") {
                             setCourtSize(lastCourtSize.current);
                         }
                         setShowCourtSizeDialog(true);
                     }}
-                />
+                    className="h-9 rounded-lg px-4 text-sm font-medium"
+                >
+                    코트 크기{courtSize !== "" ? ` (${getCourtSizeLabel()})` : ""}
+                </Toggle>
             </div>
         </div>
 

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Minus, Plus } from 'lucide-react';
 import { Button } from '@/shared/ui/shadcn/button';
-import { Chip } from '@/shared/ui/shadcn/chip';
+import { Toggle } from '@/shared/ui/shadcn/toggle';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/shadcn/dialog";
 import { ScrollArea } from "@/shared/ui/shadcn/scroll-area";
 import { GENDER_OPTIONS, MATCH_FORMAT_OPTIONS } from '@/shared/config/match-constants';
@@ -127,23 +127,17 @@ export function DetailedFilterModal({
               <div className="space-y-3">
                 <h3 className="text-sm font-bold text-slate-900">포지션</h3>
                 <div className="grid grid-cols-2 gap-3">
-                  {POSITION_OPTIONS.map(pos => {
-                    const isSelected = tempPositions.includes(pos);
-                    return (
-                      <button
-                        key={pos}
-                        onClick={() => toggleTempPosition(pos)}
-                        className={cn(
-                          "h-12 rounded-xl border font-bold text-sm transition-all",
-                          isSelected
-                            ? "border-primary bg-brand-weak text-primary"
-                            : "border-slate-200 text-slate-600 hover:bg-slate-50"
-                        )}
-                      >
-                        {pos}
-                      </button>
-                    );
-                  })}
+                  {POSITION_OPTIONS.map(pos => (
+                    <Toggle
+                      key={pos}
+                      variant="outline"
+                      pressed={tempPositions.includes(pos)}
+                      onPressedChange={() => toggleTempPosition(pos)}
+                      className="h-12 rounded-xl text-sm font-bold"
+                    >
+                      {pos}
+                    </Toggle>
+                  ))}
                 </div>
               </div>
             )}
@@ -190,14 +184,15 @@ export function DetailedFilterModal({
               <h3 className="text-sm font-bold text-slate-900">성별</h3>
               <div className="flex gap-2">
                 {GENDER_OPTIONS.map((g) => (
-                  <Chip 
-                    key={g.value} 
-                    label={g.label} 
-                    variant="orange"
-                    isActive={tempGenders.includes(g.value)}
-                    showCheckIcon={false}
-                    onClick={() => toggleSelection(tempGenders, g.value, setTempGenders)}
-                  />
+                  <Toggle
+                    key={g.value}
+                    variant="outline"
+                    pressed={tempGenders.includes(g.value)}
+                    onPressedChange={() => toggleSelection(tempGenders, g.value, setTempGenders)}
+                    className="h-9 rounded-lg px-4 text-sm font-medium"
+                  >
+                    {g.label}
+                  </Toggle>
                 ))}
               </div>
             </div>
@@ -207,14 +202,15 @@ export function DetailedFilterModal({
               <h3 className="text-sm font-bold text-slate-900">경기 방식</h3>
               <div className="flex flex-wrap gap-2">
                 {MATCH_FORMAT_OPTIONS.map((bg) => (
-                  <Chip
+                  <Toggle
                     key={bg.value}
-                    label={bg.label}
-                    variant="orange"
-                    isActive={tempGameFormats.includes(bg.value)}
-                    showCheckIcon={false}
-                    onClick={() => toggleSelection(tempGameFormats, bg.value, setTempGameFormats)}
-                  />
+                    variant="outline"
+                    pressed={tempGameFormats.includes(bg.value)}
+                    onPressedChange={() => toggleSelection(tempGameFormats, bg.value, setTempGameFormats)}
+                    className="h-9 rounded-lg px-4 text-sm font-medium"
+                  >
+                    {bg.label}
+                  </Toggle>
                 ))}
               </div>
             </div>

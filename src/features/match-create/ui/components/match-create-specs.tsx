@@ -1,5 +1,5 @@
 import { Label } from '@/shared/ui/shadcn/label';
-import { Chip } from '@/shared/ui/shadcn/chip';
+import { Toggle } from '@/shared/ui/shadcn/toggle';
 import { Settings } from 'lucide-react';
 import {
   MATCH_FORMAT_OPTIONS,
@@ -44,14 +44,15 @@ export function MatchCreateSpecs({
                 <Label className="text-sm font-bold text-slate-600">매치 타입</Label>
                 <div className="flex gap-2">
                     {MATCH_FORMAT_OPTIONS.map((type) => (
-                        <Chip
+                        <Toggle
                             key={type.value}
-                            label={type.label}
-                            variant="navy"
-                            isActive={matchFormat === type.value}
-                            showCheckIcon={false}
-                            onClick={() => setMatchFormat(type.value)}
-                        />
+                            variant="outline"
+                            pressed={matchFormat === type.value}
+                            onPressedChange={() => setMatchFormat(type.value)}
+                            className="h-9 rounded-lg px-4 text-sm font-medium"
+                        >
+                            {type.label}
+                        </Toggle>
                     ))}
                 </div>
             </div>
@@ -61,14 +62,15 @@ export function MatchCreateSpecs({
                 <Label className="text-sm font-bold text-slate-600">성별</Label>
                 <div className="flex gap-2">
                     {GENDER_OPTIONS.map((g) => (
-                        <Chip
+                        <Toggle
                             key={g.value}
-                            label={g.label}
-                            variant="navy"
-                            isActive={gender === g.value}
-                            showCheckIcon={false}
-                            onClick={() => setGender(g.value)}
-                        />
+                            variant="outline"
+                            pressed={gender === g.value}
+                            onPressedChange={() => setGender(g.value)}
+                            className="h-9 rounded-lg px-4 text-sm font-medium"
+                        >
+                            {g.label}
+                        </Toggle>
                     ))}
                 </div>
             </div>

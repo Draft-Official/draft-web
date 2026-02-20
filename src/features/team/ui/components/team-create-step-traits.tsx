@@ -4,7 +4,7 @@ import { useFormContext } from 'react-hook-form';
 import { Settings } from 'lucide-react';
 
 import { Label } from '@/shared/ui/shadcn/label';
-import { Chip } from '@/shared/ui/shadcn/chip';
+import { Toggle } from '@/shared/ui/shadcn/toggle';
 import { SkillRangeSlider } from '@/shared/ui/composite/skill-range-slider';
 import { AgeRangeSelector } from '@/shared/ui/composite/age-range-selector';
 
@@ -37,14 +37,15 @@ export function TeamCreateStepTraits({
         <Label className="text-sm font-bold text-slate-700">성별</Label>
         <div className="flex gap-2">
           {GENDER_OPTIONS.map((g) => (
-            <Chip
+            <Toggle
               key={g.value}
-              label={g.label}
-              variant="navy"
-              isActive={gender === g.value}
-              showCheckIcon={false}
-              onClick={() => setValue('gender', g.value)}
-            />
+              variant="outline"
+              pressed={gender === g.value}
+              onPressedChange={() => setValue('gender', g.value)}
+              className="h-9 rounded-lg px-4 text-sm font-medium"
+            >
+              {g.label}
+            </Toggle>
           ))}
         </div>
       </div>

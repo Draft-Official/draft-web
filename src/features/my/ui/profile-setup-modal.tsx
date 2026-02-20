@@ -19,8 +19,8 @@ import {
   SelectValue,
 } from '@/shared/ui/shadcn/select';
 import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/shadcn/avatar';
-import { cn } from '@/shared/lib/utils';
 import { filterNumericInput } from '@/shared/lib/input-utils';
+import { Toggle } from '@/shared/ui/shadcn/toggle';
 import { SkillSlider } from '@/shared/ui/composite/skill-slider';
 import { MyProfileFormDTO } from '../model/types';
 import { POSITION_OPTIONS } from '@/shared/config/match-constants';
@@ -207,20 +207,16 @@ export function ProfileSetupModal({
               주 포지션
             </Label>
             <div className="grid grid-cols-3 gap-2">
-              {POSITION_OPTIONS.map((pos) => (
-                <button
+              {POSITION_OPTIONS.filter((pos) => pos.value !== 'B').map((pos) => (
+                <Toggle
                   key={pos.value}
-                  type="button"
-                  onClick={() => setFormData({ ...formData, position: pos.value })}
-                  className={cn(
-                    "h-12 rounded-lg font-medium transition-all",
-                    formData.position === pos.value
-                      ? "bg-primary text-white"
-                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                  )}
+                  variant="outline"
+                  pressed={formData.position === pos.value}
+                  onPressedChange={() => setFormData({ ...formData, position: pos.value })}
+                  className="h-12 rounded-lg text-sm font-medium"
                 >
                   {pos.label}
-                </button>
+                </Toggle>
               ))}
             </div>
           </div>

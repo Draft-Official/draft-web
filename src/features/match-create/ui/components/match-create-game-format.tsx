@@ -1,6 +1,6 @@
 import { Input } from '@/shared/ui/shadcn/input';
 import { Label } from '@/shared/ui/shadcn/label';
-import { Chip } from '@/shared/ui/shadcn/chip';
+import { Toggle } from '@/shared/ui/shadcn/toggle';
 import { Info, Plus, Minus } from 'lucide-react';
 import { PLAY_STYLE_OPTIONS as GAME_FORMAT_OPTIONS, REFEREE_TYPE_OPTIONS as REFEREE_OPTIONS, PLAY_STYLE_DEFAULT, REFEREE_TYPE_DEFAULT, PlayStyleValue, RefereeTypeValue } from '@/shared/config/match-constants';
 
@@ -59,7 +59,7 @@ function GameFormatItem({
                 onClick={onClose}
                 className="flex items-center gap-2 group cursor-pointer w-full text-left"
             >
-                <div className="w-5 h-5 rounded-full border border-slate-200 flex items-center justify-center group-hover:bg-slate-50 transition-colors flex-shrink-0 bg-white">
+                <div className="w-5 h-5 rounded-lg border border-slate-200 flex items-center justify-center group-hover:bg-slate-50 transition-colors flex-shrink-0 bg-white">
                     <Minus className="w-3 h-3 text-slate-400" />
                 </div>
                 <Label className="text-sm font-bold text-slate-700 cursor-pointer">{title}</Label>
@@ -103,14 +103,15 @@ export function MatchCreateGameFormat({
             >
                 <div className="flex flex-wrap gap-2">
                     {GAME_FORMAT_OPTIONS.map(t => (
-                        <Chip
+                        <Toggle
                             key={t.value}
-                            label={t.label}
-                            variant="navy"
-                            isActive={gameFormatType === t.value}
-                            showCheckIcon={false}
-                            onClick={() => setGameFormatType(t.value)}
-                        />
+                            variant="outline"
+                            pressed={gameFormatType === t.value}
+                            onPressedChange={() => setGameFormatType(t.value)}
+                            className="h-9 rounded-lg px-4 text-sm font-medium"
+                        >
+                            {t.label}
+                        </Toggle>
                     ))}
                 </div>
             </GameFormatItem>
@@ -179,14 +180,15 @@ export function MatchCreateGameFormat({
             >
                 <div className="flex gap-2">
                     {REFEREE_OPTIONS.map(r => (
-                        <Chip
+                        <Toggle
                             key={r.value}
-                            label={r.label}
-                            variant="navy"
-                            isActive={refereeType === r.value}
-                            showCheckIcon={false}
-                            onClick={() => setRefereeType(r.value)}
-                        />
+                            variant="outline"
+                            pressed={refereeType === r.value}
+                            onPressedChange={() => setRefereeType(r.value)}
+                            className="h-9 rounded-lg px-4 text-sm font-medium"
+                        >
+                            {r.label}
+                        </Toggle>
                     ))}
                 </div>
             </GameFormatItem>
