@@ -79,7 +79,7 @@ export function TeamCreateStepSchedule({
             control={control}
             render={({ field }) => (
               <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger className="h-12 bg-white border-slate-200 font-bold">
+                <SelectTrigger className="h-(--dimension-x12) bg-white border-border font-bold">
                   <SelectValue placeholder="선택" />
                 </SelectTrigger>
                 <SelectContent>

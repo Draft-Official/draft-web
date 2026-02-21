@@ -275,7 +275,7 @@ export function TeamMatchCreateForm({ team, onClose }: TeamMatchCreateFormProps)
             <div className="space-y-2">
               <Label className="text-sm font-bold text-slate-600">진행 시간</Label>
               <Select value={duration} onValueChange={setDuration}>
-                <SelectTrigger className="h-12 bg-white border-slate-200 font-bold">
+                <SelectTrigger className="h-(--dimension-x12) bg-white border-border font-bold">
                   <SelectValue placeholder="선택" />
                 </SelectTrigger>
                 <SelectContent>
