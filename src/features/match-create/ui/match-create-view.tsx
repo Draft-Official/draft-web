@@ -145,7 +145,7 @@ export function MatchCreateView() {
         )}
 
         {showTip && !isEditMode && (
-          <div className="mx-3 mt-3 p-3 bg-brand-weak rounded-xl flex items-center gap-3 relative animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="mx-5 mt-3 p-3 bg-brand-weak rounded-xl flex items-center gap-3 relative animate-in fade-in slide-in-from-top-2 duration-300">
             <Zap className="w-5 h-5 text-primary flex-shrink-0 fill-draft-500" />
             <p className="text-sm font-bold text-brand-contrast pr-6">
               딱 한 번만 작성하세요! 다음부턴 &apos;불러오기&apos;로 3초만에 개설가능!
@@ -159,7 +159,7 @@ export function MatchCreateView() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-2 px-3 pt-3">
+        <form onSubmit={handleSubmit(onSubmit)}>
           <div id="section-basic-info">
             <MatchCreateBasicInfo
               selectedDate={selectedDate}
@@ -186,6 +186,8 @@ export function MatchCreateView() {
             </MatchCreateBasicInfo>
           </div>
 
+          <div className="h-2 bg-slate-100" />
+
           <div id="section-recruitment">
             <MatchCreateRecruitment
               isPositionMode={isPositionMode} setIsPositionMode={setIsPositionMode}
@@ -194,6 +196,8 @@ export function MatchCreateView() {
               totalCount={totalCount} updateTotalCount={updateTotalCount}
             />
           </div>
+
+          <div className="h-2 bg-slate-100" />
 
           <div id="section-match-specs">
             <MatchCreateSpecs
@@ -204,6 +208,8 @@ export function MatchCreateView() {
               handleAgeRangeUpdate={handleAgeRangeUpdate}
             />
           </div>
+
+          <div className="h-2 bg-slate-100" />
 
           <MatchCreateGameFormat
             gameFormatType={gameFormatType} setGameFormatType={setGameFormatType}
@@ -216,11 +222,13 @@ export function MatchCreateView() {
             isRefereeSelected={isRefereeSelected} setIsRefereeSelected={setIsRefereeSelected}
           />
 
+          <div className="h-2 bg-slate-100" />
+
           <div id="section-operations">
             <MatchCreateOperations user={currentUser} teams={myTeams} />
           </div>
 
-          <div className="bg-white px-5 pt-6 pb-[120px] ">
+          <div className="px-5 pt-6 pb-30">
             <Button
               type="submit"
               disabled={isPending || isLoadingEditData}

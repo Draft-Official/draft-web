@@ -77,7 +77,7 @@ export function TimePickerSelect({
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="flex h-(--dimension-x12) w-full items-center justify-between rounded-md border border-border bg-background px-3 py-0 text-sm font-bold hover:bg-muted/40 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-(--dimension-x12) w-full items-center justify-between rounded-md border border-border bg-background px-3 py-0 text-sm font-bold hover:bg-muted/40 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
         >
           <div className="flex items-center gap-2">
             <Clock className="h-5 w-5 shrink-0 text-muted-foreground" />

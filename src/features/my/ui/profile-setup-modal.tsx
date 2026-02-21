@@ -242,7 +242,7 @@ export function ProfileSetupModal({
                 value={formData.team || 'none'}
                 onValueChange={(value) => setFormData({ ...formData, team: value === 'none' ? '' : value })}
               >
-                <SelectTrigger className="h-12 bg-white border-slate-200 font-bold">
+                <SelectTrigger className="h-12 bg-white border-border font-bold">
                   <SelectValue placeholder="팀 없음" />
                 </SelectTrigger>
                 <SelectContent>

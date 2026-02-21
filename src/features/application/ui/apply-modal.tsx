@@ -382,7 +382,7 @@ export function ApplyModal({
                         value={companion.skillLevel}
                         onValueChange={(value) => updateCompanion(index, 'skillLevel', value)}
                       >
-                        <SelectTrigger className="h-10 bg-white border-slate-300">
+                        <SelectTrigger className="h-10 bg-white border-border">
                           <SelectValue placeholder="실력 선택" />
                         </SelectTrigger>
                         <SelectContent>
@@ -419,7 +419,7 @@ export function ApplyModal({
               value={formData.teamId || 'none'}
               onValueChange={(value) => setFormData({ ...formData, teamId: value === 'none' ? '' : value })}
             >
-              <SelectTrigger className="h-12 bg-white border-slate-300">
+              <SelectTrigger className="h-12 bg-white border-border">
                 <SelectValue placeholder="팀 없음" />
               </SelectTrigger>
               <SelectContent>

@@ -80,7 +80,7 @@ export function MatchCreateGameFormat({
   isRefereeSelected, setIsRefereeSelected
 }: MatchCreateGameFormatProps) {
   return (
-    <section className="bg-white px-5 py-6 space-y-4 rounded-xl border border-slate-200">
+    <section className="bg-white px-5 py-6 space-y-4">
         <h2 className="font-bold text-slate-900 flex items-center gap-2">
             <Info className="w-5 h-5 text-slate-400" />
             경기 진행 방식 (선택)

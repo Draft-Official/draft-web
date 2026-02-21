@@ -179,7 +179,7 @@ export function MatchCreateOperations({
   ]);
 
   return (
-    <section className="bg-white px-5 py-6 space-y-6 rounded-xl border border-slate-200">
+    <section className="bg-white px-5 py-6 space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="font-bold text-slate-900 flex items-center gap-2">
           <FileText className="w-5 h-5 text-slate-400" />
@@ -217,7 +217,7 @@ export function MatchCreateOperations({
           value={selectedHost} 
           onValueChange={handleHostChange}
         >
-          <SelectTrigger className="h-12 bg-white border-slate-200">
+          <SelectTrigger className="h-12 bg-white border-border">
             <SelectValue placeholder="주최자를 선택해주세요" />
           </SelectTrigger>
           <SelectContent>

@@ -100,7 +100,7 @@ export function MatchCreateBasicInfo({
   };
 
   return (
-    <section className="bg-white px-5 py-6 space-y-6 rounded-xl border border-slate-200">
+    <section className="bg-white px-5 py-6 space-y-6">
         <h2 className="font-bold text-slate-900 flex items-center gap-2">
             <Building2 className="w-5 h-5 text-slate-400" />
             기본 정보
@@ -158,7 +158,7 @@ export function MatchCreateBasicInfo({
                     defaultValue="2"
                     render={({ field }) => (
                         <Select value={field.value} onValueChange={field.onChange}>
-                            <SelectTrigger className="h-12 bg-white border-slate-200 font-bold">
+                            <SelectTrigger className="h-12 bg-white border-border font-bold">
                                 <SelectValue placeholder="선택" />
                             </SelectTrigger>
                             <SelectContent>

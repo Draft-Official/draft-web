@@ -80,7 +80,7 @@ export function MatchCreateTeamInfo({
                         }
                     }}
                 >
-                    <SelectTrigger className="h-12 bg-white border-slate-200">
+                    <SelectTrigger className="h-12 bg-white border-border">
                         <SelectValue placeholder="팀을 선택해주세요" />
                     </SelectTrigger>
                     <SelectContent>
