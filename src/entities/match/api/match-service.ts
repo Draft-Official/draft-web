@@ -236,7 +236,7 @@ export class MatchService {
       .select(`
         *,
         gym:gyms!gym_id (*),
-        team:teams!team_id (name)
+        team:teams!team_id (name, code)
       `)
       .eq('host_id', userId)
       .order('created_at', { ascending: false })

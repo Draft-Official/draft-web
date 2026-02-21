@@ -11,7 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/shared/ui/shadcn/dropdown-menu';
-import { VoteDialog } from '../vote-dialog';
+import { VoteDialog } from '@/shared/ui/composite/vote-dialog';
 import { TeamHeroSection } from './team-hero-section';
 import { TeamVotingSection } from './team-voting-section';
 import { TeamInfoSection } from './team-info-section';

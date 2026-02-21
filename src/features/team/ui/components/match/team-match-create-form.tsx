@@ -58,7 +58,7 @@ function getNext14Days(): DateOption[] {
     const dayValue = DAY_MAP[d.getDay()];
 
     dates.push({
-      dateISO: d.toISOString().split('T')[0],
+      dateISO: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`,
       label: `${d.getMonth() + 1}.${d.getDate()} (${DAY_LABELS[dayValue]})`,
       dayNum: d.getDate(),
       dayStr: DAY_LABELS[dayValue],
@@ -242,7 +242,7 @@ export function TeamMatchCreateForm({ team, onClose }: TeamMatchCreateFormProps)
                 const normalizedStartTime = normalizeTime(startTime);
                 const normalizedEndTime = normalizeTime(endTime);
                 return (
-                  <span className="text-muted-foreground">
+                  <span className="text-primary font-semibold">
                     {parseInt(m)}월 {parseInt(d)}일 {normalizedStartTime} ~ {normalizedEndTime}
                   </span>
                 );

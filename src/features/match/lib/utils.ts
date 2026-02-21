@@ -23,7 +23,7 @@ export const getNext14Days = (): DateOption[] => {
         const day = days[d.getDay()];
 
         dates.push({
-            dateISO: d.toISOString().split('T')[0],
+            dateISO: formatDateISO(d),
             label: `${month}.${date} (${day})`,
             dayNum: date,
             dayStr: day,

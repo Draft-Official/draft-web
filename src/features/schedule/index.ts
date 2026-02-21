@@ -27,6 +27,7 @@ export {
   useCancelMatchFlow,
 } from './api/match-mutations';
 export { useCreateAnnouncement } from './api/announcement-mutations';
+export { useScheduleVote } from './api/vote-mutations';
 
 // ============================================
 // Utilities & Mappers

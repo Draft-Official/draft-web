@@ -15,6 +15,8 @@ import { ApplicationInfoDialog } from "./components/application-info-dialog";
 import { Toggle } from "@/shared/ui/shadcn/toggle";
 import { Tabs, TabsList, TabsTrigger } from "@/shared/ui/shadcn/tabs";
 import { useHostedMatches, useParticipatingMatches, useConfirmPaymentByGuest, useCancelApplicationByGuest } from "@/features/schedule";
+import { useScheduleVote } from "../api/vote-mutations";
+import type { TeamVoteStatusValue } from "@/shared/config/application-constants";
 import type { MatchType, ScheduleMatchListItemDTO } from "../model/types";
 import {
   MATCH_TYPE_FILTER_OPTIONS,
@@ -91,6 +93,7 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
   // Mutations for guest actions
   const confirmPaymentMutation = useConfirmPaymentByGuest();
   const cancelApplicationMutation = useCancelApplicationByGuest();
+  const voteMutation = useScheduleVote();
 
   const handleConfirmPayment = (applicationId: string, matchId: string) => {
     confirmPaymentMutation.mutate({ applicationId, matchId });
@@ -98,6 +101,16 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
 
   const handleCancelApplication = (applicationId: string, matchId: string) => {
     cancelApplicationMutation.mutate({ applicationId, matchId });
+  };
+
+  const handleVote = (matchId: string, vote: TeamVoteStatusValue, reason: string) => {
+    if (!user?.id) return;
+    voteMutation.mutate({
+      userId: user.id,
+      matchId,
+      status: vote,
+      description: reason || undefined,
+    });
   };
 
   const isLoading = viewMode === "host" ? isLoadingHosted : isLoadingParticipating;
@@ -187,8 +200,11 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
       } else {
         router.push(`/tournaments/${match.id}`);
       }
+    } else if (match.matchType === "team" && match.teamCode) {
+      // 팀 매치는 팀 상세 매치 페이지로
+      router.push(`/team/${match.teamCode}/matches/${match.id}`);
     } else {
-      // host, team, guest 모두 matches로 통합
+      // host, guest는 matches로 통합
       if (viewMode === "host" || match.matchType === "host") {
         router.push(`/matches/${match.id}/manage`);
       } else {
@@ -374,6 +390,8 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
               notifications={notificationsByMatchId.get(match.id)}
               onClick={handleCardClick}
               onConfirmPayment={handleConfirmPayment}
+              onVote={handleVote}
+              isVoting={voteMutation.isPending}
             />
           ))
         )}

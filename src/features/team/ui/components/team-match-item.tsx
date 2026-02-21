@@ -16,7 +16,7 @@ import {
   TEAM_VOTE_STATUS_STYLES,
   type TeamVoteStatusValue,
 } from '@/shared/config/team-constants';
-import { VoteDialog } from './vote-dialog';
+import { VoteDialog } from '@/shared/ui/composite/vote-dialog';
 
 interface TeamMatchItemProps {
   id: string;
