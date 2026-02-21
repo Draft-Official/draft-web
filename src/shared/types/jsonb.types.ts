@@ -190,14 +190,3 @@ export interface Participant {
 // ============================================
 // Teams 전용 JSONB 타입
 // ============================================
-
-/**
- * 정기 일정
- * 사용 테이블: teams (regular_schedules)
- */
-export interface RegularSchedule {
-  day: 'MON' | 'TUE' | 'WED' | 'THU' | 'FRI' | 'SAT' | 'SUN';
-  start_time: string; // HH:mm
-  end_time: string; // HH:mm
-  location?: string;
-}

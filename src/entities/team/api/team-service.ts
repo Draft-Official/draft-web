@@ -21,6 +21,7 @@ import type {
 } from '@/shared/types/database.types';
 import type { AccountInfo, OperationInfo } from '@/shared/types/jsonb.types';
 import { handleSupabaseError } from '@/shared/lib/errors';
+import { normalizeRegularDay } from '@/shared/config/team-constants';
 import type { TeamRoleValue, TeamVoteStatusValue } from '@/shared/config/team-constants';
 import type {
   CreateTeamInput,
@@ -119,7 +120,7 @@ export class TeamService {
       region_depth1: input.regionDepth1,
       region_depth2: input.regionDepth2,
       home_gym_id: input.homeGymId,
-      regular_day: input.regularDay,
+      regular_day: normalizeRegularDay(input.regularDay ?? null),
       regular_start_time: input.regularStartTime,
       regular_end_time: input.regularEndTime,
       team_gender: input.teamGender,
@@ -153,7 +154,9 @@ export class TeamService {
     if (input.regionDepth1 !== undefined) teamUpdate.region_depth1 = input.regionDepth1;
     if (input.regionDepth2 !== undefined) teamUpdate.region_depth2 = input.regionDepth2;
     if (input.homeGymId !== undefined) teamUpdate.home_gym_id = input.homeGymId;
-    if (input.regularDay !== undefined) teamUpdate.regular_day = input.regularDay;
+    if (input.regularDay !== undefined) {
+      teamUpdate.regular_day = normalizeRegularDay(input.regularDay ?? null);
+    }
     if (input.regularStartTime !== undefined) {
       (teamUpdate as Record<string, unknown>).regular_start_time = input.regularStartTime;
     }
