@@ -11,6 +11,7 @@ import {
   type TeamRoleValue,
 } from '@/shared/config/team-constants';
 import type { TeamMember } from '@/features/team/model/types';
+import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 interface TeamMembersTabProps {
   teamCode: string;
@@ -42,7 +43,7 @@ export function TeamMembersTab({
   if (isLoading) {
     return (
       <div className="px-5 py-8 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        <Spinner className="h-8 w-8 text-muted-foreground" />
       </div>
     );
   }
@@ -60,11 +61,11 @@ export function TeamMembersTab({
           {isAdmin && (
             <button
               onClick={handleJoinRequestsClick}
-              className="flex items-center gap-1 px-3 py-1.5 -mr-3 rounded-lg text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all"
+              className="flex items-center gap-1 px-3 py-1.5 -mr-3 rounded-lg text-sm text-muted-foreground hover:text-slate-900 hover:bg-slate-50 transition-all"
             >
               <span>멤버 관리하기</span>
               {pendingCount > 0 && (
-                <span className="text-primary font-medium">({pendingCount})</span>
+                <span className="text-muted-foreground font-medium">({pendingCount})</span>
               )}
               <ChevronRight className="w-4 h-4" />
             </button>

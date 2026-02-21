@@ -17,6 +17,7 @@ import {
   TeamMembersTab,
   TeamFab,
 } from './components/detail';
+import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 interface TeamDetailViewProps {
   code: string;
@@ -85,7 +86,7 @@ export function TeamDetailView({ code }: TeamDetailViewProps) {
   if (isLoadingTeam || isLoadingMembership) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        <Spinner className="h-8 w-8 text-muted-foreground" />
       </div>
     );
   }

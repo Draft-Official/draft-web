@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { MapPin, Clock, Loader2, Settings, Share2, Link2, MessageCircle } from 'lucide-react';
+import { MapPin, Clock, Settings, Share2, Link2, MessageCircle } from 'lucide-react';
 import { toast } from '@/shared/ui/shadcn/sonner';
 import { cn } from '@/shared/lib/utils';
 import { formatTeamRegularSchedule } from '@/features/team/lib';
@@ -22,6 +22,7 @@ import {
   DialogTitle,
 } from '@/shared/ui/shadcn/dialog';
 import { Button } from '@/shared/ui/shadcn/button';
+import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 interface TeamDetailHeaderProps {
   team: TeamInfoDTO;
@@ -158,7 +159,7 @@ export function TeamDetailHeader({ team, membership, homeGymName, isLoggedIn, cu
 
             {/* 홈 구장 */}
             {homeGymName && (
-              <div className="flex items-center gap-1.5 mt-1.5 text-sm text-primary">
+              <div className="flex items-center gap-1.5 mt-1.5 text-sm text-muted-foreground">
                 <MapPin className="w-4 h-4 shrink-0" />
                 <span className="truncate">{homeGymName}</span>
               </div>
@@ -180,7 +181,7 @@ export function TeamDetailHeader({ team, membership, homeGymName, isLoggedIn, cu
                 <HoverCardTrigger asChild>
                   <button
                     onClick={handleSettings}
-                    className="p-2 text-slate-400 hover:text-slate-600 transition-colors"
+                    className="p-2 text-muted-foreground hover:text-muted-foreground transition-colors"
                     aria-label="팀 설정"
                   >
                     <Settings className="w-6 h-6" />
@@ -194,7 +195,7 @@ export function TeamDetailHeader({ team, membership, homeGymName, isLoggedIn, cu
                 <HoverCardTrigger asChild>
                   <button
                     onClick={() => setIsShareModalOpen(true)}
-                    className="p-2 text-slate-400 hover:text-slate-600 transition-colors"
+                    className="p-2 text-muted-foreground hover:text-muted-foreground transition-colors"
                     aria-label="팀원 초대"
                   >
                     <Share2 className="w-6 h-6" />
@@ -230,7 +231,7 @@ export function TeamDetailHeader({ team, membership, homeGymName, isLoggedIn, cu
         >
           {joinTeamMutation.isPending ? (
             <span className="flex items-center justify-center gap-2">
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Spinner className="w-4 h-4 " />
               신청 중...
             </span>
           ) : (
@@ -275,7 +276,7 @@ export function TeamDetailHeader({ team, membership, homeGymName, isLoggedIn, cu
               onClick={handleCopyLink}
             >
               <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
-                <Link2 className="w-5 h-5 text-slate-600" />
+                <Link2 className="w-5 h-5 text-muted-foreground" />
               </div>
               <span className="text-sm font-medium text-slate-900">초대 링크 복사</span>
             </Button>

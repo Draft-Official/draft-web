@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Megaphone } from 'lucide-react';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { Card } from '@/shared/ui/shadcn/card';
+import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 interface PlatformAnnouncement {
   id: string;
@@ -58,7 +59,7 @@ export function NoticesList() {
   if (isLoading) {
     return (
       <div className="flex justify-center py-12">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        <Spinner className="h-6 w-6 text-muted-foreground" />
       </div>
     );
   }
@@ -88,7 +89,7 @@ export function NoticesList() {
             <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">
               {notice.message}
             </p>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-muted-foreground">
               {getRelativeTime(notice.created_at)}
             </p>
           </div>

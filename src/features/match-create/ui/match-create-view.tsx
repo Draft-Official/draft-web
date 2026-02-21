@@ -1,7 +1,8 @@
 'use client';
 
 import { FormProvider } from 'react-hook-form';
-import { RefreshCw, Zap, X, Loader2 } from 'lucide-react';
+import { RefreshCw, Zap, X } from 'lucide-react';
+import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 import { Button } from '@/shared/ui/shadcn/button';
 
@@ -107,46 +108,43 @@ export function MatchCreateView() {
   return (
     <FormProvider {...methods}>
       <div className="min-h-screen bg-white app-content-container relative font-sans">
-        <header className="bg-white px-4 h-14 flex items-center justify-between border-b border-slate-100 sticky top-0 z-30">
-          <div className="flex items-center gap-3">
+        <header className="sticky top-0 z-40 bg-white border-b border-slate-100 h-14 flex items-center justify-between px-4">
+          <button
+            type="button"
+            onClick={onBack}
+            className="p-2 text-slate-900 hover:bg-slate-50 rounded-full transition-colors"
+          >
+            <X className="w-6 h-6" />
+          </button>
+          <h1 className="text-lg font-bold text-slate-900">
+            {isEditMode ? '경기 수정' : '경기 개설'}
+          </h1>
+          {!isEditMode ? (
             <button
               type="button"
-              onClick={onBack}
-              className="-ml-2 p-2 text-slate-900 hover:bg-slate-50 rounded-full transition-colors"
+              onClick={() => setShowRecentMatchesDialog(true)}
+              className="text-xs font-bold text-muted-foreground flex items-center gap-1 bg-brand-weak px-2.5 py-1.5 rounded-full hover:bg-brand-weak-pressed transition-colors"
             >
-              <X className="w-6 h-6" />
+              <RefreshCw className="w-3.5 h-3.5" />
+              불러오기
             </button>
-            <h1 className="font-bold text-lg text-slate-900">
-              {isEditMode ? '경기 수정' : '경기 개설'}
-            </h1>
-          </div>
-
-          {!isEditMode && (
-            <div className="flex gap-2 relative">
-              <button
-                type="button"
-                onClick={() => setShowRecentMatchesDialog(true)}
-                className="text-xs font-bold text-primary flex items-center gap-1 bg-brand-weak px-2.5 py-1.5 rounded-full hover:bg-brand-weak-pressed transition-colors"
-              >
-                <RefreshCw className="w-3.5 h-3.5" />
-                최근 경기 불러오기
-              </button>
-            </div>
+          ) : (
+            <div className="w-10" />
           )}
         </header>
 
         {isLoadingEditData && (
           <div className="fixed inset-0 bg-white/80 z-50 flex items-center justify-center">
             <div className="flex flex-col items-center gap-3">
-              <Loader2 className="w-8 h-8 text-primary animate-spin" />
-              <p className="text-sm text-slate-600">경기 정보를 불러오는 중...</p>
+              <Spinner className="w-8 h-8 text-muted-foreground " />
+              <p className="text-sm text-muted-foreground">경기 정보를 불러오는 중...</p>
             </div>
           </div>
         )}
 
         {showTip && !isEditMode && (
           <div className="mx-5 mt-3 p-3 bg-brand-weak rounded-xl flex items-center gap-3 relative animate-in fade-in slide-in-from-top-2 duration-300">
-            <Zap className="w-5 h-5 text-primary flex-shrink-0 fill-draft-500" />
+            <Zap className="w-5 h-5 text-muted-foreground flex-shrink-0 fill-draft-500" />
             <p className="text-sm font-bold text-brand-contrast pr-6">
               딱 한 번만 작성하세요! 다음부턴 &apos;불러오기&apos;로 3초만에 개설가능!
             </p>

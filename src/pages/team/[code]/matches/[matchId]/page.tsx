@@ -7,6 +7,7 @@ import { useMyMembership } from '@/features/team/api/membership/queries';
 import { useTeamMatch } from '@/features/team/api/match/queries';
 import { useAuth } from '@/shared/session';
 import { TeamMatchDetailView } from '@/features/team/ui/components/match/team-match-detail-view';
+import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 interface TeamMatchDetailPageProps {
   params: Promise<{ code: string; matchId: string }>;
@@ -32,7 +33,7 @@ export default function TeamMatchDetailPage({ params }: TeamMatchDetailPageProps
   if (isAuthLoading || isTeamLoading || isMembershipLoading || isMatchLoading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        <Spinner className="h-8 w-8 text-muted-foreground" />
       </div>
     );
   }

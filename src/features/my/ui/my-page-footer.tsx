@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { LogOut, UserX, AlertTriangle, Loader2 } from 'lucide-react';
+import { LogOut, UserX, AlertTriangle } from 'lucide-react';
 import { toast } from '@/shared/ui/shadcn/sonner';
 import { Button } from '@/shared/ui/shadcn/button';
 import {
@@ -15,6 +15,7 @@ import {
   DialogFooter,
 } from '@/shared/ui/shadcn/dialog';
 import { useAuth, useDeleteAccount } from '@/shared/session';
+import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 export function MyPageFooter() {
   const { signOut } = useAuth();
@@ -125,7 +126,7 @@ export function MyPageFooter() {
 
           {loadingCheck ? (
             <div className="flex items-center justify-center py-4">
-              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              <Spinner className="h-5 w-5  text-muted-foreground" />
             </div>
           ) : (
             <>
@@ -177,7 +178,7 @@ export function MyPageFooter() {
                 >
                   {deleteAccount.isPending ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Spinner className="mr-2 h-4 w-4 " />
                       처리 중...
                     </>
                   ) : (

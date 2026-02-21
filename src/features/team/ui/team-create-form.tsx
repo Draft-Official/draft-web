@@ -4,8 +4,9 @@ import { useState, useCallback } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, ArrowRight, Check, Loader2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
 import { toast } from '@/shared/ui/shadcn/sonner';
+import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 import { Button } from '@/shared/ui/shadcn/button';
 
@@ -412,7 +413,7 @@ export function TeamCreateForm() {
               >
                 {isCreating ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <Spinner className="w-4 h-4 mr-2 " />
                     생성 중...
                   </>
                 ) : (

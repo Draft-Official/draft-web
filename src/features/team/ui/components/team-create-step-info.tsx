@@ -1,8 +1,9 @@
 'use client';
 
 import { useFormContext } from 'react-hook-form';
-import { Flag, Loader2, Check } from 'lucide-react';
+import { Flag, Check } from 'lucide-react';
 import Image from 'next/image';
+import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 import { Input } from '@/shared/ui/shadcn/input';
 import { Label } from '@/shared/ui/shadcn/label';
@@ -66,7 +67,7 @@ export function TeamCreateStepInfo({
             setValue('name', value);
           }}
         />
-        <p className="text-xs text-slate-400 text-right">
+        <p className="text-xs text-muted-foreground text-right">
           {teamName.length}/{TEAM_NAME_MAX_LENGTH}
         </p>
       </div>
@@ -86,7 +87,7 @@ export function TeamCreateStepInfo({
             setValue('shortIntro', value);
           }}
         />
-        <p className="text-xs text-slate-400 text-right">
+        <p className="text-xs text-muted-foreground text-right">
           {watch('shortIntro')?.length || 0}/15
         </p>
       </div>
@@ -97,7 +98,7 @@ export function TeamCreateStepInfo({
           팀 코드 <span className="text-red-500">*</span>
         </Label>
         <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
             draft.kr/team/
           </span>
           <Input
@@ -111,7 +112,7 @@ export function TeamCreateStepInfo({
             }}
           />
           {isCheckingCode && (
-            <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-slate-400" />
+            <Spinner className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4  text-muted-foreground" />
           )}
           {!isCheckingCode && codeStatus === 'available' && (
             <Check className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-green-500" />
@@ -126,7 +127,7 @@ export function TeamCreateStepInfo({
         {codeStatus === 'available' && (
           <p className="text-xs text-green-600">사용 가능한 코드입니다</p>
         )}
-        <p className="text-xs text-slate-400">
+        <p className="text-xs text-muted-foreground">
           영문 소문자, 숫자, 하이픈만 사용 (3-30자)
         </p>
       </div>

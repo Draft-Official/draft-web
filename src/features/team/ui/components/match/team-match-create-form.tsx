@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { X, Building2, FileText, Loader2 } from 'lucide-react';
+import { X, Building2, FileText } from 'lucide-react';
 import { Button } from '@/shared/ui/shadcn/button';
 import { Label } from '@/shared/ui/shadcn/label';
 import { Textarea } from '@/shared/ui/shadcn/textarea';
@@ -16,6 +16,7 @@ import { toast } from '@/shared/ui/shadcn/sonner';
 import type { Team } from '@/features/team/model/types';
 import type { RegularDayValue } from '@/shared/config/team-constants';
 import type { LocationData } from '@/shared/types/location.types';
+import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 interface TeamMatchCreateFormProps {
   team: Team & { homeGymName: string | null };
@@ -229,25 +230,25 @@ export function TeamMatchCreateForm({ team, onClose }: TeamMatchCreateFormProps)
         {/* 기본 정보 섹션 */}
         <section className="bg-white px-5 py-6 space-y-6 rounded-xl border border-slate-200">
           <h2 className="font-bold text-slate-900 flex items-center gap-2">
-            <Building2 className="w-5 h-5 text-slate-400" />
+            <Building2 className="w-5 h-5 text-muted-foreground" />
             기본 정보
           </h2>
 
           {/* 날짜 선택 */}
           <div className="space-y-3">
-            <Label className="text-sm font-bold text-slate-600 flex items-center gap-2">
+            <Label className="text-sm font-bold text-muted-foreground flex items-center gap-2">
               경기 날짜
               {selectedDate && (() => {
                 const [, m, d] = selectedDate.split('-');
                 const normalizedStartTime = normalizeTime(startTime);
                 const normalizedEndTime = normalizeTime(endTime);
                 return (
-                  <span className="text-primary">
+                  <span className="text-muted-foreground">
                     {parseInt(m)}월 {parseInt(d)}일 {normalizedStartTime} ~ {normalizedEndTime}
                   </span>
                 );
               })()}
-              <span className="text-slate-400 text-xs font-normal ml-auto">
+              <span className="text-muted-foreground text-xs font-normal ml-auto">
                 (2주 이내)
               </span>
             </Label>
@@ -264,7 +265,7 @@ export function TeamMatchCreateForm({ team, onClose }: TeamMatchCreateFormProps)
           {/* 시간 선택 */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-sm font-bold text-slate-600">시작 시간</Label>
+              <Label className="text-sm font-bold text-muted-foreground">시작 시간</Label>
               <TimePickerSelect
                 value={startTime}
                 onValueChange={setStartTime}
@@ -273,7 +274,7 @@ export function TeamMatchCreateForm({ team, onClose }: TeamMatchCreateFormProps)
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm font-bold text-slate-600">진행 시간</Label>
+              <Label className="text-sm font-bold text-muted-foreground">진행 시간</Label>
               <Select value={duration} onValueChange={setDuration}>
                 <SelectTrigger className="h-(--dimension-x12) bg-white border-border font-bold">
                   <SelectValue placeholder="선택" />
@@ -316,7 +317,7 @@ export function TeamMatchCreateForm({ team, onClose }: TeamMatchCreateFormProps)
         {/* 공지 섹션 */}
         <section className="bg-white px-5 py-6 space-y-4 rounded-xl border border-slate-200">
           <h2 className="font-bold text-slate-900 flex items-center gap-2">
-            <FileText className="w-5 h-5 text-slate-400" />
+            <FileText className="w-5 h-5 text-muted-foreground" />
             공지 (선택)
           </h2>
 
@@ -338,7 +339,7 @@ export function TeamMatchCreateForm({ team, onClose }: TeamMatchCreateFormProps)
           >
             {isPending ? (
               <>
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                <Spinner className="w-5 h-5 mr-2 " />
                 생성 중...
               </>
             ) : (

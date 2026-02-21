@@ -9,6 +9,7 @@ import { useApproveJoinRequest, useRejectJoinRequest } from '@/features/team/api
 import { useAuth } from '@/shared/session';
 import { Button } from '@/shared/ui/shadcn/button';
 import type { TeamMember } from '@/features/team/model/types';
+import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 interface PendingMembersViewProps {
   code: string;
@@ -30,7 +31,7 @@ export function PendingMembersView({ code }: PendingMembersViewProps) {
   if (isLoadingTeam || isLoading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        <Spinner className="h-8 w-8 text-muted-foreground" />
       </div>
     );
   }
@@ -97,7 +98,7 @@ function PendingMemberItem({ member, onApprove, onReject, isLoading }: PendingMe
       {member.user?.avatarUrl ? (
         <Image src={member.user.avatarUrl} alt="" width={48} height={48} className="w-12 h-12 rounded-full object-cover" />
       ) : (
-        <div className="w-12 h-12 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold">
+        <div className="w-12 h-12 rounded-full bg-slate-200 flex items-center justify-center text-muted-foreground font-bold">
           {avatarChar}
         </div>
       )}
@@ -115,7 +116,7 @@ function PendingMemberItem({ member, onApprove, onReject, isLoading }: PendingMe
           variant="outline"
           onClick={onReject}
           disabled={isLoading}
-          className="text-slate-600"
+          className="text-muted-foreground"
         >
           거절
         </Button>

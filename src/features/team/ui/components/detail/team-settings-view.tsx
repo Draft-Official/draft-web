@@ -26,6 +26,7 @@ import {
 } from '@/shared/ui/shadcn/alert-dialog';
 import { AccountEditDialog } from './account-edit-dialog';
 import { DelegateLeaderDialog } from './delegate-leader-dialog';
+import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 interface TeamSettingsViewProps {
   code: string;
@@ -117,7 +118,7 @@ export function TeamSettingsView({ code }: TeamSettingsViewProps) {
   if (isLoadingTeam || isLoadingMembership) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        <Spinner className="h-8 w-8 text-muted-foreground" />
       </div>
     );
   }
@@ -172,7 +173,7 @@ export function TeamSettingsView({ code }: TeamSettingsViewProps) {
             </div>
           )}
           <span className="text-lg font-bold text-slate-900">{team.name}</span>
-          <span className="text-slate-400">/</span>
+          <span className="text-muted-foreground">/</span>
           <span className="text-lg font-bold text-slate-900">설정</span>
         </div>
         <div className="w-10" />
@@ -329,14 +330,14 @@ function MenuItem({
       </span>
 
       <div className="flex items-center gap-2">
-        {value && <span className="text-sm text-slate-400">{value}</span>}
+        {value && <span className="text-sm text-muted-foreground">{value}</span>}
         {action && (
           <button
             onClick={(e) => {
               e.stopPropagation();
               onAction?.();
             }}
-            className="text-sm text-primary font-medium"
+            className="text-sm text-muted-foreground font-medium"
           >
             {action}
           </button>

@@ -9,7 +9,6 @@ import {
   Calendar as CalendarIcon,
   Clock,
   Shield,
-  Loader2,
   Megaphone,
 } from 'lucide-react';
 import {
@@ -40,6 +39,7 @@ import { MatchCancelDialog } from './match-cancel-dialog';
 import { RecruitmentStatusSection } from './recruitment-status-section';
 import { GuestListSection } from './guest-list-section';
 import { MatchActionButton } from './match-action-button';
+import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 export function HostMatchDetailView() {
   const router = useRouter();
@@ -161,7 +161,7 @@ export function HostMatchDetailView() {
     return (
       <div className="bg-slate-50 min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-8 h-8 text-slate-400 animate-spin" />
+          <Spinner className="w-8 h-8 text-muted-foreground " />
           <p className="text-slate-500">경기 정보를 불러오는 중...</p>
         </div>
       </div>
@@ -240,9 +240,9 @@ export function HostMatchDetailView() {
         {/* 경기 기본 정보 */}
         <section className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 space-y-3">
           <div className="flex items-center gap-2 text-xl font-bold text-slate-900">
-            <CalendarIcon className="w-5 h-5 text-slate-400" />
+            <CalendarIcon className="w-5 h-5 text-muted-foreground" />
             <span>{match.date}</span>
-            <Clock className="w-5 h-5 text-slate-400 ml-2" />
+            <Clock className="w-5 h-5 text-muted-foreground ml-2" />
             <span>{match.time}</span>
           </div>
 
@@ -250,14 +250,14 @@ export function HostMatchDetailView() {
             href={match.locationUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 text-slate-700 hover:text-primary transition-colors"
+            className="flex items-center gap-2 text-slate-700 hover:text-muted-foreground transition-colors"
           >
-            <MapPin className="w-5 h-5 text-slate-400" />
+            <MapPin className="w-5 h-5 text-muted-foreground" />
             <span className="font-medium">{match.location}</span>
           </a>
 
           <div className="flex items-center gap-2 text-slate-700">
-            <Shield className="w-5 h-5 text-slate-400" />
+            <Shield className="w-5 h-5 text-muted-foreground" />
             <span className="font-medium">{match.teamName}</span>
           </div>
         </section>

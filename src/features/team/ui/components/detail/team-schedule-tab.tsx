@@ -7,6 +7,7 @@ import { Button } from '@/shared/ui/shadcn/button';
 import { MatchCardLayout } from '@/shared/ui/composite/match-card-layout';
 import { cn } from '@/shared/lib/utils';
 import type { TeamScheduleMatchItemDTO } from '@/features/team/model/types';
+import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 interface TeamScheduleTabProps {
   teamCode: string;
@@ -36,7 +37,7 @@ export function TeamScheduleTab({ teamCode, matches, isLoading }: TeamScheduleTa
   if (isLoading) {
     return (
       <div className="px-5 py-8 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        <Spinner className="h-8 w-8 text-muted-foreground" />
       </div>
     );
   }
@@ -46,7 +47,7 @@ export function TeamScheduleTab({ teamCode, matches, isLoading }: TeamScheduleTa
       <div className="px-5 py-16 flex flex-col items-center justify-center text-center">
         <Calendar className="w-12 h-12 text-slate-300 mb-4" />
         <p className="text-slate-500 text-base">아직 일정이 없습니다</p>
-        <p className="text-slate-400 text-sm mt-1">팀 운동을 생성해보세요</p>
+        <p className="text-muted-foreground text-sm mt-1">팀 운동을 생성해보세요</p>
       </div>
     );
   }

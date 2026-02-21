@@ -1,9 +1,10 @@
 'use client';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/ui/shadcn/dialog';
-import { MapPin, Loader2 } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import type { RecentMatchListItemDTO } from '@/features/match-create/model/types';
+import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 interface RecentMatchesDialogProps {
   open: boolean;
@@ -32,7 +33,7 @@ export function RecentMatchesDialog({
         <div className="py-2 max-h-[400px] overflow-y-auto">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+              <Spinner className="w-6 h-6  text-muted-foreground" />
             </div>
           ) : matches.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-slate-500">
@@ -57,7 +58,7 @@ export function RecentMatchesDialog({
                         "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium",
                         match.isTeamHost
                           ? "bg-brand-weak text-brand-contrast"
-                          : "bg-slate-100 text-slate-600"
+                          : "bg-slate-100 text-muted-foreground"
                       )}>
                         {match.isTeamHost ? '🏀' : '🙋‍♂️'} {match.hostLabel}
                       </span>

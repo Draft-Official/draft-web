@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { Calendar, RotateCcw, Loader2 } from "lucide-react";
+import { Calendar, RotateCcw } from "lucide-react";
 import { useLocalStorage } from "@/shared/lib/hooks/use-local-storage";
 import { useAuth } from "@/shared/session";
 import { useUnreadNotifications, useMarkNotificationsAsReadByMatch } from "@/features/notification";
@@ -24,6 +24,7 @@ import {
   PAST_MATCH_STATUSES,
 } from "../config/constants";
 import { cn } from "@/shared/lib/utils";
+import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 type ViewMode = "guest" | "host";
 type GuestTypeFilterValue = Exclude<MatchType, "host">;
@@ -327,8 +328,8 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
             className={cn(
               "h-auto min-w-0 rounded-full px-(--dimension-x4) py-(--dimension-x2) text-sm font-medium border transition-all",
               showPast
-                ? "border-primary text-primary bg-brand-weak data-[state=on]:bg-brand-weak data-[state=on]:text-primary"
-                : "border-slate-200 text-slate-600"
+                ? "border-primary text-muted-foreground bg-brand-weak data-[state=on]:bg-brand-weak data-[state=on]:text-muted-foreground"
+                : "border-slate-200 text-muted-foreground"
             )}
           >
             지난 경기
@@ -351,7 +352,7 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
       <section className="px-(--dimension-spacing-x-global-gutter) py-(--dimension-spacing-y-component-default) space-y-(--dimension-spacing-y-component-default)">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 text-slate-400 animate-spin mb-4" />
+            <Spinner className="w-8 h-8 text-muted-foreground  mb-4" />
             <p className="text-slate-500 text-center">
               경기 목록을 불러오는 중...
             </p>
@@ -359,7 +360,7 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
         ) : filteredMatches.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-              <Calendar className="w-8 h-8 text-slate-400" />
+              <Calendar className="w-8 h-8 text-muted-foreground" />
             </div>
             <p className="text-slate-500 text-center">
               {viewMode === "guest" ? "참여한 경기가 없습니다." : "주최한 경기가 없습니다."}

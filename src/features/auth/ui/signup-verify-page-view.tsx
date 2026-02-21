@@ -7,6 +7,7 @@ import { PhoneVerificationForm } from './phone-verification-form';
 import { Button } from '@/shared/ui/shadcn/button';
 import { Input } from '@/shared/ui/shadcn/input';
 import { Label } from '@/shared/ui/shadcn/label';
+import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 type Step = 'name' | 'phone';
 
@@ -38,7 +39,7 @@ export function SignupVerifyPageView() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        <Spinner className="h-8 w-8 text-muted-foreground" />
       </div>
     );
   }
@@ -76,7 +77,7 @@ export function SignupVerifyPageView() {
           <div className={`h-1 flex-1 rounded-full ${step === 'name' ? 'bg-primary' : 'bg-primary'}`} />
           <div className={`h-1 flex-1 rounded-full ${step === 'phone' ? 'bg-primary' : 'bg-slate-200'}`} />
         </div>
-        <p className="text-xs text-slate-400 mt-2">
+        <p className="text-xs text-muted-foreground mt-2">
           {step === 'name' ? '1/2' : '2/2'}
         </p>
       </div>

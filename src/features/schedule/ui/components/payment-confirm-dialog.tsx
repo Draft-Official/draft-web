@@ -9,8 +9,9 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/shared/ui/shadcn/dialog';
-import { Loader2, Copy, Check } from 'lucide-react';
+import {Copy, Check } from 'lucide-react';
 import { toast } from '@/shared/ui/shadcn/sonner';
+import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 interface PaymentConfirmDialogProps {
   open: boolean;
@@ -51,7 +52,7 @@ export function PaymentConfirmDialog({
       >
         <DialogHeader>
           <DialogTitle>송금을 완료하셨나요?</DialogTitle>
-          <DialogDescription className="text-slate-600 pt-2 font-medium">
+          <DialogDescription className="text-muted-foreground pt-2 font-medium">
             호스트에게 송금 완료 알림이 전송됩니다.
             호스트가 입금을 확인하면 참가가 확정됩니다.
           </DialogDescription>
@@ -71,7 +72,7 @@ export function PaymentConfirmDialog({
               {copied ? (
                 <Check className="w-4 h-4 text-green-500 shrink-0" />
               ) : (
-                <Copy className="w-4 h-4 text-slate-400 shrink-0" />
+                <Copy className="w-4 h-4 text-muted-foreground shrink-0" />
               )}
             </button>
           </div>
@@ -94,7 +95,7 @@ export function PaymentConfirmDialog({
             className="flex-1 bg-primary hover:bg-primary/90 text-white h-12 rounded-xl font-bold"
           >
             {isPending ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
+              <Spinner className="w-5 h-5 " />
             ) : (
               '네, 송금했습니다'
             )}

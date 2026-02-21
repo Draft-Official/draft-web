@@ -1,6 +1,6 @@
 'use client';
 
-import { Users, Loader2 } from 'lucide-react';
+import { Users } from 'lucide-react';
 import { Button } from '@/shared/ui/shadcn/button';
 import { ScrollArea, ScrollBar } from '@/shared/ui/shadcn/scroll-area';
 import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/shadcn/alert';
@@ -11,6 +11,7 @@ import { useVote } from '../api/match/mutations';
 import { TeamProfileCard } from './components/team-profile-card';
 import { TeamMatchItem } from './components/team-match-item';
 import type { TeamVoteStatusValue } from '@/shared/config/team-constants';
+import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 /**
  * 나의 팀 탭
@@ -26,7 +27,7 @@ export function MyTeamsTab() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+        <Spinner className="w-6 h-6  text-muted-foreground" />
       </div>
     );
   }
@@ -36,7 +37,7 @@ export function MyTeamsTab() {
     return (
       <div className="p-(--dimension-spacing-x-global-gutter)">
         <Alert className="bg-white border-slate-200">
-          <Users className="h-5 w-5 text-slate-400" />
+          <Users className="h-5 w-5 text-muted-foreground" />
           <AlertTitle className="font-bold text-slate-900">
             소속 팀이 없습니다
           </AlertTitle>
@@ -45,7 +46,7 @@ export function MyTeamsTab() {
             <br />
             <Button
               variant="link"
-              className="p-0 h-auto text-primary font-bold"
+              className="p-0 h-auto text-muted-foreground font-bold"
               onClick={() => {
                 // 팀 생성하기+ 탭으로 이동 (탭 전환)
                 const trigger = document.querySelector(
@@ -116,14 +117,14 @@ function PendingVoteMatches({ teamIds, userId }: { teamIds: string[]; userId: st
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
+        <Spinner className="w-5 h-5  text-muted-foreground" />
       </div>
     );
   }
 
   if (!matches || matches.length === 0) {
     return (
-      <p className="text-sm text-slate-400 py-(--dimension-spacing-y-component-default) text-center">
+      <p className="text-sm text-muted-foreground py-(--dimension-spacing-y-component-default) text-center">
         예정된 팀 운동이 없습니다
       </p>
     );
