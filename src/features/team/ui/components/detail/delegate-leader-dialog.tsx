@@ -75,7 +75,7 @@ export function DelegateLeaderDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-[400px]">
+        <DialogContent size="lg">
           <DialogHeader>
             <DialogTitle>팀 소유자 위임</DialogTitle>
           </DialogHeader>

@@ -31,7 +31,7 @@ import {
   type TeamProfileEditFormData,
   isResolvedLocationData,
   validateTeamProfileEditForm,
-} from './team-profile-edit';
+} from '../edit';
 
 interface TeamProfileEditViewProps {
   code: string;

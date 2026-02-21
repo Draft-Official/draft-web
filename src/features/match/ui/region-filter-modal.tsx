@@ -1,10 +1,15 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { X, Check } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { REGIONS, RegionKey } from '@/shared/config/region-constants';
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogTitle,
+} from '@/shared/ui/shadcn/dialog';
 
 interface RegionFilterModalProps {
     open: boolean;
@@ -66,26 +71,25 @@ export function RegionFilterModal({ open, onOpenChange, onApply, selectedRegions
     };
 
     return (
-        <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
-            <DialogPrimitive.Portal>
-                {/* 1. Overlay (Dark Background) - Ensure High Z-Index & Opacity */}
-                <DialogPrimitive.Overlay className="fixed inset-0 z-[999] bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 backdrop-blur-[2px]" />
-                
-                {/* 2. Content (Centered Modal) */}
-                <DialogPrimitive.Content className="fixed left-[50%] top-[50%] z-[1000] w-[90%] max-w-[420px] translate-x-[-50%] translate-y-[-50%] rounded-2xl bg-white shadow-2xl duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 overflow-hidden outline-none flex flex-col h-[80vh] max-h-[600px]">
-                    
-                    {/* Header */}
-                    <div className="h-14 flex items-center justify-center border-b border-slate-100 shrink-0 relative bg-white z-10 w-full">
-                        <DialogPrimitive.Title className="text-lg font-bold text-gray-900">
-                            지역 선택
-                        </DialogPrimitive.Title>
-                        <DialogPrimitive.Close className="absolute right-4 p-2 rounded-full hover:bg-slate-100 transition-colors outline-none cursor-pointer">
-                            <X className="w-5 h-5 text-slate-500" />
-                        </DialogPrimitive.Close>
-                    </div>
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent
+                size="xl"
+                showCloseButton={false}
+                overlayClassName="z-[999] bg-black/80 backdrop-blur-[2px]"
+                className="z-[1000] w-[90%] rounded-2xl bg-white shadow-2xl duration-200 overflow-hidden flex flex-col h-[80vh] max-h-[600px] p-0 gap-0 ring-0"
+            >
+                {/* Header */}
+                <div className="h-14 flex items-center justify-center border-b border-slate-100 shrink-0 relative bg-white z-10 w-full">
+                    <DialogTitle className="text-lg font-bold text-gray-900">
+                        지역 선택
+                    </DialogTitle>
+                    <DialogClose className="absolute right-4 p-2 rounded-full hover:bg-slate-100 transition-colors outline-none cursor-pointer">
+                        <X className="w-5 h-5 text-slate-500" />
+                    </DialogClose>
+                </div>
 
-                    {/* Body (Split View) */}
-                    <div className="flex flex-1 overflow-hidden relative bg-white w-full">
+                {/* Body (Split View) */}
+                <div className="flex flex-1 overflow-hidden relative bg-white w-full">
                         {/* Left Sidebar (Regions) */}
                         <div className="w-[30%] bg-slate-50 border-r border-slate-100 h-full overflow-y-auto no-scrollbar">
                             {(Object.keys(REGIONS) as RegionKey[]).map(region => {
@@ -162,8 +166,8 @@ export function RegionFilterModal({ open, onOpenChange, onApply, selectedRegions
                         </div>
                     </div>
 
-                    {/* Footer Area */}
-                    <div className="shrink-0 bg-white border-t border-slate-100 flex flex-col z-20 shadow-[0_-4px_10px_rgba(0,0,0,0.03)]">
+                {/* Footer Area */}
+                <div className="shrink-0 bg-white border-t border-slate-100 flex flex-col z-20 shadow-[0_-4px_10px_rgba(0,0,0,0.03)]">
                         {/* Selected Chips */}
                         {tempSelected.length > 0 && (
                             <div className="w-full overflow-x-auto no-scrollbar px-4 py-3 border-b border-slate-50">
@@ -206,10 +210,9 @@ export function RegionFilterModal({ open, onOpenChange, onApply, selectedRegions
                                 )}
                             </button>
                         </div>
-                    </div>
+                </div>
 
-                </DialogPrimitive.Content>
-            </DialogPrimitive.Portal>
-        </DialogPrimitive.Root>
+            </DialogContent>
+        </Dialog>
     );
 }

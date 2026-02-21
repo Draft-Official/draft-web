@@ -252,7 +252,7 @@ export function TeamDetailHeader({ team, membership, homeGymName, isLoggedIn, cu
 
       {/* 공유 모달 */}
       <Dialog open={isShareModalOpen} onOpenChange={setIsShareModalOpen}>
-        <DialogContent className="max-w-[340px] rounded-2xl">
+        <DialogContent size="sm" className="rounded-2xl">
           <DialogHeader>
             <DialogTitle className="text-center">팀원 초대</DialogTitle>
           </DialogHeader>

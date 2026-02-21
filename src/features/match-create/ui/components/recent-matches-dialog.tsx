@@ -22,7 +22,7 @@ export function RecentMatchesDialog({
 }: RecentMatchesDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[90%] max-w-[480px] p-0 gap-0 rounded-2xl">
+      <DialogContent size="xxl" className="p-0 gap-0 rounded-2xl">
         <DialogHeader className="px-5 py-4 border-b border-slate-100">
           <DialogTitle className="text-lg font-bold text-slate-900">
             최근 경기 불러오기

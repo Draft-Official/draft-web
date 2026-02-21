@@ -45,7 +45,7 @@ export function PositionFilterModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[90%] max-w-[360px] rounded-2xl">
+      <DialogContent size="md" className="rounded-2xl">
         <DialogHeader>
           <DialogTitle>포지션 선택</DialogTitle>
         </DialogHeader>

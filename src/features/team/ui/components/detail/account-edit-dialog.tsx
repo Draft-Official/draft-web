@@ -82,7 +82,7 @@ export function AccountEditDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[400px]">
+      <DialogContent size="lg">
         <DialogHeader>
           <DialogTitle>환불 계좌 수정</DialogTitle>
         </DialogHeader>

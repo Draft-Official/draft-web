@@ -55,7 +55,7 @@ export function VoteDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-[calc(100vw-32px)] sm:max-w-[400px] rounded-2xl">
+      <DialogContent size="lg" className="rounded-2xl">
         <DialogHeader>
           <DialogTitle className="text-lg font-bold">참석 여부를 선택해주세요</DialogTitle>
         </DialogHeader>

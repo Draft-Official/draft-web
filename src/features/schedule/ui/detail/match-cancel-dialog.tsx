@@ -39,7 +39,7 @@ export function MatchCancelDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-sm mx-4 rounded-2xl p-6">
+      <DialogContent size="base" className="rounded-2xl p-6">
         <DialogHeader>
           <DialogTitle>경기를 취소하시겠습니까?</DialogTitle>
           <DialogDescription className="sr-only">

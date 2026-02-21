@@ -90,7 +90,7 @@ export function KebabMenu({
 
       {/* 취소 확인 다이얼로그 */}
       <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
-        <DialogContent className="max-w-[340px] rounded-2xl">
+        <DialogContent size="sm" className="rounded-2xl">
           <DialogHeader>
             <DialogTitle>경기 취소</DialogTitle>
             <DialogDescription>

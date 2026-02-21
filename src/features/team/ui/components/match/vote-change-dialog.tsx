@@ -73,7 +73,7 @@ export function VoteChangeDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-[calc(100vw-32px)] sm:max-w-[400px] rounded-2xl">
+      <DialogContent size="lg" className="rounded-2xl">
         <DialogHeader>
           <DialogTitle className="text-lg font-bold">
             {memberName}님 투표 변경

@@ -118,7 +118,7 @@ export function EditQuotaDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm mx-4 rounded-2xl p-6">
+      <DialogContent size="base" className="rounded-2xl p-6">
         <DialogHeader>
           <DialogTitle>모집 인원 수정</DialogTitle>
           <DialogDescription>경기의 모집 인원을 수정할 수 있습니다.</DialogDescription>

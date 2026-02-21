@@ -38,7 +38,7 @@ export function LoginRequiredModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[90%] max-w-[320px] rounded-xl">
+      <DialogContent size="xs" className="rounded-xl">
         <DialogHeader className="text-center">
           <DialogTitle className="text-lg">{title}</DialogTitle>
           <DialogDescription className="text-slate-600 mt-2 whitespace-pre-line">

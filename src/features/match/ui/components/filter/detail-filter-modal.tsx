@@ -115,7 +115,7 @@ export function DetailedFilterModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[90%] max-w-[360px] rounded-2xl">
+      <DialogContent size="md" className="rounded-2xl">
         <DialogHeader>
           <DialogTitle>상세 조건</DialogTitle>
         </DialogHeader>

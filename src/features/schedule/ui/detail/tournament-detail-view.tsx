@@ -180,7 +180,7 @@ export function TournamentDetailView() {
 
       {/* 참여자 프로필 Dialog */}
       <Dialog open={isProfileOpen} onOpenChange={setIsProfileOpen}>
-        <DialogContent className="max-w-sm mx-4 rounded-2xl p-6">
+        <DialogContent size="base" className="rounded-2xl p-6">
           {selectedParticipant && (
             <div className="flex flex-col items-center space-y-6 pt-2">
               <div className="w-20 h-20 rounded-full bg-slate-200 flex items-center justify-center">
@@ -227,7 +227,7 @@ export function TournamentDetailView() {
 
       {/* 참여 취소 확인 Dialog */}
       <Dialog open={isCancelConfirmOpen} onOpenChange={setIsCancelConfirmOpen}>
-        <DialogContent className="max-w-sm mx-4 rounded-2xl p-6">
+        <DialogContent size="base" className="rounded-2xl p-6">
           <DialogHeader>
             <DialogTitle>참여 취소 확인</DialogTitle>
             <DialogDescription className="text-slate-600 pt-2">

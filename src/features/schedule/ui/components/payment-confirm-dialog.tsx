@@ -45,7 +45,8 @@ export function PaymentConfirmDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-w-sm mx-4 rounded-2xl p-6"
+        size="base"
+        className="rounded-2xl p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <DialogHeader>

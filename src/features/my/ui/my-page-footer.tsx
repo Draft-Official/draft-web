@@ -115,7 +115,7 @@ export function MyPageFooter() {
       </div>
 
       <Dialog open={withdrawOpen} onOpenChange={setWithdrawOpen}>
-        <DialogContent className="max-w-[calc(430px-2rem)] rounded-2xl">
+        <DialogContent size="app" className="rounded-2xl">
           <DialogHeader>
             <DialogTitle>정말 탈퇴하시겠습니까?</DialogTitle>
             <DialogDescription>

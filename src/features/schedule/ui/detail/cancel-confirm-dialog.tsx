@@ -59,7 +59,7 @@ export function CancelConfirmDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-sm mx-4 rounded-2xl p-6">
+      <DialogContent size="base" className="rounded-2xl p-6">
         <DialogHeader>
           <DialogTitle>참가 취소</DialogTitle>
           <DialogDescription className="text-slate-600 pt-2">

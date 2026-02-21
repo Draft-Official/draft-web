@@ -85,7 +85,7 @@ export function ApplicationInfoDialog({
   return (
     <>
       <Dialog open={isMainDialogOpen} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-sm mx-4 rounded-2xl p-5 max-h-[85vh] overflow-y-auto">
+        <DialogContent size="base" className="rounded-2xl p-5 max-h-[85vh] overflow-y-auto">
           <DialogHeader className="text-left pb-2">
             <div className="flex items-center justify-between">
               <DialogTitle className="text-lg font-bold">내 신청 정보</DialogTitle>
@@ -271,7 +271,7 @@ export function ApplicationInfoDialog({
 
       {/* 송금 확인 다이얼로그 */}
       <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
-        <DialogContent className="max-w-sm mx-4 rounded-2xl p-6">
+        <DialogContent size="base" className="rounded-2xl p-6">
           <DialogHeader>
             <DialogTitle>송금을 완료하셨나요?</DialogTitle>
             <DialogDescription className="text-slate-600 pt-2 font-medium">
@@ -300,7 +300,7 @@ export function ApplicationInfoDialog({
 
       {/* 취소 확인 다이얼로그 */}
       <Dialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
-        <DialogContent className="max-w-sm mx-4 rounded-2xl p-6">
+        <DialogContent size="base" className="rounded-2xl p-6">
           <DialogHeader>
             <DialogTitle>신청을 취소하시겠습니까?</DialogTitle>
             <DialogDescription className="text-slate-600 pt-2">

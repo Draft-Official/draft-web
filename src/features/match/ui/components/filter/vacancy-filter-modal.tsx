@@ -42,7 +42,7 @@ export function VacancyFilterModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[90%] max-w-[320px] rounded-2xl">
+      <DialogContent size="xs" className="rounded-2xl">
         <DialogHeader>
           <DialogTitle className="text-center">몇 분이서 가시나요?</DialogTitle>
         </DialogHeader>

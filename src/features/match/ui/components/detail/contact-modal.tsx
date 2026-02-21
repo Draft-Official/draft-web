@@ -58,7 +58,7 @@ export function ContactModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[340px] rounded-2xl">
+      <DialogContent size="sm" className="rounded-2xl">
         <DialogHeader>
           <DialogTitle className="text-center">문의하기</DialogTitle>
         </DialogHeader>
