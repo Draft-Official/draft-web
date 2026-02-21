@@ -61,6 +61,7 @@ export interface TeamInfoDTO {
   regionDisplay: string | null;
   homeGymId: string | null;
   homeGymName: string | null;
+  homeGymAddress: string | null;
   regularDay: RegularDayValue | null;
   regularStartTime: string | null;
   regularEndTime: string | null;

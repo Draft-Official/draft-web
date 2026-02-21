@@ -26,7 +26,7 @@ export function TeamPageTabs() {
         {/* 탭 헤더 */}
         <div className="bg-white sticky top-0 z-20 px-(--dimension-spacing-x-global-gutter) py-(--dimension-x2)">
           <TabsList>
-            <TabsTrigger value="my-teams" className="relative font-bold text-lg after:hidden">
+            <TabsTrigger value="my-teams" className="relative pb-1.5 font-bold text-lg after:hidden">
               나의 팀
               {activeTab === 'my-teams' && (
                 <motion.div
@@ -35,7 +35,7 @@ export function TeamPageTabs() {
                 />
               )}
             </TabsTrigger>
-            <TabsTrigger value="create-team" className="relative font-bold text-lg after:hidden">
+            <TabsTrigger value="create-team" className="relative pb-1.5 font-bold text-lg after:hidden">
               <span className="flex items-center gap-1">
                 팀 생성하기
                 <Plus className="w-4 h-4" />

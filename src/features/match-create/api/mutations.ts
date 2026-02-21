@@ -28,19 +28,6 @@ function toMutationErrorDetails(error: unknown): MutationErrorDetails {
   return {};
 }
 
-function toMutationErrorMessage(error: unknown): string {
-  if (error instanceof Error) return error.message;
-
-  const details = toMutationErrorDetails(error);
-  if (details.message) return details.message;
-  if (details.error_description) return details.error_description;
-
-  try {
-    return JSON.stringify(error);
-  } catch {
-    return '알 수 없는 오류';
-  }
-}
 
 /**
  * 매치 생성
@@ -65,7 +52,6 @@ export function useCreateMatch() {
     },
     onError: (error: unknown) => {
       const details = toMutationErrorDetails(error);
-      const errorMessage = toMutationErrorMessage(error);
       console.error('Match creation error:', error);
       console.error('Error details:', {
         message: details.message,
@@ -73,7 +59,6 @@ export function useCreateMatch() {
         details: details.details,
         hint: details.hint,
       });
-      toast.error(`경기 생성 실패: ${errorMessage}`);
     },
   });
 }
@@ -104,9 +89,7 @@ export function useUpdateMatch() {
       toast.success('경기가 수정되었습니다');
     },
     onError: (error: unknown) => {
-      const errorMessage = toMutationErrorMessage(error);
       console.error('Match update error:', error);
-      toast.error(`경기 수정 실패: ${errorMessage}`);
     },
   });
 }

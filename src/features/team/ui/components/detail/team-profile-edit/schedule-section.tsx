@@ -19,7 +19,7 @@ import {
   REGULAR_DAY_OPTIONS,
   type RegularDayValue,
 } from '@/shared/config/team-constants';
-import type { TeamProfileEditFormData } from './types';
+import type { TeamProfileEditFormData } from '../../edit/types';
 
 interface TeamProfileEditScheduleSectionProps {
   regularDay: RegularDayValue | '';

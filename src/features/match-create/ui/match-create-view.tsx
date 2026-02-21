@@ -136,8 +136,17 @@ export function MatchCreateView() {
         {isLoadingEditData && (
           <div className="fixed inset-0 bg-white/80 z-50 flex items-center justify-center">
             <div className="flex flex-col items-center gap-3">
-              <Spinner className="w-8 h-8 text-muted-foreground " />
+              <Spinner className="w-8 h-8 text-muted-foreground" />
               <p className="text-sm text-muted-foreground">경기 정보를 불러오는 중...</p>
+            </div>
+          </div>
+        )}
+
+        {isPending && !isEditMode && (
+          <div className="fixed inset-0 bg-white/90 z-50 flex items-center justify-center">
+            <div className="flex flex-col items-center gap-3">
+              <Spinner className="w-8 h-8 text-primary" />
+              <p className="text-sm font-bold text-slate-700">경기 생성 중...</p>
             </div>
           </div>
         )}
@@ -232,10 +241,7 @@ export function MatchCreateView() {
               disabled={isPending || isLoadingEditData}
               className="w-full h-14 text-lg font-bold bg-primary hover:bg-primary/90 text-white rounded-xl shadow-lg shadow-draft-100 disabled:opacity-50"
             >
-              {isPending
-                ? (isEditMode ? '수정 중...' : '생성 중...')
-                : (isEditMode ? '경기 수정하기' : '경기 생성하기')
-              }
+              {isEditMode ? (isPending ? '수정 중...' : '경기 수정하기') : '경기 생성하기'}
             </Button>
           </div>
         </form>

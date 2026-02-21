@@ -326,28 +326,28 @@ export function TeamCreateForm() {
 
   return (
     <FormProvider {...methods}>
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-white">
         {/* Header */}
-        <header className="bg-white px-4 h-14 flex items-center justify-between border-b border-slate-100 sticky top-0 z-30">
+        <header className="sticky top-0 z-40 bg-white border-b border-slate-100 h-14 flex items-center justify-between px-4">
           <button
             type="button"
             onClick={() => currentStep > 1 ? handlePrev() : router.back()}
-            className="-ml-2 p-2 text-slate-900 hover:bg-slate-50 rounded-full transition-colors"
+            className="p-2 text-slate-900 hover:bg-slate-50 rounded-full transition-colors"
           >
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h1 className="font-bold text-lg text-slate-900">팀 만들기</h1>
+          <h1 className="text-lg font-bold text-slate-900">팀 만들기</h1>
           <div className="w-10" />
         </header>
 
         {/* Progress Bar */}
-        <div className="bg-white px-4 py-3 border-b border-slate-100">
+        <div className="px-4 py-3 border-b border-slate-100">
           <StepProgressBar currentStep={currentStep} totalSteps={totalSteps} />
         </div>
 
         {/* Form Content */}
-        <form onSubmit={handleSubmit(onSubmit)} className="p-4">
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+        <form onSubmit={handleSubmit(onSubmit)} className="px-5 py-6">
+          <div>
             {/* Step 1: 팀 정보 */}
             {currentStep === 1 && (
               <TeamCreateStepInfo
@@ -380,7 +380,7 @@ export function TeamCreateForm() {
           </div>
 
           {/* Navigation Buttons */}
-          <div className="mt-6 flex gap-3">
+          <div className="mt-8 flex gap-3">
             {currentStep > 1 && (
               <Button
                 type="button"

@@ -78,10 +78,10 @@ export class TeamService {
   /**
    * 팀 코드로 팀 정보 조회 (gym join 포함)
    */
-  async getTeamByCode(code: string): Promise<(Team & { gyms?: { name: string } | null }) | null> {
+  async getTeamByCode(code: string): Promise<(Team & { gyms?: { name: string; address: string | null } | null }) | null> {
     const { data, error } = await this.supabase
       .from('teams')
-      .select('*, gyms(name)')
+      .select('*, gyms(name, address)')
       .eq('code', code)
       .single();
 
@@ -144,7 +144,7 @@ export class TeamService {
   /**
    * 팀 정보 수정
    */
-  async updateTeam(teamId: string, input: UpdateTeamInput): Promise<Team> {
+  async updateTeam(teamId: string, input: UpdateTeamInput): Promise<Team & { gyms?: { name: string } | null }> {
     const teamUpdate: TeamUpdate = {};
 
     if (input.name !== undefined) teamUpdate.name = input.name;
@@ -182,7 +182,7 @@ export class TeamService {
       .from('teams')
       .update(teamUpdate)
       .eq('id', teamId)
-      .select()
+      .select('*, gyms(name)')
       .single();
 
     if (error) handleSupabaseError(error, '팀 정보 수정');
@@ -1078,6 +1078,7 @@ export class TeamService {
       .select('*, gyms(*), teams!inner(*)')
       .in('team_id', teamIds)
       .eq('match_type', 'TEAM_MATCH')
+      .neq('status', 'CLOSED')
       .gte('start_time', new Date().toISOString())
       .order('start_time', { ascending: true });
 

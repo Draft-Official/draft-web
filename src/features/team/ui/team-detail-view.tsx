@@ -145,7 +145,7 @@ export function TeamDetailView({ code }: TeamDetailViewProps) {
           <TabsTrigger
             value="home"
             className={cn(
-              'relative flex-1 text-base font-medium py-3 after:hidden',
+              'relative flex-1 text-base font-medium py-4 after:hidden',
               'data-[state=active]:text-slate-900 data-[state=active]:font-bold',
             )}
           >
@@ -163,7 +163,7 @@ export function TeamDetailView({ code }: TeamDetailViewProps) {
               <TabsTrigger
                 value="schedule"
                 className={cn(
-                  'relative flex-1 text-base font-medium py-3 after:hidden',
+                  'relative flex-1 text-base font-medium py-4 after:hidden',
                   'data-[state=active]:text-slate-900 data-[state=active]:font-bold',
                 )}
               >
@@ -178,7 +178,7 @@ export function TeamDetailView({ code }: TeamDetailViewProps) {
               <TabsTrigger
                 value="members"
                 className={cn(
-                  'relative flex-1 text-base font-medium py-3 after:hidden',
+                  'relative flex-1 text-base font-medium py-4 after:hidden',
                   'data-[state=active]:text-slate-900 data-[state=active]:font-bold',
                 )}
               >

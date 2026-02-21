@@ -19,7 +19,7 @@ import type { LocationData } from '@/shared/types/location.types';
 import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 interface TeamMatchCreateFormProps {
-  team: Team & { homeGymName: string | null };
+  team: Team & { homeGymName: string | null; homeGymAddress?: string | null };
   onClose?: () => void;
 }
 
@@ -143,9 +143,9 @@ export function TeamMatchCreateForm({ team, onClose }: TeamMatchCreateFormProps)
     [team.regularDay, calendarDates]
   );
 
-  // 팀의 기본 시간 사용
-  const defaultStartTime = team.regularStartTime || '19:00';
-  const defaultEndTime = team.regularEndTime || '21:00';
+  // 팀의 기본 시간 사용 (DB에서 HH:MM:SS로 올 수 있으므로 정규화)
+  const defaultStartTime = normalizeTime(team.regularStartTime || '19:00');
+  const defaultEndTime = normalizeTime(team.regularEndTime || '21:00');
   const defaultDuration = calculateDuration(defaultStartTime, defaultEndTime);
 
   // State
@@ -164,7 +164,7 @@ export function TeamMatchCreateForm({ team, onClose }: TeamMatchCreateFormProps)
   const locationData: LocationData | null = team.homeGymName
     ? {
         buildingName: team.homeGymName,
-        address: '', // 주소 정보가 없으므로 빈 문자열
+        address: team.homeGymAddress || '',
       }
     : null;
 
@@ -211,24 +211,23 @@ export function TeamMatchCreateForm({ team, onClose }: TeamMatchCreateFormProps)
   };
 
   return (
-    <div className="min-h-screen bg-slate-100">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="bg-white px-4 h-14 flex items-center justify-between border-b border-slate-100 sticky top-0 z-30">
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => (onClose ? onClose() : router.back())}
-            className="-ml-2 p-2 text-slate-900 hover:bg-slate-50 rounded-full transition-colors"
-          >
-            <X className="w-6 h-6" />
-          </button>
-          <h1 className="font-bold text-lg text-slate-900">팀 운동 개설</h1>
-        </div>
+      <header className="sticky top-0 z-40 bg-white border-b border-slate-100 h-14 flex items-center justify-between px-4">
+        <button
+          type="button"
+          onClick={() => (onClose ? onClose() : router.back())}
+          className="p-2 text-slate-900 hover:bg-slate-50 rounded-full transition-colors"
+        >
+          <X className="w-6 h-6" />
+        </button>
+        <h1 className="text-lg font-bold text-slate-900">팀 운동 개설</h1>
+        <div className="w-10" />
       </header>
 
-      <div className="px-3 pt-3 pb-[120px] space-y-2">
+      <div className="pb-30">
         {/* 기본 정보 섹션 */}
-        <section className="bg-white px-5 py-6 space-y-6 rounded-xl border border-slate-200">
+        <section className="bg-white px-5 py-6 space-y-6">
           <h2 className="font-bold text-slate-900 flex items-center gap-2">
             <Building2 className="w-5 h-5 text-muted-foreground" />
             기본 정보
@@ -314,8 +313,10 @@ export function TeamMatchCreateForm({ team, onClose }: TeamMatchCreateFormProps)
           </div>
         </section>
 
+        <div className="h-2 bg-slate-100" />
+
         {/* 공지 섹션 */}
-        <section className="bg-white px-5 py-6 space-y-4 rounded-xl border border-slate-200">
+        <section className="bg-white px-5 py-6 space-y-4">
           <h2 className="font-bold text-slate-900 flex items-center gap-2">
             <FileText className="w-5 h-5 text-muted-foreground" />
             공지 (선택)
@@ -330,7 +331,7 @@ export function TeamMatchCreateForm({ team, onClose }: TeamMatchCreateFormProps)
         </section>
 
         {/* 생성 버튼 */}
-        <div className="bg-white px-5 pt-6 pb-4 rounded-xl border border-slate-200">
+        <div className="px-5 pt-6 pb-4">
           <Button
             type="button"
             onClick={handleSubmit}

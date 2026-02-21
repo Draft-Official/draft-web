@@ -209,11 +209,11 @@ export function useMatchCreateViewModel() {
       hasBeverage,
     },
     currentUserId: currentUser?.id,
-    onSuccessNavigate: () => {
+    onSuccessNavigate: (matchId?: string) => {
       if (isEditMode) {
         router.back();
       } else {
-        router.push('/');
+        router.replace(matchId ? `/matches/${matchId}` : '/');
       }
     },
   });

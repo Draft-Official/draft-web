@@ -64,10 +64,9 @@ export function useUpdateTeam() {
       const supabase = getSupabaseBrowserClient();
       const service = createTeamService(supabase);
       const row = await service.updateTeam(teamId, input);
-      return toTeamInfoDTO(teamRowToEntity(row));
+      return toTeamInfoDTO(teamRowToEntity(row), { homeGymName: row.gyms?.name ?? null });
     },
     onSuccess: (data) => {
-      // 팀 상세 캐시 갱신
       queryClient.setQueryData(teamKeys.detail(data.id), data);
       if (data.code) {
         queryClient.setQueryData(teamKeys.detailByCode(data.code), data);
