@@ -12,7 +12,7 @@ import { TimePickerSelect } from '@/shared/ui/composite/time-picker-select';
 import { LocationCard } from '@/shared/ui/composite/location-card';
 import { useCreateTeamMatch } from '@/features/team/api/match/mutations';
 import { useAuth } from '@/shared/session';
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import type { Team } from '@/features/team/model/types';
 import type { RegularDayValue } from '@/shared/config/team-constants';
 import type { LocationData } from '@/shared/types/location.types';

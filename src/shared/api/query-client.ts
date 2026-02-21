@@ -8,7 +8,7 @@
  * - refetchOnWindowFocus: false (윈도우 포커스 시 자동 refetch 비활성화)
  */
 import { QueryClient, QueryCache, MutationCache } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import { AuthError, AppError, NotFoundError } from '@/shared/lib/errors';
 
 function makeQueryClient() {

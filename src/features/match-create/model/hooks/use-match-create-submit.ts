@@ -1,4 +1,4 @@
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import type {
   CourtSizeValue,
   GenderValue,

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import { GuestMatchDetailDTO } from '@/features/match/model/types';
 
 interface HeroSectionProps {

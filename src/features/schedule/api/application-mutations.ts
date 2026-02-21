@@ -3,7 +3,7 @@
  * 신청 관련 데이터 변경용 React Query hooks
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { createApplicationService } from '@/entities/application';
 import { matchKeys } from '@/entities/match';

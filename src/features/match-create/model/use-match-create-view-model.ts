@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import {
   GENDER_DEFAULT,
   MATCH_FORMAT_DEFAULT,

@@ -3,7 +3,7 @@
  * 경기 상태/설정 변경용 React Query hooks
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { matchKeys } from '@/entities/match';
 import { useAuth } from '@/shared/session';

@@ -13,7 +13,7 @@ import {
 import { Badge } from '@/shared/ui/shadcn/badge';
 import { cn } from '@/shared/lib/utils';
 import { formatMatchDate, formatMatchTime } from '@/shared/lib/date';
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import type { ScheduleMatchListItemDTO } from '../../model/types';
 import {
   MATCH_STATUS_LABELS,

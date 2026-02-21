@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/shadcn/avatar';
 import { Button } from '@/shared/ui/shadcn/button';
 import { Users, Info } from 'lucide-react';
 import { ContactModal } from '@/features/match/ui/components/detail/contact-modal';
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import { Alert, AlertDescription } from '@/shared/ui/shadcn/alert';
 import type { TeamInfoDTO } from '@/features/team/model/types';
 

@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/shadcn/avatar';
 import { Button } from '@/shared/ui/shadcn/button';
 import { MessageCircle, Users, Info } from 'lucide-react';
 import { ContactModal } from './contact-modal';
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import { Alert, AlertDescription } from '@/shared/ui/shadcn/alert';
 
 // 기본 팀 로고 (팀이 없을 때 사용)

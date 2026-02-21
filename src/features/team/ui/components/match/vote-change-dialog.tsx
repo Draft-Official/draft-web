@@ -10,7 +10,7 @@ import {
 import { RadioGroup } from '@/shared/ui/shadcn/radio-group';
 import { Button } from '@/shared/ui/shadcn/button';
 import { cn } from '@/shared/lib/utils';
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import { useUpdateMemberVote } from '@/features/team/api/match/mutations';
 import {
   TEAM_VOTE_OPTIONS,

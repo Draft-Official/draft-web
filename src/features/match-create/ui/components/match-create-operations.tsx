@@ -9,7 +9,7 @@ import { Switch } from '@/shared/ui/shadcn/switch';
 import { Textarea } from '@/shared/ui/shadcn/textarea';
 import { BankCombobox } from '@/shared/ui/composite/bank-combobox';
 import { FileText, MessageCircle, Phone, UserPlus } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import type { AccountInfo, OperationInfo } from '@/shared/types/jsonb.types';
 import type { MatchCreateTeamOptionDTO, MatchCreateUserDTO } from '@/features/match-create/model/types';
 import {

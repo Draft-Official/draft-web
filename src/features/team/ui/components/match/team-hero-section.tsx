@@ -1,6 +1,6 @@
 'use client';
 
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import type { TeamMatchDetailDTO } from '@/features/team/model/types';
 
 interface TeamHeroSectionProps {

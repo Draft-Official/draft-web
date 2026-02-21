@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Share2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import { HeroSection } from './components/detail/hero-section';
 import { AnnouncementSection } from './components/detail/announcement-section';
 import { RecruitmentStatus } from './components/detail/recruitment-status';

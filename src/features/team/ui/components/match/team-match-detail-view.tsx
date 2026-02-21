@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { ArrowLeft, MoreVertical } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import { cn } from '@/shared/lib/utils';
 import { useSafeBack } from '@/shared/lib/hooks';
 import {

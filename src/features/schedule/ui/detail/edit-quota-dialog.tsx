@@ -12,7 +12,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/shared/ui/shadcn/dialog';
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import type { HostMatchDetailDTO, RecruitmentMode } from '../../model/types';
 import type { RecruitmentSetup } from '@/shared/types/database.types';
 

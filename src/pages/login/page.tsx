@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { getSupabaseBrowserClient, getSupabaseAuthClient } from '@/shared/api/supabase/client';
 import { Button } from '@/shared/ui/shadcn/button';
 import { Input } from '@/shared/ui/shadcn/input';
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 
 export default function LoginPage() {
   const router = useRouter();

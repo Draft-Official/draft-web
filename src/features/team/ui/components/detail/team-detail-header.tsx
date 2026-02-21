@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { MapPin, Clock, Loader2, Settings, Share2, Link2, MessageCircle } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import { cn } from '@/shared/lib/utils';
 import { formatTeamRegularSchedule } from '@/features/team/lib';
 import { useJoinTeam } from '@/features/team/api/membership/mutations';

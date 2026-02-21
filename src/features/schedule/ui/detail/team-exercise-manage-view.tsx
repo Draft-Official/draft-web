@@ -30,7 +30,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/shared/ui/shadcn/dialog';
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import type { TeamExerciseManageDetailDTO, Participant } from '../../model/types';
 import { MOCK_TEAM_EXERCISE_MANAGE } from '../../model/mock-data';
 

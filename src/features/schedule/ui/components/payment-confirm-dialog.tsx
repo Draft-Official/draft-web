@@ -10,7 +10,7 @@ import {
   DialogDescription,
 } from '@/shared/ui/shadcn/dialog';
 import { Loader2, Copy, Check } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 
 interface PaymentConfirmDialogProps {
   open: boolean;

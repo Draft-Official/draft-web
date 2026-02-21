@@ -27,7 +27,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/shared/ui/shadcn/dialog';
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import type { Participant, TournamentDetailDTO } from '../../model/types';
 import { MOCK_TOURNAMENT_DETAIL } from '../../model/mock-data';
 

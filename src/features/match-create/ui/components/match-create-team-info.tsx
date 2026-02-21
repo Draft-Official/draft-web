@@ -6,7 +6,7 @@ import { Label } from '@/shared/ui/shadcn/label';
 import { Button } from '@/shared/ui/shadcn/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/shadcn/select';
 import { Textarea } from '@/shared/ui/shadcn/textarea';
-import { toast } from "sonner";
+import { toast } from '@/shared/ui/shadcn/sonner';
 import { X, FileText, MessageCircle } from 'lucide-react';
 
 interface MatchCreateTeamInfoProps {

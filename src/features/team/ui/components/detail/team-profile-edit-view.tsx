@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import { useSafeBack } from '@/shared/lib/hooks';
 import { Button } from '@/shared/ui/shadcn/button';
 import { useTeamByCode } from '@/features/team/api/team-info/queries';

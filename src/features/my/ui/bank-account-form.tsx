@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import { Info } from 'lucide-react';
 import { useAuth, useProfile, useUpdateProfile } from '@/shared/session';
 import type { SessionAccountInfo } from '@/shared/session';
