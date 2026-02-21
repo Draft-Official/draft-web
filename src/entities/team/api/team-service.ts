@@ -725,7 +725,7 @@ export class TeamService {
       .select('*, gyms(*)')
       .eq('team_id', teamId)
       .eq('match_type', 'TEAM_MATCH')
-      .order('start_time', { ascending: true });
+      .order('start_time', { ascending: false });
 
     if (options?.upcoming) {
       query = query.gte('start_time', new Date().toISOString());

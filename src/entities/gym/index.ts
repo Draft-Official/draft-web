@@ -14,5 +14,5 @@ export { GymService, createGymService } from './api/gym-service';
 export type { GymData } from './api/gym-service';
 export { gymRowToEntity } from './api/mapper';
 export { gymKeys } from './api/keys';
-export { lookupGymByKakaoPlaceId, useGymByKakaoPlaceId } from './api/queries';
+export { lookupGymByKakaoPlaceId, useGymByKakaoPlaceId, useGymById } from './api/queries';
 export type { GymLookupResult } from './api/queries';

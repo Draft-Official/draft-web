@@ -9,6 +9,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/shadcn/avatar';
 import { cn } from '@/shared/lib/utils';
 import type { ApplicationStatusValue } from '@/shared/config/application-constants';
 import { getDayLabel } from '@/features/match/lib/utils';
+import { formatShortAddress } from '@/shared/lib/parse-region';
 import type { GuestMatchListItemDTO } from '@/features/match/model/types';
 import { PositionChip } from './position-chip';
 
@@ -66,7 +67,7 @@ export const MatchListItem = React.memo(function MatchListItem({ match, applicat
               "w-3 h-3 shrink-0",
               match.isClosed ? "text-slate-300" : "text-slate-400"
             )} />
-            {match.gymAddress}
+            {formatShortAddress(match.gymAddress)}
           </span>
           
           {/* NEW Badge */}

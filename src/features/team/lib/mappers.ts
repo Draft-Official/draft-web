@@ -200,7 +200,7 @@ export function toTeamMatchDetailDTO(
     operationInfo: match.operationInfo,
     accountInfo: match.accountInfo,
     facilities: extras?.gym?.facilities ?? null,
-    isVotingClosed: match.status === 'CLOSED',
+    isVotingClosed: match.status === 'CLOSED' || new Date(match.startTime) < new Date(),
   };
 }
 

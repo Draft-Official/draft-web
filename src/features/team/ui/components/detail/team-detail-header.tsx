@@ -1,8 +1,9 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { MapPin, Clock, Loader2, Settings, Share2 } from 'lucide-react';
+import { MapPin, Clock, Loader2, Settings, Share2, Link2, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/shared/lib/utils';
 import { formatTeamRegularSchedule } from '@/features/team/lib';
@@ -14,6 +15,13 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from '@/shared/ui/shadcn/hover-card';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/shared/ui/shadcn/dialog';
+import { Button } from '@/shared/ui/shadcn/button';
 
 interface TeamDetailHeaderProps {
   team: TeamInfoDTO;
@@ -32,6 +40,7 @@ export function TeamDetailHeader({ team, membership, homeGymName, isLoggedIn, cu
   const router = useRouter();
   const { user } = useAuth();
   const joinTeamMutation = useJoinTeam();
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   // 멤버십 상태
   const isMember = membership?.status === 'ACCEPTED';
@@ -56,32 +65,41 @@ export function TeamDetailHeader({ team, membership, homeGymName, isLoggedIn, cu
     team.regularEndTime
   );
 
+  const shareUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}/team/${team.code}`
+    : '';
+
   const handleSettings = () => {
     router.push(`/team/${team.code}/settings`);
   };
 
-  const handleShare = async () => {
-    // Build URL with current view query param
-    const baseUrl = `${window.location.origin}/team/${team.code}`;
-    const shareUrl = currentView === 'home' ? baseUrl : `${baseUrl}?view=${currentView}`;
-
+  const handleCopyLink = async () => {
     try {
-      // Try Web Share API first (mobile native share)
+      await navigator.clipboard.writeText(shareUrl);
+      toast.success('초대 링크가 복사되었습니다');
+      setIsShareModalOpen(false);
+    } catch {
+      toast.error('링크 복사에 실패했습니다');
+    }
+  };
+
+  const handleKakaoShare = () => {
+    try {
       if (navigator.share) {
-        await navigator.share({
-          title: team.name,
+        navigator.share({
+          title: `${team.name} 팀에 초대합니다`,
+          text: `${team.name} 팀에 가입하세요!`,
           url: shareUrl,
+        }).then(() => {
+          setIsShareModalOpen(false);
+        }).catch(() => {
+          // 사용자가 취소한 경우 무시
         });
       } else {
-        // Fallback to clipboard
-        await navigator.clipboard.writeText(shareUrl);
-        toast.success('팀 링크가 복사되었습니다');
+        handleCopyLink();
       }
-    } catch (error) {
-      // Only show error if it's not a user cancellation
-      if (error instanceof Error && error.name !== 'AbortError') {
-        toast.error('링크 공유에 실패했습니다');
-      }
+    } catch {
+      handleCopyLink();
     }
   };
 
@@ -155,37 +173,44 @@ export function TeamDetailHeader({ team, membership, homeGymName, isLoggedIn, cu
             )}
           </div>
 
-          {/* 설정 버튼 (멤버만 표시) - 가장 오른쪽 */}
+          {/* 설정 + 공유 버튼 (멤버만 표시) - 가장 오른쪽 */}
           {isMember && (
-            <HoverCard openDelay={200}>
-              <HoverCardTrigger asChild>
-                <button
-                  onClick={handleSettings}
-                  className="shrink-0 p-2 text-slate-400 hover:text-slate-600 transition-colors"
-                  aria-label="팀 설정"
-                >
-                  <Settings className="w-6 h-6" />
-                </button>
-              </HoverCardTrigger>
-              <HoverCardContent side="top" align="end" className="w-auto px-3 py-1.5">
-                <p className="text-sm">팀설정</p>
-              </HoverCardContent>
-            </HoverCard>
+            <div className="shrink-0 flex flex-col items-center">
+              <HoverCard openDelay={200}>
+                <HoverCardTrigger asChild>
+                  <button
+                    onClick={handleSettings}
+                    className="p-2 text-slate-400 hover:text-slate-600 transition-colors"
+                    aria-label="팀 설정"
+                  >
+                    <Settings className="w-6 h-6" />
+                  </button>
+                </HoverCardTrigger>
+                <HoverCardContent side="top" align="end" className="w-auto px-3 py-1.5">
+                  <p className="text-sm">팀설정</p>
+                </HoverCardContent>
+              </HoverCard>
+              <HoverCard openDelay={200}>
+                <HoverCardTrigger asChild>
+                  <button
+                    onClick={() => setIsShareModalOpen(true)}
+                    className="p-2 text-slate-400 hover:text-slate-600 transition-colors"
+                    aria-label="팀원 초대"
+                  >
+                    <Share2 className="w-6 h-6" />
+                  </button>
+                </HoverCardTrigger>
+                <HoverCardContent side="bottom" align="end" className="w-auto px-3 py-1.5">
+                  <p className="text-sm">팀원 초대</p>
+                </HoverCardContent>
+              </HoverCard>
+            </div>
           )}
         </div>
       </div>
 
       {/* 버튼 영역 - 멤버십 상태에 따라 다르게 표시 */}
-      {isMember ? (
-        // 멤버: 공유 버튼만 표시
-        <button
-          onClick={handleShare}
-          className="w-full py-3 px-4 rounded-xl text-sm font-medium transition-colors bg-slate-100 text-slate-700 hover:bg-slate-200 flex items-center justify-center gap-2"
-        >
-          <Share2 className="w-5 h-5" />
-          <span>팀 공유</span>
-        </button>
-      ) : isPending ? (
+      {isMember ? null : isPending ? (
         // 승인 대기 중
         <div className="flex rounded-xl bg-slate-100 p-1">
           <div className="flex-1 py-2.5 px-4 text-sm font-medium text-slate-500 text-center">
@@ -224,6 +249,39 @@ export function TeamDetailHeader({ team, membership, homeGymName, isLoggedIn, cu
           로그인하고 가입 신청하기
         </button>
       )}
+
+      {/* 공유 모달 */}
+      <Dialog open={isShareModalOpen} onOpenChange={setIsShareModalOpen}>
+        <DialogContent className="max-w-[340px] rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-center">팀원 초대</DialogTitle>
+          </DialogHeader>
+
+          <div className="flex flex-col gap-3 py-2">
+            <Button
+              variant="outline"
+              className="h-14 justify-start gap-4 px-4 rounded-xl border-slate-200 hover:bg-slate-50"
+              onClick={handleKakaoShare}
+            >
+              <div className="w-10 h-10 bg-kakao rounded-lg flex items-center justify-center">
+                <MessageCircle className="w-5 h-5 text-kakao-foreground" />
+              </div>
+              <span className="text-sm font-medium text-slate-900">카카오톡으로 초대</span>
+            </Button>
+
+            <Button
+              variant="outline"
+              className="h-14 justify-start gap-4 px-4 rounded-xl border-slate-200 hover:bg-slate-50"
+              onClick={handleCopyLink}
+            >
+              <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
+                <Link2 className="w-5 h-5 text-slate-600" />
+              </div>
+              <span className="text-sm font-medium text-slate-900">초대 링크 복사</span>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

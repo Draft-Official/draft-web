@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, ArrowRight, Check, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -11,13 +12,14 @@ import { Button } from '@/shared/ui/shadcn/button';
 import { useCreateTeam } from '@/features/team/api/team-info/mutations';
 import { useAuth } from '@/shared/session';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
-import { createGymService } from '@/entities/gym';
+import { createGymService, gymKeys } from '@/entities/gym';
 import { createTeamService } from '@/entities/team';
 
 import { StepProgressBar } from './components/step-progress-bar';
 import { TeamCreateStepInfo } from './components/team-create-step-info';
 import { TeamCreateStepSchedule } from './components/team-create-step-schedule';
 import { TeamCreateStepTraits } from './components/team-create-step-traits';
+import { calcEndTimeFromDuration, selectedAgesToAgeRange } from '@/features/team/lib';
 
 import {
   TEAM_CODE_REGEX,
@@ -27,7 +29,7 @@ import {
 import type { LocationData } from '@/shared/types/location.types';
 import type { GenderValue } from '@/shared/config/match-constants';
 import type { CreateTeamInput } from '@/features/team/model/types';
-import type { LevelRange, AgeRange } from '@/shared/types/jsonb.types';
+import type { LevelRange } from '@/shared/types/jsonb.types';
 import { parseRegionFromAddress } from '@/shared/lib/parse-region';
 import type { LocationSearchResolvedValue } from '@/shared/lib/hooks/use-location-search';
 
@@ -51,6 +53,7 @@ interface TeamCreateFormData {
 }
 
 export function TeamCreateForm() {
+  const queryClient = useQueryClient();
   const router = useRouter();
   const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
@@ -246,6 +249,11 @@ export function TeamCreateForm() {
           toast.error('홈구장 정보 저장에 실패했습니다');
           return;
         }
+        queryClient.invalidateQueries({ queryKey: gymKeys.all });
+        queryClient.invalidateQueries({ queryKey: gymKeys.detail(homeGymId) });
+        queryClient.invalidateQueries({
+          queryKey: gymKeys.byKakaoPlaceId(locationData.kakaoPlaceId),
+        });
       } catch (error) {
         console.error('Gym upsert error:', error);
         toast.error('홈구장 정보 저장에 실패했습니다');
@@ -264,28 +272,10 @@ export function TeamCreateForm() {
       max: data.levelMax,
     };
 
-    // Age Range 변환: selectedAges에서 min/max 추출
-    let ageRange: AgeRange | undefined;
-    if (!data.selectedAges.includes('any') && data.selectedAges.length > 0) {
-      const ages = data.selectedAges.map(a => parseInt(a, 10)).sort((a, b) => a - b);
-      ageRange = {
-        min: ages[0],
-        max: ages[ages.length - 1],
-      };
-    }
-
-    // 종료 시간 계산: 시작 시간 + 진행 시간
-    const calculateEndTime = (startTime: string, durationHours: string): string => {
-      const [hours, minutes] = startTime.split(':').map(Number);
-      const duration = parseFloat(durationHours);
-      const totalMinutes = hours * 60 + minutes + duration * 60;
-      const endHours = Math.floor(totalMinutes / 60) % 24;
-      const endMinutes = totalMinutes % 60;
-      return `${String(endHours).padStart(2, '0')}:${String(endMinutes).padStart(2, '0')}`;
-    };
+    const ageRange = selectedAgesToAgeRange(data.selectedAges) ?? undefined;
 
     const regularEndTime = data.regularTime && data.duration
-      ? calculateEndTime(data.regularTime, data.duration)
+      ? calcEndTimeFromDuration(data.regularTime, data.duration)
       : undefined;
 
     const input: CreateTeamInput = {

@@ -205,7 +205,7 @@ export function TeamMatchDetailView({
             )}
           >
             {isVotingClosed
-              ? '투표 마감됨'
+              ? '투표가 마감되었습니다.'
               : hasVoted
               ? '투표 변경하기'
               : '투표하기'}

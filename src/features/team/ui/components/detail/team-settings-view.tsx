@@ -144,15 +144,13 @@ export function TeamSettingsView({ code }: TeamSettingsViewProps) {
   return (
     <div className="min-h-screen bg-white">
       {/* 헤더 */}
-      <header className="sticky top-0 z-40 bg-white border-b border-slate-100 h-14 flex items-center gap-3 px-4">
+      <header className="sticky top-0 z-40 bg-white border-b border-slate-100 h-14 flex items-center justify-between px-4">
         <button
           onClick={handleBack}
-          className="p-2 text-slate-900 hover:bg-slate-50 rounded-full transition-colors -ml-2"
+          className="p-2 text-slate-900 hover:bg-slate-50 rounded-full transition-colors"
         >
           <ArrowLeft className="w-6 h-6" />
         </button>
-
-        {/* 팀 로고 + 이름 */}
         <div className="flex items-center gap-2">
           {team.logoUrl ? (
             <Image
@@ -173,10 +171,11 @@ export function TeamSettingsView({ code }: TeamSettingsViewProps) {
               {logoChar}
             </div>
           )}
-          <span className="font-bold text-slate-900">{team.name}</span>
+          <span className="text-lg font-bold text-slate-900">{team.name}</span>
           <span className="text-slate-400">/</span>
-          <span className="font-bold text-slate-900">설정</span>
+          <span className="text-lg font-bold text-slate-900">설정</span>
         </div>
+        <div className="w-10" />
       </header>
 
       {/* 메뉴 리스트 */}

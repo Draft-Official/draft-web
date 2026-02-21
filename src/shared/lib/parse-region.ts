@@ -63,6 +63,19 @@ const REGION_NORMALIZATION: Record<string, RegionKey> = {
 };
 
 /**
+ * 주소를 "시/도 구/군" 형태로 단축
+ * 예: "서울특별시 서초구 서초대로 123" → "서울 서초구"
+ */
+export function formatShortAddress(address: string): string {
+  const { depth1, depth2 } = parseRegionFromAddress(address);
+  if (depth1 && depth2) return `${depth1} ${depth2}`;
+  if (depth1) return depth1;
+  // fallback: 첫 두 단어
+  const parts = address.trim().split(/\s+/);
+  return parts.slice(0, 2).join(' ');
+}
+
+/**
  * 주소 문자열에서 지역 정보 파싱
  */
 export function parseRegionFromAddress(address: string): ParsedRegion {

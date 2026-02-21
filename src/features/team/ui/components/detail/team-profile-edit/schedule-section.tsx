@@ -1,61 +1,69 @@
 'use client';
 
-import { useFormContext, Controller } from 'react-hook-form';
-import { Calendar } from 'lucide-react';
+import type { Control, UseFormSetValue } from 'react-hook-form';
+import { Controller } from 'react-hook-form';
 import { Label } from '@/shared/ui/shadcn/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/shadcn/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/ui/shadcn/select';
 import { TimePickerSelect } from '@/shared/ui/composite/time-picker-select';
-import { cn } from '@/shared/lib/utils';
+import { LocationSearchField } from '@/shared/ui/composite/location-search-field';
+import type { LocationData } from '@/shared/types/location.types';
 import type { LocationSearchResolvedValue } from '@/shared/lib/hooks/use-location-search';
 import { TEAM_DURATION_OPTIONS } from '@/features/team/lib';
+import {
+  REGULAR_DAY_OPTIONS,
+  type RegularDayValue,
+} from '@/shared/config/team-constants';
+import type { TeamProfileEditFormData } from './types';
 
-import { StepHeader } from './step-header';
-import { LocationSearchField } from '@/shared/ui/composite/location-search-field';
-import { REGULAR_DAY_OPTIONS, type RegularDayValue } from '@/shared/config/team-constants';
-import type { LocationData } from '@/shared/types/location.types';
-
-interface TeamCreateStepScheduleProps {
+interface TeamProfileEditScheduleSectionProps {
   regularDay: RegularDayValue | '';
+  control: Control<TeamProfileEditFormData>;
+  setValue: UseFormSetValue<TeamProfileEditFormData>;
   locationData: LocationData | null;
   onLocationResolvedChange: (next: LocationSearchResolvedValue) => void;
 }
 
-export function TeamCreateStepSchedule({
+export function TeamProfileEditScheduleSection({
   regularDay,
+  control,
+  setValue,
   locationData,
   onLocationResolvedChange,
-}: TeamCreateStepScheduleProps) {
-  const { control, setValue } = useFormContext();
-
+}: TeamProfileEditScheduleSectionProps) {
   return (
     <div className="space-y-6">
-      <StepHeader step={2} title="운동 정보" icon={Calendar} />
-
-      {/* 정기 운동 요일 */}
-      <div className="space-y-3">
+      <div className="space-y-2">
         <Label className="text-sm font-bold text-slate-700">
           정기 운동 요일 <span className="text-red-500">*</span>
         </Label>
-        <div className="grid grid-cols-7 gap-1.5">
-          {REGULAR_DAY_OPTIONS.map((day) => (
-            <button
-              key={day.value}
-              type="button"
-              onClick={() => setValue('regularDay', regularDay === day.value ? '' : day.value)}
-              className={cn(
-                'aspect-square rounded-lg flex items-center justify-center text-base font-bold transition-all border',
-                regularDay === day.value
-                  ? 'bg-slate-800 text-white border-slate-800'
-                  : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
-              )}
-            >
-              {day.shortLabel}
-            </button>
-          ))}
-        </div>
+        <Select
+          value={regularDay}
+          onValueChange={(value) =>
+            setValue('regularDay', value as RegularDayValue, {
+              shouldDirty: true,
+              shouldTouch: true,
+            })
+          }
+        >
+          <SelectTrigger className="h-12 bg-white border-slate-200 font-bold">
+            <SelectValue placeholder="요일 선택" />
+          </SelectTrigger>
+          <SelectContent>
+            {REGULAR_DAY_OPTIONS.map((day) => (
+              <SelectItem key={day.value} value={day.value}>
+                {day.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
-      {/* 시작 시간 & 진행 시간 */}
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label className="text-sm font-bold text-slate-700">시작 시간</Label>
@@ -83,8 +91,10 @@ export function TeamCreateStepSchedule({
                   <SelectValue placeholder="선택" />
                 </SelectTrigger>
                 <SelectContent>
-                  {TEAM_DURATION_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                  {TEAM_DURATION_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -93,7 +103,6 @@ export function TeamCreateStepSchedule({
         </div>
       </div>
 
-      {/* 홈구장 */}
       <LocationSearchField
         label="홈구장"
         required

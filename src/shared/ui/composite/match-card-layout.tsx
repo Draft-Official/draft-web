@@ -10,6 +10,7 @@ interface MatchCardLayoutProps {
   gymName: string;
   gymAddress?: string;
   teamName: string;
+  showTeamName?: boolean;
   onClick?: () => void;
   onLocationClick?: () => void;
   isPast?: boolean;
@@ -25,6 +26,7 @@ export function MatchCardLayout({
   gymName,
   gymAddress,
   teamName,
+  showTeamName = true,
   onClick,
   onLocationClick,
   isPast,
@@ -83,10 +85,12 @@ export function MatchCardLayout({
             )}
           </div>
 
-          <div className="flex items-center gap-1 text-base text-slate-500">
-            <Shield className="w-4 h-4" />
-            <span>{teamName}</span>
-          </div>
+          {showTeamName && (
+            <div className="flex items-center gap-1 text-base text-slate-500">
+              <Shield className="w-4 h-4" />
+              <span>{teamName}</span>
+            </div>
+          )}
         </div>
 
         {bottomSlot && (

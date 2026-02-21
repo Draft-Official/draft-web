@@ -12,6 +12,10 @@ import { FileText, MessageCircle, Phone, UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
 import type { AccountInfo, OperationInfo } from '@/shared/types/jsonb.types';
 import type { MatchCreateTeamOptionDTO, MatchCreateUserDTO } from '@/features/match-create/model/types';
+import {
+  sanitizeAccountHolderInput,
+  sanitizeAccountNumberInput,
+} from '@/shared/lib/validation/account';
 
 // Helper to safely cast JSONB to specific type
 const getAccountInfo = (info: MatchCreateUserDTO['accountInfo'] | MatchCreateTeamOptionDTO['accountInfo']): Partial<AccountInfo> => info ?? {};
@@ -261,9 +265,7 @@ export function MatchCreateOperations({
               placeholder="예금주"
               className="w-[90px] h-11 bg-white border-slate-200"
               onChange={(e) => {
-                // 한글 자음/모음/완성형 허용 (2-10자)
-                const value = e.target.value.replace(/[^ㄱ-ㅎㅏ-ㅣ가-힣]/g, '').slice(0, 10);
-                setValue('accountHolder', value);
+                setValue('accountHolder', sanitizeAccountHolderInput(e.target.value));
               }}
             />
             <BankCombobox
@@ -277,9 +279,7 @@ export function MatchCreateOperations({
               className="flex-1 h-11 bg-white border-slate-200"
               inputMode="numeric"
               onChange={(e) => {
-                // 숫자만 허용 (10-16자리)
-                const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 16);
-                setValue('accountNumber', value);
+                setValue('accountNumber', sanitizeAccountNumberInput(e.target.value));
               }}
             />
           </div>

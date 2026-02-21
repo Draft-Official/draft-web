@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { Input } from '@/shared/ui/shadcn/input';
 import { Label } from '@/shared/ui/shadcn/label';
 import { cn } from '@/shared/lib/utils';
+import { sanitizeShortIntro } from '@/features/team/lib';
 
 import { StepHeader } from './step-header';
 import { TEAM_CODE_ERROR_MESSAGE } from '@/shared/config/team-constants';
@@ -69,11 +70,7 @@ export function TeamCreateStepInfo({
           className="h-12"
           maxLength={15}
           onChange={(e) => {
-            // 이모티콘 제거: 기본 한글/영문/숫자/일반 문장부호만 허용
-            const value = e.target.value.replace(
-              /[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F000}-\u{1F02F}\u{1F0A0}-\u{1F0FF}\u{1F100}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{FE00}-\u{FE0F}]/gu,
-              ''
-            );
+            const value = sanitizeShortIntro(e.target.value);
             setValue('shortIntro', value);
           }}
         />

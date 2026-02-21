@@ -113,7 +113,7 @@ export function TeamDetailView({ code }: TeamDetailViewProps) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-white">
       {/* 헤더 (뒤로가기) */}
       <header className="sticky top-0 z-40 bg-white border-b border-slate-100 h-14 flex items-center justify-between px-4">
         <button

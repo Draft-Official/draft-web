@@ -6,6 +6,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { createTeamService, teamRowToEntity } from '@/entities/team';
+import { gymKeys } from '@/entities/gym';
 import { teamKeys, teamMemberKeys } from '../keys';
 import { toTeamInfoDTO } from '../../lib';
 import type { CreateTeamInput, UpdateTeamInput, TeamInfoDTO } from '../../model/types';
@@ -32,6 +33,11 @@ export function useCreateTeam() {
     onSuccess: (data, { userId }) => {
       // 내 팀 목록 갱신
       queryClient.invalidateQueries({ queryKey: teamKeys.myTeams(userId) });
+      // 팀 생성 시 홈구장 정보가 반영되었을 수 있으므로 gym 캐시 무효화
+      queryClient.invalidateQueries({ queryKey: gymKeys.all });
+      if (data.homeGymId) {
+        queryClient.invalidateQueries({ queryKey: gymKeys.detail(data.homeGymId) });
+      }
       // 생성된 팀 캐시에 추가
       queryClient.setQueryData(teamKeys.detail(data.id), data);
       if (data.code) {
@@ -68,6 +74,11 @@ export function useUpdateTeam() {
       }
       // 팀 목록 갱신
       queryClient.invalidateQueries({ queryKey: teamKeys.lists() });
+      // 팀 수정 시 홈구장 변경/연동 가능성 반영
+      queryClient.invalidateQueries({ queryKey: gymKeys.all });
+      if (data.homeGymId) {
+        queryClient.invalidateQueries({ queryKey: gymKeys.detail(data.homeGymId) });
+      }
     },
   });
 }

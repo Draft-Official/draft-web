@@ -7,6 +7,10 @@ import type {
   MatchCreateSubmitValidationResult,
   SelectedLocationForSubmit,
 } from './types';
+import {
+  isValidAccountHolder,
+  isValidAccountNumber,
+} from '@/shared/lib/validation/account';
 
 interface ValidationInput {
   form: MatchCreateSubmitFormValues;
@@ -106,8 +110,7 @@ export function validateMatchCreateSubmit({
     };
   }
 
-  const accountHolderRegex = /^[가-힣]{2,10}$/;
-  if (!accountHolderRegex.test(form.accountHolder)) {
+  if (!isValidAccountHolder(form.accountHolder)) {
     return {
       ok: false,
       error: {
@@ -117,8 +120,7 @@ export function validateMatchCreateSubmit({
     };
   }
 
-  const accountNumberRegex = /^\d{10,16}$/;
-  if (!accountNumberRegex.test(form.accountNumber)) {
+  if (!isValidAccountNumber(form.accountNumber)) {
     return {
       ok: false,
       error: {
