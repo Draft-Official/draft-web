@@ -1,4 +1,5 @@
 import type { AgeRange } from '@/shared/types/jsonb.types';
+import { TEAM_NAME_MAX_LENGTH } from '@/shared/config/team-constants';
 
 const PRESET_LOGOS = [
   { id: '01', url: '/logos/preset/logo-01.webp' },
@@ -27,6 +28,7 @@ export const TEAM_DURATION_OPTIONS = [
 
 const SHORT_INTRO_EMOJI_REGEX =
   /[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F000}-\u{1F02F}\u{1F0A0}-\u{1F0FF}\u{1F100}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{FE00}-\u{FE0F}]/gu;
+const TEAM_NAME_SPECIAL_CHAR_REGEX = /[^A-Za-z0-9가-힣ㄱ-ㅎㅏ-ㅣ ]/g;
 
 const AGE_VALUE_MAP: Record<string, number> = {
   '20': 20,
@@ -37,6 +39,12 @@ const AGE_VALUE_MAP: Record<string, number> = {
 
 export function sanitizeShortIntro(value: string): string {
   return value.replace(SHORT_INTRO_EMOJI_REGEX, '').slice(0, 15);
+}
+
+export function sanitizeTeamName(value: string): string {
+  return value
+    .replace(TEAM_NAME_SPECIAL_CHAR_REGEX, '')
+    .slice(0, TEAM_NAME_MAX_LENGTH);
 }
 
 export function normalizeTimeValue(

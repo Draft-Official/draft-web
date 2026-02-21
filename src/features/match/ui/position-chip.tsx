@@ -24,7 +24,7 @@ export function PositionChip({ label, status, max, current }: PositionChipProps)
   return (
     <div
       className={cn(
-        "inline-flex items-center justify-center px-[6px] py-(--dimension-x1) rounded-[4px] border text-[11px] leading-none font-medium transition-colors gap-1",
+        "inline-flex items-center justify-center px-[6px] py-1 rounded-[4px] border text-[11px] leading-tight font-medium transition-colors gap-1 whitespace-nowrap",
         isOpen
           ? "bg-slate-100 border-slate-200 text-slate-600"
           : "bg-slate-50 border-slate-100 text-slate-400"
@@ -32,8 +32,9 @@ export function PositionChip({ label, status, max, current }: PositionChipProps)
     >
       <span>{label}</span>
       {isOpen ? (
-        <span className="font-bold text-slate-700">
-           {current}/{max}
+        <span className="font-bold">
+          <span className="text-primary">{current}</span>
+          <span className="text-slate-700">/{max}</span>
         </span>
       ) : (
         <span className="font-bold text-slate-400">마감</span>

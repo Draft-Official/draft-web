@@ -6,11 +6,17 @@ import { cn } from '@/shared/lib/utils';
 import { Input } from '@/shared/ui/shadcn/input';
 import { Label } from '@/shared/ui/shadcn/label';
 import { Textarea } from '@/shared/ui/shadcn/textarea';
-import { TEAM_LOGO_OPTIONS, sanitizeShortIntro } from '@/features/team/lib';
+import {
+  TEAM_LOGO_OPTIONS,
+  sanitizeShortIntro,
+  sanitizeTeamName,
+} from '@/features/team/lib';
+import { TEAM_NAME_MAX_LENGTH } from '@/shared/config/team-constants';
 import type { TeamProfileEditFormData } from './types';
 
 interface TeamProfileEditBasicInfoSectionProps {
   logoId: string;
+  name: string;
   shortIntro: string;
   register: UseFormRegister<TeamProfileEditFormData>;
   setValue: UseFormSetValue<TeamProfileEditFormData>;
@@ -18,10 +24,15 @@ interface TeamProfileEditBasicInfoSectionProps {
 
 export function TeamProfileEditBasicInfoSection({
   logoId,
+  name,
   shortIntro,
   register,
   setValue,
 }: TeamProfileEditBasicInfoSectionProps) {
+  const nameField = register('name', {
+    required: true,
+    maxLength: TEAM_NAME_MAX_LENGTH,
+  });
   const shortIntroField = register('shortIntro', { maxLength: 15 });
 
   return (
@@ -63,10 +74,17 @@ export function TeamProfileEditBasicInfoSection({
           팀 이름 <span className="text-red-500">*</span>
         </Label>
         <Input
-          {...register('name', { required: true })}
+          {...nameField}
           placeholder="예: 강남 슬램덩크"
           className="h-12"
+          maxLength={TEAM_NAME_MAX_LENGTH}
+          onChange={(e) => {
+            const sanitized = sanitizeTeamName(e.target.value);
+            e.target.value = sanitized;
+            nameField.onChange(e);
+          }}
         />
+        <p className="text-xs text-slate-400 text-right">{name.length}/{TEAM_NAME_MAX_LENGTH}</p>
       </div>
 
       <div className="space-y-2">

@@ -7,10 +7,13 @@ import Image from 'next/image';
 import { Input } from '@/shared/ui/shadcn/input';
 import { Label } from '@/shared/ui/shadcn/label';
 import { cn } from '@/shared/lib/utils';
-import { sanitizeShortIntro } from '@/features/team/lib';
+import { sanitizeShortIntro, sanitizeTeamName } from '@/features/team/lib';
 
 import { StepHeader } from './step-header';
-import { TEAM_CODE_ERROR_MESSAGE } from '@/shared/config/team-constants';
+import {
+  TEAM_CODE_ERROR_MESSAGE,
+  TEAM_NAME_MAX_LENGTH,
+} from '@/shared/config/team-constants';
 
 // 프리셋 로고 옵션 (8개: 2개 로고 x 4 반복)
 const PRESET_LOGOS = [
@@ -42,6 +45,7 @@ export function TeamCreateStepInfo({
   onCodeChange,
 }: TeamCreateStepInfoProps) {
   const { register, watch, setValue } = useFormContext();
+  const teamName = watch('name') ?? '';
 
   return (
     <div className="space-y-6">
@@ -53,10 +57,18 @@ export function TeamCreateStepInfo({
           팀 이름 <span className="text-red-500">*</span>
         </Label>
         <Input
-          {...register('name', { required: true })}
+          {...register('name', { required: true, maxLength: TEAM_NAME_MAX_LENGTH })}
           placeholder="예: 강남 슬램덩크"
           className="h-12"
+          maxLength={TEAM_NAME_MAX_LENGTH}
+          onChange={(e) => {
+            const value = sanitizeTeamName(e.target.value);
+            setValue('name', value);
+          }}
         />
+        <p className="text-xs text-slate-400 text-right">
+          {teamName.length}/{TEAM_NAME_MAX_LENGTH}
+        </p>
       </div>
 
       {/* 한줄 소개 */}

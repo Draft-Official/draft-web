@@ -118,6 +118,7 @@ export function TeamProfileEditView({ code }: TeamProfileEditViewProps) {
   const levelMin = watch('levelMin');
   const levelMax = watch('levelMax');
   const logoId = watch('logoId');
+  const name = watch('name') ?? '';
   const shortIntro = watch('shortIntro') ?? '';
 
   const handleAgeSelection = (age: string) => {
@@ -250,6 +251,7 @@ export function TeamProfileEditView({ code }: TeamProfileEditViewProps) {
       <form onSubmit={handleSubmit(onSubmit)} className="px-5 py-6 space-y-8">
         <TeamProfileEditBasicInfoSection
           logoId={logoId}
+          name={name}
           shortIntro={shortIntro}
           register={register}
           setValue={setValue}

@@ -24,6 +24,10 @@ import { calcEndTimeFromDuration, selectedAgesToAgeRange } from '@/features/team
 import {
   TEAM_CODE_REGEX,
   TEAM_CODE_ERROR_MESSAGE,
+  TEAM_NAME_MAX_LENGTH,
+  TEAM_NAME_ERROR_MESSAGE,
+  TEAM_NAME_CHARACTER_ERROR_MESSAGE,
+  isValidTeamName,
   type RegularDayValue,
 } from '@/shared/config/team-constants';
 import type { LocationData } from '@/shared/types/location.types';
@@ -99,10 +103,13 @@ export function TeamCreateForm() {
   const selectedAges = watch('selectedAges');
   const levelMin = watch('levelMin');
   const levelMax = watch('levelMax');
+  const trimmedName = name.trim();
 
   // Step별 다음 버튼 disabled 여부
   const isStep1Valid = Boolean(
-    name &&
+    trimmedName &&
+    trimmedName.length <= TEAM_NAME_MAX_LENGTH &&
+    isValidTeamName(trimmedName) &&
     shortIntro &&
     code &&
     codeStatus === 'available'
@@ -159,8 +166,16 @@ export function TeamCreateForm() {
     switch (step) {
       case 1: {
         const isValid = await trigger(['name', 'shortIntro', 'code']);
-        if (!name) {
+        if (!trimmedName) {
           toast.error('팀 이름을 입력해주세요');
+          return false;
+        }
+        if (trimmedName.length > TEAM_NAME_MAX_LENGTH) {
+          toast.error(TEAM_NAME_ERROR_MESSAGE);
+          return false;
+        }
+        if (!isValidTeamName(trimmedName)) {
+          toast.error(TEAM_NAME_CHARACTER_ERROR_MESSAGE);
           return false;
         }
         if (!shortIntro) {
@@ -280,7 +295,7 @@ export function TeamCreateForm() {
 
     const input: CreateTeamInput = {
       code: data.code,
-      name: data.name,
+      name: data.name.trim(),
       shortIntro: data.shortIntro || undefined,
       logoUrl: data.logoId,
       regionDepth1: region.depth1 || undefined,
