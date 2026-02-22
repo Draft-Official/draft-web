@@ -66,14 +66,17 @@ export function useTeamMatches(
 /**
  * 팀 매치 상세 조회
  */
-export function useTeamMatch(matchId: string | null | undefined) {
+export function useTeamMatch(
+  matchIdentifier: string | null | undefined,
+  teamId: string | null | undefined
+) {
   return useQuery({
-    queryKey: teamMatchKeys.detail(matchId || ''),
+    queryKey: [...teamMatchKeys.detail(matchIdentifier || ''), teamId || ''],
     queryFn: async (): Promise<TeamMatchDetailDTO | null> => {
-      if (!matchId) return null;
+      if (!matchIdentifier || !teamId) return null;
       const supabase = getSupabaseBrowserClient();
       const service = createTeamService(supabase);
-      const row = await service.getTeamMatch(matchId);
+      const row = await service.getTeamMatch(matchIdentifier, teamId);
       if (!row) return null;
       const typed = row as MatchWithGymTeamRow;
       const match = matchRowToEntity(typed);
@@ -81,7 +84,7 @@ export function useTeamMatch(matchId: string | null | undefined) {
       const team = typed.teams ? teamRowToEntity(typed.teams) : null;
       return toTeamMatchDetailDTO(match, { gym, team });
     },
-    enabled: !!matchId,
+    enabled: !!matchIdentifier && !!teamId,
   });
 }
 

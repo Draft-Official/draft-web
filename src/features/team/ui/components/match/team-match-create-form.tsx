@@ -201,7 +201,7 @@ export function TeamMatchCreateForm({ team, onClose }: TeamMatchCreateFormProps)
       {
         onSuccess: (data) => {
           toast.success('팀 운동이 생성되었습니다.');
-          router.push(`/team/${team.code}/matches/${data.id}`);
+          router.push(`/team/${team.code}/matches/${data.shortId || data.id}`);
         },
         onError: (error) => {
           toast.error('생성에 실패했습니다: ' + error.message);

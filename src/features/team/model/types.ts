@@ -136,6 +136,7 @@ export interface TeamVoteDTO {
  */
 export interface TeamScheduleMatchItemDTO {
   matchId: string;
+  publicId: string;
   teamId: string | null;
   teamCode: string | null;
   teamName: string;
@@ -175,6 +176,7 @@ export interface TeamMatchDetailDTO extends TeamScheduleMatchItemDTO {
  */
 export interface MyPendingTeamVoteMatchDTO {
   matchId: string;
+  publicId: string;
   teamId: string;
   teamCode: string;
   teamName: string;

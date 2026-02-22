@@ -50,6 +50,8 @@ export type TeamFeeWithUserRow = TeamFee & {
   } | null;
 };
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 export class TeamService {
   constructor(private supabase: SupabaseClient<Database>) {}
 
@@ -747,13 +749,23 @@ export class TeamService {
   /**
    * 팀 매치 상세 조회
    */
-  async getTeamMatch(matchId: string): Promise<Match | null> {
-    const { data, error } = await this.supabase
+  async getTeamMatch(identifier: string, teamId?: string | null): Promise<Match | null> {
+    const isUuidIdentifier = UUID_REGEX.test(identifier);
+
+    let query = this.supabase
       .from('matches')
       .select('*, gyms(*), teams(*)')
-      .eq('id', matchId)
-      .eq('match_type', 'TEAM_MATCH')
-      .single();
+      .eq('match_type', 'TEAM_MATCH');
+
+    query = isUuidIdentifier
+      ? query.eq('id', identifier)
+      : query.eq('short_id', identifier);
+
+    if (teamId) {
+      query = query.eq('team_id', teamId);
+    }
+
+    const { data, error } = await query.single();
 
     if (error) {
       if (error.code === 'PGRST116') return null;

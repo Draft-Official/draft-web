@@ -50,7 +50,7 @@ export const teamMatchKeys = {
 
   // 매치 상세 (투표 정보 포함)
   details: () => [...teamMatchKeys.all, 'detail'] as const,
-  detail: (matchId: string) => [...teamMatchKeys.details(), matchId] as const,
+  detail: (matchIdentifier: string) => [...teamMatchKeys.details(), matchIdentifier] as const,
 
   // 투표 현황
   votingStatus: (matchId: string) => [...teamMatchKeys.all, 'voting', matchId] as const,

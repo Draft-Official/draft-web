@@ -136,8 +136,8 @@ function PendingVoteMatches({ teamIds, userId }: { teamIds: string[]; userId: st
         return (
           <TeamMatchItem
             key={item.matchId}
-            id={item.matchId}
-            teamId={item.teamCode}
+            publicId={item.publicId}
+            teamCode={item.teamCode}
             teamName={item.teamName}
             teamLogoUrl={item.teamLogoUrl}
             date={item.dateDisplay}

@@ -30,8 +30,8 @@ export function TeamScheduleTab({ teamCode, matches, isLoading }: TeamScheduleTa
   const endIndex = startIndex + PAGE_SIZE;
   const currentMatches = matches.slice(startIndex, endIndex);
 
-  const handleMatchClick = (matchId: string) => {
-    router.push(`/team/${teamCode}/matches/${matchId}`);
+  const handleMatchClick = (publicId: string) => {
+    router.push(`/team/${teamCode}/matches/${publicId}`);
   };
 
   if (isLoading) {
@@ -66,7 +66,7 @@ export function TeamScheduleTab({ teamCode, matches, isLoading }: TeamScheduleTa
             teamName={match.teamName}
             showTeamName={false}
             isPast={match.isPast}
-            onClick={() => handleMatchClick(match.matchId)}
+            onClick={() => handleMatchClick(match.publicId)}
           />
         ))}
       </div>

@@ -14,7 +14,7 @@ interface TeamMatchDetailPageProps {
 }
 
 export default function TeamMatchDetailPage({ params }: TeamMatchDetailPageProps) {
-  const { code, matchId } = use(params);
+  const { code, matchId: matchIdentifier } = use(params);
   const { user, isLoading: isAuthLoading } = useAuth();
 
   // 팀 정보 조회
@@ -26,8 +26,11 @@ export default function TeamMatchDetailPage({ params }: TeamMatchDetailPageProps
     user?.id
   );
 
+  // 팀 소속이 확인된 경우에만 팀 매치 상세 조회
+  const teamIdForMatchQuery = membership ? team?.id : null;
+
   // 매치 상세 조회
-  const { data: match, isLoading: isMatchLoading } = useTeamMatch(matchId);
+  const { data: match, isLoading: isMatchLoading } = useTeamMatch(matchIdentifier, teamIdForMatchQuery);
 
   // 로딩 중
   if (isAuthLoading || isTeamLoading || isMembershipLoading || isMatchLoading) {
@@ -43,11 +46,6 @@ export default function TeamMatchDetailPage({ params }: TeamMatchDetailPageProps
     notFound();
   }
 
-  // 매치를 찾을 수 없음
-  if (!match) {
-    notFound();
-  }
-
   // 권한 체크: 팀원만 접근 가능
   if (!membership) {
     return (
@@ -58,6 +56,11 @@ export default function TeamMatchDetailPage({ params }: TeamMatchDetailPageProps
         </p>
       </div>
     );
+  }
+
+  // 매치를 찾을 수 없음 (다른 팀 매치 포함)
+  if (!match || match.teamId !== team.id) {
+    notFound();
   }
 
   return (

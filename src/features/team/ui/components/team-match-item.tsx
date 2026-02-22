@@ -19,8 +19,8 @@ import {
 import { VoteDialog } from '@/shared/ui/composite/vote-dialog';
 
 interface TeamMatchItemProps {
-  id: string;
-  teamId: string;
+  publicId: string;
+  teamCode: string;
   teamName: string;
   teamLogoUrl?: string | null;
   date: string; // "2026. 02. 08 (일)"
@@ -46,8 +46,8 @@ interface TeamMatchItemProps {
  * - 투표 현황 표시
  */
 export function TeamMatchItem({
-  id,
-  teamId,
+  publicId,
+  teamCode,
   teamName,
   date,
   time,
@@ -65,7 +65,7 @@ export function TeamMatchItem({
   const [isVoteDialogOpen, setIsVoteDialogOpen] = useState(false);
 
   const handleClick = () => {
-    router.push(`/team/${teamId}/matches/${id}`);
+    router.push(`/team/${teamCode}/matches/${publicId}`);
   };
 
   const handleVoteClick = (e: React.MouseEvent) => {

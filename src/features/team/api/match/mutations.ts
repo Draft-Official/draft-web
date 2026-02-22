@@ -34,14 +34,14 @@ export function useCreateTeamMatch() {
       const row = await service.createTeamMatch(hostId, input);
       return matchRowToEntity(row);
     },
-    onSuccess: (data, { input }) => {
+    onSuccess: (_data, { input }) => {
       // 팀 매치 목록 갱신
       queryClient.invalidateQueries({
         queryKey: teamMatchKeys.byTeam(input.teamId),
       });
       // 생성된 매치 상세 갱신 (DTO 쿼리와 정합성 유지)
       queryClient.invalidateQueries({
-        queryKey: teamMatchKeys.detail(data.id),
+        queryKey: teamMatchKeys.details(),
       });
     },
   });
@@ -102,10 +102,10 @@ export function useCloseVoting() {
       const row = await service.closeVoting(matchId);
       return matchRowToEntity(row);
     },
-    onSuccess: (_, { matchId, teamId }) => {
+    onSuccess: (_, { teamId }) => {
       // DTO 상세는 재조회로 동기화
       queryClient.invalidateQueries({
-        queryKey: teamMatchKeys.detail(matchId),
+        queryKey: teamMatchKeys.details(),
       });
       // 팀 매치 목록 갱신
       queryClient.invalidateQueries({
@@ -139,10 +139,10 @@ export function useOpenGuestRecruitment() {
       const row = await service.openGuestRecruitment(matchId, recruitmentSetup);
       return matchRowToEntity(row);
     },
-    onSuccess: (_, { matchId, teamId }) => {
+    onSuccess: (_, { teamId }) => {
       // DTO 상세는 재조회로 동기화
       queryClient.invalidateQueries({
-        queryKey: teamMatchKeys.detail(matchId),
+        queryKey: teamMatchKeys.details(),
       });
       // 팀 매치 목록 갱신
       queryClient.invalidateQueries({
@@ -170,10 +170,10 @@ export function useReopenVoting() {
       const row = await service.reopenVoting(matchId);
       return matchRowToEntity(row);
     },
-    onSuccess: (_, { matchId, teamId }) => {
+    onSuccess: (_, { teamId }) => {
       // DTO 상세는 재조회로 동기화
       queryClient.invalidateQueries({
-        queryKey: teamMatchKeys.detail(matchId),
+        queryKey: teamMatchKeys.details(),
       });
       // 팀 매치 목록 갱신
       queryClient.invalidateQueries({
@@ -245,10 +245,10 @@ export function useUpdateTeamMatch() {
       const row = await service.updateTeamMatch(matchId, input);
       return matchRowToEntity(row);
     },
-    onSuccess: (_, { matchId, teamId }) => {
+    onSuccess: (_, { teamId }) => {
       // DTO 상세는 재조회로 동기화
       queryClient.invalidateQueries({
-        queryKey: teamMatchKeys.detail(matchId),
+        queryKey: teamMatchKeys.details(),
       });
       // 팀 매치 목록 갱신
       queryClient.invalidateQueries({
@@ -276,10 +276,10 @@ export function useCancelTeamMatch() {
       const row = await service.cancelTeamMatch(matchId);
       return matchRowToEntity(row);
     },
-    onSuccess: (_, { matchId, teamId }) => {
+    onSuccess: (_, { teamId }) => {
       // DTO 상세는 재조회로 동기화
       queryClient.invalidateQueries({
-        queryKey: teamMatchKeys.detail(matchId),
+        queryKey: teamMatchKeys.details(),
       });
       // 팀 매치 목록 갱신
       queryClient.invalidateQueries({
