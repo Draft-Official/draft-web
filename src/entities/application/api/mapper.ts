@@ -23,7 +23,7 @@ export function applicationRowToEntity(row: ApplicationRow): ApplicationEntity {
     description: row.description,
     approvedAt: row.approved_at,
     paymentVerifiedAt: row.payment_verified_at,
-    confirmedBy: row.confirmed_by,
+    confirmedAt: row.confirmed_at,
     cancelType: row.cancel_type as CancelTypeValue | null,
     cancelReason: row.cancel_reason,
     canceledBy: row.canceled_by,

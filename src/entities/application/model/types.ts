@@ -30,7 +30,7 @@ export interface Application {
   description: string | null;
   approvedAt: string | null;
   paymentVerifiedAt: string | null;
-  confirmedBy: string | null;
+  confirmedAt: string | null;
   cancelType: CancelTypeValue | null;
   cancelReason: string | null;
   canceledBy: string | null;
@@ -60,7 +60,7 @@ export interface UpdateApplicationInput {
   description?: string | null;
   approvedAt?: string | null;
   paymentVerifiedAt?: string | null;
-  confirmedBy?: string | null;
+  confirmedAt?: string | null;
   cancelType?: CancelTypeValue | null;
   cancelReason?: string | null;
   canceledBy?: string | null;

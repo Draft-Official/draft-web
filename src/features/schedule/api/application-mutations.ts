@@ -133,7 +133,7 @@ export function useConfirmPaymentByHost() {
       const supabase = getSupabaseBrowserClient();
       const applicationService = createApplicationService(supabase);
 
-      // confirmedBy: 'HOST'로 알림 스킵
+      // DB confirmed_at 기준 확정 처리 (알림 스킵 로직은 RPC에서 처리)
       return applicationService.confirmApplication(applicationId);
     },
     onSuccess: (_, variables) => {
