@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -25,6 +25,10 @@ interface VoteDialogProps {
   isSubmitting?: boolean;
 }
 
+function normalizeVote(vote?: TeamVoteStatusValue) {
+  return vote && vote !== 'PENDING' ? vote : undefined;
+}
+
 export function VoteDialog({
   open,
   onOpenChange,
@@ -34,9 +38,16 @@ export function VoteDialog({
   isSubmitting = false,
 }: VoteDialogProps) {
   const [selectedVote, setSelectedVote] = useState<TeamVoteStatusValue | undefined>(
-    currentVote && currentVote !== 'PENDING' ? currentVote : undefined
+    normalizeVote(currentVote)
   );
   const [reason, setReason] = useState(currentReason);
+
+  useEffect(() => {
+    if (!open) return;
+
+    setSelectedVote(normalizeVote(currentVote));
+    setReason(currentReason);
+  }, [open, currentVote, currentReason]);
 
   const handleSubmit = () => {
     if (selectedVote) {
@@ -47,7 +58,7 @@ export function VoteDialog({
   const handleOpenChange = (newOpen: boolean) => {
     if (!newOpen) {
       // Reset to current values when closing
-      setSelectedVote(currentVote && currentVote !== 'PENDING' ? currentVote : undefined);
+      setSelectedVote(normalizeVote(currentVote));
       setReason(currentReason);
     }
     onOpenChange(newOpen);

@@ -3,11 +3,12 @@
  * Unified CRUD for both GUEST_RECRUIT and TEAM_MATCH types
  */
 import { SupabaseClient } from '@supabase/supabase-js';
-import { Database } from '@/shared/types/database.types';
+import { Database, MatchInsert, MatchUpdate } from '@/shared/types/database.types';
 import { logRequest, logResponse } from '@/shared/lib/logger';
 import type { MatchStatusValue } from '@/shared/config/match-constants';
 
 type MatchType = 'GUEST_RECRUIT' | 'TEAM_MATCH';
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export class MatchService {
   private readonly SERVICE_NAME = 'MatchService';
@@ -52,18 +53,23 @@ export class MatchService {
   /**
    * Get match detail (type-agnostic)
    */
-  async getMatchDetail(id: string) {
-    logRequest(this.SERVICE_NAME, 'getMatchDetail', { id });
+  async getMatchDetail(identifier: string) {
+    logRequest(this.SERVICE_NAME, 'getMatchDetail', { identifier });
 
-    const { data, error } = await this.supabase
+    const isUuidIdentifier = UUID_REGEX.test(identifier);
+
+    const query = this.supabase
       .from('matches')
       .select(`
         *,
         gym:gyms!gym_id (*),
         host:users!host_id (*),
         team:teams!team_id (*)
-      `)
-      .eq('id', id)
+      `);
+
+    const { data, error } = await (isUuidIdentifier
+      ? query.eq('id', identifier)
+      : query.eq('short_id', identifier))
       .single();
 
     if (error) {
@@ -78,7 +84,7 @@ export class MatchService {
   /**
    * Create match (supports both types)
    */
-  async createMatch(data: Record<string, unknown>) {
+  async createMatch(data: MatchInsert) {
     logRequest(this.SERVICE_NAME, 'createMatch', data);
 
     const { data: match, error } = await this.supabase
@@ -99,7 +105,7 @@ export class MatchService {
   /**
    * Update match
    */
-  async updateMatch(id: string, data: Record<string, unknown>) {
+  async updateMatch(id: string, data: MatchUpdate) {
     logRequest(this.SERVICE_NAME, 'updateMatch', { id, data });
 
     const { data: match, error } = await this.supabase

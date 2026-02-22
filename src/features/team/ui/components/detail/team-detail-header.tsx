@@ -66,8 +66,12 @@ export function TeamDetailHeader({ team, membership, homeGymName, isLoggedIn, cu
     team.regularEndTime
   );
 
+  const sharePath = currentView !== 'home'
+    ? `/team/${team.code}?view=${encodeURIComponent(currentView)}`
+    : `/team/${team.code}`;
+
   const shareUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/team/${team.code}`
+    ? `${window.location.origin}${sharePath}`
     : '';
 
   const handleSettings = () => {

@@ -94,6 +94,7 @@ export function MatchCreateView() {
     myTeams,
 
     isPending,
+    isApplyingRecentPrefill,
     onSubmit,
 
     showRecentMatchesDialog,
@@ -238,10 +239,14 @@ export function MatchCreateView() {
           <div className="px-5 pt-6 pb-30">
             <Button
               type="submit"
-              disabled={isPending || isLoadingEditData}
+              disabled={isPending || isLoadingEditData || isApplyingRecentPrefill}
               className="w-full h-14 text-lg font-bold bg-primary hover:bg-primary/90 text-white rounded-xl shadow-lg shadow-draft-100 disabled:opacity-50"
             >
-              {isEditMode ? (isPending ? '수정 중...' : '경기 수정하기') : '경기 생성하기'}
+              {isApplyingRecentPrefill
+                ? '장소 정보 확인 중...'
+                : isEditMode
+                  ? (isPending ? '수정 중...' : '경기 수정하기')
+                  : '경기 생성하기'}
             </Button>
           </div>
         </form>

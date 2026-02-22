@@ -66,6 +66,7 @@ export function useMatchCreateViewModel() {
   const myTeams = bootstrapData?.teams ?? [];
 
   const [showRecentMatchesDialog, setShowRecentMatchesDialog] = useState(false);
+  const [isApplyingRecentPrefill, setIsApplyingRecentPrefill] = useState(false);
   const { data: recentMatches, isLoading: isLoadingRecentMatches } = useMyRecentMatches();
   const { data: editPrefillData, isLoading: isLoadingEditPrefill } = useMatchEditPrefill(isEditMode ? editMatchId : null);
 
@@ -143,9 +144,36 @@ export function useMatchCreateViewModel() {
     setLevelMax(max);
   };
 
+  const resolveLocation = useCallback(async (location: LocationData) => {
+    setLocationData(location);
+
+    if (!location.kakaoPlaceId) {
+      setIsExistingGym(false);
+      setGymFacilities(null);
+      return;
+    }
+
+    try {
+      const { lookupGymByKakaoPlaceId } = await import('@/entities/gym');
+      const existingGym = await lookupGymByKakaoPlaceId(location.kakaoPlaceId);
+
+      if (existingGym?.facilities) {
+        setIsExistingGym(true);
+        setGymFacilities(existingGym.facilities);
+      } else {
+        setIsExistingGym(false);
+        setGymFacilities(null);
+      }
+    } catch (error) {
+      console.error('Gym lookup error during prefill:', error);
+      setIsExistingGym(false);
+      setGymFacilities(null);
+    }
+  }, []);
+
   const { fillFromRecentMatch } = usePrefillFromRecentMatch({
     setValue,
-    setLocationData,
+    resolveLocation,
     setFeeType,
     setHasBeverage,
     setIsPositionMode,
@@ -209,11 +237,11 @@ export function useMatchCreateViewModel() {
       hasBeverage,
     },
     currentUserId: currentUser?.id,
-    onSuccessNavigate: (matchId?: string) => {
+    onSuccessNavigate: (publicId?: string) => {
       if (isEditMode) {
         router.back();
       } else {
-        router.replace(matchId ? `/matches/${matchId}` : '/');
+        router.replace(publicId ? `/m/${publicId}` : '/');
       }
     },
   });
@@ -221,9 +249,14 @@ export function useMatchCreateViewModel() {
   const onBack = () => router.back();
 
   const handleSelectRecentMatch = async (match: RecentMatchListItemDTO) => {
-    await fillFromRecentMatch(match);
-    toast.success('지난 경기 정보를 불러왔습니다. 경기 날짜를 선택해주세요.');
-    setShowRecentMatchesDialog(false);
+    setIsApplyingRecentPrefill(true);
+    try {
+      await fillFromRecentMatch(match);
+      toast.success('지난 경기 정보를 불러왔습니다. 경기 날짜를 선택해주세요.');
+      setShowRecentMatchesDialog(false);
+    } finally {
+      setIsApplyingRecentPrefill(false);
+    }
   };
 
   return {
@@ -305,6 +338,7 @@ export function useMatchCreateViewModel() {
     myTeams,
 
     isPending,
+    isApplyingRecentPrefill,
     onSubmit,
 
     showRecentMatchesDialog,
