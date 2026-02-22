@@ -45,20 +45,20 @@ export function useRecruitingMatches() {
 
 /**
  * 단일 매치 상세 조회
- * @param matchId 매치 ID
+ * @param matchIdentifier 매치 식별자(UUID 또는 short_id)
  * @returns GuestMatchDetailDTO 형태로 변환된 매치 상세
  *
  * 최적화: 리스트 캐시에서 initialData를 가져와 즉시 렌더링 후 백그라운드에서 최신 데이터 fetch
  */
-export function useMatch(matchId: string) {
+export function useMatch(matchIdentifier: string) {
   const queryClient = useQueryClient();
 
   return useQuery({
-    queryKey: matchKeys.detail(matchId),
+    queryKey: matchKeys.detail(matchIdentifier),
     queryFn: async (): Promise<GuestMatchDetailDTO> => {
       const supabase = getSupabaseBrowserClient();
       const matchService = createMatchService(supabase);
-      const row = (await matchService.getMatchDetail(matchId)) as MatchWithRelations;
+      const row = (await matchService.getMatchDetail(matchIdentifier)) as MatchWithRelations;
 
       if (!row.gym || !row.host) {
         throw new Error('매치 상세의 관계 데이터가 누락되었습니다.');
@@ -72,12 +72,12 @@ export function useMatch(matchId: string) {
 
       return toGuestMatchDetailDTO(match, gym, host, team);
     },
-    enabled: !!matchId,
+    enabled: !!matchIdentifier,
     // 리스트 캐시에서 초기값 제공 → 즉시 렌더링
     initialData: () => {
       const listCache = queryClient.getQueryData<GuestMatchListItemDTO[]>(matchKeys.lists());
       if (!listCache) return undefined;
-      const listItem = listCache.find((m) => m.matchId === matchId);
+      const listItem = listCache.find((m) => m.matchId === matchIdentifier || m.publicId === matchIdentifier);
       if (!listItem) return undefined;
 
       return {

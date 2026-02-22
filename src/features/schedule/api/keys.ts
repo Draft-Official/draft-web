@@ -15,8 +15,12 @@ export const matchManagementKeys = {
     [...matchManagementKeys.all, 'participating', userId] as const,
 
   // 경기 상세 (호스트 관리용)
+  matchDetails: () =>
+    [...matchManagementKeys.all, 'detail'] as const,
+
+  // 경기 상세 (호스트 관리용)
   matchDetail: (matchId: string) =>
-    [...matchManagementKeys.all, 'detail', matchId] as const,
+    [...matchManagementKeys.matchDetails(), matchId] as const,
 
   // 경기 신청자 목록
   applicants: (matchId: string) =>

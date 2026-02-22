@@ -21,6 +21,25 @@ export function useNotifications(userId: string | undefined) {
       const rows = await service.getNotifications(userId!);
       const notifications = rows.map(notificationRowToEntity);
 
+      const matchPublicIdMap = new Map<string, string>();
+      const matchIds = [...new Set(notifications
+        .map((notification) => notification.matchId)
+        .filter((matchId): matchId is string => !!matchId))];
+
+      if (matchIds.length > 0) {
+        const { data: matches } = await supabase
+          .from('matches')
+          .select('id, short_id')
+          .in('id', matchIds);
+
+        if (matches) {
+          (matches as Pick<Database['public']['Tables']['matches']['Row'], 'id' | 'short_id'>[])
+            .forEach((match) => {
+              matchPublicIdMap.set(match.id, match.short_id);
+            });
+        }
+      }
+
       // HOST_ANNOUNCEMENT 알림에 공지 메시지 첨부
       const announcementIds = notifications
         .filter((n) => n.type === 'HOST_ANNOUNCEMENT' && n.referenceType === 'ANNOUNCEMENT')
@@ -43,7 +62,10 @@ export function useNotifications(userId: string | undefined) {
 
       return notifications.map((notification) => {
         const announcementMessage = messageMap.get(notification.referenceId);
-        return toNotificationListItemDTO(notification, announcementMessage);
+        const matchPublicId = notification.matchId
+          ? matchPublicIdMap.get(notification.matchId)
+          : undefined;
+        return toNotificationListItemDTO(notification, announcementMessage, matchPublicId);
       });
     },
     enabled: !!userId,

@@ -241,7 +241,7 @@ export function useMatchCreateViewModel() {
       if (isEditMode) {
         router.back();
       } else {
-        router.replace(publicId ? `/m/${publicId}` : '/');
+        router.replace(publicId ? `/matches/${publicId}` : '/');
       }
     },
   });

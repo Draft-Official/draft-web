@@ -44,7 +44,7 @@ export function useApproveApplication() {
         queryKey: matchManagementKeys.applicants(variables.matchId),
       });
       queryClient.invalidateQueries({
-        queryKey: matchManagementKeys.matchDetail(variables.matchId),
+        queryKey: matchManagementKeys.matchDetails(),
       });
       queryClient.invalidateQueries({ queryKey: matchKeys.lists() });
       toast.success('신청을 승인했습니다. 입금 안내가 발송됩니다.');
@@ -67,6 +67,7 @@ export function useConfirmPaymentByGuest() {
   return useMutation({
     mutationFn: async ({
       applicationId,
+      matchId,
     }: {
       applicationId: string;
       matchId: string;
@@ -140,7 +141,7 @@ export function useConfirmPaymentByHost() {
         queryKey: matchManagementKeys.applicants(variables.matchId),
       });
       queryClient.invalidateQueries({
-        queryKey: matchManagementKeys.matchDetail(variables.matchId),
+        queryKey: matchManagementKeys.matchDetails(),
       });
       // 홈탭 경기 목록 갱신 (빈자리 반영)
       queryClient.invalidateQueries({
@@ -220,7 +221,7 @@ export function useRejectApplication() {
         queryKey: matchManagementKeys.applicants(variables.matchId),
       });
       queryClient.invalidateQueries({
-        queryKey: matchManagementKeys.matchDetail(variables.matchId),
+        queryKey: matchManagementKeys.matchDetails(),
       });
       // 홈탭 경기 목록 갱신
       queryClient.invalidateQueries({
@@ -306,7 +307,7 @@ export function useCancelParticipation() {
         queryKey: matchManagementKeys.applicants(variables.matchId),
       });
       queryClient.invalidateQueries({
-        queryKey: matchManagementKeys.matchDetail(variables.matchId),
+        queryKey: matchManagementKeys.matchDetails(),
       });
       // 경기 관리 탭 전체 갱신
       queryClient.invalidateQueries({

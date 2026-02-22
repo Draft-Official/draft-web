@@ -27,6 +27,7 @@ import type { Match as MatchEntity } from '../model/types';
 export function matchRowToEntity(row: MatchRow): MatchEntity {
   return {
     id: row.id,
+    shortId: row.short_id ?? row.id,
     hostId: row.host_id,
     teamId: row.team_id,
     gymId: row.gym_id,

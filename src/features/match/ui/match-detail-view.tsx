@@ -239,7 +239,7 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
         statusText={getStatusText()}
         isMatchEnded={isMatchEnded}
         isHost={isHost}
-        onManage={() => router.push(`/matches/${match.id}/manage`)}
+        onManage={() => router.push(`/matches/${match.publicId}/manage`)}
       />
 
       {/* 4. Apply Modal */}
@@ -255,7 +255,7 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
       <ShareModal
         open={isShareModalOpen}
         onOpenChange={setIsShareModalOpen}
-        matchId={match.id}
+        matchPublicId={match.publicId}
         matchTitle={match.title}
         matchDate={(() => {
           const d = new Date(match.dateISO);

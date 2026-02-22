@@ -45,6 +45,7 @@ export interface MatchApplicantDTO extends Participant {
 // 경기 관리 리스트 아이템 DTO
 export interface ScheduleMatchListItemDTO {
   id: string;
+  publicId: string;
   matchType: MatchType;
   scheduleMode: ScheduleMode;
   status: MatchStatus;
@@ -99,6 +100,7 @@ export interface ScheduleMatchListItemDTO {
 // 호스트 경기 상세 DTO
 export interface HostMatchDetailDTO {
   id: string;
+  publicId: string;
   date: string;
   time: string;
   endTimeISO: string;
@@ -266,6 +268,7 @@ export interface GuestMatchPosition {
 // Participating matches query에서 사용하는 match row 타입
 export interface ParticipatingMatchRow {
   id: string;
+  short_id: string;
   match_type: string;
   team_id: string | null;
   manual_team_name: string;

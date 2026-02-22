@@ -32,6 +32,7 @@ export type { MatchRule };
 export interface GuestMatchListItemDTO {
   // Match entity fields
   matchId: string;
+  publicId: string;
   dateISO: string; // "2026-02-14"
   startTime: string; // "19:00"
   endTime: string; // "21:00"

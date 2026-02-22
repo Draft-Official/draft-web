@@ -60,7 +60,7 @@ interface UseMatchCreateSubmitParams {
   matchSpec: MatchSpecState;
   facilities: FacilitiesState;
   currentUserId?: string;
-  onSuccessNavigate: (matchId?: string) => void;
+  onSuccessNavigate: (publicId?: string) => void;
 }
 
 function scrollToSection(sectionId: string) {
@@ -146,7 +146,7 @@ export function useMatchCreateSubmit({
       opsContactContent,
     });
 
-    const handleSuccess = async (match?: { id: string }) => {
+    const handleSuccess = async (match?: { id: string; short_id?: string | null }) => {
       if (data.operations?.saveAsDefault && currentUserId) {
         try {
           await saveMatchCreateDefaults({
@@ -168,7 +168,7 @@ export function useMatchCreateSubmit({
         }
       }
 
-      onSuccessNavigate(match?.id);
+      onSuccessNavigate(match?.short_id ?? match?.id);
     };
 
     const handleError = (error: unknown) => {

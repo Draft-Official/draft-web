@@ -206,10 +206,10 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
     } else {
       // host, guest는 matches로 통합
       if (viewMode === "host" || match.matchType === "host") {
-        router.push(`/matches/${match.id}/manage`);
+        router.push(`/matches/${match.publicId}/manage`);
       } else {
         // 참여 탭에서 들어가는 경우 from=schedule 파라미터 추가
-        router.push(`/matches/${match.id}?from=schedule`);
+        router.push(`/matches/${match.publicId}?from=schedule`);
       }
     }
   };

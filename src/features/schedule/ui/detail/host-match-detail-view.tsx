@@ -45,11 +45,12 @@ export function HostMatchDetailView() {
   const router = useRouter();
   const params = useParams();
   const idParam = params?.id;
-  const matchId = Array.isArray(idParam) ? (idParam[0] ?? '') : (idParam ?? '');
+  const matchIdentifier = Array.isArray(idParam) ? (idParam[0] ?? '') : (idParam ?? '');
 
   // React Query hooks
-  const { data: match, isLoading: isLoadingMatch } = useHostMatchDetail(matchId);
-  const { data: guests = [], isLoading: isLoadingGuests } = useMatchApplicants(matchId);
+  const { data: match, isLoading: isLoadingMatch } = useHostMatchDetail(matchIdentifier);
+  const internalMatchId = match?.id ?? '';
+  const { data: guests = [], isLoading: isLoadingGuests } = useMatchApplicants(internalMatchId);
 
   // Mutations
   const approveMutation = useApproveApplication();
@@ -71,7 +72,7 @@ export function HostMatchDetailView() {
   const [isAnnouncementOpen, setIsAnnouncementOpen] = useState(false);
   const [isMatchCancelOpen, setIsMatchCancelOpen] = useState(false);
 
-  const isLoading = isLoadingMatch || isLoadingGuests;
+  const isLoading = isLoadingMatch || (!!internalMatchId && isLoadingGuests);
 
   // Match status helpers (DB status + 시간 기반 파생)
   const matchStatus = match?.status;
@@ -107,31 +108,35 @@ export function HostMatchDetailView() {
 
   // Handlers
   const handleApprove = (guest: MatchApplicantDTO) => {
+    if (!internalMatchId) return;
     approveMutation.mutate(
-      { applicationId: guest.id, matchId },
+      { applicationId: guest.id, matchId: internalMatchId },
       { onSuccess: () => setIsGuestProfileOpen(false) }
     );
   };
 
   const handleConfirmPayment = (guest: MatchApplicantDTO) => {
+    if (!internalMatchId) return;
     confirmMutation.mutate(
-      { applicationId: guest.id, matchId },
+      { applicationId: guest.id, matchId: internalMatchId },
       { onSuccess: () => setIsGuestProfileOpen(false) }
     );
   };
 
   const handleReject = (guest: MatchApplicantDTO) => {
+    if (!internalMatchId) return;
     rejectMutation.mutate(
-      { applicationId: guest.id, matchId },
+      { applicationId: guest.id, matchId: internalMatchId },
       { onSuccess: () => setIsGuestProfileOpen(false) }
     );
   };
 
   const handleCancel = (guest: MatchApplicantDTO, cancelType?: CancelTypeValue) => {
+    if (!internalMatchId) return;
     cancelMutation.mutate(
       {
         applicationId: guest.id,
-        matchId,
+        matchId: internalMatchId,
         cancelOptions: cancelType ? { cancelType } : undefined,
       },
       { onSuccess: () => setIsGuestProfileOpen(false) }
@@ -149,11 +154,13 @@ export function HostMatchDetailView() {
   };
 
   const handleCloseRecruiting = () => {
-    statusMutation.mutate({ matchId, status: 'CLOSED' });
+    if (!internalMatchId) return;
+    statusMutation.mutate({ matchId: internalMatchId, status: 'CLOSED' });
   };
 
   const handleResumeRecruiting = () => {
-    statusMutation.mutate({ matchId, status: 'RECRUITING' });
+    if (!internalMatchId) return;
+    statusMutation.mutate({ matchId: internalMatchId, status: 'RECRUITING' });
   };
 
   // Loading state
@@ -198,7 +205,7 @@ export function HostMatchDetailView() {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-40">
-              <DropdownMenuItem onClick={() => router.push(`/matches/${match.id}`)}>
+              <DropdownMenuItem onClick={() => router.push(`/matches/${match.publicId}`)}>
                 상세페이지 보기
               </DropdownMenuItem>
               {!isEnded && (isClosed || isConfirmed) && (
@@ -219,7 +226,7 @@ export function HostMatchDetailView() {
                     if (confirmedCount === 0) {
                       if (confirm('경기를 취소하시겠습니까?')) {
                         statusMutation.mutate(
-                          { matchId, status: 'CANCELED' },
+                          { matchId: internalMatchId, status: 'CANCELED' },
                           { onSuccess: () => router.back() }
                         );
                       }
@@ -305,8 +312,9 @@ export function HostMatchDetailView() {
         onOpenChange={setIsEditQuotaOpen}
         match={match}
         onSave={(recruitmentSetup) => {
+          if (!internalMatchId) return;
           recruitmentMutation.mutate(
-            { matchId, recruitmentSetup },
+            { matchId: internalMatchId, recruitmentSetup },
             { onSuccess: () => setIsEditQuotaOpen(false) }
           );
         }}
@@ -316,7 +324,8 @@ export function HostMatchDetailView() {
         open={isAnnouncementOpen}
         onOpenChange={setIsAnnouncementOpen}
         onSubmit={(message) => {
-          announcementMutation.mutate({ matchId, message });
+          if (!internalMatchId) return;
+          announcementMutation.mutate({ matchId: internalMatchId, message });
         }}
       />
 
@@ -337,8 +346,9 @@ export function HostMatchDetailView() {
         onOpenChange={setIsMatchCancelOpen}
         confirmedGuests={guests.filter((g) => g.status === 'confirmed')}
         onConfirm={(message) => {
+          if (!internalMatchId) return;
           cancelMatchFlowMutation.mutate(
-            { matchId, message },
+            { matchId: internalMatchId, message },
             { onSuccess: () => router.back() }
           );
         }}

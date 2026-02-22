@@ -11,19 +11,25 @@ const HOST_NOTIFICATION_TYPES: ReadonlySet<NotificationTypeValue> = new Set([
   'GUEST_PAYMENT_CONFIRMED',
 ]);
 
-function resolveTargetPath(notification: NotificationEntity): string | null {
+function resolveTargetPath(
+  notification: NotificationEntity,
+  matchPublicId?: string
+): string | null {
   if (!notification.matchId) {
     return null;
   }
 
+  const pathId = matchPublicId ?? notification.matchId;
+
   return HOST_NOTIFICATION_TYPES.has(notification.type)
-    ? `/matches/${notification.matchId}/manage`
-    : `/matches/${notification.matchId}`;
+    ? `/matches/${pathId}/manage`
+    : `/matches/${pathId}`;
 }
 
 export function toNotificationListItemDTO(
   notification: NotificationEntity,
-  announcementMessage?: string
+  announcementMessage?: string,
+  matchPublicId?: string
 ): NotificationListItemDTO {
   const description = announcementMessage ?? NOTIFICATION_TYPE_DESCRIPTIONS[notification.type];
 
@@ -40,7 +46,7 @@ export function toNotificationListItemDTO(
     title: NOTIFICATION_TYPE_LABELS[notification.type],
     description,
     ...(announcementMessage ? { announcementMessage } : {}),
-    targetPath: resolveTargetPath(notification),
+    targetPath: resolveTargetPath(notification, matchPublicId),
   };
 }
 

@@ -61,7 +61,7 @@ export type Database = {
           cancel_reason: string | null
           cancel_type: Database["public"]["Enums"]["cancel_type"] | null
           canceled_by: string | null
-          confirmed_by: string | null
+          confirmed_at: string | null
           created_at: string | null
           description: string | null
           id: string
@@ -80,7 +80,7 @@ export type Database = {
           cancel_reason?: string | null
           cancel_type?: Database["public"]["Enums"]["cancel_type"] | null
           canceled_by?: string | null
-          confirmed_by?: string | null
+          confirmed_at?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
@@ -99,7 +99,7 @@ export type Database = {
           cancel_reason?: string | null
           cancel_type?: Database["public"]["Enums"]["cancel_type"] | null
           canceled_by?: string | null
-          confirmed_by?: string | null
+          confirmed_at?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
@@ -194,6 +194,7 @@ export type Database = {
           provides_beverage: boolean | null
           recruitment_setup: Json
           requirements: string[] | null
+          short_id: string
           start_time: string
           status: string | null
           team_id: string | null
@@ -218,6 +219,7 @@ export type Database = {
           provides_beverage?: boolean | null
           recruitment_setup?: Json
           requirements?: string[] | null
+          short_id?: string
           start_time: string
           status?: string | null
           team_id?: string | null
@@ -242,6 +244,7 @@ export type Database = {
           provides_beverage?: boolean | null
           recruitment_setup?: Json
           requirements?: string[] | null
+          short_id?: string
           start_time?: string
           status?: string | null
           team_id?: string | null
@@ -321,6 +324,44 @@ export type Database = {
           },
           {
             foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      phone_verifications: {
+        Row: {
+          code: string
+          created_at: string | null
+          expires_at: string
+          id: string
+          phone_number: string
+          user_id: string
+          verified: boolean | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          phone_number: string
+          user_id: string
+          verified?: boolean | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          phone_number?: string
+          user_id?: string
+          verified?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "phone_verifications_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
@@ -532,44 +573,6 @@ export type Database = {
         }
         Relationships: []
       }
-      phone_verifications: {
-        Row: {
-          id: string
-          user_id: string
-          phone_number: string
-          code: string
-          created_at: string
-          expires_at: string
-          verified: boolean
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          phone_number: string
-          code: string
-          created_at?: string
-          expires_at: string
-          verified?: boolean
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          phone_number?: string
-          code?: string
-          created_at?: string
-          expires_at?: string
-          verified?: boolean
-        }
-        Relationships: [
-          {
-            foreignKeyName: "phone_verifications_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       users: {
         Row: {
           account_info: Json | null
@@ -634,23 +637,16 @@ export type Database = {
           recruitment_setup: Json
         }[]
       }
-      confirm_application_with_count:
-        | {
-            Args: { p_application_id: string; p_positions?: string[] }
-            Returns: {
-              application_id: string
-              new_status: string
-              recruitment_setup: Json
-            }[]
-          }
-        | {
-            Args: {
-              p_application_id: string
-              p_confirmed_by?: string
-              p_positions?: string[]
-            }
-            Returns: undefined
-          }
+      confirm_application_with_count: {
+        Args: { p_application_id: string; p_positions?: string[] }
+        Returns: {
+          application_id: string
+          new_status: string
+          recruitment_setup: Json
+        }[]
+      }
+      finish_ended_matches: { Args: never; Returns: number }
+      gen_match_short_id: { Args: { p_len?: number }; Returns: string }
       increment_position_count: {
         Args: { p_delta?: number; p_match_id: string; p_position_key: string }
         Returns: Json

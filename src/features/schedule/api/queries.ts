@@ -114,6 +114,7 @@ export function useParticipatingMatches() {
           *,
           match:matches!match_id (
             id,
+            short_id,
             match_type,
             team_id,
             manual_team_name,
@@ -201,6 +202,7 @@ export function useParticipatingMatches() {
 
           return {
             id: match.id,
+            publicId: match.short_id || match.id,
             matchType,
             scheduleMode,
             type: matchType,
@@ -247,24 +249,24 @@ export function useParticipatingMatches() {
 
 /**
  * 호스트 경기 상세 조회
- * @param matchId 경기 ID
+ * @param matchIdentifier 경기 식별자(UUID 또는 short_id)
  * @returns HostMatchDetailDTO 형태로 변환된 경기 상세
  */
-export function useHostMatchDetail(matchId: string) {
+export function useHostMatchDetail(matchIdentifier: string) {
   return useQuery({
-    queryKey: matchManagementKeys.matchDetail(matchId),
+    queryKey: matchManagementKeys.matchDetail(matchIdentifier),
     queryFn: async (): Promise<HostMatchDetailDTO | null> => {
-      if (!matchId) return null;
+      if (!matchIdentifier) return null;
 
       const supabase = getSupabaseBrowserClient();
       const matchService = createMatchService(supabase);
 
-      const row = await matchService.getMatchDetail(matchId);
+      const row = await matchService.getMatchDetail(matchIdentifier);
 
       // DB Row -> HostMatchDetailDTO 변환
       return toHostMatchDetailDTO(row);
     },
-    enabled: !!matchId,
+    enabled: !!matchIdentifier,
   });
 }
 

@@ -43,7 +43,7 @@ export function useUpdateMatchStatus() {
         queryKey: matchManagementKeys.hostedMatches(user?.id ?? ''),
       });
       queryClient.invalidateQueries({
-        queryKey: matchManagementKeys.matchDetail(variables.matchId),
+        queryKey: matchManagementKeys.matchDetails(),
       });
       queryClient.invalidateQueries({
         queryKey: matchKeys.lists(),
@@ -90,9 +90,9 @@ export function useUpdateRecruitmentSetup() {
       if (error) throw error;
       return data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: matchManagementKeys.matchDetail(variables.matchId),
+        queryKey: matchManagementKeys.matchDetails(),
       });
       queryClient.invalidateQueries({ queryKey: matchKeys.lists() });
       toast.success('모집 인원이 수정되었습니다.');
@@ -169,7 +169,7 @@ export function useCancelMatchFlow() {
         queryKey: matchManagementKeys.all,
       });
       queryClient.invalidateQueries({
-        queryKey: matchManagementKeys.matchDetail(variables.matchId),
+        queryKey: matchManagementKeys.matchDetails(),
       });
       queryClient.invalidateQueries({
         queryKey: matchManagementKeys.applicants(variables.matchId),

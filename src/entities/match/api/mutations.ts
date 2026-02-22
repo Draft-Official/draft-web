@@ -6,12 +6,13 @@ import { toast } from '@/shared/ui/shadcn/sonner';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { createMatchService } from './match-service';
 import { matchKeys } from './keys';
+import type { MatchInsert, MatchUpdate } from '@/shared/types/database.types';
 
 export function useCreateMatch() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: Record<string, unknown>) => {
+    mutationFn: async (data: MatchInsert) => {
       const supabase = getSupabaseBrowserClient();
       const service = createMatchService(supabase);
       return service.createMatch(data);
@@ -30,7 +31,7 @@ export function useUpdateMatch() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Record<string, unknown> }) => {
+    mutationFn: async ({ id, data }: { id: string; data: MatchUpdate }) => {
       const supabase = getSupabaseBrowserClient();
       const service = createMatchService(supabase);
       return service.updateMatch(id, data);

@@ -14,7 +14,7 @@ import { Button } from '@/shared/ui/shadcn/button';
 interface ShareModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  matchId: string;
+  matchPublicId: string;
   matchTitle: string;
   matchDate: string;
   location: string;
@@ -23,13 +23,13 @@ interface ShareModalProps {
 export function ShareModal({
   open,
   onOpenChange,
-  matchId,
+  matchPublicId,
   matchTitle,
   matchDate,
   location,
 }: ShareModalProps) {
   const shareUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/matches/${matchId}`
+    ? `${window.location.origin}/matches/${matchPublicId}`
     : '';
 
   const handleCopyLink = async () => {

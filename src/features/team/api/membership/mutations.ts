@@ -54,6 +54,7 @@ export function useApproveJoin() {
   return useMutation({
     mutationFn: async ({
       membershipId,
+      teamId,
     }: {
       membershipId: string;
       teamId: string;

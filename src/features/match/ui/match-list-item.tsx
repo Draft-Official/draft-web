@@ -36,7 +36,7 @@ export const MatchListItem = React.memo(function MatchListItem({ match, applicat
   );
 
   const handleClick = () => {
-    router.push(`/matches/${match.matchId}`);
+    router.push(`/matches/${match.publicId}`);
   };
 
   return (
