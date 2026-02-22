@@ -7,18 +7,18 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/shared/ui/base/dialog';
-import { Button } from '@/shared/ui/base/button';
-import { Input } from '@/shared/ui/base/input';
-import { Label } from '@/shared/ui/base/label';
+} from '@/shared/ui/shadcn/dialog';
+import { Button } from '@/shared/ui/shadcn/button';
+import { Input } from '@/shared/ui/shadcn/input';
+import { Label } from '@/shared/ui/shadcn/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/shared/ui/base/select';
-import { Switch } from '@/shared/ui/base/switch';
+} from '@/shared/ui/shadcn/select';
+import { Switch } from '@/shared/ui/shadcn/switch';
 import { Checkbox } from '@/shared/ui/shadcn/checkbox';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/shared/ui/shadcn/accordion';
 import { cn } from '@/shared/lib/utils';
@@ -100,9 +100,6 @@ export function ApplyModal({
     setCompanions(companions.map((c, i) => (i === index ? { ...c, [field]: value } : c)));
   };
 
-  const totalCount = 1 + (hasCompanions ? companions.length : 0);
-  const totalCost = (costAmount || 0) * totalCount;
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -134,7 +131,7 @@ export function ApplyModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[420px] max-h-[95vh] overflow-y-auto p-6 scrollbar-hide [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      <DialogContent size="xl" className="max-h-[95vh] overflow-y-auto p-6 scrollbar-hide [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-slate-900 mb-1">
             경기 신청
@@ -149,7 +146,7 @@ export function ApplyModal({
         <form onSubmit={handleSubmit} className="space-y-5 mt-4">
           {/* 참가비 표시 */}
           {costAmount !== undefined && (
-            <div className="bg-orange-50 rounded-xl p-4">
+            <div className="bg-brand-weak rounded-xl p-4">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-slate-600">참가비</span>
                 <span className="text-lg font-bold text-primary">
@@ -385,7 +382,7 @@ export function ApplyModal({
                         value={companion.skillLevel}
                         onValueChange={(value) => updateCompanion(index, 'skillLevel', value)}
                       >
-                        <SelectTrigger className="h-10 bg-white border-slate-300">
+                        <SelectTrigger className="h-10 bg-white border-border">
                           <SelectValue placeholder="실력 선택" />
                         </SelectTrigger>
                         <SelectContent>
@@ -422,7 +419,7 @@ export function ApplyModal({
               value={formData.teamId || 'none'}
               onValueChange={(value) => setFormData({ ...formData, teamId: value === 'none' ? '' : value })}
             >
-              <SelectTrigger className="h-12 bg-white border-slate-300">
+              <SelectTrigger className="h-12 bg-white border-border">
                 <SelectValue placeholder="팀 없음" />
               </SelectTrigger>
               <SelectContent>
@@ -446,7 +443,7 @@ export function ApplyModal({
                 <AccordionContent className="px-4 pb-4">
                   <ul className="space-y-3 text-sm text-slate-700">
                     <li>
-                      <strong>입금 확인 주의:</strong> '입금 완료' 버튼을 누르면 자동 확정 처리됩니다. <span className="text-red-600">실제 입금 없이 허위로 버튼을 누를 경우</span>, 즉시 계정이 영구 정지되며 형법상 사기죄 및 업무방해죄로 형사 고소될 수 있습니다.
+                      <strong>입금 확인 주의:</strong> &apos;입금 완료&apos; 버튼을 누르면 자동 확정 처리됩니다. <span className="text-red-600">실제 입금 없이 허위로 버튼을 누를 경우</span>, 즉시 계정이 영구 정지되며 형법상 사기죄 및 업무방해죄로 형사 고소될 수 있습니다.
                     </li>
                     <li>
                       <strong>매너 준수:</strong> 당일 노쇼(No-Show), 폭언, 비매너 플레이 적발 시 서비스 이용이 제한됩니다.

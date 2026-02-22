@@ -1,7 +1,7 @@
 'use client';
 
-import { Card } from '@/shared/ui/base/card';
-import { Switch } from '@/shared/ui/base/switch';
+import { Card } from '@/shared/ui/shadcn/card';
+import { Switch } from '@/shared/ui/shadcn/switch';
 import { useAuth } from '@/shared/session';
 import { useUserSettings, useUpdateNotificationSetting } from '@/features/my';
 import type { MyNotificationSettingField } from '../model/types';

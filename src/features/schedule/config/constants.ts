@@ -50,7 +50,7 @@ export const MATCH_TYPE_LABELS: Record<MatchType, string> = {
 // 경기 타입별 색상 (Tailwind classes)
 export const MATCH_TYPE_COLORS: Record<MatchType, string> = {
   guest: 'bg-blue-500/10 text-blue-700 border-blue-500/20',
-  host: 'bg-orange-500/10 text-primary border-orange-500/20',
+  host: 'bg-draft-500/10 text-primary border-draft-500/20',
   team: 'bg-green-500/10 text-green-700 border-green-500/20',
   tournament: 'bg-purple-500/10 text-purple-700 border-purple-500/20',
 };
@@ -76,7 +76,7 @@ export const MATCH_STATUS_LABELS: Record<MatchStatus, string> = {
 export const MATCH_STATUS_COLORS: Record<MatchStatus, string> = {
   recruiting: 'bg-blue-100 text-blue-700 border-blue-200',
   waiting: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-  payment_waiting: 'bg-orange-100 text-orange-700 border-orange-200',
+  payment_waiting: 'bg-brand-weak-pressed text-brand-contrast border-brand-stroke-weak',
   voting: 'bg-blue-100 text-blue-700 border-blue-200',
   confirmed: 'bg-green-100 text-green-700 border-green-200',
   ongoing: 'bg-emerald-100 text-emerald-700 border-emerald-200',

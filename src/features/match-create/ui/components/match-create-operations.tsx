@@ -2,16 +2,20 @@
 
 import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
-import { Input } from '@/shared/ui/base/input';
-import { Label } from '@/shared/ui/base/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/base/select';
-import { Switch } from '@/shared/ui/base/switch';
-import { Textarea } from '@/shared/ui/base/textarea';
-import { BankCombobox } from '@/shared/ui/base/bank-combobox';
+import { Input } from '@/shared/ui/shadcn/input';
+import { Label } from '@/shared/ui/shadcn/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/shadcn/select';
+import { Switch } from '@/shared/ui/shadcn/switch';
+import { Textarea } from '@/shared/ui/shadcn/textarea';
+import { BankCombobox } from '@/shared/ui/composite/bank-combobox';
 import { FileText, MessageCircle, Phone, UserPlus } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import type { AccountInfo, OperationInfo } from '@/shared/types/jsonb.types';
 import type { MatchCreateTeamOptionDTO, MatchCreateUserDTO } from '@/features/match-create/model/types';
+import {
+  sanitizeAccountHolderInput,
+  sanitizeAccountNumberInput,
+} from '@/shared/lib/validation/account';
 
 // Helper to safely cast JSONB to specific type
 const getAccountInfo = (info: MatchCreateUserDTO['accountInfo'] | MatchCreateTeamOptionDTO['accountInfo']): Partial<AccountInfo> => info ?? {};
@@ -175,7 +179,7 @@ export function MatchCreateOperations({
   ]);
 
   return (
-    <section className="bg-white px-5 py-6 space-y-6 rounded-xl border border-slate-200">
+    <section className="bg-white px-5 py-6 space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="font-bold text-slate-900 flex items-center gap-2">
           <FileText className="w-5 h-5 text-slate-400" />
@@ -213,7 +217,7 @@ export function MatchCreateOperations({
           value={selectedHost} 
           onValueChange={handleHostChange}
         >
-          <SelectTrigger className="h-12 bg-white border-slate-200">
+          <SelectTrigger className="h-12 bg-white border-border">
             <SelectValue placeholder="주최자를 선택해주세요" />
           </SelectTrigger>
           <SelectContent>
@@ -261,9 +265,7 @@ export function MatchCreateOperations({
               placeholder="예금주"
               className="w-[90px] h-11 bg-white border-slate-200"
               onChange={(e) => {
-                // 한글 자음/모음/완성형 허용 (2-10자)
-                const value = e.target.value.replace(/[^ㄱ-ㅎㅏ-ㅣ가-힣]/g, '').slice(0, 10);
-                setValue('accountHolder', value);
+                setValue('accountHolder', sanitizeAccountHolderInput(e.target.value));
               }}
             />
             <BankCombobox
@@ -277,9 +279,7 @@ export function MatchCreateOperations({
               className="flex-1 h-11 bg-white border-slate-200"
               inputMode="numeric"
               onChange={(e) => {
-                // 숫자만 허용 (10-16자리)
-                const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 16);
-                setValue('accountNumber', value);
+                setValue('accountNumber', sanitizeAccountNumberInput(e.target.value));
               }}
             />
           </div>
@@ -299,7 +299,7 @@ export function MatchCreateOperations({
             </div>
             {/* Toggle: 전화번호 / 오픈채팅 */}
             <div className="flex items-center gap-2">
-              <span className={`text-xs font-bold ${contactType === 'PHONE' ? 'text-[#FF6600]' : 'text-slate-400'}`}>
+              <span className={`text-xs font-bold ${contactType === 'PHONE' ? 'text-primary' : 'text-slate-400'}`}>
                 <Phone className="w-3 h-3 inline mr-0.5" />
                 전화
               </span>
@@ -309,9 +309,9 @@ export function MatchCreateOperations({
                   setValue('operations.contactType', checked ? 'KAKAO_OPEN_CHAT' : 'PHONE');
                   // Value persistence: Do not reset content
                 }}
-                className="data-[state=checked]:bg-[#FF6600] data-[state=unchecked]:bg-slate-200"
+                className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-slate-200"
               />
-              <span className={`text-xs font-bold ${contactType === 'KAKAO_OPEN_CHAT' ? 'text-[#FF6600]' : 'text-slate-400'}`}>
+              <span className={`text-xs font-bold ${contactType === 'KAKAO_OPEN_CHAT' ? 'text-primary' : 'text-slate-400'}`}>
                 <MessageCircle className="w-3 h-3 inline mr-0.5" />
                 오픈채팅
               </span>
@@ -329,7 +329,7 @@ export function MatchCreateOperations({
                 {...register('phoneNumber')}
                 placeholder="010-1234-5678"
                 inputMode="tel"
-                className="pl-9 h-11 bg-white border-slate-200 text-sm focus-visible:ring-1 focus-visible:ring-[#FF6600] focus-visible:border-[#FF6600]"
+                className="pl-9 h-11 bg-white border-slate-200 text-sm focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary"
                 onChange={(e) => {
                   // 전화번호 자동 포맷팅 (숫자만 추출 후 하이픈 추가)
                   const digits = e.target.value.replace(/[^0-9]/g, '').slice(0, 11);
@@ -346,7 +346,7 @@ export function MatchCreateOperations({
               <Input
                 {...register('kakaoLink')}
                 placeholder="오픈채팅 링크"
-                className="pl-9 h-11 bg-white border-slate-200 text-sm focus-visible:ring-1 focus-visible:ring-[#FF6600] focus-visible:border-[#FF6600]"
+                className="pl-9 h-11 bg-white border-slate-200 text-sm focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary"
               />
             )}
           </div>
@@ -374,7 +374,7 @@ export function MatchCreateOperations({
           <input
             type="checkbox"
             {...register('operations.saveAsDefault')}
-            className="w-5 h-5 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
+            className="w-5 h-5 text-draft-500 border-gray-300 rounded focus:ring-draft-500"
           />
           <span className="text-sm text-slate-700">
             위 정보들을 내 기본정보로 저장하시겠습니까?

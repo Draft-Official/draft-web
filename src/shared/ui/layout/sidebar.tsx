@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, Users, Calendar, User } from 'lucide-react';
-import { Button } from '@/shared/ui/base/button';
+import { Button } from '@/shared/ui/shadcn/button';
 import { cn } from '@/shared/lib/utils';
 import type { ReactNode } from 'react';
 
@@ -56,7 +56,7 @@ export function Sidebar({ notificationSlot }: SidebarProps) {
         <div className="mt-auto px-6 pb-6">
           <Link href="/matches/create" className="block w-full">
             <Button
-              className="w-full h-14 rounded-full bg-[#FF6600] hover:bg-[#FF6600]/90 text-white text-lg font-bold shadow-lg shadow-orange-200"
+              className="w-full h-14 rounded-full bg-primary hover:bg-primary/90 text-white text-lg font-bold shadow-lg shadow-draft-200"
             >
               경기 개설하기
             </Button>

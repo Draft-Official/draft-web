@@ -128,14 +128,6 @@ export function TeamHomeTab({ team, homeGymName, memberCount }: TeamHomeTabProps
           ))}
         </div>
       </section>
-
-      {/* 최근 전적 섹션 (Placeholder) */}
-      <section className="px-5 py-6 border-t border-slate-100">
-        <h2 className="text-lg font-bold text-slate-900 mb-4">최근 전적</h2>
-        <div className="flex items-center justify-center py-8 text-slate-400 text-sm">
-          전적 정보가 없습니다
-        </div>
-      </section>
     </div>
   );
 }

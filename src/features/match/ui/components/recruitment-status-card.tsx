@@ -7,7 +7,6 @@ interface RecruitmentStatusCardProps {
   current?: number;
   max: number;
   onClick: () => void;
-  bgVariant?: 'default' | 'orange'; // default used for Guard in legacy code, but we will prefer orange
 }
 
 export function RecruitmentStatusCard({
@@ -17,13 +16,12 @@ export function RecruitmentStatusCard({
   current = 0,
   max,
   onClick,
-  bgVariant = 'orange' // Defaulting to orange style for consistency
 }: RecruitmentStatusCardProps) {
   const isOpen = status === 'open';
 
   // Styles
   const containerClass = isOpen
-    ? "bg-orange-50/30 border-orange-200"
+    ? "bg-brand-weak/30 border-brand-stroke-weak"
     : "bg-slate-50 border-slate-200";
     
   // Override for 'default' variant if needed (e.g. strict legacy match), 
@@ -31,14 +29,14 @@ export function RecruitmentStatusCard({
   // If isOpen is true, use orange tinted. If closed, use slate.
 
   const badgeClass = isOpen
-    ? "bg-[#FF6600]"
+    ? "bg-primary"
     : "bg-slate-300";
 
   const textClass = isOpen ? "text-slate-900" : "text-slate-400";
   const countClass = isOpen ? "text-slate-600" : "text-slate-400";
 
   const buttonClass = isOpen
-    ? "bg-[#FF6600] text-white hover:bg-[#FF6600]/90 active:scale-95 cursor-pointer"
+    ? "bg-primary text-white hover:bg-primary/90 active:scale-95 cursor-pointer"
     : "bg-slate-200 text-slate-400 cursor-not-allowed";
 
   // Position Display Code (e.g., 'G', 'F')

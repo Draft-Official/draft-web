@@ -9,7 +9,6 @@ import {
   Calendar as CalendarIcon,
   Clock,
   Shield,
-  Loader2,
   Megaphone,
 } from 'lucide-react';
 import {
@@ -17,7 +16,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/shared/ui/base/dropdown-menu';
+} from '@/shared/ui/shadcn/dropdown-menu';
 import type { CancelTypeValue } from "@/src/shared/config/application-constants";
 import type { MatchApplicantDTO, GuestStatus } from '../../model/types';
 import {
@@ -40,16 +39,18 @@ import { MatchCancelDialog } from './match-cancel-dialog';
 import { RecruitmentStatusSection } from './recruitment-status-section';
 import { GuestListSection } from './guest-list-section';
 import { MatchActionButton } from './match-action-button';
+import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 export function HostMatchDetailView() {
   const router = useRouter();
   const params = useParams();
   const idParam = params?.id;
-  const matchId = Array.isArray(idParam) ? (idParam[0] ?? '') : (idParam ?? '');
+  const matchIdentifier = Array.isArray(idParam) ? (idParam[0] ?? '') : (idParam ?? '');
 
   // React Query hooks
-  const { data: match, isLoading: isLoadingMatch } = useHostMatchDetail(matchId);
-  const { data: guests = [], isLoading: isLoadingGuests } = useMatchApplicants(matchId);
+  const { data: match, isLoading: isLoadingMatch } = useHostMatchDetail(matchIdentifier);
+  const internalMatchId = match?.id ?? '';
+  const { data: guests = [], isLoading: isLoadingGuests } = useMatchApplicants(internalMatchId);
 
   // Mutations
   const approveMutation = useApproveApplication();
@@ -71,7 +72,7 @@ export function HostMatchDetailView() {
   const [isAnnouncementOpen, setIsAnnouncementOpen] = useState(false);
   const [isMatchCancelOpen, setIsMatchCancelOpen] = useState(false);
 
-  const isLoading = isLoadingMatch || isLoadingGuests;
+  const isLoading = isLoadingMatch || (!!internalMatchId && isLoadingGuests);
 
   // Match status helpers (DB status + 시간 기반 파생)
   const matchStatus = match?.status;
@@ -107,31 +108,35 @@ export function HostMatchDetailView() {
 
   // Handlers
   const handleApprove = (guest: MatchApplicantDTO) => {
+    if (!internalMatchId) return;
     approveMutation.mutate(
-      { applicationId: guest.id, matchId },
+      { applicationId: guest.id, matchId: internalMatchId },
       { onSuccess: () => setIsGuestProfileOpen(false) }
     );
   };
 
   const handleConfirmPayment = (guest: MatchApplicantDTO) => {
+    if (!internalMatchId) return;
     confirmMutation.mutate(
-      { applicationId: guest.id, matchId },
+      { applicationId: guest.id, matchId: internalMatchId },
       { onSuccess: () => setIsGuestProfileOpen(false) }
     );
   };
 
   const handleReject = (guest: MatchApplicantDTO) => {
+    if (!internalMatchId) return;
     rejectMutation.mutate(
-      { applicationId: guest.id, matchId },
+      { applicationId: guest.id, matchId: internalMatchId },
       { onSuccess: () => setIsGuestProfileOpen(false) }
     );
   };
 
   const handleCancel = (guest: MatchApplicantDTO, cancelType?: CancelTypeValue) => {
+    if (!internalMatchId) return;
     cancelMutation.mutate(
       {
         applicationId: guest.id,
-        matchId,
+        matchId: internalMatchId,
         cancelOptions: cancelType ? { cancelType } : undefined,
       },
       { onSuccess: () => setIsGuestProfileOpen(false) }
@@ -149,11 +154,13 @@ export function HostMatchDetailView() {
   };
 
   const handleCloseRecruiting = () => {
-    statusMutation.mutate({ matchId, status: 'CLOSED' });
+    if (!internalMatchId) return;
+    statusMutation.mutate({ matchId: internalMatchId, status: 'CLOSED' });
   };
 
   const handleResumeRecruiting = () => {
-    statusMutation.mutate({ matchId, status: 'RECRUITING' });
+    if (!internalMatchId) return;
+    statusMutation.mutate({ matchId: internalMatchId, status: 'RECRUITING' });
   };
 
   // Loading state
@@ -161,7 +168,7 @@ export function HostMatchDetailView() {
     return (
       <div className="bg-slate-50 min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-8 h-8 text-slate-400 animate-spin" />
+          <Spinner className="w-8 h-8 text-muted-foreground " />
           <p className="text-slate-500">경기 정보를 불러오는 중...</p>
         </div>
       </div>
@@ -198,7 +205,7 @@ export function HostMatchDetailView() {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-40">
-              <DropdownMenuItem onClick={() => router.push(`/matches/${match.id}`)}>
+              <DropdownMenuItem onClick={() => router.push(`/matches/${match.publicId}`)}>
                 상세페이지 보기
               </DropdownMenuItem>
               {!isEnded && (isClosed || isConfirmed) && (
@@ -219,7 +226,7 @@ export function HostMatchDetailView() {
                     if (confirmedCount === 0) {
                       if (confirm('경기를 취소하시겠습니까?')) {
                         statusMutation.mutate(
-                          { matchId, status: 'CANCELED' },
+                          { matchId: internalMatchId, status: 'CANCELED' },
                           { onSuccess: () => router.back() }
                         );
                       }
@@ -236,13 +243,13 @@ export function HostMatchDetailView() {
         </div>
       </header>
 
-      <div className="max-w-[760px] mx-auto p-4 space-y-4">
+      <div className="app-content-container p-4 space-y-4">
         {/* 경기 기본 정보 */}
         <section className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 space-y-3">
           <div className="flex items-center gap-2 text-xl font-bold text-slate-900">
-            <CalendarIcon className="w-5 h-5 text-slate-400" />
+            <CalendarIcon className="w-5 h-5 text-muted-foreground" />
             <span>{match.date}</span>
-            <Clock className="w-5 h-5 text-slate-400 ml-2" />
+            <Clock className="w-5 h-5 text-muted-foreground ml-2" />
             <span>{match.time}</span>
           </div>
 
@@ -250,14 +257,14 @@ export function HostMatchDetailView() {
             href={match.locationUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 text-slate-700 hover:text-primary transition-colors"
+            className="flex items-center gap-2 text-slate-700 hover:text-muted-foreground transition-colors"
           >
-            <MapPin className="w-5 h-5 text-slate-400" />
+            <MapPin className="w-5 h-5 text-muted-foreground" />
             <span className="font-medium">{match.location}</span>
           </a>
 
           <div className="flex items-center gap-2 text-slate-700">
-            <Shield className="w-5 h-5 text-slate-400" />
+            <Shield className="w-5 h-5 text-muted-foreground" />
             <span className="font-medium">{match.teamName}</span>
           </div>
         </section>
@@ -305,8 +312,9 @@ export function HostMatchDetailView() {
         onOpenChange={setIsEditQuotaOpen}
         match={match}
         onSave={(recruitmentSetup) => {
+          if (!internalMatchId) return;
           recruitmentMutation.mutate(
-            { matchId, recruitmentSetup },
+            { matchId: internalMatchId, recruitmentSetup },
             { onSuccess: () => setIsEditQuotaOpen(false) }
           );
         }}
@@ -316,7 +324,8 @@ export function HostMatchDetailView() {
         open={isAnnouncementOpen}
         onOpenChange={setIsAnnouncementOpen}
         onSubmit={(message) => {
-          announcementMutation.mutate({ matchId, message });
+          if (!internalMatchId) return;
+          announcementMutation.mutate({ matchId: internalMatchId, message });
         }}
       />
 
@@ -337,8 +346,9 @@ export function HostMatchDetailView() {
         onOpenChange={setIsMatchCancelOpen}
         confirmedGuests={guests.filter((g) => g.status === 'confirmed')}
         onConfirm={(message) => {
+          if (!internalMatchId) return;
           cancelMatchFlowMutation.mutate(
-            { matchId, message },
+            { matchId: internalMatchId, message },
             { onSuccess: () => router.back() }
           );
         }}

@@ -15,22 +15,22 @@ import {
   X,
   FileText,
 } from 'lucide-react';
-import { Button } from '@/shared/ui/base/button';
-import { Textarea } from '@/shared/ui/base/textarea';
+import { Button } from '@/shared/ui/shadcn/button';
+import { Textarea } from '@/shared/ui/shadcn/textarea';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/shared/ui/base/dropdown-menu';
+} from '@/shared/ui/shadcn/dropdown-menu';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/shared/ui/base/dialog';
-import { toast } from 'sonner';
+} from '@/shared/ui/shadcn/dialog';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import type { TeamExerciseManageDetailDTO, Participant } from '../../model/types';
 import { MOCK_TEAM_EXERCISE_MANAGE } from '../../model/mock-data';
 
@@ -95,7 +95,7 @@ export function TeamExerciseManageView() {
         </DropdownMenu>
       </header>
 
-      <div className="max-w-[760px] mx-auto p-4 space-y-4">
+      <div className="app-content-container p-4 space-y-4">
         {/* 경기 기본 정보 */}
         <section className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 space-y-3">
           <div className="flex items-center gap-2 text-xl font-bold text-slate-900">
@@ -134,7 +134,7 @@ export function TeamExerciseManageView() {
                 onClick={handleAddParticipant}
                 variant="outline"
                 size="sm"
-                className="h-8 px-3 text-xs font-bold border-primary text-primary hover:bg-orange-50"
+                className="h-8 px-3 text-xs font-bold border-primary text-primary hover:bg-brand-weak"
               >
                 <UserPlus className="w-3.5 h-3.5 mr-1" />
                 추가
@@ -213,8 +213,8 @@ export function TeamExerciseManageView() {
       </div>
 
       {/* Fixed Bottom Button */}
-      <div className="fixed bottom-0 left-0 right-0 md:left-[240px] bg-white border-t border-slate-100 p-4 z-50">
-        <div className="max-w-[760px] mx-auto">
+      <div className="app-overlay-shell app-overlay-shell--with-sidebar bg-white border-t border-slate-100 p-4 z-50">
+        <div className="app-overlay-content">
           <Button
             onClick={handleSave}
             className="w-full bg-primary hover:bg-primary/90 text-white h-14 rounded-xl font-bold"
@@ -226,7 +226,7 @@ export function TeamExerciseManageView() {
 
       {/* Cancel Confirmation Dialog */}
       <Dialog open={isCancelConfirmOpen} onOpenChange={setIsCancelConfirmOpen}>
-        <DialogContent className="max-w-sm mx-4 rounded-2xl p-6">
+        <DialogContent size="base" className="rounded-2xl p-6">
           <DialogHeader>
             <DialogTitle>참여 취소</DialogTitle>
             <DialogDescription className="pt-2">

@@ -58,7 +58,7 @@ function toTeamName(match: MatchEntity, team: TeamEntity | null | undefined): st
 
 export function toTeamInfoDTO(
   team: TeamEntity,
-  extras?: { homeGymName?: string | null }
+  extras?: { homeGymName?: string | null; homeGymAddress?: string | null }
 ): TeamInfoDTO {
   return {
     id: team.id,
@@ -72,6 +72,7 @@ export function toTeamInfoDTO(
     regionDisplay: formatTeamRegion(team.regionDepth1, team.regionDepth2),
     homeGymId: team.homeGymId,
     homeGymName: extras?.homeGymName ?? null,
+    homeGymAddress: extras?.homeGymAddress ?? null,
     regularDay: team.regularDay,
     regularStartTime: team.regularStartTime,
     regularEndTime: team.regularEndTime,
@@ -200,7 +201,7 @@ export function toTeamMatchDetailDTO(
     operationInfo: match.operationInfo,
     accountInfo: match.accountInfo,
     facilities: extras?.gym?.facilities ?? null,
-    isVotingClosed: match.status === 'CLOSED',
+    isVotingClosed: match.status === 'CLOSED' || new Date(match.startTime) < new Date(),
   };
 }
 

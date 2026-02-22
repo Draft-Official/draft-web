@@ -13,21 +13,21 @@ import {
   FileText,
   Shield,
 } from 'lucide-react';
-import { Button } from '@/shared/ui/base/button';
+import { Button } from '@/shared/ui/shadcn/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/shared/ui/base/dropdown-menu';
+} from '@/shared/ui/shadcn/dropdown-menu';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/shared/ui/base/dialog';
-import { toast } from 'sonner';
+} from '@/shared/ui/shadcn/dialog';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import type { Participant, TournamentDetailDTO } from '../../model/types';
 import { MOCK_TOURNAMENT_DETAIL } from '../../model/mock-data';
 
@@ -90,7 +90,7 @@ export function TournamentDetailView() {
         </DropdownMenu>
       </header>
 
-      <div className="max-w-[760px] mx-auto p-4 space-y-4">
+      <div className="app-content-container p-4 space-y-4">
         {/* 대회 정보 */}
         <section className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 space-y-3">
           <div className="flex items-center gap-2 mb-4">
@@ -170,7 +170,7 @@ export function TournamentDetailView() {
             <FileText className="w-5 h-5 text-primary" />
             <h2 className="font-bold text-lg text-slate-900">전술</h2>
           </div>
-          <div className="bg-orange-50 border border-orange-100 rounded-xl p-4">
+          <div className="bg-brand-weak border border-brand-stroke-weak rounded-xl p-4">
             <p className="text-slate-700 whitespace-pre-wrap leading-relaxed">
               {tournament.tactics}
             </p>
@@ -180,7 +180,7 @@ export function TournamentDetailView() {
 
       {/* 참여자 프로필 Dialog */}
       <Dialog open={isProfileOpen} onOpenChange={setIsProfileOpen}>
-        <DialogContent className="max-w-sm mx-4 rounded-2xl p-6">
+        <DialogContent size="base" className="rounded-2xl p-6">
           {selectedParticipant && (
             <div className="flex flex-col items-center space-y-6 pt-2">
               <div className="w-20 h-20 rounded-full bg-slate-200 flex items-center justify-center">
@@ -227,7 +227,7 @@ export function TournamentDetailView() {
 
       {/* 참여 취소 확인 Dialog */}
       <Dialog open={isCancelConfirmOpen} onOpenChange={setIsCancelConfirmOpen}>
-        <DialogContent className="max-w-sm mx-4 rounded-2xl p-6">
+        <DialogContent size="base" className="rounded-2xl p-6">
           <DialogHeader>
             <DialogTitle>참여 취소 확인</DialogTitle>
             <DialogDescription className="text-slate-600 pt-2">
@@ -254,8 +254,8 @@ export function TournamentDetailView() {
       </Dialog>
 
       {/* 하단 고정 버튼 */}
-      <div className="fixed bottom-0 left-0 right-0 md:left-[240px] bg-white border-t border-slate-100 p-4 z-50">
-        <div className="max-w-[760px] mx-auto">
+      <div className="app-overlay-shell app-overlay-shell--with-sidebar bg-white border-t border-slate-100 p-4 z-50">
+        <div className="app-overlay-content">
           <Button
             onClick={() => setIsCancelConfirmOpen(true)}
             className="w-full bg-red-100 hover:bg-red-200 text-red-600 border border-red-200 h-14 rounded-xl font-bold"

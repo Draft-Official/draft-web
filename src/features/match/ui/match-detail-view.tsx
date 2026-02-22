@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Share2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import { HeroSection } from './components/detail/hero-section';
 import { AnnouncementSection } from './components/detail/announcement-section';
 import { RecruitmentStatus } from './components/detail/recruitment-status';
@@ -165,7 +165,7 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
   };
 
   return (
-    <div className="min-h-screen bg-white relative pb-[100px] max-w-[760px] mx-auto shadow-2xl shadow-slate-200">
+    <div className="min-h-screen bg-background relative pb-[100px] app-content-container">
       
       {/* 1. Header (Sticky) */}
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-100 h-[52px] flex items-center justify-between px-2">
@@ -239,7 +239,7 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
         statusText={getStatusText()}
         isMatchEnded={isMatchEnded}
         isHost={isHost}
-        onManage={() => router.push(`/matches/${match.id}/manage`)}
+        onManage={() => router.push(`/matches/${match.publicId}/manage`)}
       />
 
       {/* 4. Apply Modal */}
@@ -255,7 +255,7 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
       <ShareModal
         open={isShareModalOpen}
         onOpenChange={setIsShareModalOpen}
-        matchId={match.id}
+        matchPublicId={match.publicId}
         matchTitle={match.title}
         matchDate={(() => {
           const d = new Date(match.dateISO);

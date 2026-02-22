@@ -11,7 +11,7 @@ interface MatchInfoCardProps {
 }
 
 const colorStyles: Record<InfoColor, { bg: string; iconBg: string; iconColor: string }> = {
-  orange: { bg: 'bg-orange-50', iconBg: 'bg-white', iconColor: 'text-[#FF6600]' },
+  orange: { bg: 'bg-brand-weak', iconBg: 'bg-white', iconColor: 'text-primary' },
   blue:   { bg: 'bg-blue-50',   iconBg: 'bg-white', iconColor: 'text-blue-500' },
   red:    { bg: 'bg-red-50',    iconBg: 'bg-white', iconColor: 'text-red-500' },
   green:  { bg: 'bg-green-50',  iconBg: 'bg-white', iconColor: 'text-green-600' },

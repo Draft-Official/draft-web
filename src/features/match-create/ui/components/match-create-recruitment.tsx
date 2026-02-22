@@ -1,7 +1,7 @@
 'use client';
 
-import { Checkbox } from '@/shared/ui/base/checkbox';
-import { Switch } from '@/shared/ui/base/switch';
+import { Checkbox } from '@/shared/ui/shadcn/checkbox';
+import { Switch } from '@/shared/ui/shadcn/switch';
 import { cn } from '@/shared/lib/utils';
 import { Minus, Plus, Users } from 'lucide-react';
 
@@ -61,20 +61,20 @@ export function MatchCreateRecruitment({
   totalCount, updateTotalCount
 }: MatchCreateRecruitmentProps) {
   return (
-    <section className="bg-white px-5 py-6 space-y-6 rounded-xl border border-slate-200">
+    <section className="bg-white px-5 py-6 space-y-6">
         <div className="flex items-center justify-between">
             <h2 className="font-bold text-slate-900 flex items-center gap-2">
                 <Users className="w-5 h-5 text-slate-400" />
                 모집 인원
             </h2>
             <div className="flex items-center gap-2">
-                <span className={cn("text-xs font-bold", !isPositionMode ? "text-[#FF6600]" : "text-slate-400")}>포지션 무관</span>
+                <span className={cn("text-xs font-bold", !isPositionMode ? "text-primary" : "text-slate-400")}>포지션 무관</span>
                 <Switch 
                     checked={isPositionMode} 
                     onCheckedChange={setIsPositionMode} 
-                    className="data-[state=checked]:bg-[#FF6600] data-[state=unchecked]:bg-slate-200" 
+                    className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-slate-200" 
                 />
-                <span className={cn("text-xs font-bold", isPositionMode ? "text-[#FF6600]" : "text-slate-400")}>포지션별</span>
+                <span className={cn("text-xs font-bold", isPositionMode ? "text-primary" : "text-slate-400")}>포지션별</span>
             </div>
         </div>
 

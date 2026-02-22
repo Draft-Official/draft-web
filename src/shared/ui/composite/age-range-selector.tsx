@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Chip } from '@/shared/ui/base/chip';
+import { Toggle } from '@/shared/ui/shadcn/toggle';
 import { AGE_OPTIONS } from '@/shared/config/match-constants';
 
 interface AgeRangeSelectorProps {
@@ -64,32 +64,32 @@ export function AgeRangeSelector({ selectedAges, onSelect, onRangeUpdate }: AgeR
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <Chip
-        label="무관"
-        variant="navy"
-        isActive={selectedAges.includes('any')}
-        showCheckIcon={false}
-        onClick={() => onSelect('any')}
-        className="flex-shrink-0"
-      />
+      <Toggle
+        variant="outline"
+        pressed={selectedAges.includes('any')}
+        onPressedChange={() => onSelect('any')}
+        className="h-9 rounded-lg px-4 text-sm font-medium shrink-0"
+      >
+        무관
+      </Toggle>
 
-      <div className="h-4 w-px bg-slate-200 mx-1" />
+      <div className="mx-1 h-4 w-px bg-border" />
 
       <div className="flex flex-wrap gap-2">
         {AGE_OPTIONS.map((age) => (
-          <Chip
+          <Toggle
             key={age.value}
-            label={age.label}
-            variant="navy"
-            isActive={selectedAges.includes(age.value)}
-            showCheckIcon={false}
-            onClick={() => {
+            variant="outline"
+            pressed={selectedAges.includes(age.value)}
+            onPressedChange={() => {
               if (!hasDraggedRef.current) onSelect(age.value);
             }}
             onPointerDown={() => onDragStart(age.value)}
             onPointerEnter={() => onDragEnter(age.value)}
-            className="touch-pan-y select-none"
-          />
+            className="h-9 rounded-lg px-4 text-sm font-medium touch-pan-y select-none"
+          >
+            {age.label}
+          </Toggle>
         ))}
       </div>
     </div>

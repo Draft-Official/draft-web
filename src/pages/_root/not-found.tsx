@@ -13,7 +13,7 @@ export default function NotFound() {
         </p>
         <Link
           href="/"
-          className="inline-flex items-center justify-center h-12 px-6 bg-[#FF6600] hover:bg-[#FF6600]/90 text-white font-bold rounded-xl transition-colors"
+          className="inline-flex items-center justify-center h-12 px-6 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl transition-colors"
         >
           홈으로 돌아가기
         </Link>

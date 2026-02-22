@@ -1,6 +1,6 @@
 'use client';
 
-import { Chip } from '@/shared/ui/base/chip';
+import { Chip } from '@/shared/ui/shadcn/chip';
 import { cn } from '@/shared/lib/utils';
 import {
   DropdownMenu,
@@ -48,7 +48,7 @@ export function PriceFilter({ selectedPriceMax, onPriceMaxChange }: PriceFilterP
           <DropdownMenuItem
             key={option.value ?? 'all'}
             onClick={() => onPriceMaxChange(option.value)}
-            className={cn(selectedPriceMax === option.value && 'bg-orange-50 text-[#FF6600]')}
+            className={cn(selectedPriceMax === option.value && 'bg-brand-weak text-primary')}
           >
             {option.label}
           </DropdownMenuItem>

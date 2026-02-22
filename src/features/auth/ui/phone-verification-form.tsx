@@ -2,14 +2,14 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import { CheckCircle2, Info, Smartphone } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useAuth } from '@/shared/session';
 import { useIsMobile } from '@/shared/lib/hooks/use-is-mobile';
-import { Input } from '@/shared/ui/base/input';
-import { Label } from '@/shared/ui/base/label';
-import { Button } from '@/shared/ui/base/button';
+import { Input } from '@/shared/ui/shadcn/input';
+import { Label } from '@/shared/ui/shadcn/label';
+import { Button } from '@/shared/ui/shadcn/button';
 import { normalizePhoneNumber, formatPhoneNumber, PHONE_REGEX } from '@/shared/lib/phone-utils';
 import type {
   VerificationRequestResponse,
@@ -36,7 +36,6 @@ export function PhoneVerificationForm({ onComplete }: PhoneVerificationFormProps
   const [smsUri, setSmsUri] = useState('');
   const [recipient, setRecipient] = useState('');
   const [code, setCode] = useState('');
-  const [expiresAt, setExpiresAt] = useState('');
   const [remainingSeconds, setRemainingSeconds] = useState(0);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -139,7 +138,6 @@ export function PhoneVerificationForm({ onComplete }: PhoneVerificationFormProps
       setSmsUri(data.smsUri);
       setRecipient(data.recipient);
       setCode(data.code);
-      setExpiresAt(data.expiresAt);
 
       setStep('waiting');
       startTimer(data.expiresAt);
@@ -158,7 +156,6 @@ export function PhoneVerificationForm({ onComplete }: PhoneVerificationFormProps
     setCode('');
     setSmsUri('');
     setRecipient('');
-    setExpiresAt('');
   };
 
   const formatTime = (seconds: number) => {
@@ -220,7 +217,7 @@ export function PhoneVerificationForm({ onComplete }: PhoneVerificationFormProps
         </div>
 
         {/* 안내 */}
-        <div className="flex items-start gap-2 p-3 bg-orange-50 rounded-lg">
+        <div className="flex items-start gap-2 p-3 bg-brand-weak rounded-lg">
           <Smartphone className="h-4 w-4 text-primary mt-0.5 shrink-0" />
           <p className="text-sm text-slate-700">
             아래 버튼을 눌러 인증번호가 담긴 문자를 보내주세요. 문자 발송 후 자동으로 인증됩니다.

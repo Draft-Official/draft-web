@@ -2,11 +2,12 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Calendar, Clock, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Card } from '@/shared/ui/shadcn/card';
+import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/shared/ui/shadcn/button';
+import { MatchCardLayout } from '@/shared/ui/composite/match-card-layout';
 import { cn } from '@/shared/lib/utils';
 import type { TeamScheduleMatchItemDTO } from '@/features/team/model/types';
+import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 interface TeamScheduleTabProps {
   teamCode: string;
@@ -36,7 +37,7 @@ export function TeamScheduleTab({ teamCode, matches, isLoading }: TeamScheduleTa
   if (isLoading) {
     return (
       <div className="px-5 py-8 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        <Spinner className="h-8 w-8 text-muted-foreground" />
       </div>
     );
   }
@@ -46,7 +47,7 @@ export function TeamScheduleTab({ teamCode, matches, isLoading }: TeamScheduleTa
       <div className="px-5 py-16 flex flex-col items-center justify-center text-center">
         <Calendar className="w-12 h-12 text-slate-300 mb-4" />
         <p className="text-slate-500 text-base">아직 일정이 없습니다</p>
-        <p className="text-slate-400 text-sm mt-1">팀 운동을 생성해보세요</p>
+        <p className="text-muted-foreground text-sm mt-1">팀 운동을 생성해보세요</p>
       </div>
     );
   }
@@ -56,9 +57,15 @@ export function TeamScheduleTab({ teamCode, matches, isLoading }: TeamScheduleTa
       {/* 매치 리스트 */}
       <div className="px-5 py-4 space-y-3">
         {currentMatches.map((match) => (
-          <MatchCard
+          <MatchCardLayout
             key={match.matchId}
-            match={match}
+            date={match.dateDisplay}
+            time={match.timeDisplay}
+            gymName={match.gymName || '장소 미정'}
+            gymAddress={match.gymAddress ?? undefined}
+            teamName={match.teamName}
+            showTeamName={false}
+            isPast={match.isPast}
             onClick={() => handleMatchClick(match.matchId)}
           />
         ))}
@@ -106,47 +113,5 @@ export function TeamScheduleTab({ teamCode, matches, isLoading }: TeamScheduleTa
         </div>
       )}
     </div>
-  );
-}
-
-// 매치 카드 컴포넌트
-interface MatchCardProps {
-  match: TeamScheduleMatchItemDTO;
-  onClick: () => void;
-}
-
-function MatchCard({ match, onClick }: MatchCardProps) {
-  const dateStr = match.dateDisplay;
-  const timeStr = match.timeDisplay;
-  const gymName = match.gymName || '장소 미정';
-  const isPast = match.isPast;
-
-  return (
-    <Card
-      onClick={onClick}
-      className={cn(
-        'p-4 cursor-pointer hover:shadow-md transition-all',
-        'ring-slate-200 rounded-xl gap-0',
-        isPast && 'opacity-60'
-      )}
-    >
-      {/* 날짜/시간 */}
-      <div className="flex items-center gap-2 mb-2">
-        <div className="flex items-center gap-1.5 text-slate-900">
-          <Calendar className="w-4 h-4 text-slate-400" />
-          <span className="font-semibold">{dateStr}</span>
-        </div>
-        <div className="flex items-center gap-1.5 text-slate-600">
-          <Clock className="w-4 h-4 text-slate-400" />
-          <span>{timeStr}</span>
-        </div>
-      </div>
-
-      {/* 장소 */}
-      <div className="flex items-center gap-1.5 text-slate-600">
-        <MapPin className="w-4 h-4 text-slate-400 shrink-0" />
-        <span className="truncate">{gymName}</span>
-      </div>
-    </Card>
   );
 }

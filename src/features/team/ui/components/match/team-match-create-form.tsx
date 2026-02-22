@@ -2,23 +2,24 @@
 
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { X, Building2, FileText, Loader2 } from 'lucide-react';
-import { Button } from '@/shared/ui/base/button';
-import { Label } from '@/shared/ui/base/label';
-import { Textarea } from '@/shared/ui/base/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/base/select';
-import { DateStrip, DateOption } from '@/features/match/ui/components/date-strip';
-import { TimePickerSelect } from '@/shared/ui/base/time-picker-select';
+import { X, Building2, FileText } from 'lucide-react';
+import { Button } from '@/shared/ui/shadcn/button';
+import { Label } from '@/shared/ui/shadcn/label';
+import { Textarea } from '@/shared/ui/shadcn/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/shadcn/select';
+import { DateStrip, type DateOption } from '@/shared/ui/composite/date-strip';
+import { TimePickerSelect } from '@/shared/ui/composite/time-picker-select';
 import { LocationCard } from '@/shared/ui/composite/location-card';
 import { useCreateTeamMatch } from '@/features/team/api/match/mutations';
 import { useAuth } from '@/shared/session';
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import type { Team } from '@/features/team/model/types';
 import type { RegularDayValue } from '@/shared/config/team-constants';
 import type { LocationData } from '@/shared/types/location.types';
+import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 interface TeamMatchCreateFormProps {
-  team: Team & { homeGymName: string | null };
+  team: Team & { homeGymName: string | null; homeGymAddress?: string | null };
   onClose?: () => void;
 }
 
@@ -57,7 +58,7 @@ function getNext14Days(): DateOption[] {
     const dayValue = DAY_MAP[d.getDay()];
 
     dates.push({
-      dateISO: d.toISOString().split('T')[0],
+      dateISO: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`,
       label: `${d.getMonth() + 1}.${d.getDate()} (${DAY_LABELS[dayValue]})`,
       dayNum: d.getDate(),
       dayStr: DAY_LABELS[dayValue],
@@ -142,9 +143,9 @@ export function TeamMatchCreateForm({ team, onClose }: TeamMatchCreateFormProps)
     [team.regularDay, calendarDates]
   );
 
-  // 팀의 기본 시간 사용
-  const defaultStartTime = team.regularStartTime || '19:00';
-  const defaultEndTime = team.regularEndTime || '21:00';
+  // 팀의 기본 시간 사용 (DB에서 HH:MM:SS로 올 수 있으므로 정규화)
+  const defaultStartTime = normalizeTime(team.regularStartTime || '19:00');
+  const defaultEndTime = normalizeTime(team.regularEndTime || '21:00');
   const defaultDuration = calculateDuration(defaultStartTime, defaultEndTime);
 
   // State
@@ -163,7 +164,7 @@ export function TeamMatchCreateForm({ team, onClose }: TeamMatchCreateFormProps)
   const locationData: LocationData | null = team.homeGymName
     ? {
         buildingName: team.homeGymName,
-        address: '', // 주소 정보가 없으므로 빈 문자열
+        address: team.homeGymAddress || '',
       }
     : null;
 
@@ -210,44 +211,43 @@ export function TeamMatchCreateForm({ team, onClose }: TeamMatchCreateFormProps)
   };
 
   return (
-    <div className="min-h-screen bg-slate-100">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="bg-white px-4 h-14 flex items-center justify-between border-b border-slate-100 sticky top-0 z-30">
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => (onClose ? onClose() : router.back())}
-            className="-ml-2 p-2 text-slate-900 hover:bg-slate-50 rounded-full transition-colors"
-          >
-            <X className="w-6 h-6" />
-          </button>
-          <h1 className="font-bold text-lg text-slate-900">팀 운동 개설</h1>
-        </div>
+      <header className="sticky top-0 z-40 bg-white border-b border-slate-100 h-14 flex items-center justify-between px-4">
+        <button
+          type="button"
+          onClick={() => (onClose ? onClose() : router.back())}
+          className="p-2 text-slate-900 hover:bg-slate-50 rounded-full transition-colors"
+        >
+          <X className="w-6 h-6" />
+        </button>
+        <h1 className="text-lg font-bold text-slate-900">팀 운동 개설</h1>
+        <div className="w-10" />
       </header>
 
-      <div className="px-3 pt-3 pb-[120px] space-y-2">
+      <div className="pb-30">
         {/* 기본 정보 섹션 */}
-        <section className="bg-white px-5 py-6 space-y-6 rounded-xl border border-slate-200">
+        <section className="bg-white px-5 py-6 space-y-6">
           <h2 className="font-bold text-slate-900 flex items-center gap-2">
-            <Building2 className="w-5 h-5 text-slate-400" />
+            <Building2 className="w-5 h-5 text-muted-foreground" />
             기본 정보
           </h2>
 
           {/* 날짜 선택 */}
           <div className="space-y-3">
-            <Label className="text-sm font-bold text-slate-600 flex items-center gap-2">
+            <Label className="text-sm font-bold text-muted-foreground flex items-center gap-2">
               경기 날짜
               {selectedDate && (() => {
-                const [_, m, d] = selectedDate.split('-');
+                const [, m, d] = selectedDate.split('-');
                 const normalizedStartTime = normalizeTime(startTime);
                 const normalizedEndTime = normalizeTime(endTime);
                 return (
-                  <span className="text-primary">
+                  <span className="text-primary font-semibold">
                     {parseInt(m)}월 {parseInt(d)}일 {normalizedStartTime} ~ {normalizedEndTime}
                   </span>
                 );
               })()}
-              <span className="text-slate-400 text-xs font-normal ml-auto">
+              <span className="text-muted-foreground text-xs font-normal ml-auto">
                 (2주 이내)
               </span>
             </Label>
@@ -256,15 +256,15 @@ export function TeamMatchCreateForm({ team, onClose }: TeamMatchCreateFormProps)
               selectedDate={selectedDate}
               onSelect={(date) => date && setSelectedDate(date)}
               showAllOption={false}
-              className="-mx-5 w-[calc(100%+40px)]"
-              listClassName="px-5"
+              className="-mx-(--dimension-spacing-x-global-gutter)"
+              listClassName="px-(--dimension-spacing-x-global-gutter)"
             />
           </div>
 
           {/* 시간 선택 */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-sm font-bold text-slate-600">시작 시간</Label>
+              <Label className="text-sm font-bold text-muted-foreground">시작 시간</Label>
               <TimePickerSelect
                 value={startTime}
                 onValueChange={setStartTime}
@@ -273,9 +273,9 @@ export function TeamMatchCreateForm({ team, onClose }: TeamMatchCreateFormProps)
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm font-bold text-slate-600">진행 시간</Label>
+              <Label className="text-sm font-bold text-muted-foreground">진행 시간</Label>
               <Select value={duration} onValueChange={setDuration}>
-                <SelectTrigger className="h-12 bg-white border-slate-200 font-bold">
+                <SelectTrigger className="h-(--dimension-x12) bg-white border-border font-bold">
                   <SelectValue placeholder="선택" />
                 </SelectTrigger>
                 <SelectContent>
@@ -301,11 +301,11 @@ export function TeamMatchCreateForm({ team, onClose }: TeamMatchCreateFormProps)
                 }}
               />
             ) : (
-              <div className="p-4 bg-orange-50/30 border border-orange-200 rounded-xl">
-                <p className="text-sm text-orange-800 font-medium">
+              <div className="p-4 bg-brand-weak/30 border border-brand-stroke-weak rounded-xl">
+                <p className="text-sm text-brand-contrast font-medium">
                   홈구장이 설정되지 않았습니다.
                 </p>
-                <p className="text-xs text-orange-600 mt-1">
+                <p className="text-xs text-brand mt-1">
                   팀 설정에서 홈구장을 먼저 설정해주세요.
                 </p>
               </div>
@@ -313,10 +313,12 @@ export function TeamMatchCreateForm({ team, onClose }: TeamMatchCreateFormProps)
           </div>
         </section>
 
+        <div className="h-2 bg-slate-100" />
+
         {/* 공지 섹션 */}
-        <section className="bg-white px-5 py-6 space-y-4 rounded-xl border border-slate-200">
+        <section className="bg-white px-5 py-6 space-y-4">
           <h2 className="font-bold text-slate-900 flex items-center gap-2">
-            <FileText className="w-5 h-5 text-slate-400" />
+            <FileText className="w-5 h-5 text-muted-foreground" />
             공지 (선택)
           </h2>
 
@@ -329,16 +331,16 @@ export function TeamMatchCreateForm({ team, onClose }: TeamMatchCreateFormProps)
         </section>
 
         {/* 생성 버튼 */}
-        <div className="bg-white px-5 pt-6 pb-4 rounded-xl border border-slate-200">
+        <div className="px-5 pt-6 pb-4">
           <Button
             type="button"
             onClick={handleSubmit}
             disabled={isPending || !team.homeGymId}
-            className="w-full h-14 text-lg font-bold bg-primary hover:bg-primary/90 text-white rounded-xl shadow-lg shadow-orange-100 disabled:opacity-50"
+            className="w-full h-14 text-lg font-bold bg-primary hover:bg-primary/90 text-white rounded-xl shadow-lg shadow-draft-100 disabled:opacity-50"
           >
             {isPending ? (
               <>
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                <Spinner className="w-5 h-5 mr-2 " />
                 생성 중...
               </>
             ) : (

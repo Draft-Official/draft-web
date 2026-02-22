@@ -12,7 +12,7 @@ import { toMatchCreatePrefillFormData } from '@/features/match-create/model/mapp
 
 interface UsePrefillFromRecentMatchParams {
   setValue: UseFormSetValue<MatchCreateSubmitFormValues>;
-  handleLocationSelect: (location: LocationData) => Promise<void>;
+  resolveLocation: (location: LocationData) => Promise<void>;
   setFeeType: (value: 'cost' | 'beverage') => void;
   setHasBeverage: (value: boolean) => void;
   setIsPositionMode: (value: boolean) => void;
@@ -33,7 +33,7 @@ interface UsePrefillFromRecentMatchParams {
 export function usePrefillFromRecentMatch(params: UsePrefillFromRecentMatchParams) {
   const {
     setValue,
-    handleLocationSelect,
+    resolveLocation,
     setFeeType,
     setHasBeverage,
     setIsPositionMode,
@@ -55,7 +55,7 @@ export function usePrefillFromRecentMatch(params: UsePrefillFromRecentMatchParam
     const data = toMatchCreatePrefillFormData(match);
 
     if (data.location?.locationInfo) {
-      await handleLocationSelect(data.location.locationInfo);
+      await resolveLocation(data.location.locationInfo);
       setValue('location', data.location.gymName);
     }
 
@@ -110,7 +110,7 @@ export function usePrefillFromRecentMatch(params: UsePrefillFromRecentMatchParam
     }
   }, [
     setValue,
-    handleLocationSelect,
+    resolveLocation,
     setFeeType,
     setHasBeverage,
     setIsPositionMode,

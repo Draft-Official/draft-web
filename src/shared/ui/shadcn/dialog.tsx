@@ -1,11 +1,33 @@
 "use client"
 
 import * as React from "react"
+import { cva, type VariantProps } from "class-variance-authority"
 import { Dialog as DialogPrimitive } from "radix-ui"
 
 import { cn } from "@/shared/lib/utils"
 import { Button } from "@/shared/ui/shadcn/button"
 import { XIcon } from "lucide-react"
+
+const dialogContentVariants = cva(
+  "bg-background data-open:animate-in data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0 data-closed:zoom-out-95 data-open:zoom-in-95 ring-foreground/10 fixed top-1/2 left-1/2 z-50 grid w-full -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl p-4 text-sm ring-1 duration-100 outline-none",
+  {
+    variants: {
+      size: {
+        base: "max-w-[calc(100%-2rem)] sm:max-w-sm",
+        xs: "max-w-[calc(100%-2rem)] sm:max-w-[320px]",
+        sm: "max-w-[calc(100%-2rem)] sm:max-w-[340px]",
+        md: "max-w-[calc(100%-2rem)] sm:max-w-[360px]",
+        lg: "max-w-[calc(100%-2rem)] sm:max-w-[400px]",
+        xl: "max-w-[calc(100%-2rem)] sm:max-w-[420px]",
+        xxl: "max-w-[calc(100%-2rem)] sm:max-w-[480px]",
+        app: "max-w-[calc(100%-2rem)] sm:max-w-[calc(var(--layout-mobile-max)-2rem)]",
+      },
+    },
+    defaultVariants: {
+      size: "base",
+    },
+  }
+)
 
 function Dialog({
   ...props
@@ -47,19 +69,25 @@ function DialogOverlay({
 function DialogContent({
   className,
   children,
+  size = "base",
+  overlayClassName,
   showCloseButton = true,
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Content> & {
-  showCloseButton?: boolean
-}) {
+}: React.ComponentProps<typeof DialogPrimitive.Content> &
+  VariantProps<typeof dialogContentVariants> & {
+    overlayClassName?: string
+    showCloseButton?: boolean
+  }) {
   return (
     <DialogPortal>
-      <DialogOverlay />
+      <DialogOverlay className={overlayClassName} />
       <DialogPrimitive.Content
         data-slot="dialog-content"
+        data-size={size}
         className={cn(
-          "bg-background data-open:animate-in data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0 data-closed:zoom-out-95 data-open:zoom-in-95 ring-foreground/10 grid max-w-[calc(100%-2rem)] gap-4 rounded-xl p-4 text-sm ring-1 duration-100 sm:max-w-sm fixed top-1/2 left-1/2 z-50 w-full -translate-x-1/2 -translate-y-1/2 outline-none",
-          className
+          dialogContentVariants({ size }),
+          className,
+          showCloseButton && "[&>[data-slot=dialog-header]]:pr-10"
         )}
         {...props}
       >

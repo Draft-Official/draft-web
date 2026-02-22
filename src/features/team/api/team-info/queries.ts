@@ -42,6 +42,7 @@ export function useTeamByCode(code: string | null | undefined) {
       if (!row) return null;
       return toTeamInfoDTO(teamRowToEntity(row), {
         homeGymName: row.gyms?.name ?? null,
+        homeGymAddress: row.gyms?.address ?? null,
       });
     },
     enabled: !!code,

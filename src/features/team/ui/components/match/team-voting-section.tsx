@@ -2,6 +2,7 @@
 
 import { VotingAccordion } from './voting-accordion';
 import type { TeamVoteDTO, VotingSummary } from '@/features/team/model/types';
+import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 interface TeamVotingSectionProps {
   votes: TeamVoteDTO[];
@@ -35,7 +36,7 @@ export function TeamVotingSection({
 
       {isLoading ? (
         <div className="py-8 flex justify-center">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" />
+          <Spinner className="h-6 w-6 text-muted-foreground" />
         </div>
       ) : (
         <VotingAccordion

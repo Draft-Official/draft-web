@@ -7,21 +7,21 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/shared/ui/base/dialog';
-import { Button } from '@/shared/ui/base/button';
-import { Input } from '@/shared/ui/base/input';
-import { Label } from '@/shared/ui/base/label';
+} from '@/shared/ui/shadcn/dialog';
+import { Button } from '@/shared/ui/shadcn/button';
+import { Input } from '@/shared/ui/shadcn/input';
+import { Label } from '@/shared/ui/shadcn/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/shared/ui/base/select';
-import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/base/avatar';
-import { cn } from '@/shared/lib/utils';
+} from '@/shared/ui/shadcn/select';
+import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/shadcn/avatar';
 import { filterNumericInput } from '@/shared/lib/input-utils';
-import { SkillSlider } from './skill-slider';
+import { Toggle } from '@/shared/ui/shadcn/toggle';
+import { SkillSlider } from '@/shared/ui/composite/skill-slider';
 import { MyProfileFormDTO } from '../model/types';
 import { POSITION_OPTIONS } from '@/shared/config/match-constants';
 
@@ -84,7 +84,7 @@ export function ProfileSetupModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[420px] max-h-[85vh] overflow-y-auto p-6 scrollbar-hide [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      <DialogContent size="xl" className="max-h-[85vh] overflow-y-auto p-6 scrollbar-hide [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-slate-900 mb-1">
             {isEditing ? '프로필 수정' : '프로필을 완성해주세요'}
@@ -207,20 +207,16 @@ export function ProfileSetupModal({
               주 포지션
             </Label>
             <div className="grid grid-cols-3 gap-2">
-              {POSITION_OPTIONS.map((pos) => (
-                <button
+              {POSITION_OPTIONS.filter((pos) => pos.value !== 'B').map((pos) => (
+                <Toggle
                   key={pos.value}
-                  type="button"
-                  onClick={() => setFormData({ ...formData, position: pos.value })}
-                  className={cn(
-                    "h-12 rounded-lg font-medium transition-all",
-                    formData.position === pos.value
-                      ? "bg-primary text-white"
-                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                  )}
+                  variant="outline"
+                  pressed={formData.position === pos.value}
+                  onPressedChange={() => setFormData({ ...formData, position: pos.value })}
+                  className="h-12 rounded-lg text-sm font-medium"
                 >
                   {pos.label}
-                </button>
+                </Toggle>
               ))}
             </div>
           </div>
@@ -246,7 +242,7 @@ export function ProfileSetupModal({
                 value={formData.team || 'none'}
                 onValueChange={(value) => setFormData({ ...formData, team: value === 'none' ? '' : value })}
               >
-                <SelectTrigger className="h-12 bg-white border-slate-200 font-bold">
+                <SelectTrigger className="h-12 bg-white border-border font-bold">
                   <SelectValue placeholder="팀 없음" />
                 </SelectTrigger>
                 <SelectContent>

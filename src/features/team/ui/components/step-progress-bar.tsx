@@ -15,7 +15,7 @@ export function StepProgressBar({ currentStep, totalSteps }: StepProgressBarProp
           key={index}
           className={cn(
             'h-1 flex-1 rounded-full transition-colors duration-300',
-            index < currentStep ? 'bg-[#FF6600]' : 'bg-slate-200'
+            index < currentStep ? 'bg-primary' : 'bg-slate-200'
           )}
         />
       ))}

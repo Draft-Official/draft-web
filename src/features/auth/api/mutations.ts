@@ -2,7 +2,7 @@
  * Auth Mutation Hooks
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { createAuthService } from '@/shared/api/auth-service';
 

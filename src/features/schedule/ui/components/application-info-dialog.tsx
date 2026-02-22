@@ -1,19 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Calendar, Clock, MapPin, Navigation, Shield, User, Users, AlertCircle, Copy, Check } from 'lucide-react';
-import { Button } from '@/shared/ui/base/button';
+import { Button } from '@/shared/ui/shadcn/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/shared/ui/base/dialog';
-import { Badge } from '@/shared/ui/base/badge';
+} from '@/shared/ui/shadcn/dialog';
+import { Badge } from '@/shared/ui/shadcn/badge';
 import { cn } from '@/shared/lib/utils';
 import { formatMatchDate, formatMatchTime } from '@/shared/lib/date';
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import type { ScheduleMatchListItemDTO } from '../../model/types';
 import {
   MATCH_STATUS_LABELS,
@@ -40,6 +40,15 @@ export function ApplicationInfoDialog({
   const [copied, setCopied] = useState(false);
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+
+  useEffect(() => {
+    if (!open) {
+      setIsCancelDialogOpen(false);
+      setIsPaymentDialogOpen(false);
+    }
+  }, [open]);
+
+  const isMainDialogOpen = open && !isCancelDialogOpen && !isPaymentDialogOpen;
 
   if (!match) return null;
 
@@ -75,8 +84,8 @@ export function ApplicationInfoDialog({
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-sm mx-4 rounded-2xl p-5 max-h-[85vh] overflow-y-auto">
+      <Dialog open={isMainDialogOpen} onOpenChange={onOpenChange}>
+        <DialogContent size="base" className="rounded-2xl p-5 max-h-[85vh] overflow-y-auto">
           <DialogHeader className="text-left pb-2">
             <div className="flex items-center justify-between">
               <DialogTitle className="text-lg font-bold">내 신청 정보</DialogTitle>
@@ -199,11 +208,11 @@ export function ApplicationInfoDialog({
 
             {/* 입금 정보 (입금대기 상태) */}
             {isPaymentWaiting && match.bankInfo && (
-              <section className="bg-orange-50 rounded-xl p-4 border border-orange-100 space-y-3">
-                <p className="text-sm font-medium text-orange-700">입금 계좌</p>
+              <section className="bg-brand-weak rounded-xl p-4 border border-brand-stroke-weak space-y-3">
+                <p className="text-sm font-medium text-brand-contrast">입금 계좌</p>
                 <button
                   onClick={handleCopyBankInfo}
-                  className="flex items-center gap-2 text-sm text-orange-900 hover:text-orange-700"
+                  className="flex items-center gap-2 text-sm text-draft-900 hover:text-brand-contrast"
                 >
                   <span>
                     {match.bankInfo.bank} {match.bankInfo.account} ({match.bankInfo.holder})
@@ -214,7 +223,7 @@ export function ApplicationInfoDialog({
                     <Copy className="w-4 h-4 shrink-0" />
                   )}
                 </button>
-                <p className="text-xs text-orange-600">
+                <p className="text-xs text-brand">
                   입금 후 아래 &apos;송금 완료&apos; 버튼을 누르면 호스트에게 알림이 전송됩니다.
                 </p>
               </section>
@@ -262,7 +271,7 @@ export function ApplicationInfoDialog({
 
       {/* 송금 확인 다이얼로그 */}
       <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
-        <DialogContent className="max-w-sm mx-4 rounded-2xl p-6">
+        <DialogContent size="base" className="rounded-2xl p-6">
           <DialogHeader>
             <DialogTitle>송금을 완료하셨나요?</DialogTitle>
             <DialogDescription className="text-slate-600 pt-2 font-medium">
@@ -291,13 +300,13 @@ export function ApplicationInfoDialog({
 
       {/* 취소 확인 다이얼로그 */}
       <Dialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
-        <DialogContent className="max-w-sm mx-4 rounded-2xl p-6">
+        <DialogContent size="base" className="rounded-2xl p-6">
           <DialogHeader>
             <DialogTitle>신청을 취소하시겠습니까?</DialogTitle>
             <DialogDescription className="text-slate-600 pt-2">
               취소 후에는 다시 신청해야 합니다.
               {isPaymentWaiting && (
-                <span className="block mt-2 text-orange-600">
+                <span className="block mt-2 text-brand">
                   이미 입금하셨다면 호스트에게 환불을 요청해 주세요.
                 </span>
               )}

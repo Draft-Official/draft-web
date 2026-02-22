@@ -2,6 +2,7 @@
  * 경기 관리 페이지 타입 정의
  * Phase 2 확장성 가이드라인 준수
  */
+import type { TeamVoteStatusValue } from '@/shared/config/application-constants';
 
 // ============================================
 // DTO Types (NEW)
@@ -44,6 +45,7 @@ export interface MatchApplicantDTO extends Participant {
 // 경기 관리 리스트 아이템 DTO
 export interface ScheduleMatchListItemDTO {
   id: string;
+  publicId: string;
   matchType: MatchType;
   scheduleMode: ScheduleMode;
   status: MatchStatus;
@@ -80,6 +82,17 @@ export interface ScheduleMatchListItemDTO {
   tournamentName?: string;
   round?: string;
 
+  // Team vote fields (matchType === 'team')
+  myVote?: TeamVoteStatusValue;
+  myVoteReason?: string;
+  votingSummary?: {
+    attending: number;
+    notAttending: number;
+    pending: number;
+  };
+  teamId?: string;
+  teamCode?: string;
+
   // Legacy compatibility field
   type: MatchType;
 }
@@ -87,6 +100,7 @@ export interface ScheduleMatchListItemDTO {
 // 호스트 경기 상세 DTO
 export interface HostMatchDetailDTO {
   id: string;
+  publicId: string;
   date: string;
   time: string;
   endTimeISO: string;
@@ -254,6 +268,7 @@ export interface GuestMatchPosition {
 // Participating matches query에서 사용하는 match row 타입
 export interface ParticipatingMatchRow {
   id: string;
+  short_id: string;
   match_type: string;
   team_id: string | null;
   manual_team_name: string;
@@ -264,7 +279,7 @@ export interface ParticipatingMatchRow {
   status: string;
   account_info: { bank?: string; number?: string; holder?: string } | null;
   gym: { name: string; address: string; kakao_place_id: string | null } | null;
-  team: { name: string } | null;
+  team: { name: string; code?: string | null } | null;
 }
 
 // ============================================

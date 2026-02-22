@@ -1,16 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/shared/ui/base/button';
+import { Button } from '@/shared/ui/shadcn/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/shared/ui/base/dialog';
-import { RadioGroup, RadioGroupItem } from '@/shared/ui/base/radio-group';
-import { Label } from '@/shared/ui/base/label';
+} from '@/shared/ui/shadcn/dialog';
+import { RadioGroup, RadioGroupItem } from '@/shared/ui/shadcn/radio-group';
+import { Label } from '@/shared/ui/shadcn/label';
 import {
   CANCEL_TYPE_VALUES,
   CANCEL_TYPE_LABELS,
@@ -59,7 +59,7 @@ export function CancelConfirmDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-sm mx-4 rounded-2xl p-6">
+      <DialogContent size="base" className="rounded-2xl p-6">
         <DialogHeader>
           <DialogTitle>참가 취소</DialogTitle>
           <DialogDescription className="text-slate-600 pt-2">

@@ -1,13 +1,12 @@
 import { useState, useRef } from 'react';
 
-import { Input } from '@/shared/ui/base/input';
-import { Label } from '@/shared/ui/base/label';
-import { Button } from '@/shared/ui/base/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/shared/ui/base/dialog';
-import { Chip } from '@/shared/ui/base/chip';
+import { Input } from '@/shared/ui/shadcn/input';
+import { Label } from '@/shared/ui/shadcn/label';
+import { Button } from '@/shared/ui/shadcn/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/ui/shadcn/dialog';
+import { Toggle } from '@/shared/ui/shadcn/toggle';
 import { cn } from '@/shared/lib/utils';
 import { COURT_SIZE_OPTIONS, CourtSizeValue } from '@/shared/config/match-constants';
-import { X } from 'lucide-react';
 
 interface MatchCreateFacilitiesProps {
   hasWater: boolean;
@@ -61,87 +60,85 @@ export function MatchCreateFacilities({
                         정보가 다르다면 수정해 주세요
                     </span>
                 ) : (
-                    <span className="text-[11px] font-bold text-[#FF6600] bg-orange-50 px-2 py-0.5 rounded-full">
+                    <span className="text-[11px] font-bold text-primary bg-brand-weak px-2 py-0.5 rounded-full">
                         작성시 문의가 80% 감소해요!
                     </span>
                 )}
             </div>
             <div className="flex flex-wrap gap-2">
-                <Chip
-                    variant="orange"
-                    label="🏀 농구공"
-                    isActive={hasBall}
-                    showCheckIcon={false}
-                    onClick={() => setHasBall(!hasBall)}
-                />
+                <Toggle
+                    variant="outline"
+                    pressed={hasBall}
+                    onPressedChange={() => setHasBall(!hasBall)}
+                    className="h-9 rounded-lg px-4 text-sm font-medium"
+                >
+                    🏀 농구공
+                </Toggle>
 
-                <Chip
-                    variant="orange"
-                    label="정수기"
-                    isActive={hasWater}
-                    showCheckIcon={false}
-                    onClick={() => setHasWater(!hasWater)}
-                />
+                <Toggle
+                    variant="outline"
+                    pressed={hasWater}
+                    onPressedChange={() => setHasWater(!hasWater)}
+                    className="h-9 rounded-lg px-4 text-sm font-medium"
+                >
+                    정수기
+                </Toggle>
 
-                <Chip
-                    variant="orange"
-                    label="냉난방"
-                    isActive={hasAcHeat}
-                    showCheckIcon={false}
-                    onClick={() => setHasAcHeat(!hasAcHeat)}
-                />
+                <Toggle
+                    variant="outline"
+                    pressed={hasAcHeat}
+                    onPressedChange={() => setHasAcHeat(!hasAcHeat)}
+                    className="h-9 rounded-lg px-4 text-sm font-medium"
+                >
+                    냉난방
+                </Toggle>
 
-                <Chip
-                    variant="orange"
-                    label="샤워실"
-                    isActive={hasShower}
-                    showCheckIcon={false}
-                    onClick={() => setHasShower(!hasShower)}
-                />
+                <Toggle
+                    variant="outline"
+                    pressed={hasShower}
+                    onPressedChange={() => setHasShower(!hasShower)}
+                    className="h-9 rounded-lg px-4 text-sm font-medium"
+                >
+                    샤워실
+                </Toggle>
 
-                <Chip
-                    variant="orange"
-                    label="주차"
-                    isActive={parkingCost !== ""}
-                    showCheckIcon={false}
-                    valueLabel={parkingCost === "0" ? "0원 (무료)" : (parkingCost ? `${Number(parkingCost).toLocaleString()}원/시간` : undefined)}
+                <Toggle
+                    variant="outline"
+                    pressed={parkingCost !== ""}
                     onClick={() => {
-                        // Always open dialog. If previously cleared, restore from ref.
                         if (parkingCost === "" && lastParkingCost.current !== "") {
-                             setParkingCost(lastParkingCost.current);
-                             setParkingDetail(lastParkingDetail.current);
+                            setParkingCost(lastParkingCost.current);
+                            setParkingDetail(lastParkingDetail.current);
                         }
                         setShowParkingDialog(true);
                     }}
-                />
+                    className="h-9 rounded-lg px-4 text-sm font-medium"
+                >
+                    주차{parkingCost !== "" ? (parkingCost === "0" ? " (무료)" : ` ${Number(parkingCost).toLocaleString()}원/시간`) : ""}
+                </Toggle>
 
-                <Chip
-                    variant="orange"
-                    label="코트 크기"
-                    isActive={courtSize !== ""}
-                    showCheckIcon={false}
-                    valueLabel={getCourtSizeLabel()}
+                <Toggle
+                    variant="outline"
+                    pressed={courtSize !== ""}
                     onClick={() => {
-                        // Always open dialog. If previously cleared, restore from ref.
                         if (courtSize === "" && lastCourtSize.current !== "") {
                             setCourtSize(lastCourtSize.current);
                         }
                         setShowCourtSizeDialog(true);
                     }}
-                />
+                    className="h-9 rounded-lg px-4 text-sm font-medium"
+                >
+                    코트 크기{courtSize !== "" ? ` (${getCourtSizeLabel()})` : ""}
+                </Toggle>
             </div>
         </div>
 
         {/* Dialog: Parking */}
       <Dialog open={showParkingDialog} onOpenChange={setShowParkingDialog}>
-        <DialogContent className="w-[90%] max-w-[480px] rounded-2xl">
+        <DialogContent size="xxl" className="rounded-2xl">
           <DialogHeader>
             <DialogTitle>주차 정보</DialogTitle>
           </DialogHeader>
-          <DialogClose className="absolute right-6 top-6 opacity-70 hover:opacity-100 transition-opacity">
-            <X className="h-5 w-5" />
-            <span className="sr-only">Close</span>
-          </DialogClose>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label className="text-sm font-medium text-slate-700">시간당 주차 요금</Label>
@@ -182,7 +179,7 @@ export function MatchCreateFacilities({
             <div className="flex gap-2">
                 <Button
                     onClick={() => setShowParkingDialog(false)}
-                    className="flex-[2] h-12 bg-[#FF6600] hover:bg-[#FF6600]/90 text-white font-bold rounded-xl"
+                    className="flex-[2] h-12 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl"
                 >
                     확인
                 </Button>
@@ -207,14 +204,10 @@ export function MatchCreateFacilities({
 
       {/* Dialog: Court Size */}
       <Dialog open={showCourtSizeDialog} onOpenChange={setShowCourtSizeDialog}>
-        <DialogContent className="w-[90%] max-w-[480px] rounded-2xl">
+        <DialogContent size="xxl" className="rounded-2xl">
           <DialogHeader>
             <DialogTitle>코트 크기</DialogTitle>
           </DialogHeader>
-          <DialogClose className="absolute right-6 top-6 opacity-70 hover:opacity-100 transition-opacity">
-            <X className="h-5 w-5" />
-            <span className="sr-only">Close</span>
-          </DialogClose>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <div className="space-y-2">
@@ -226,7 +219,7 @@ export function MatchCreateFacilities({
                     className={cn(
                       "w-full p-4 rounded-xl text-left border transition-all",
                       courtSize === opt.value
-                        ? "bg-orange-50 border-[#FF6600] ring-1 ring-[#FF6600]"
+                        ? "bg-brand-weak border-primary ring-1 ring-primary"
                         : "bg-white border-slate-200 hover:bg-slate-50"
                     )}
                   >
@@ -239,7 +232,7 @@ export function MatchCreateFacilities({
              <div className="flex gap-2">
                 <Button
                     onClick={() => setShowCourtSizeDialog(false)}
-                    className="flex-[2] h-12 bg-[#FF6600] hover:bg-[#FF6600]/90 text-white font-bold rounded-xl"
+                    className="flex-[2] h-12 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl"
                 >
                     확인
                 </Button>

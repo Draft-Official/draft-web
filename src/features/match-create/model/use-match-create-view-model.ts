@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import {
   GENDER_DEFAULT,
   MATCH_FORMAT_DEFAULT,
@@ -12,7 +12,9 @@ import {
   RefereeTypeValue,
   MatchFormatValue,
 } from '@/shared/config/match-constants';
-import { useLocationSearch } from '@/shared/lib/hooks/use-location-search';
+import type { GymFacilities } from '@/shared/types/jsonb.types';
+import type { LocationData } from '@/shared/types/location.types';
+import type { LocationSearchResolvedValue } from '@/shared/lib/hooks/use-location-search';
 import { useMatchCreateBootstrap, useMatchEditPrefill, useMyRecentMatches } from '@/features/match-create/api/queries';
 import type { RecentMatchListItemDTO } from '@/features/match-create/model/types';
 import type { MatchCreateSubmitFormValues } from '@/features/match-create/model/submit-form.types';
@@ -55,12 +57,16 @@ export function useMatchCreateViewModel() {
   const [isRefereeSelected, setIsRefereeSelected] = useState(false);
 
   const [feeType, setFeeType] = useState<'cost' | 'beverage'>('cost');
+  const [locationData, setLocationData] = useState<LocationData | null>(null);
+  const [isExistingGym, setIsExistingGym] = useState(false);
+  const [gymFacilities, setGymFacilities] = useState<GymFacilities | null>(null);
 
   const { data: bootstrapData } = useMatchCreateBootstrap();
   const currentUser = bootstrapData?.user ?? null;
   const myTeams = bootstrapData?.teams ?? [];
 
   const [showRecentMatchesDialog, setShowRecentMatchesDialog] = useState(false);
+  const [isApplyingRecentPrefill, setIsApplyingRecentPrefill] = useState(false);
   const { data: recentMatches, isLoading: isLoadingRecentMatches } = useMyRecentMatches();
   const { data: editPrefillData, isLoading: isLoadingEditPrefill } = useMatchEditPrefill(isEditMode ? editMatchId : null);
 
@@ -78,18 +84,11 @@ export function useMatchCreateViewModel() {
     localStorage.setItem('hideMatchCreateTip', 'true');
   };
 
-  const {
-    location,
-    locationData,
-    searchResults: locationSearchResults,
-    isDropdownOpen: showLocationDropdown,
-    isExistingGym,
-    gymFacilities,
-    handleSearch: handleLocationSearch,
-    handleSelect: handleLocationSelect,
-    handleClear: handleClearLocation,
-    openKakaoMap,
-  } = useLocationSearch();
+  const handleLocationResolvedChange = useCallback((next: LocationSearchResolvedValue) => {
+    setLocationData(next.locationData);
+    setIsExistingGym(next.isExistingGym);
+    setGymFacilities(next.gymFacilities);
+  }, []);
 
   const {
     parkingCost,
@@ -115,7 +114,7 @@ export function useMatchCreateViewModel() {
 
   const calendarDates = useMemo(() => getNext14Days(), []);
 
-  const handleInputFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     setTimeout(() => {
       e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 300);
@@ -145,9 +144,36 @@ export function useMatchCreateViewModel() {
     setLevelMax(max);
   };
 
+  const resolveLocation = useCallback(async (location: LocationData) => {
+    setLocationData(location);
+
+    if (!location.kakaoPlaceId) {
+      setIsExistingGym(false);
+      setGymFacilities(null);
+      return;
+    }
+
+    try {
+      const { lookupGymByKakaoPlaceId } = await import('@/entities/gym');
+      const existingGym = await lookupGymByKakaoPlaceId(location.kakaoPlaceId);
+
+      if (existingGym?.facilities) {
+        setIsExistingGym(true);
+        setGymFacilities(existingGym.facilities);
+      } else {
+        setIsExistingGym(false);
+        setGymFacilities(null);
+      }
+    } catch (error) {
+      console.error('Gym lookup error during prefill:', error);
+      setIsExistingGym(false);
+      setGymFacilities(null);
+    }
+  }, []);
+
   const { fillFromRecentMatch } = usePrefillFromRecentMatch({
     setValue,
-    handleLocationSelect,
+    resolveLocation,
     setFeeType,
     setHasBeverage,
     setIsPositionMode,
@@ -211,23 +237,26 @@ export function useMatchCreateViewModel() {
       hasBeverage,
     },
     currentUserId: currentUser?.id,
-    onSuccessNavigate: () => {
+    onSuccessNavigate: (publicId?: string) => {
       if (isEditMode) {
         router.back();
       } else {
-        router.push('/');
+        router.replace(publicId ? `/matches/${publicId}` : '/');
       }
     },
   });
 
-  const locationDivRef = useRef<HTMLDivElement>(null);
-
   const onBack = () => router.back();
 
   const handleSelectRecentMatch = async (match: RecentMatchListItemDTO) => {
-    await fillFromRecentMatch(match);
-    toast.success('지난 경기 정보를 불러왔습니다. 경기 날짜를 선택해주세요.');
-    setShowRecentMatchesDialog(false);
+    setIsApplyingRecentPrefill(true);
+    try {
+      await fillFromRecentMatch(match);
+      toast.success('지난 경기 정보를 불러왔습니다. 경기 날짜를 선택해주세요.');
+      setShowRecentMatchesDialog(false);
+    } finally {
+      setIsApplyingRecentPrefill(false);
+    }
   };
 
   return {
@@ -243,17 +272,10 @@ export function useMatchCreateViewModel() {
     setSelectedDate,
     calendarDates,
 
-    location,
     locationData,
-    locationSearchResults,
-    showLocationDropdown,
     isExistingGym,
-    handleLocationSearch,
-    handleLocationSelect,
-    handleClearLocation,
-    openKakaoMap,
+    handleLocationResolvedChange,
     handleInputFocus,
-    locationDivRef,
 
     feeType,
     setFeeType,
@@ -316,6 +338,7 @@ export function useMatchCreateViewModel() {
     myTeams,
 
     isPending,
+    isApplyingRecentPrefill,
     onSubmit,
 
     showRecentMatchesDialog,

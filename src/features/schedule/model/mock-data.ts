@@ -51,6 +51,7 @@ export const MOCK_GUESTS: MatchApplicantDTO[] = [
 // 호스트 경기 상세 Mock
 export const MOCK_HOST_MATCH_DETAIL: HostMatchDetailDTO = {
   id: '2',
+  publicId: '2',
   date: '2025. 01. 22 (수)',
   time: '20:00',
   endTimeISO: '2025-01-22T13:00:00.000Z',

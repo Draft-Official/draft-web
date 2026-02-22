@@ -4,6 +4,7 @@ import { useAuth } from '@/shared/session';
 import { useNotifications } from '../api/queries';
 import { useMarkAllNotificationsAsRead } from '../api/mutations';
 import { NotificationItem } from './notification-item';
+import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 export function NotificationList() {
   const { user } = useAuth();
@@ -21,14 +22,14 @@ export function NotificationList() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="w-6 h-6 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
+        <Spinner className="w-6 h-6 text-muted-foreground" />
       </div>
     );
   }
 
   if (!notifications || notifications.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+      <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
         <p className="text-lg font-medium">알림이 없습니다</p>
         <p className="text-sm mt-1">새로운 소식이 생기면 알려드릴게요</p>
       </div>
@@ -47,7 +48,7 @@ export function NotificationList() {
             type="button"
             onClick={handleMarkAllAsRead}
             disabled={markAllAsRead.isPending}
-            className="text-sm text-[#FF6600] font-medium hover:text-[#FF6600]/80 disabled:opacity-50"
+            className="text-sm text-muted-foreground font-medium hover:text-muted-foreground/80 disabled:opacity-50"
           >
             모두 읽음
           </button>

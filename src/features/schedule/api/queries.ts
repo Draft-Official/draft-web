@@ -6,9 +6,11 @@ import { useQuery } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { createMatchService } from '@/entities/match';
 import { createApplicationService } from '@/entities/application';
+import { createTeamService } from '@/entities/team';
 import { useAuth } from '@/shared/session';
 import { formatMatchDate, formatMatchTime } from '@/shared/lib/date';
 import { getPositionLabel } from '@/shared/config/match-constants';
+import type { TeamVoteStatusValue } from '@/shared/config/application-constants';
 import { matchManagementKeys } from './keys';
 import {
   toScheduleMatchListItemDTO,
@@ -45,8 +47,47 @@ export function useHostedMatches() {
       // 모든 호스트 경기 조회 (limit 없음)
       const rows = await matchService.getMyHostedMatches(user.id, 100);
 
+      // Team 매치의 투표 현황 조회
+      const teamRows = rows.filter((r) => r.match_type === 'TEAM_MATCH');
+      const votingSummaryMap = new Map<string, { attending: number; notAttending: number; pending: number }>();
+      const myVoteMap = new Map<string, { vote: TeamVoteStatusValue; reason?: string }>();
+
+      if (teamRows.length > 0) {
+        const teamService = createTeamService(supabase);
+        await Promise.all(
+          teamRows.map(async (row) => {
+            const [summary, myVoteRow] = await Promise.all([
+              teamService.getVotingSummary(row.id),
+              teamService.getMyVote(row.id, user.id),
+            ]);
+            votingSummaryMap.set(row.id, {
+              attending: summary.attending + summary.late,
+              notAttending: summary.notAttending,
+              pending: summary.pending + summary.maybe,
+            });
+            if (myVoteRow) {
+              myVoteMap.set(row.id, {
+                vote: myVoteRow.status as TeamVoteStatusValue,
+                reason: myVoteRow.description || undefined,
+              });
+            }
+          })
+        );
+      }
+
       // DB Row -> ScheduleMatchListItemDTO 변환
-      return rows.map((row) => toScheduleMatchListItemDTO(row, 'host'));
+      return rows.map((row) => {
+        const dto = toScheduleMatchListItemDTO(row, 'host');
+        const myVoteData = myVoteMap.get(row.id);
+        return {
+          ...dto,
+          myVote: myVoteData?.vote,
+          myVoteReason: myVoteData?.reason,
+          votingSummary: votingSummaryMap.get(row.id),
+          teamId: row.team_id || undefined,
+          teamCode: (row.team as { name: string; code?: string | null })?.code || undefined,
+        };
+      });
     },
     enabled: !!user?.id,
   });
@@ -73,6 +114,7 @@ export function useParticipatingMatches() {
           *,
           match:matches!match_id (
             id,
+            short_id,
             match_type,
             team_id,
             manual_team_name,
@@ -83,7 +125,7 @@ export function useParticipatingMatches() {
             status,
             account_info,
             gym:gyms!gym_id (name, address, kakao_place_id),
-            team:teams!team_id (name)
+            team:teams!team_id (name, code)
           )
         `)
         .eq('user_id', user.id)
@@ -92,10 +134,31 @@ export function useParticipatingMatches() {
       if (error) throw error;
       if (!applications) return [];
 
+      // match가 있는 것만 필터
+      const validApps = applications.filter((app) => app.match);
+
+      // Team 매치의 투표 현황을 한 번에 조회
+      const teamMatchIds = validApps
+        .filter((app) => (app.match as ParticipatingMatchRow).match_type === 'TEAM_MATCH')
+        .map((app) => (app.match as ParticipatingMatchRow).id);
+
+      const votingSummaryMap = new Map<string, { attending: number; notAttending: number; pending: number }>();
+      if (teamMatchIds.length > 0) {
+        const teamService = createTeamService(supabase);
+        await Promise.all(
+          teamMatchIds.map(async (matchId) => {
+            const summary = await teamService.getVotingSummary(matchId);
+            votingSummaryMap.set(matchId, {
+              attending: summary.attending + summary.late,
+              notAttending: summary.notAttending,
+              pending: summary.pending + summary.maybe,
+            });
+          })
+        );
+      }
+
       // DB Application → ScheduleMatchListItemDTO 변환
-      return applications
-        .filter((app) => app.match) // match가 있는 것만
-        .map((app) => {
+      return validApps.map((app) => {
           const match = app.match as ParticipatingMatchRow;
 
           // 경기 시간 기반 종료 판정
@@ -133,8 +196,13 @@ export function useParticipatingMatches() {
           const matchType = match.match_type === 'TEAM_MATCH' ? 'team' as const : 'guest' as const;
           const scheduleMode = 'participating' as const;
 
+          // Team 매치: 투표 상태 매핑
+          const myVote = matchType === 'team' ? (app.status as TeamVoteStatusValue) : undefined;
+          const myVoteReason = matchType === 'team' ? (app.description || undefined) : undefined;
+
           return {
             id: match.id,
+            publicId: match.short_id || match.id,
             matchType,
             scheduleMode,
             type: matchType,
@@ -166,6 +234,12 @@ export function useParticipatingMatches() {
               })) : undefined,
               cancelReason: app.cancel_reason || undefined,
             },
+            // Team vote fields
+            myVote,
+            myVoteReason,
+            votingSummary: votingSummaryMap.get(match.id),
+            teamId: match.team_id || undefined,
+            teamCode: match.team?.code || undefined,
           } as ScheduleMatchListItemDTO;
         });
     },
@@ -175,24 +249,24 @@ export function useParticipatingMatches() {
 
 /**
  * 호스트 경기 상세 조회
- * @param matchId 경기 ID
+ * @param matchIdentifier 경기 식별자(UUID 또는 short_id)
  * @returns HostMatchDetailDTO 형태로 변환된 경기 상세
  */
-export function useHostMatchDetail(matchId: string) {
+export function useHostMatchDetail(matchIdentifier: string) {
   return useQuery({
-    queryKey: matchManagementKeys.matchDetail(matchId),
+    queryKey: matchManagementKeys.matchDetail(matchIdentifier),
     queryFn: async (): Promise<HostMatchDetailDTO | null> => {
-      if (!matchId) return null;
+      if (!matchIdentifier) return null;
 
       const supabase = getSupabaseBrowserClient();
       const matchService = createMatchService(supabase);
 
-      const row = await matchService.getMatchDetail(matchId);
+      const row = await matchService.getMatchDetail(matchIdentifier);
 
       // DB Row -> HostMatchDetailDTO 변환
       return toHostMatchDetailDTO(row);
     },
-    enabled: !!matchId,
+    enabled: !!matchIdentifier,
   });
 }
 

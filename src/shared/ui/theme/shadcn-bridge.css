@@ -1,0 +1,85 @@
+:root {
+  --background: var(--color-bg-layer-default);
+  --foreground: var(--color-fg-neutral);
+
+  --card: var(--color-bg-layer-default);
+  --card-foreground: var(--color-fg-neutral);
+
+  --popover: var(--color-bg-layer-floating);
+  --popover-foreground: var(--color-fg-neutral);
+
+  --primary: var(--color-bg-brand-solid);
+  --primary-foreground: var(--color-fg-neutral-inverted);
+
+  --secondary: var(--color-bg-neutral-weak);
+  --secondary-foreground: var(--color-fg-neutral);
+
+  --muted: var(--color-bg-neutral-weak);
+  --muted-foreground: var(--color-fg-neutral-muted);
+
+  --accent: var(--color-bg-neutral-weak);
+  --accent-foreground: var(--color-fg-neutral);
+
+  --destructive: var(--color-bg-critical-solid);
+  --destructive-foreground: var(--color-fg-neutral-inverted);
+
+  --border: var(--color-stroke-neutral-weak);
+  --input: var(--color-stroke-neutral-weak);
+  --ring: var(--color-stroke-brand-solid);
+
+  --chart-1: var(--color-palette-yellow-300);
+  --chart-2: var(--color-palette-draft-500);
+  --chart-3: var(--color-palette-blue-500);
+  --chart-4: var(--color-palette-green-500);
+  --chart-5: var(--color-palette-red-500);
+
+  --radius: var(--radius-r3);
+
+  --sidebar: var(--color-bg-layer-default);
+  --sidebar-foreground: var(--color-fg-neutral);
+  --sidebar-primary: var(--color-bg-brand-solid);
+  --sidebar-primary-foreground: var(--color-fg-neutral-inverted);
+  --sidebar-accent: var(--color-bg-neutral-weak);
+  --sidebar-accent-foreground: var(--color-fg-neutral);
+  --sidebar-border: var(--color-stroke-neutral-weak);
+  --sidebar-ring: var(--color-stroke-brand-solid);
+}
+
+.dark {
+  --background: var(--color-bg-layer-basement);
+  --foreground: var(--color-fg-neutral);
+
+  --card: var(--color-bg-layer-floating);
+  --card-foreground: var(--color-fg-neutral);
+
+  --popover: var(--color-bg-layer-floating);
+  --popover-foreground: var(--color-fg-neutral);
+
+  --primary: var(--color-bg-brand-solid);
+  --primary-foreground: var(--color-fg-neutral-inverted);
+
+  --secondary: var(--color-bg-layer-default-pressed);
+  --secondary-foreground: var(--color-fg-neutral);
+
+  --muted: var(--color-bg-layer-default-pressed);
+  --muted-foreground: var(--color-fg-neutral-subtle);
+
+  --accent: var(--color-bg-layer-default-pressed);
+  --accent-foreground: var(--color-fg-neutral);
+
+  --destructive: var(--color-bg-critical-solid);
+  --destructive-foreground: var(--color-fg-neutral-inverted);
+
+  --border: var(--color-stroke-neutral-muted);
+  --input: var(--color-stroke-neutral-muted);
+  --ring: var(--color-stroke-brand-solid);
+
+  --sidebar: var(--color-bg-layer-floating);
+  --sidebar-foreground: var(--color-fg-neutral);
+  --sidebar-primary: var(--color-bg-brand-solid);
+  --sidebar-primary-foreground: var(--color-fg-neutral-inverted);
+  --sidebar-accent: var(--color-bg-layer-default-pressed);
+  --sidebar-accent-foreground: var(--color-fg-neutral);
+  --sidebar-border: var(--color-stroke-neutral-muted);
+  --sidebar-ring: var(--color-stroke-brand-solid);
+}

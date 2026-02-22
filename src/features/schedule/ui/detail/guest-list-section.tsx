@@ -2,8 +2,8 @@
 
 import { Users } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
-import { Badge } from '@/shared/ui/base/badge';
-import { Button } from '@/shared/ui/base/button';
+import { Badge } from '@/shared/ui/shadcn/badge';
+import { Button } from '@/shared/ui/shadcn/button';
 import type { MatchApplicantDTO, GuestStatus } from '../../model/types';
 
 // 탭 설정

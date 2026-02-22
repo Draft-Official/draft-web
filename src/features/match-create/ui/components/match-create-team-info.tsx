@@ -1,12 +1,12 @@
 'use client';
 
 import { useFormContext } from 'react-hook-form';
-import { Input } from '@/shared/ui/base/input';
-import { Label } from '@/shared/ui/base/label';
-import { Button } from '@/shared/ui/base/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/base/select';
-import { Textarea } from '@/shared/ui/base/textarea';
-import { toast } from "sonner";
+import { Input } from '@/shared/ui/shadcn/input';
+import { Label } from '@/shared/ui/shadcn/label';
+import { Button } from '@/shared/ui/shadcn/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/shadcn/select';
+import { Textarea } from '@/shared/ui/shadcn/textarea';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import { X, FileText, MessageCircle } from 'lucide-react';
 
 interface MatchCreateTeamInfoProps {
@@ -80,7 +80,7 @@ export function MatchCreateTeamInfo({
                         }
                     }}
                 >
-                    <SelectTrigger className="h-12 bg-white border-slate-200">
+                    <SelectTrigger className="h-12 bg-white border-border">
                         <SelectValue placeholder="팀을 선택해주세요" />
                     </SelectTrigger>
                     <SelectContent>

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { ArrowLeft, MoreVertical } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import { cn } from '@/shared/lib/utils';
 import { useSafeBack } from '@/shared/lib/hooks';
 import {
@@ -11,7 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/shared/ui/shadcn/dropdown-menu';
-import { VoteDialog } from '../vote-dialog';
+import { VoteDialog } from '@/shared/ui/composite/vote-dialog';
 import { TeamHeroSection } from './team-hero-section';
 import { TeamVotingSection } from './team-voting-section';
 import { TeamInfoSection } from './team-info-section';
@@ -112,7 +112,7 @@ export function TeamMatchDetailView({
   const hasVoted = myVoteStatus && myVoteStatus !== 'PENDING';
 
   return (
-    <div className="min-h-screen bg-white relative pb-[100px] max-w-[760px] mx-auto shadow-2xl shadow-slate-200">
+    <div className="min-h-screen bg-background relative pb-[100px] app-content-container">
 
       {/* 1. Header (Sticky) */}
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-100 h-[52px] flex items-center justify-between px-2">
@@ -192,8 +192,8 @@ export function TeamMatchDetailView({
       </main>
 
       {/* Bottom Bar - 투표 버튼 */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none md:pl-[240px]">
-        <div className="max-w-[760px] mx-auto bg-white border-t border-slate-100 px-5 pt-4 pb-8 pointer-events-auto shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+      <div className="app-overlay-shell app-overlay-shell--with-sidebar">
+        <div className="app-overlay-content bg-white border-t border-slate-100 px-5 pt-4 pb-8 pointer-events-auto shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
           <button
             onClick={() => setIsVoteDialogOpen(true)}
             disabled={isVotingClosed}
@@ -201,11 +201,11 @@ export function TeamMatchDetailView({
               'w-full h-12 rounded-xl font-bold text-lg transition-all',
               isVotingClosed
                 ? 'bg-slate-200 text-slate-500 cursor-not-allowed'
-                : 'bg-[#FF6600] text-white hover:bg-[#FF6600]/90'
+                : 'bg-primary text-white hover:bg-primary/90'
             )}
           >
             {isVotingClosed
-              ? '투표 마감됨'
+              ? '투표가 마감되었습니다.'
               : hasVoted
               ? '투표 변경하기'
               : '투표하기'}

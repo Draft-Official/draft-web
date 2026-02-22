@@ -1,7 +1,7 @@
 'use client';
 
-import { Loader2 } from 'lucide-react';
-import { Button } from '@/shared/ui/base/button';
+import { Button } from '@/shared/ui/shadcn/button';
+import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 interface MatchActionButtonProps {
   isRecruiting: boolean;
@@ -21,8 +21,8 @@ export function MatchActionButton({
   onCloseRecruiting,
 }: MatchActionButtonProps) {
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none md:pl-[240px]">
-      <div className="max-w-[760px] mx-auto bg-white border-t border-slate-100 px-5 pt-4 pb-8 pointer-events-auto shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+    <div className="app-overlay-shell app-overlay-shell--with-sidebar">
+      <div className="app-overlay-content bg-white border-t border-slate-100 px-5 pt-4 pb-8 pointer-events-auto shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
         {/* 모집 중: 모집 마감하기 */}
         {isRecruiting && (
           <Button
@@ -31,7 +31,7 @@ export function MatchActionButton({
             className="w-full bg-primary hover:bg-primary/90 text-white h-12 rounded-xl font-bold text-lg"
           >
             {isPending ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
+              <Spinner className="w-5 h-5 " />
             ) : (
               '모집 마감하기'
             )}

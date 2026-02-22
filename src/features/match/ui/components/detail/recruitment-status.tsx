@@ -63,7 +63,7 @@ export function RecruitmentStatus({ match }: RecruitmentStatusProps) {
                 {getLabel(type)}
               </span>
               <div className="flex items-baseline font-bold">
-                <span className={cn("text-sm", isClosed ? "text-slate-400" : "text-[#FF6600]")}>
+                <span className={cn("text-sm", isClosed ? "text-slate-400" : "text-primary")}>
                   {data.current}
                 </span>
                 <span className="text-slate-300 mx-0.5 font-normal text-sm">/</span>

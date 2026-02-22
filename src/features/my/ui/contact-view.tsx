@@ -1,7 +1,7 @@
 'use client';
 
 import { MessageSquare, ExternalLink } from 'lucide-react';
-import { Button } from '@/shared/ui/base/button';
+import { Button } from '@/shared/ui/shadcn/button';
 
 const KAKAO_CHANNEL_URL = 'https://pf.kakao.com/_xnxlxnxl/chat';
 

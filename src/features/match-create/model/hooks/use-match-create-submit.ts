@@ -1,4 +1,4 @@
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import type {
   CourtSizeValue,
   GenderValue,
@@ -60,7 +60,7 @@ interface UseMatchCreateSubmitParams {
   matchSpec: MatchSpecState;
   facilities: FacilitiesState;
   currentUserId?: string;
-  onSuccessNavigate: () => void;
+  onSuccessNavigate: (publicId?: string) => void;
 }
 
 function scrollToSection(sectionId: string) {
@@ -146,7 +146,7 @@ export function useMatchCreateSubmit({
       opsContactContent,
     });
 
-    const handleSuccess = async () => {
+    const handleSuccess = async (match?: { id: string; short_id?: string | null }) => {
       if (data.operations?.saveAsDefault && currentUserId) {
         try {
           await saveMatchCreateDefaults({
@@ -168,7 +168,7 @@ export function useMatchCreateSubmit({
         }
       }
 
-      onSuccessNavigate();
+      onSuccessNavigate(match?.short_id ?? match?.id);
     };
 
     const handleError = (error: unknown) => {

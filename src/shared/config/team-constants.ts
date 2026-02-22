@@ -23,7 +23,7 @@ export const TEAM_ROLE_LABELS: Record<TeamRoleValue, string> = {
 };
 
 export const TEAM_ROLE_STYLES: Record<TeamRoleValue, { color: string; bgColor: string }> = {
-  LEADER: { color: 'text-primary', bgColor: 'bg-orange-50' },
+  LEADER: { color: 'text-primary', bgColor: 'bg-brand-weak' },
   MANAGER: { color: 'text-blue-600', bgColor: 'bg-blue-50' },
   MEMBER: { color: 'text-gray-600', bgColor: 'bg-gray-50' },
 };
@@ -65,6 +65,8 @@ export function getTeamMemberStatusLabel(value: string): string {
 export const REGULAR_DAY_VALUES = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'] as const;
 export type RegularDayValue = (typeof REGULAR_DAY_VALUES)[number];
 
+const REGULAR_DAY_SET = new Set<RegularDayValue>(REGULAR_DAY_VALUES);
+
 export const REGULAR_DAY_LABELS: Record<RegularDayValue, string> = {
   MON: '월요일',
   TUE: '화요일',
@@ -96,9 +98,30 @@ export function getRegularDayLabel(value: string, type: 'full' | 'short' = 'full
   return labels[value as RegularDayValue] || value;
 }
 
+export function normalizeRegularDay(value: string | null | undefined): RegularDayValue | null {
+  if (!value) return null;
+
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+
+  const upper = trimmed.toUpperCase();
+  return REGULAR_DAY_SET.has(upper as RegularDayValue)
+    ? (upper as RegularDayValue)
+    : null;
+}
+
 // ============================================
 // Team Code Validation
 // ============================================
+
+export const TEAM_NAME_MAX_LENGTH = 10;
+export const TEAM_NAME_ERROR_MESSAGE = `팀 이름은 ${TEAM_NAME_MAX_LENGTH}자 이내로 입력해주세요`;
+export const TEAM_NAME_CHARACTER_ERROR_MESSAGE = '팀 이름은 한글, 영문, 숫자만 입력해주세요';
+export const TEAM_NAME_REGEX = /^[A-Za-z0-9가-힣ㄱ-ㅎㅏ-ㅣ ]+$/;
+
+export function isValidTeamName(name: string): boolean {
+  return TEAM_NAME_REGEX.test(name);
+}
 
 /**
  * 팀 코드 유효성 검사

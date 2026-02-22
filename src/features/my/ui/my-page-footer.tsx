@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { LogOut, UserX, AlertTriangle, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
-import { Button } from '@/shared/ui/base/button';
+import { LogOut, UserX, AlertTriangle } from 'lucide-react';
+import { toast } from '@/shared/ui/shadcn/sonner';
+import { Button } from '@/shared/ui/shadcn/button';
 import {
   Dialog,
   DialogContent,
@@ -13,8 +13,9 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from '@/shared/ui/base/dialog';
+} from '@/shared/ui/shadcn/dialog';
 import { useAuth, useDeleteAccount } from '@/shared/session';
+import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 export function MyPageFooter() {
   const { signOut } = useAuth();
@@ -115,7 +116,7 @@ export function MyPageFooter() {
       </div>
 
       <Dialog open={withdrawOpen} onOpenChange={setWithdrawOpen}>
-        <DialogContent className="max-w-[calc(430px-2rem)] rounded-2xl">
+        <DialogContent size="app" className="rounded-2xl">
           <DialogHeader>
             <DialogTitle>정말 탈퇴하시겠습니까?</DialogTitle>
             <DialogDescription>
@@ -125,7 +126,7 @@ export function MyPageFooter() {
 
           {loadingCheck ? (
             <div className="flex items-center justify-center py-4">
-              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              <Spinner className="h-5 w-5  text-muted-foreground" />
             </div>
           ) : (
             <>
@@ -177,7 +178,7 @@ export function MyPageFooter() {
                 >
                   {deleteAccount.isPending ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Spinner className="mr-2 h-4 w-4 " />
                       처리 중...
                     </>
                   ) : (

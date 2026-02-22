@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { Minus, Plus } from 'lucide-react';
-import { Button } from '@/shared/ui/base/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/base/dialog";
+import { Button } from '@/shared/ui/shadcn/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/shadcn/dialog";
 
 interface VacancyFilterModalProps {
   open: boolean;
@@ -42,7 +42,7 @@ export function VacancyFilterModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[90%] max-w-[320px] rounded-2xl">
+      <DialogContent size="xs" className="rounded-2xl">
         <DialogHeader>
           <DialogTitle className="text-center">몇 분이서 가시나요?</DialogTitle>
         </DialogHeader>
@@ -76,7 +76,7 @@ export function VacancyFilterModal({
         </div>
         <Button
           onClick={handleApply}
-          className="w-full h-12 bg-[#FF6600] text-white rounded-xl font-bold hover:bg-[#FF6600]/90"
+          className="w-full h-12 bg-primary text-white rounded-xl font-bold hover:bg-primary/90"
         >
           적용하기
         </Button>

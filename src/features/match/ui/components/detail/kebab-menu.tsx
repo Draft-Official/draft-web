@@ -3,7 +3,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { MoreVertical, Pencil, XCircle } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,8 +16,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/shared/ui/base/dialog';
-import { Button } from '@/shared/ui/base/button';
+} from '@/shared/ui/shadcn/dialog';
+import { Button } from '@/shared/ui/shadcn/button';
 
 interface KebabMenuProps {
   matchId: string;
@@ -90,7 +90,7 @@ export function KebabMenu({
 
       {/* 취소 확인 다이얼로그 */}
       <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
-        <DialogContent className="max-w-[340px] rounded-2xl">
+        <DialogContent size="sm" className="rounded-2xl">
           <DialogHeader>
             <DialogTitle>경기 취소</DialogTitle>
             <DialogDescription>

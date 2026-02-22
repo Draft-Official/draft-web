@@ -2,15 +2,16 @@
 
 import React, { useState, useEffect } from 'react';
 import { RotateCcw } from 'lucide-react';
-import { Button } from '@/shared/ui/base/button';
+import { Button } from '@/shared/ui/shadcn/button';
 import { Separator } from '@/shared/ui/shadcn/separator';
-import { Chip } from '@/shared/ui/base/chip';
+import { Chip } from '@/shared/ui/shadcn/chip';
 import { RegionFilterModal } from './region-filter-modal';
 import { Header } from './components/header';
-import { DateStrip } from './components/date-strip';
+import { DateStrip } from '@/shared/ui/composite/date-strip';
 import { DetailedFilterModal } from './components/filter/detail-filter-modal';
 import { StartTimeFilterModal } from './components/filter/start-time-filter-modal';
 import { PriceFilter } from './components/filter/price-filter';
+import { getNext14Days } from '@/features/match/lib/utils';
 
 // Hook to detect scroll position and direction
 const useScrollBehavior = () => {
@@ -112,9 +113,7 @@ export function FilterBar({
   
   // -- Date Generation --
   const calendarDates = React.useMemo(() => {
-    // Dynamically import or require? No, extracting to shared utils is better.
-    // I assumed getNext14Days is exported from '@/features/match/lib/utils'
-    return require('@/features/match/lib/utils').getNext14Days();
+    return getNext14Days();
   }, []);
 
   // -- Modal Open States --
@@ -187,7 +186,7 @@ export function FilterBar({
       />
 
       {/* 2. Scrollable Section: Date Strip & Filter Bar */}
-      <div className="bg-white shadow-sm border-b border-slate-100 pt-2">
+      <div className="bg-background border-b border-slate-100 pt-(--dimension-spacing-y-component-default)">
         {/* Date Strip */}
         <DateStrip
           dates={calendarDates}
@@ -196,10 +195,10 @@ export function FilterBar({
           showAllOption={true}
         />
 
-        <Separator className="bg-slate-200 mt-1.5" />
+        <Separator className="bg-slate-100/60 mt-(--dimension-spacing-y-between-text)" />
 
         {/* Integrated Filter Bar */}
-        <div className="px-4 pt-1.5 pb-1.5 flex gap-2 overflow-x-auto no-scrollbar bg-white w-full items-center">
+        <div className="px-(--dimension-spacing-x-global-gutter) py-(--dimension-spacing-y-component-default) flex gap-(--dimension-spacing-x-between-chips) overflow-x-auto no-scrollbar bg-background w-full items-center">
 
         {/* (A) Location Filter */}
         <Chip 

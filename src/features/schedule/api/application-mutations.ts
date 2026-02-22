@@ -3,7 +3,7 @@
  * 신청 관련 데이터 변경용 React Query hooks
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { createApplicationService } from '@/entities/application';
 import { matchKeys } from '@/entities/match';
@@ -19,7 +19,6 @@ export function useApproveApplication() {
   return useMutation({
     mutationFn: async ({
       applicationId,
-      matchId,
     }: {
       applicationId: string;
       matchId: string;
@@ -45,7 +44,7 @@ export function useApproveApplication() {
         queryKey: matchManagementKeys.applicants(variables.matchId),
       });
       queryClient.invalidateQueries({
-        queryKey: matchManagementKeys.matchDetail(variables.matchId),
+        queryKey: matchManagementKeys.matchDetails(),
       });
       queryClient.invalidateQueries({ queryKey: matchKeys.lists() });
       toast.success('신청을 승인했습니다. 입금 안내가 발송됩니다.');
@@ -103,7 +102,7 @@ export function useConfirmPaymentByGuest() {
 
       if (notifError) throw notifError;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: matchManagementKeys.all,
       });
@@ -134,7 +133,7 @@ export function useConfirmPaymentByHost() {
       const supabase = getSupabaseBrowserClient();
       const applicationService = createApplicationService(supabase);
 
-      // confirmedBy: 'HOST'로 알림 스킵
+      // DB confirmed_at 기준 확정 처리 (알림 스킵 로직은 RPC에서 처리)
       return applicationService.confirmApplication(applicationId);
     },
     onSuccess: (_, variables) => {
@@ -142,7 +141,7 @@ export function useConfirmPaymentByHost() {
         queryKey: matchManagementKeys.applicants(variables.matchId),
       });
       queryClient.invalidateQueries({
-        queryKey: matchManagementKeys.matchDetail(variables.matchId),
+        queryKey: matchManagementKeys.matchDetails(),
       });
       // 홈탭 경기 목록 갱신 (빈자리 반영)
       queryClient.invalidateQueries({
@@ -167,7 +166,6 @@ export function useVerifyPayment() {
   return useMutation({
     mutationFn: async ({
       applicationId,
-      matchId,
     }: {
       applicationId: string;
       matchId: string;
@@ -209,7 +207,6 @@ export function useRejectApplication() {
   return useMutation({
     mutationFn: async ({
       applicationId,
-      matchId,
     }: {
       applicationId: string;
       matchId: string;
@@ -224,7 +221,7 @@ export function useRejectApplication() {
         queryKey: matchManagementKeys.applicants(variables.matchId),
       });
       queryClient.invalidateQueries({
-        queryKey: matchManagementKeys.matchDetail(variables.matchId),
+        queryKey: matchManagementKeys.matchDetails(),
       });
       // 홈탭 경기 목록 갱신
       queryClient.invalidateQueries({
@@ -249,7 +246,6 @@ export function useCancelApplicationByGuest() {
   return useMutation({
     mutationFn: async ({
       applicationId,
-      matchId,
     }: {
       applicationId: string;
       matchId: string;
@@ -262,7 +258,7 @@ export function useCancelApplicationByGuest() {
         cancelType: 'USER_REQUEST',
       });
     },
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: matchManagementKeys.participatingMatches(''),
       });
@@ -291,7 +287,6 @@ export function useCancelParticipation() {
   return useMutation({
     mutationFn: async ({
       applicationId,
-      matchId,
       cancelOptions,
     }: {
       applicationId: string;
@@ -312,7 +307,7 @@ export function useCancelParticipation() {
         queryKey: matchManagementKeys.applicants(variables.matchId),
       });
       queryClient.invalidateQueries({
-        queryKey: matchManagementKeys.matchDetail(variables.matchId),
+        queryKey: matchManagementKeys.matchDetails(),
       });
       // 경기 관리 탭 전체 갱신
       queryClient.invalidateQueries({

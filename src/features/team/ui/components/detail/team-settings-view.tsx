@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { ArrowLeft, ChevronRight } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import { cn } from '@/shared/lib/utils';
 import { useSafeBack } from '@/shared/lib/hooks';
 import { useTeamByCode } from '@/features/team/api/team-info/queries';
@@ -25,6 +26,7 @@ import {
 } from '@/shared/ui/shadcn/alert-dialog';
 import { AccountEditDialog } from './account-edit-dialog';
 import { DelegateLeaderDialog } from './delegate-leader-dialog';
+import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 interface TeamSettingsViewProps {
   code: string;
@@ -106,7 +108,7 @@ export function TeamSettingsView({ code }: TeamSettingsViewProps) {
     'bg-purple-500',
     'bg-blue-500',
     'bg-green-500',
-    'bg-orange-500',
+    'bg-draft-500',
     'bg-pink-500',
   ];
   const logoColorIndex = (team?.name || '').charCodeAt(0) % logoColors.length;
@@ -116,7 +118,7 @@ export function TeamSettingsView({ code }: TeamSettingsViewProps) {
   if (isLoadingTeam || isLoadingMembership) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        <Spinner className="h-8 w-8 text-muted-foreground" />
       </div>
     );
   }
@@ -143,20 +145,20 @@ export function TeamSettingsView({ code }: TeamSettingsViewProps) {
   return (
     <div className="min-h-screen bg-white">
       {/* 헤더 */}
-      <header className="sticky top-0 z-40 bg-white border-b border-slate-100 h-14 flex items-center gap-3 px-4">
+      <header className="sticky top-0 z-40 bg-white border-b border-slate-100 h-14 flex items-center justify-between px-4">
         <button
           onClick={handleBack}
-          className="p-2 text-slate-900 hover:bg-slate-50 rounded-full transition-colors -ml-2"
+          className="p-2 text-slate-900 hover:bg-slate-50 rounded-full transition-colors"
         >
           <ArrowLeft className="w-6 h-6" />
         </button>
-
-        {/* 팀 로고 + 이름 */}
         <div className="flex items-center gap-2">
           {team.logoUrl ? (
-            <img
+            <Image
               src={team.logoUrl}
               alt={team.name}
+              width={28}
+              height={28}
               className="w-7 h-7 rounded-full object-cover"
             />
           ) : (
@@ -170,10 +172,11 @@ export function TeamSettingsView({ code }: TeamSettingsViewProps) {
               {logoChar}
             </div>
           )}
-          <span className="font-bold text-slate-900">{team.name}</span>
-          <span className="text-slate-400">/</span>
-          <span className="font-bold text-slate-900">설정</span>
+          <span className="text-lg font-bold text-slate-900">{team.name}</span>
+          <span className="text-muted-foreground">/</span>
+          <span className="text-lg font-bold text-slate-900">설정</span>
         </div>
+        <div className="w-10" />
       </header>
 
       {/* 메뉴 리스트 */}
@@ -327,14 +330,14 @@ function MenuItem({
       </span>
 
       <div className="flex items-center gap-2">
-        {value && <span className="text-sm text-slate-400">{value}</span>}
+        {value && <span className="text-sm text-muted-foreground">{value}</span>}
         {action && (
           <button
             onClick={(e) => {
               e.stopPropagation();
               onAction?.();
             }}
-            className="text-sm text-primary font-medium"
+            className="text-sm text-muted-foreground font-medium"
           >
             {action}
           </button>

@@ -1,6 +1,6 @@
 'use client';
 
-import { Car, Droplets, Thermometer, BoxSelect, Droplet, CircleDot } from 'lucide-react';
+import { Car, Droplets, Thermometer, Droplet } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import type { TeamMatchDetailDTO } from '@/features/team/model/types';
 

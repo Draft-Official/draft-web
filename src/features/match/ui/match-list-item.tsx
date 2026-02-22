@@ -3,12 +3,13 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { MapPin } from 'lucide-react';
-import { Button } from '@/shared/ui/base/button';
-import { Badge } from '@/shared/ui/base/badge';
-import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/base/avatar';
+import { Button } from '@/shared/ui/shadcn/button';
+import { Badge } from '@/shared/ui/shadcn/badge';
+import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/shadcn/avatar';
 import { cn } from '@/shared/lib/utils';
 import type { ApplicationStatusValue } from '@/shared/config/application-constants';
 import { getDayLabel } from '@/features/match/lib/utils';
+import { formatShortAddress } from '@/shared/lib/parse-region';
 import type { GuestMatchListItemDTO } from '@/features/match/model/types';
 import { PositionChip } from './position-chip';
 
@@ -35,7 +36,7 @@ export const MatchListItem = React.memo(function MatchListItem({ match, applicat
   );
 
   const handleClick = () => {
-    router.push(`/matches/${match.matchId}`);
+    router.push(`/matches/${match.publicId}`);
   };
 
   return (
@@ -66,7 +67,7 @@ export const MatchListItem = React.memo(function MatchListItem({ match, applicat
               "w-3 h-3 shrink-0",
               match.isClosed ? "text-slate-300" : "text-slate-400"
             )} />
-            {match.gymAddress}
+            {formatShortAddress(match.gymAddress)}
           </span>
           
           {/* NEW Badge */}
@@ -209,7 +210,7 @@ export const MatchListItem = React.memo(function MatchListItem({ match, applicat
           ) : (
             <Button
               size="sm"
-              className="h-8 px-3 text-xs font-bold rounded-lg shadow-sm transition-transform active:scale-95 bg-[#FF6600] hover:bg-[#FF6600]/90 text-white shadow-orange-100"
+              className="h-8 px-3 text-xs font-bold rounded-lg shadow-sm transition-transform active:scale-95 bg-primary hover:bg-primary/90 text-white shadow-draft-100"
             >
               신청하기
             </Button>

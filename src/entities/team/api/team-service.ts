@@ -21,6 +21,7 @@ import type {
 } from '@/shared/types/database.types';
 import type { AccountInfo, OperationInfo } from '@/shared/types/jsonb.types';
 import { handleSupabaseError } from '@/shared/lib/errors';
+import { normalizeRegularDay } from '@/shared/config/team-constants';
 import type { TeamRoleValue, TeamVoteStatusValue } from '@/shared/config/team-constants';
 import type {
   CreateTeamInput,
@@ -77,10 +78,10 @@ export class TeamService {
   /**
    * 팀 코드로 팀 정보 조회 (gym join 포함)
    */
-  async getTeamByCode(code: string): Promise<(Team & { gyms?: { name: string } | null }) | null> {
+  async getTeamByCode(code: string): Promise<(Team & { gyms?: { name: string; address: string | null } | null }) | null> {
     const { data, error } = await this.supabase
       .from('teams')
-      .select('*, gyms(name)')
+      .select('*, gyms(name, address)')
       .eq('code', code)
       .single();
 
@@ -119,7 +120,7 @@ export class TeamService {
       region_depth1: input.regionDepth1,
       region_depth2: input.regionDepth2,
       home_gym_id: input.homeGymId,
-      regular_day: input.regularDay,
+      regular_day: normalizeRegularDay(input.regularDay ?? null),
       regular_start_time: input.regularStartTime,
       regular_end_time: input.regularEndTime,
       team_gender: input.teamGender,
@@ -143,7 +144,7 @@ export class TeamService {
   /**
    * 팀 정보 수정
    */
-  async updateTeam(teamId: string, input: UpdateTeamInput): Promise<Team> {
+  async updateTeam(teamId: string, input: UpdateTeamInput): Promise<Team & { gyms?: { name: string } | null }> {
     const teamUpdate: TeamUpdate = {};
 
     if (input.name !== undefined) teamUpdate.name = input.name;
@@ -153,7 +154,9 @@ export class TeamService {
     if (input.regionDepth1 !== undefined) teamUpdate.region_depth1 = input.regionDepth1;
     if (input.regionDepth2 !== undefined) teamUpdate.region_depth2 = input.regionDepth2;
     if (input.homeGymId !== undefined) teamUpdate.home_gym_id = input.homeGymId;
-    if (input.regularDay !== undefined) teamUpdate.regular_day = input.regularDay;
+    if (input.regularDay !== undefined) {
+      teamUpdate.regular_day = normalizeRegularDay(input.regularDay ?? null);
+    }
     if (input.regularStartTime !== undefined) {
       (teamUpdate as Record<string, unknown>).regular_start_time = input.regularStartTime;
     }
@@ -179,7 +182,7 @@ export class TeamService {
       .from('teams')
       .update(teamUpdate)
       .eq('id', teamId)
-      .select()
+      .select('*, gyms(name)')
       .single();
 
     if (error) handleSupabaseError(error, '팀 정보 수정');
@@ -725,7 +728,7 @@ export class TeamService {
       .select('*, gyms(*)')
       .eq('team_id', teamId)
       .eq('match_type', 'TEAM_MATCH')
-      .order('start_time', { ascending: true });
+      .order('start_time', { ascending: false });
 
     if (options?.upcoming) {
       query = query.gte('start_time', new Date().toISOString());
@@ -1075,6 +1078,7 @@ export class TeamService {
       .select('*, gyms(*), teams!inner(*)')
       .in('team_id', teamIds)
       .eq('match_type', 'TEAM_MATCH')
+      .neq('status', 'CLOSED')
       .gte('start_time', new Date().toISOString())
       .order('start_time', { ascending: true });
 

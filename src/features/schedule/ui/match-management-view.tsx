@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { Calendar, RotateCcw, Loader2 } from "lucide-react";
+import { Calendar, RotateCcw } from "lucide-react";
 import { useLocalStorage } from "@/shared/lib/hooks/use-local-storage";
 import { useAuth } from "@/shared/session";
 import { useUnreadNotifications, useMarkNotificationsAsReadByMatch } from "@/features/notification";
@@ -12,7 +13,10 @@ import { FilterDropdown } from "./components/filter-dropdown";
 import { MatchCard } from "./components/match-card";
 import { ApplicationInfoDialog } from "./components/application-info-dialog";
 import { Toggle } from "@/shared/ui/shadcn/toggle";
+import { Tabs, TabsList, TabsTrigger } from "@/shared/ui/shadcn/tabs";
 import { useHostedMatches, useParticipatingMatches, useConfirmPaymentByGuest, useCancelApplicationByGuest } from "@/features/schedule";
+import { useScheduleVote } from "../api/vote-mutations";
+import type { TeamVoteStatusValue } from "@/shared/config/application-constants";
 import type { MatchType, ScheduleMatchListItemDTO } from "../model/types";
 import {
   MATCH_TYPE_FILTER_OPTIONS,
@@ -22,6 +26,7 @@ import {
   PAST_MATCH_STATUSES,
 } from "../config/constants";
 import { cn } from "@/shared/lib/utils";
+import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 type ViewMode = "guest" | "host";
 type GuestTypeFilterValue = Exclude<MatchType, "host">;
@@ -88,6 +93,7 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
   // Mutations for guest actions
   const confirmPaymentMutation = useConfirmPaymentByGuest();
   const cancelApplicationMutation = useCancelApplicationByGuest();
+  const voteMutation = useScheduleVote();
 
   const handleConfirmPayment = (applicationId: string, matchId: string) => {
     confirmPaymentMutation.mutate({ applicationId, matchId });
@@ -95,6 +101,16 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
 
   const handleCancelApplication = (applicationId: string, matchId: string) => {
     cancelApplicationMutation.mutate({ applicationId, matchId });
+  };
+
+  const handleVote = (matchId: string, vote: TeamVoteStatusValue, reason: string) => {
+    if (!user?.id) return;
+    voteMutation.mutate({
+      userId: user.id,
+      matchId,
+      status: vote,
+      description: reason || undefined,
+    });
   };
 
   const isLoading = viewMode === "host" ? isLoadingHosted : isLoadingParticipating;
@@ -184,13 +200,16 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
       } else {
         router.push(`/tournaments/${match.id}`);
       }
+    } else if (match.matchType === "team" && match.teamCode) {
+      // 팀 매치는 팀 상세 매치 페이지로
+      router.push(`/team/${match.teamCode}/matches/${match.id}`);
     } else {
-      // host, team, guest 모두 matches로 통합
+      // host, guest는 matches로 통합
       if (viewMode === "host" || match.matchType === "host") {
-        router.push(`/matches/${match.id}/manage`);
+        router.push(`/matches/${match.publicId}/manage`);
       } else {
         // 참여 탭에서 들어가는 경우 from=schedule 파라미터 추가
-        router.push(`/matches/${match.id}?from=schedule`);
+        router.push(`/matches/${match.publicId}?from=schedule`);
       }
     }
   };
@@ -242,49 +261,43 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-20">
+    <div className="min-h-screen bg-background pb-(--dimension-spacing-y-screen-bottom)">
       {/* Header */}
-      <header className="bg-white border-b border-slate-200 px-5 py-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold text-slate-900">경기 관리</h1>
+      <header className="bg-white border-b border-slate-100">
+        <div className="flex items-center justify-between px-(--dimension-spacing-x-global-gutter) h-(--dimension-x14)">
+          <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">경기 관리</h1>
 
-          {/* Guest/Host Toggle - Slide Animation */}
+          {/* Guest/Host Toggle */}
           <div className="flex items-center gap-3">
-            <div className="relative flex items-center bg-slate-100 rounded-full p-1">
-              {/* Sliding Indicator */}
-              <div
-                className={cn(
-                  "absolute h-[calc(100%-8px)] w-[calc(50%-2px)] bg-slate-900 rounded-full transition-transform duration-300 ease-in-out",
-                  viewMode === "host" ? "translate-x-full" : "translate-x-0"
-                )}
-              />
-              <button
-                onClick={() => setViewMode("guest")}
-                className={cn(
-                  "relative z-10 px-4 py-1.5 text-sm font-bold rounded-full transition-colors duration-300",
-                  viewMode === "guest" ? "text-white" : "text-slate-600"
-                )}
-              >
-                참여
-              </button>
-              <button
-                onClick={() => setViewMode("host")}
-                className={cn(
-                  "relative z-10 px-4 py-1.5 text-sm font-bold rounded-full transition-colors duration-300",
-                  viewMode === "host" ? "text-white" : "text-slate-600"
-                )}
-              >
-                관리
-              </button>
-            </div>
+            <Tabs
+              value={viewMode}
+              onValueChange={(v) => setViewMode(v as "guest" | "host")}
+              className="w-auto gap-0"
+            >
+              <TabsList variant="default" className="relative rounded-full h-auto p-1 bg-neutral-100">
+                <motion.div
+                  className="absolute top-1 bottom-1 left-1 rounded-full bg-neutral-900 pointer-events-none"
+                  style={{ width: "calc(50% - 4px)" }}
+                  animate={{ x: viewMode === "host" ? "100%" : "0%" }}
+                  initial={false}
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                />
+                <TabsTrigger value="guest" className="relative z-10 rounded-full px-4 py-1.5 text-sm font-bold data-active:bg-transparent data-active:shadow-none data-active:text-white">
+                  참여
+                </TabsTrigger>
+                <TabsTrigger value="host" className="relative z-10 rounded-full px-4 py-1.5 text-sm font-bold data-active:bg-transparent data-active:shadow-none data-active:text-white">
+                  관리
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
             {notificationSlot}
           </div>
         </div>
       </header>
 
       {/* Filters - Single Row */}
-      <section className="bg-white border-b border-slate-100 px-5 py-3">
-        <div className="flex gap-2 overflow-x-auto hide-scrollbar items-center">
+      <section className="bg-white border-b border-slate-100 px-(--dimension-spacing-x-global-gutter) py-(--dimension-spacing-y-component-default)">
+        <div className="flex gap-(--dimension-spacing-x-between-chips) overflow-x-auto hide-scrollbar items-center">
           {/* Type Filter (Multi-select) - Different options per mode */}
           {viewMode === "guest" ? (
             <FilterDropdown
@@ -329,10 +342,10 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
             pressed={showPast}
             onPressedChange={(pressed) => setShowPastMatches(pressed ? "show" : "hide")}
             className={cn(
-              "rounded-full h-8 px-3 text-xs font-bold border transition-all",
+              "h-auto min-w-0 rounded-full px-(--dimension-x4) py-(--dimension-x2) text-sm font-medium border transition-all",
               showPast
-                ? "border-primary text-primary bg-orange-50 data-[state=on]:bg-orange-50 data-[state=on]:text-primary"
-                : "border-slate-200 text-slate-600"
+                ? "border-primary text-muted-foreground bg-brand-weak data-[state=on]:bg-brand-weak data-[state=on]:text-muted-foreground"
+                : "border-slate-200 text-muted-foreground"
             )}
           >
             지난 경기
@@ -342,7 +355,7 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
           {isFilterActive && (
             <button
               onClick={handleResetFilters}
-              className="flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700 transition-colors px-2 shrink-0 ml-auto"
+              className="flex items-center gap-(--dimension-x1) text-xs font-medium text-slate-500 hover:text-slate-700 transition-colors px-(--dimension-x2) shrink-0 ml-auto"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>초기화</span>
@@ -352,10 +365,10 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
       </section>
 
       {/* Match List */}
-      <section className="px-5 py-4 space-y-3">
+      <section className="px-(--dimension-spacing-x-global-gutter) py-(--dimension-spacing-y-component-default) space-y-(--dimension-spacing-y-component-default)">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 text-slate-400 animate-spin mb-4" />
+            <Spinner className="w-8 h-8 text-muted-foreground  mb-4" />
             <p className="text-slate-500 text-center">
               경기 목록을 불러오는 중...
             </p>
@@ -363,7 +376,7 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
         ) : filteredMatches.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-              <Calendar className="w-8 h-8 text-slate-400" />
+              <Calendar className="w-8 h-8 text-muted-foreground" />
             </div>
             <p className="text-slate-500 text-center">
               {viewMode === "guest" ? "참여한 경기가 없습니다." : "주최한 경기가 없습니다."}
@@ -377,6 +390,8 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
               notifications={notificationsByMatchId.get(match.id)}
               onClick={handleCardClick}
               onConfirmPayment={handleConfirmPayment}
+              onVote={handleVote}
+              isVoting={voteMutation.isPending}
             />
           ))
         )}

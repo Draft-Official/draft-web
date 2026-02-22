@@ -8,9 +8,9 @@ import {
   DialogTitle,
 } from '@/shared/ui/shadcn/dialog';
 import { RadioGroup } from '@/shared/ui/shadcn/radio-group';
-import { Button } from '@/shared/ui/base/button';
+import { Button } from '@/shared/ui/shadcn/button';
 import { cn } from '@/shared/lib/utils';
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import { useUpdateMemberVote } from '@/features/team/api/match/mutations';
 import {
   TEAM_VOTE_OPTIONS,
@@ -73,7 +73,7 @@ export function VoteChangeDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-[calc(100vw-32px)] sm:max-w-[400px] rounded-2xl">
+      <DialogContent size="lg" className="rounded-2xl">
         <DialogHeader>
           <DialogTitle className="text-lg font-bold">
             {memberName}님 투표 변경

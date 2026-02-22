@@ -1,8 +1,8 @@
 'use client';
 
-import { Users, Loader2 } from 'lucide-react';
-import { Button } from '@/shared/ui/base/button';
-import { ScrollArea, ScrollBar } from '@/shared/ui/base/scroll-area';
+import { Users } from 'lucide-react';
+import { Button } from '@/shared/ui/shadcn/button';
+import { ScrollArea, ScrollBar } from '@/shared/ui/shadcn/scroll-area';
 import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/shadcn/alert';
 import { useAuth } from '@/shared/session';
 import { useMyTeams } from '../api/team-info/queries';
@@ -11,6 +11,7 @@ import { useVote } from '../api/match/mutations';
 import { TeamProfileCard } from './components/team-profile-card';
 import { TeamMatchItem } from './components/team-match-item';
 import type { TeamVoteStatusValue } from '@/shared/config/team-constants';
+import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 /**
  * 나의 팀 탭
@@ -26,7 +27,7 @@ export function MyTeamsTab() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+        <Spinner className="w-6 h-6  text-muted-foreground" />
       </div>
     );
   }
@@ -34,9 +35,9 @@ export function MyTeamsTab() {
   // 팀이 없는 경우 Empty State
   if (!teams || teams.length === 0) {
     return (
-      <div className="p-4">
+      <div className="p-(--dimension-spacing-x-global-gutter)">
         <Alert className="bg-white border-slate-200">
-          <Users className="h-5 w-5 text-slate-400" />
+          <Users className="h-5 w-5 text-muted-foreground" />
           <AlertTitle className="font-bold text-slate-900">
             소속 팀이 없습니다
           </AlertTitle>
@@ -45,7 +46,7 @@ export function MyTeamsTab() {
             <br />
             <Button
               variant="link"
-              className="p-0 h-auto text-primary font-bold"
+              className="p-0 h-auto text-muted-foreground font-bold"
               onClick={() => {
                 // 팀 생성하기+ 탭으로 이동 (탭 전환)
                 const trigger = document.querySelector(
@@ -63,11 +64,11 @@ export function MyTeamsTab() {
   }
 
   return (
-    <div className="pb-20">
+    <div className="pb-(--dimension-spacing-y-screen-bottom)">
       {/* 나의 팀 카드 섹션 */}
-      <section className="py-4">
+      <section className="pb-(--dimension-spacing-y-component-default)">
         <ScrollArea className="w-full">
-          <div className="flex gap-3 px-4">
+          <div className="flex gap-(--dimension-spacing-y-component-default) px-(--dimension-spacing-x-global-gutter) py-1">
             {teams.map((team) => (
               <TeamProfileCard
                 key={team.id}
@@ -87,8 +88,8 @@ export function MyTeamsTab() {
       </section>
 
       {/* 팀 정기운동 섹션 */}
-      <section className="px-4">
-        <h2 className="font-bold text-slate-900 text-lg mb-3">팀 정기운동</h2>
+      <section className="px-(--dimension-spacing-x-global-gutter)">
+        <h2 className="font-bold text-slate-900 text-lg mb-(--dimension-spacing-y-component-default)">팀 정기운동</h2>
         <PendingVoteMatches teamIds={teams.map((t) => t.id)} userId={user!.id} />
       </section>
     </div>
@@ -116,21 +117,21 @@ function PendingVoteMatches({ teamIds, userId }: { teamIds: string[]; userId: st
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
+        <Spinner className="w-5 h-5  text-muted-foreground" />
       </div>
     );
   }
 
   if (!matches || matches.length === 0) {
     return (
-      <p className="text-sm text-slate-400 py-4 text-center">
+      <p className="text-sm text-muted-foreground py-(--dimension-spacing-y-component-default) text-center">
         예정된 팀 운동이 없습니다
       </p>
     );
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-(--dimension-spacing-y-component-default)">
       {matches.map((item) => {
         return (
           <TeamMatchItem

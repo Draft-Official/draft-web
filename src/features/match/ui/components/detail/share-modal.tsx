@@ -1,20 +1,20 @@
 'use client';
 
 import React from 'react';
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import { Link2, MessageCircle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/shared/ui/base/dialog';
-import { Button } from '@/shared/ui/base/button';
+} from '@/shared/ui/shadcn/dialog';
+import { Button } from '@/shared/ui/shadcn/button';
 
 interface ShareModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  matchId: string;
+  matchPublicId: string;
   matchTitle: string;
   matchDate: string;
   location: string;
@@ -23,13 +23,13 @@ interface ShareModalProps {
 export function ShareModal({
   open,
   onOpenChange,
-  matchId,
+  matchPublicId,
   matchTitle,
   matchDate,
   location,
 }: ShareModalProps) {
   const shareUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/matches/${matchId}`
+    ? `${window.location.origin}/matches/${matchPublicId}`
     : '';
 
   const handleCopyLink = async () => {
@@ -45,8 +45,6 @@ export function ShareModal({
   const handleKakaoShare = () => {
     // 카카오톡 공유는 Kakao SDK가 필요하므로 링크 공유로 대체
     // 카카오톡 앱이 설치되어 있으면 카카오톡 공유 URL 스킴 사용
-    const kakaoShareUrl = `https://sharer.kakao.com/talk/friends/picker/link?app_key=javascript_key&url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(`${matchTitle} - ${matchDate} @ ${location}`)}`;
-
     // 간단한 링크 공유 방식으로 대체
     // 실제 Kakao SDK 연동 시 Kakao.Share.sendDefault() 사용 권장
     try {
@@ -72,7 +70,7 @@ export function ShareModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[340px] rounded-2xl">
+      <DialogContent size="sm" className="rounded-2xl">
         <DialogHeader>
           <DialogTitle className="text-center">공유하기</DialogTitle>
         </DialogHeader>
@@ -83,8 +81,8 @@ export function ShareModal({
             className="h-14 justify-start gap-4 px-4 rounded-xl border-slate-200 hover:bg-slate-50"
             onClick={handleKakaoShare}
           >
-            <div className="w-10 h-10 bg-[#FEE500] rounded-lg flex items-center justify-center">
-              <MessageCircle className="w-5 h-5 text-[#3C1E1E]" />
+            <div className="w-10 h-10 bg-kakao rounded-lg flex items-center justify-center">
+              <MessageCircle className="w-5 h-5 text-kakao-foreground" />
             </div>
             <span className="text-sm font-medium text-slate-900">카카오톡 공유</span>
           </Button>

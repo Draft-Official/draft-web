@@ -1,15 +1,15 @@
 'use client';
 
 import React from 'react';
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import { Phone, MessageCircle, Copy, ExternalLink } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/shared/ui/base/dialog';
-import { Button } from '@/shared/ui/base/button';
+} from '@/shared/ui/shadcn/dialog';
+import { Button } from '@/shared/ui/shadcn/button';
 import type { ContactTypeValue } from '@/shared/config/match-constants';
 
 interface ContactModalProps {
@@ -58,7 +58,7 @@ export function ContactModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[340px] rounded-2xl">
+      <DialogContent size="sm" className="rounded-2xl">
         <DialogHeader>
           <DialogTitle className="text-center">문의하기</DialogTitle>
         </DialogHeader>
@@ -70,7 +70,7 @@ export function ContactModal({
               {isPhone ? (
                 <Phone className="w-5 h-5 text-slate-600" />
               ) : (
-                <MessageCircle className="w-5 h-5 text-[#3C1E1E]" />
+                <MessageCircle className="w-5 h-5 text-kakao-foreground" />
               )}
             </div>
             <div className="flex-1 min-w-0">
@@ -96,7 +96,7 @@ export function ContactModal({
 
             {isKakao && (
               <Button
-                className="flex-1 h-11 gap-2 bg-[#FEE500] hover:bg-[#FEE500]/90 text-[#3C1E1E]"
+                className="flex-1 h-11 gap-2 bg-kakao hover:bg-kakao/90 text-kakao-foreground"
                 onClick={handleOpenLink}
               >
                 <ExternalLink className="w-4 h-4" />

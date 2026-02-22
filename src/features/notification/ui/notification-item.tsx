@@ -60,7 +60,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
       onClick={handleClick}
       className={cn(
         'w-full flex items-start gap-3 px-5 py-4 text-left transition-colors hover:bg-slate-50',
-        !notification.isRead && 'bg-orange-50/50'
+        !notification.isRead && 'bg-brand-weak/50'
       )}
     >
       {/* Icon */}
@@ -86,7 +86,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
 
       {/* Unread dot */}
       {!notification.isRead && (
-        <span className="flex-shrink-0 w-2 h-2 rounded-full bg-[#FF6600] mt-2" />
+        <span className="flex-shrink-0 w-2 h-2 rounded-full bg-primary mt-2" />
       )}
     </button>
   );

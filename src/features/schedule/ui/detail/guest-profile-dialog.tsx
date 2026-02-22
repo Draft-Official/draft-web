@@ -1,13 +1,13 @@
 'use client';
 
-import { Button } from '@/shared/ui/base/button';
+import { Button } from '@/shared/ui/shadcn/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/shared/ui/base/dialog';
+} from '@/shared/ui/shadcn/dialog';
 import { formatMatchDate, formatMatchTime } from '@/shared/lib/date';
 import type { MatchApplicantDTO } from '../../model/types';
 
@@ -34,7 +34,7 @@ export function GuestProfileDialog({
 }: GuestProfileDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm mx-4 rounded-2xl p-6">
+      <DialogContent size="base" className="rounded-2xl p-6">
         {guest && (
           <div className="flex flex-col items-center space-y-6 pt-2">
             {/* 아바타 + 이름 + 팀 */}

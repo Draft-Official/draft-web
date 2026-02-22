@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { Minus, Plus } from 'lucide-react';
-import { Button } from '@/shared/ui/base/button';
-import { Chip } from '@/shared/ui/base/chip';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/base/dialog";
-import { ScrollArea } from "@/shared/ui/base/scroll-area";
+import { Button } from '@/shared/ui/shadcn/button';
+import { Toggle } from '@/shared/ui/shadcn/toggle';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/shadcn/dialog";
+import { ScrollArea } from "@/shared/ui/shadcn/scroll-area";
 import { GENDER_OPTIONS, MATCH_FORMAT_OPTIONS } from '@/shared/config/match-constants';
 import { cn } from '@/shared/lib/utils';
 
@@ -78,7 +78,7 @@ export function DetailedFilterModal({
       setTempPositions(prev => prev.includes('포지션 무관') ? [] : ['포지션 무관']);
     } else {
       setTempPositions(prev => {
-        let next = prev.filter(p => p !== '포지션 무관');
+        const next = prev.filter(p => p !== '포지션 무관');
         return next.includes(pos) ? next.filter(p => p !== pos) : [...next, pos];
       });
     }
@@ -115,7 +115,7 @@ export function DetailedFilterModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[90%] max-w-[360px] rounded-2xl">
+      <DialogContent size="md" className="rounded-2xl">
         <DialogHeader>
           <DialogTitle>상세 조건</DialogTitle>
         </DialogHeader>
@@ -127,23 +127,17 @@ export function DetailedFilterModal({
               <div className="space-y-3">
                 <h3 className="text-sm font-bold text-slate-900">포지션</h3>
                 <div className="grid grid-cols-2 gap-3">
-                  {POSITION_OPTIONS.map(pos => {
-                    const isSelected = tempPositions.includes(pos);
-                    return (
-                      <button
-                        key={pos}
-                        onClick={() => toggleTempPosition(pos)}
-                        className={cn(
-                          "h-12 rounded-xl border font-bold text-sm transition-all",
-                          isSelected
-                            ? "border-[#FF6600] bg-orange-50 text-[#FF6600]"
-                            : "border-slate-200 text-slate-600 hover:bg-slate-50"
-                        )}
-                      >
-                        {pos}
-                      </button>
-                    );
-                  })}
+                  {POSITION_OPTIONS.map(pos => (
+                    <Toggle
+                      key={pos}
+                      variant="outline"
+                      pressed={tempPositions.includes(pos)}
+                      onPressedChange={() => toggleTempPosition(pos)}
+                      className="h-12 rounded-xl text-sm font-bold"
+                    >
+                      {pos}
+                    </Toggle>
+                  ))}
                 </div>
               </div>
             )}
@@ -190,14 +184,15 @@ export function DetailedFilterModal({
               <h3 className="text-sm font-bold text-slate-900">성별</h3>
               <div className="flex gap-2">
                 {GENDER_OPTIONS.map((g) => (
-                  <Chip 
-                    key={g.value} 
-                    label={g.label} 
-                    variant="orange"
-                    isActive={tempGenders.includes(g.value)}
-                    showCheckIcon={false}
-                    onClick={() => toggleSelection(tempGenders, g.value, setTempGenders)}
-                  />
+                  <Toggle
+                    key={g.value}
+                    variant="outline"
+                    pressed={tempGenders.includes(g.value)}
+                    onPressedChange={() => toggleSelection(tempGenders, g.value, setTempGenders)}
+                    className="h-9 rounded-lg px-4 text-sm font-medium"
+                  >
+                    {g.label}
+                  </Toggle>
                 ))}
               </div>
             </div>
@@ -207,14 +202,15 @@ export function DetailedFilterModal({
               <h3 className="text-sm font-bold text-slate-900">경기 방식</h3>
               <div className="flex flex-wrap gap-2">
                 {MATCH_FORMAT_OPTIONS.map((bg) => (
-                  <Chip
+                  <Toggle
                     key={bg.value}
-                    label={bg.label}
-                    variant="orange"
-                    isActive={tempGameFormats.includes(bg.value)}
-                    showCheckIcon={false}
-                    onClick={() => toggleSelection(tempGameFormats, bg.value, setTempGameFormats)}
-                  />
+                    variant="outline"
+                    pressed={tempGameFormats.includes(bg.value)}
+                    onPressedChange={() => toggleSelection(tempGameFormats, bg.value, setTempGameFormats)}
+                    className="h-9 rounded-lg px-4 text-sm font-medium"
+                  >
+                    {bg.label}
+                  </Toggle>
                 ))}
               </div>
             </div>
@@ -231,7 +227,7 @@ export function DetailedFilterModal({
                     onClick={() => setTempHideClosed(!tempHideClosed)}
                     className={cn(
                       "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors",
-                      tempHideClosed ? "bg-[#FF6600]" : "bg-slate-200"
+                      tempHideClosed ? "bg-primary" : "bg-slate-200"
                     )}
                   >
                     <span
@@ -256,7 +252,7 @@ export function DetailedFilterModal({
           </Button>
           <Button
             onClick={handleApply}
-            className="flex-1 h-12 bg-[#FF6600] text-white rounded-xl font-bold hover:bg-[#FF6600]/90"
+            className="flex-1 h-12 bg-primary text-white rounded-xl font-bold hover:bg-primary/90"
           >
             적용하기
           </Button>

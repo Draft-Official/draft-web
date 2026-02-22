@@ -34,7 +34,7 @@ export function PolicySection() {
         <AlertDescription className="text-sm text-red-900">
           <strong>결제 및 허위 입금 주의</strong>
                   <p className="mt-1">
-            입금 없이 <strong>허위로 '입금 완료' 버튼을 누를 경우</strong>, 즉시 서비스 정지 및 법적 처벌을 받을 수 있습니다.
+            입금 없이 <strong>허위로 &apos;입금 완료&apos; 버튼을 누를 경우</strong>, 즉시 서비스 정지 및 법적 처벌을 받을 수 있습니다.
           </p>
         </AlertDescription>
       </Alert>

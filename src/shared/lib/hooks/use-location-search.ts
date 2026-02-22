@@ -2,6 +2,12 @@ import { useState, useRef, useCallback } from 'react';
 import type { LocationData } from '@/shared/types/location.types';
 import type { GymFacilities } from '@/shared/types/jsonb.types';
 
+export interface LocationSearchResolvedValue {
+  locationData: LocationData | null;
+  isExistingGym: boolean;
+  gymFacilities: GymFacilities | null;
+}
+
 export interface UseLocationSearchReturn {
   location: string;
   locationData: LocationData | null;
@@ -23,6 +29,16 @@ export function useLocationSearch(): UseLocationSearchReturn {
   const [isExistingGym, setIsExistingGym] = useState(false);
   const [gymFacilities, setGymFacilities] = useState<GymFacilities | null>(null);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  interface KakaoPlaceResult {
+    road_address_name?: string;
+    address_name: string;
+    place_name: string;
+    place_url: string;
+    x: string;
+    y: string;
+    id: string;
+  }
 
   const formatLocation = (data: LocationData): string => {
     if (data.buildingName) {
@@ -48,7 +64,7 @@ export function useLocationSearch(): UseLocationSearchReturn {
       try {
         const { searchPlaces } = await import('@/shared/api/kakao-map');
         const results = await searchPlaces(query);
-        const mappedResults: LocationData[] = results.map((place: any) => ({
+        const mappedResults: LocationData[] = results.map((place: KakaoPlaceResult) => ({
           address: place.road_address_name || place.address_name,
           buildingName: place.place_name,
           bname: place.address_name.split(' ')[2],

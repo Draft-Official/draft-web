@@ -8,8 +8,8 @@ import type { AccountInfo, OperationInfo, LevelRange, AgeRange } from '@/shared/
 import type {
   TeamRoleValue,
   TeamMemberStatusValue,
-  RegularDayValue,
 } from '@/shared/config/team-constants';
+import { normalizeRegularDay } from '@/shared/config/team-constants';
 import type { Team as TeamEntity, TeamMember as TeamMemberEntity, TeamFee as TeamFeeEntity } from '../model/types';
 
 /**
@@ -26,7 +26,7 @@ export function teamRowToEntity(row: TeamRow): TeamEntity {
     regionDepth1: row.region_depth1,
     regionDepth2: row.region_depth2,
     homeGymId: row.home_gym_id,
-    regularDay: row.regular_day as RegularDayValue | null,
+    regularDay: normalizeRegularDay(row.regular_day),
     regularStartTime: row.regular_start_time ?? null,
     regularEndTime: row.regular_end_time ?? null,
     teamGender: row.team_gender,

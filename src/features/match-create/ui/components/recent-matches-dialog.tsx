@@ -1,9 +1,10 @@
 'use client';
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/shared/ui/base/dialog';
-import { X, MapPin, Loader2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/ui/shadcn/dialog';
+import { MapPin } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import type { RecentMatchListItemDTO } from '@/features/match-create/model/types';
+import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 interface RecentMatchesDialogProps {
   open: boolean;
@@ -22,21 +23,17 @@ export function RecentMatchesDialog({
 }: RecentMatchesDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[90%] max-w-[480px] p-0 gap-0 rounded-2xl">
+      <DialogContent size="xxl" className="p-0 gap-0 rounded-2xl">
         <DialogHeader className="px-5 py-4 border-b border-slate-100">
           <DialogTitle className="text-lg font-bold text-slate-900">
             최근 경기 불러오기
           </DialogTitle>
         </DialogHeader>
-        <DialogClose className="absolute right-4 top-4 opacity-70 hover:opacity-100 transition-opacity">
-          <X className="h-5 w-5" />
-          <span className="sr-only">Close</span>
-        </DialogClose>
 
         <div className="py-2 max-h-[400px] overflow-y-auto">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+              <Spinner className="w-6 h-6  text-muted-foreground" />
             </div>
           ) : matches.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-slate-500">
@@ -60,8 +57,8 @@ export function RecentMatchesDialog({
                       <span className={cn(
                         "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium",
                         match.isTeamHost
-                          ? "bg-orange-50 text-orange-700"
-                          : "bg-slate-100 text-slate-600"
+                          ? "bg-brand-weak text-brand-contrast"
+                          : "bg-slate-100 text-muted-foreground"
                       )}>
                         {match.isTeamHost ? '🏀' : '🙋‍♂️'} {match.hostLabel}
                       </span>

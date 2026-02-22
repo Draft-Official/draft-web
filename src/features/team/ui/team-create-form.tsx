@@ -1,34 +1,42 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, ArrowRight, Check, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
+import { toast } from '@/shared/ui/shadcn/sonner';
+import { Spinner } from '@/shared/ui/shadcn/spinner';
 
-import { Button } from '@/shared/ui/base/button';
+import { Button } from '@/shared/ui/shadcn/button';
 
 import { useCreateTeam } from '@/features/team/api/team-info/mutations';
 import { useAuth } from '@/shared/session';
-import { useLocationSearch } from '@/shared/lib/hooks/use-location-search';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
-import { createGymService } from '@/entities/gym';
+import { createGymService, gymKeys } from '@/entities/gym';
 import { createTeamService } from '@/entities/team';
 
 import { StepProgressBar } from './components/step-progress-bar';
 import { TeamCreateStepInfo } from './components/team-create-step-info';
 import { TeamCreateStepSchedule } from './components/team-create-step-schedule';
 import { TeamCreateStepTraits } from './components/team-create-step-traits';
+import { calcEndTimeFromDuration, selectedAgesToAgeRange } from '@/features/team/lib';
 
 import {
   TEAM_CODE_REGEX,
   TEAM_CODE_ERROR_MESSAGE,
+  TEAM_NAME_MAX_LENGTH,
+  TEAM_NAME_ERROR_MESSAGE,
+  TEAM_NAME_CHARACTER_ERROR_MESSAGE,
+  isValidTeamName,
   type RegularDayValue,
 } from '@/shared/config/team-constants';
+import type { LocationData } from '@/shared/types/location.types';
 import type { GenderValue } from '@/shared/config/match-constants';
 import type { CreateTeamInput } from '@/features/team/model/types';
-import type { LevelRange, AgeRange } from '@/shared/types/jsonb.types';
+import type { LevelRange } from '@/shared/types/jsonb.types';
 import { parseRegionFromAddress } from '@/shared/lib/parse-region';
+import type { LocationSearchResolvedValue } from '@/shared/lib/hooks/use-location-search';
 
 interface TeamCreateFormData {
   // Step 1: 팀 정보
@@ -50,10 +58,12 @@ interface TeamCreateFormData {
 }
 
 export function TeamCreateForm() {
+  const queryClient = useQueryClient();
   const router = useRouter();
   const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 3;
+  const [locationData, setLocationData] = useState<LocationData | null>(null);
 
   const methods = useForm<TeamCreateFormData>({
     defaultValues: {
@@ -73,17 +83,9 @@ export function TeamCreateForm() {
 
   const { handleSubmit, watch, setValue, trigger } = methods;
 
-  // Location search hook
-  const {
-    location,
-    locationData,
-    searchResults: locationSearchResults,
-    isDropdownOpen: showLocationDropdown,
-    isExistingGym,
-    handleSearch: handleLocationSearch,
-    handleSelect: handleLocationSelect,
-    handleClear: handleClearLocation,
-  } = useLocationSearch();
+  const handleLocationResolvedChange = useCallback((next: LocationSearchResolvedValue) => {
+    setLocationData(next.locationData);
+  }, []);
 
   // Team code validation state
   const [isCheckingCode, setIsCheckingCode] = useState(false);
@@ -102,10 +104,13 @@ export function TeamCreateForm() {
   const selectedAges = watch('selectedAges');
   const levelMin = watch('levelMin');
   const levelMax = watch('levelMax');
+  const trimmedName = name.trim();
 
   // Step별 다음 버튼 disabled 여부
   const isStep1Valid = Boolean(
-    name &&
+    trimmedName &&
+    trimmedName.length <= TEAM_NAME_MAX_LENGTH &&
+    isValidTeamName(trimmedName) &&
     shortIntro &&
     code &&
     codeStatus === 'available'
@@ -162,8 +167,16 @@ export function TeamCreateForm() {
     switch (step) {
       case 1: {
         const isValid = await trigger(['name', 'shortIntro', 'code']);
-        if (!name) {
+        if (!trimmedName) {
           toast.error('팀 이름을 입력해주세요');
+          return false;
+        }
+        if (trimmedName.length > TEAM_NAME_MAX_LENGTH) {
+          toast.error(TEAM_NAME_ERROR_MESSAGE);
+          return false;
+        }
+        if (!isValidTeamName(trimmedName)) {
+          toast.error(TEAM_NAME_CHARACTER_ERROR_MESSAGE);
           return false;
         }
         if (!shortIntro) {
@@ -252,6 +265,11 @@ export function TeamCreateForm() {
           toast.error('홈구장 정보 저장에 실패했습니다');
           return;
         }
+        queryClient.invalidateQueries({ queryKey: gymKeys.all });
+        queryClient.invalidateQueries({ queryKey: gymKeys.detail(homeGymId) });
+        queryClient.invalidateQueries({
+          queryKey: gymKeys.byKakaoPlaceId(locationData.kakaoPlaceId),
+        });
       } catch (error) {
         console.error('Gym upsert error:', error);
         toast.error('홈구장 정보 저장에 실패했습니다');
@@ -270,33 +288,15 @@ export function TeamCreateForm() {
       max: data.levelMax,
     };
 
-    // Age Range 변환: selectedAges에서 min/max 추출
-    let ageRange: AgeRange | undefined;
-    if (!data.selectedAges.includes('any') && data.selectedAges.length > 0) {
-      const ages = data.selectedAges.map(a => parseInt(a, 10)).sort((a, b) => a - b);
-      ageRange = {
-        min: ages[0],
-        max: ages[ages.length - 1],
-      };
-    }
-
-    // 종료 시간 계산: 시작 시간 + 진행 시간
-    const calculateEndTime = (startTime: string, durationHours: string): string => {
-      const [hours, minutes] = startTime.split(':').map(Number);
-      const duration = parseFloat(durationHours);
-      const totalMinutes = hours * 60 + minutes + duration * 60;
-      const endHours = Math.floor(totalMinutes / 60) % 24;
-      const endMinutes = totalMinutes % 60;
-      return `${String(endHours).padStart(2, '0')}:${String(endMinutes).padStart(2, '0')}`;
-    };
+    const ageRange = selectedAgesToAgeRange(data.selectedAges) ?? undefined;
 
     const regularEndTime = data.regularTime && data.duration
-      ? calculateEndTime(data.regularTime, data.duration)
+      ? calcEndTimeFromDuration(data.regularTime, data.duration)
       : undefined;
 
     const input: CreateTeamInput = {
       code: data.code,
-      name: data.name,
+      name: data.name.trim(),
       shortIntro: data.shortIntro || undefined,
       logoUrl: data.logoId,
       regionDepth1: region.depth1 || undefined,
@@ -326,28 +326,28 @@ export function TeamCreateForm() {
 
   return (
     <FormProvider {...methods}>
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-white">
         {/* Header */}
-        <header className="bg-white px-4 h-14 flex items-center justify-between border-b border-slate-100 sticky top-0 z-30">
+        <header className="sticky top-0 z-40 bg-white border-b border-slate-100 h-14 flex items-center justify-between px-4">
           <button
             type="button"
             onClick={() => currentStep > 1 ? handlePrev() : router.back()}
-            className="-ml-2 p-2 text-slate-900 hover:bg-slate-50 rounded-full transition-colors"
+            className="p-2 text-slate-900 hover:bg-slate-50 rounded-full transition-colors"
           >
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h1 className="font-bold text-lg text-slate-900">팀 만들기</h1>
+          <h1 className="text-lg font-bold text-slate-900">팀 만들기</h1>
           <div className="w-10" />
         </header>
 
         {/* Progress Bar */}
-        <div className="bg-white px-4 py-3 border-b border-slate-100">
+        <div className="px-4 py-3 border-b border-slate-100">
           <StepProgressBar currentStep={currentStep} totalSteps={totalSteps} />
         </div>
 
         {/* Form Content */}
-        <form onSubmit={handleSubmit(onSubmit)} className="p-4">
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+        <form onSubmit={handleSubmit(onSubmit)} className="px-5 py-6">
+          <div>
             {/* Step 1: 팀 정보 */}
             {currentStep === 1 && (
               <TeamCreateStepInfo
@@ -362,14 +362,8 @@ export function TeamCreateForm() {
             {currentStep === 2 && (
               <TeamCreateStepSchedule
                 regularDay={regularDay}
-                location={location}
                 locationData={locationData}
-                locationSearchResults={locationSearchResults}
-                showLocationDropdown={showLocationDropdown}
-                isExistingGym={isExistingGym}
-                onLocationSearch={handleLocationSearch}
-                onLocationSelect={handleLocationSelect}
-                onClearLocation={handleClearLocation}
+                onLocationResolvedChange={handleLocationResolvedChange}
               />
             )}
 
@@ -386,7 +380,7 @@ export function TeamCreateForm() {
           </div>
 
           {/* Navigation Buttons */}
-          <div className="mt-6 flex gap-3">
+          <div className="mt-8 flex gap-3">
             {currentStep > 1 && (
               <Button
                 type="button"
@@ -405,7 +399,7 @@ export function TeamCreateForm() {
                 type="button"
                 onClick={handleNext}
                 disabled={isNextDisabled}
-                className="flex-1 h-14 text-base font-bold bg-[#FF6600] hover:bg-[#FF6600]/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 h-14 text-base font-bold bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 다음
                 <ArrowRight className="w-4 h-4 ml-2" />
@@ -415,11 +409,11 @@ export function TeamCreateForm() {
                 key="submit-button"
                 type="submit"
                 disabled={isCreating}
-                className="flex-1 h-14 text-base font-bold bg-[#FF6600] hover:bg-[#FF6600]/90"
+                className="flex-1 h-14 text-base font-bold bg-primary hover:bg-primary/90"
               >
                 {isCreating ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <Spinner className="w-4 h-4 mr-2 " />
                     생성 중...
                   </>
                 ) : (

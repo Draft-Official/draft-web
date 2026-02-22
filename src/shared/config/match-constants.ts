@@ -289,7 +289,7 @@ export const MATCH_STATUS_STYLES: Record<
   { color: string; bgColor: string }
 > = {
   RECRUITING: { color: 'text-green-600', bgColor: 'bg-green-50' },
-  CLOSING_SOON: { color: 'text-orange-600', bgColor: 'bg-orange-50' },
+  CLOSING_SOON: { color: 'text-brand', bgColor: 'bg-brand-weak' },
   CLOSED: { color: 'text-gray-600', bgColor: 'bg-gray-100' },
   FINISHED: { color: 'text-gray-500', bgColor: 'bg-gray-50' },
   CANCELED: { color: 'text-red-600', bgColor: 'bg-red-50' },

@@ -3,7 +3,7 @@
  * 공지 발송용 React Query hooks
  */
 import { useMutation } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { useAuth } from '@/shared/session';
 

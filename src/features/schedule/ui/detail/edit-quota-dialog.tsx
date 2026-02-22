@@ -3,16 +3,16 @@
 import { useState, useEffect } from 'react';
 import { Minus, Plus } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
-import { Button } from '@/shared/ui/base/button';
-import { Checkbox } from '@/shared/ui/base/checkbox';
+import { Button } from '@/shared/ui/shadcn/button';
+import { Checkbox } from '@/shared/ui/shadcn/checkbox';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/shared/ui/base/dialog';
-import { toast } from 'sonner';
+} from '@/shared/ui/shadcn/dialog';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import type { HostMatchDetailDTO, RecruitmentMode } from '../../model/types';
 import type { RecruitmentSetup } from '@/shared/types/database.types';
 
@@ -118,7 +118,7 @@ export function EditQuotaDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm mx-4 rounded-2xl p-6">
+      <DialogContent size="base" className="rounded-2xl p-6">
         <DialogHeader>
           <DialogTitle>모집 인원 수정</DialogTitle>
           <DialogDescription>경기의 모집 인원을 수정할 수 있습니다.</DialogDescription>

@@ -9,10 +9,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/shared/ui/shadcn/accordion';
-import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/base/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/shadcn/avatar';
 import { VoteChangeDialog } from './vote-change-dialog';
 import type { TeamVoteDTO, VotingSummary } from '@/features/team/model/types';
-import type { TeamVoteStatusValue } from '@/shared/config/team-constants';
 
 interface VotingAccordionProps {
   votes: TeamVoteDTO[];
@@ -29,14 +28,14 @@ export function VotingAccordion({
   matchId,
   isVotingClosed,
 }: VotingAccordionProps) {
+  void votingSummary;
+  const canManageVotes = isAdmin && !isVotingClosed;
   const [selectedMember, setSelectedMember] = useState<TeamVoteDTO | null>(null);
 
   // 참석 (CONFIRMED + LATE)
   const attendingVoters = votes.filter(
     (v) => v.status === 'CONFIRMED' || v.status === 'LATE'
   );
-  const confirmedVoters = attendingVoters.filter((v) => v.status === 'CONFIRMED');
-  const lateVoters = attendingVoters.filter((v) => v.status === 'LATE');
 
   // 불참
   const notAttendingVoters = votes.filter((v) => v.status === 'NOT_ATTENDING');
@@ -46,13 +45,6 @@ export function VotingAccordion({
 
   // 미투표
   const pendingVoters = votes.filter((v) => v.status === 'PENDING');
-
-  const handleMemberClick = (voter: TeamVoteDTO) => {
-    // 투표 마감 시 클릭 불가
-    if (isAdmin && !isVotingClosed) {
-      setSelectedMember(voter);
-    }
-  };
 
   return (
     <div className="divide-y divide-slate-100">
@@ -81,7 +73,6 @@ export function VotingAccordion({
                     voter={voter}
                     showLateTag={voter.status === 'LATE'}
                     showReason={!!voter.description}
-                    isAdmin={false}
                   />
                 ))
               )}
@@ -115,7 +106,6 @@ export function VotingAccordion({
                       key={voter.id}
                       voter={voter}
                       showReason={!!voter.description}
-                      isAdmin={false}
                     />
                   ))
               )}
@@ -147,7 +137,6 @@ export function VotingAccordion({
                     voter={voter}
                     showMaybeTag={true}
                     showReason={!!voter.description}
-                    isAdmin={false}
                   />
                 ))
               )}
@@ -177,7 +166,6 @@ export function VotingAccordion({
                   <VoterItem
                     key={voter.id}
                     voter={voter}
-                    isAdmin={false}
                   />
                 ))
               )}
@@ -187,7 +175,7 @@ export function VotingAccordion({
       </Accordion>
 
       {/* 관리자 투표 변경 다이얼로그 */}
-      {isAdmin && selectedMember && (
+      {canManageVotes && selectedMember && (
         <VoteChangeDialog
           open={!!selectedMember}
           onOpenChange={(open) => !open && setSelectedMember(null)}
@@ -206,8 +194,6 @@ interface VoterItemProps {
   showLateTag?: boolean;
   showMaybeTag?: boolean;
   showReason?: boolean;
-  isAdmin?: boolean;
-  onClick?: () => void;
 }
 
 function VoterItem({
@@ -215,8 +201,6 @@ function VoterItem({
   showLateTag,
   showMaybeTag,
   showReason,
-  isAdmin,
-  onClick,
 }: VoterItemProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showFullReason, setShowFullReason] = useState(false);
@@ -262,7 +246,7 @@ function VoterItem({
               {nickname}
             </span>
             {showLateTag && (
-              <span className="px-1.5 py-0.5 text-xs font-medium bg-orange-100 text-orange-600 rounded">
+              <span className="px-1.5 py-0.5 text-xs font-medium bg-brand-weak-pressed text-brand rounded">
                 늦참
               </span>
             )}

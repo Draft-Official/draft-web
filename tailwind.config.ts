@@ -15,16 +15,17 @@ const config: Config = {
 
         // Draft brand colors (Seed-compatible)
         draft: {
-          50: '#FFF5EB',
-          100: '#FFE5CC',
-          200: '#FFCC99',
-          300: '#FFB366',
-          400: '#FF9933',
-          500: '#FF6600',  // Primary
-          600: '#E65C00',
-          700: '#CC5200',
-          800: '#B34700',
-          900: '#993D00',
+          50: '#FFF2EC',
+          100: '#FFF2EC',
+          200: '#FFD9C8',
+          300: '#FFB999',
+          400: '#FF905C',
+          500: '#FF6F0F',
+          600: '#E65200',
+          700: '#FF6600',
+          800: '#A53E00',
+          900: '#8A3300',
+          1000: '#702A00',
         },
 
         // Keep primary mapped to draft

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import { GuestMatchDetailDTO } from '@/features/match/model/types';
 
 interface HeroSectionProps {
@@ -102,12 +102,12 @@ export function HeroSection({ match }: HeroSectionProps) {
           <div className="relative">
             {/* Speech Bubble Badge - 음료 제공 시에만 표시 */}
             {Boolean(match.facilities?.providesBeverage) && (
-              <div className="absolute -top-6 left-0 px-2 py-0.5 bg-[#FF6600] rounded-full shadow-sm whitespace-nowrap z-10">
+              <div className="absolute -top-6 left-0 px-2 py-0.5 bg-primary rounded-full shadow-sm whitespace-nowrap z-10">
                 <span className="text-[10px] font-bold text-white tracking-wide block">
                   물/음료 제공
                 </span>
                 {/* Tail */}
-                <div className="absolute left-3 bottom-[-3px] w-1.5 h-1.5 bg-[#FF6600] rotate-45"></div>
+                <div className="absolute left-3 bottom-[-3px] w-1.5 h-1.5 bg-primary rotate-45"></div>
               </div>
             )}
 

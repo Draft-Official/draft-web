@@ -3,7 +3,7 @@
 import { useParams } from 'next/navigation';
 import { useMatch, MatchDetailView } from '@/features/match';
 import { TeamExerciseDetailView } from '@/features/schedule';
-import { Loader2 } from 'lucide-react';
+import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 // TODO: DB에 match_type 컬럼 추가 후 실제 타입 분기 구현
 type MatchType = 'GUEST_RECRUIT' | 'TEAM_REGULAR' | 'PICKUP_GAME';
@@ -11,14 +11,14 @@ type MatchType = 'GUEST_RECRUIT' | 'TEAM_REGULAR' | 'PICKUP_GAME';
 export default function MatchDetailPage() {
   const params = useParams();
   const idParam = params?.id;
-  const id = Array.isArray(idParam) ? (idParam[0] ?? '') : (idParam ?? '');
+  const identifier = Array.isArray(idParam) ? (idParam[0] ?? '') : (idParam ?? '');
 
-  const { data: matchData, isLoading, error } = useMatch(id);
+  const { data: matchData, isLoading, error } = useMatch(identifier);
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-white">
-        <Loader2 className="w-8 h-8 text-slate-400 animate-spin" />
+        <Spinner className="w-8 h-8 text-muted-foreground " />
       </div>
     );
   }

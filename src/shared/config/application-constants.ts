@@ -26,7 +26,7 @@ export const BASE_PARTICIPATION_STYLES: Record<
 > = {
   PENDING: { color: 'text-yellow-600', bgColor: 'bg-yellow-50' },
   CONFIRMED: { color: 'text-green-600', bgColor: 'bg-green-50' },
-  LATE: { color: 'text-orange-600', bgColor: 'bg-orange-50' },
+  LATE: { color: 'text-brand', bgColor: 'bg-brand-weak' },
   NOT_ATTENDING: { color: 'text-gray-600', bgColor: 'bg-gray-100' },
 };
 

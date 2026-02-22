@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Dialog,
@@ -12,16 +12,17 @@ import {
 import { Button } from '@/shared/ui/shadcn/button';
 import { Input } from '@/shared/ui/shadcn/input';
 import { Label } from '@/shared/ui/shadcn/label';
-import { BankCombobox } from '@/shared/ui/base/bank-combobox';
+import { BankCombobox } from '@/shared/ui/composite/bank-combobox';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { teamKeys } from '@/features/team/api/keys';
 import type { AccountInfo } from '@/shared/types/jsonb.types';
 import type { Json } from '@/shared/types/database.types';
-
-// 계좌번호 형식: 숫자와 하이픈만 허용
-const ACCOUNT_NUMBER_REGEX = /^[\d-]+$/;
-// 예금주 형식: 한글, 영문, 공백만 허용
-const HOLDER_NAME_REGEX = /^[가-힣a-zA-Z\s]+$/;
+import {
+  isValidAccountHolder,
+  isValidAccountNumber,
+  sanitizeAccountHolderInput,
+  sanitizeAccountNumberInput,
+} from '@/shared/lib/validation/account';
 
 interface AccountEditDialogProps {
   open: boolean;
@@ -51,6 +52,16 @@ export function AccountEditDialog({
 
   const mutation = useMutation({
     mutationFn: async () => {
+      if (!bank || !number || !holder) {
+        throw new Error('계좌 정보를 모두 입력해주세요');
+      }
+      if (!isValidAccountNumber(number)) {
+        throw new Error('계좌번호는 숫자 10-16자리로 입력해주세요');
+      }
+      if (!isValidAccountHolder(holder)) {
+        throw new Error('예금주는 한글 2-10자로 입력해주세요');
+      }
+
       const supabase = getSupabaseBrowserClient();
       const accountInfo: AccountInfo = { bank, number, holder };
       const { error } = await supabase
@@ -64,14 +75,14 @@ export function AccountEditDialog({
       queryClient.invalidateQueries({ queryKey: teamKeys.all });
       onOpenChange(false);
     },
-    onError: () => {
-      toast.error('계좌 정보 수정에 실패했습니다');
+    onError: (error: Error) => {
+      toast.error(error.message || '계좌 정보 수정에 실패했습니다');
     },
   });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[400px]">
+      <DialogContent size="lg">
         <DialogHeader>
           <DialogTitle>환불 계좌 수정</DialogTitle>
         </DialogHeader>
@@ -91,13 +102,9 @@ export function AccountEditDialog({
             <Input
               value={number}
               onChange={(e) => {
-                const value = e.target.value;
-                // 숫자와 하이픈만 허용
-                if (value === '' || ACCOUNT_NUMBER_REGEX.test(value)) {
-                  setNumber(value);
-                }
+                setNumber(sanitizeAccountNumberInput(e.target.value));
               }}
-              placeholder="계좌번호 입력 (숫자, - 만 가능)"
+              placeholder="계좌번호 입력 (숫자만)"
               inputMode="numeric"
             />
           </div>
@@ -107,13 +114,9 @@ export function AccountEditDialog({
             <Input
               value={holder}
               onChange={(e) => {
-                const value = e.target.value;
-                // 한글, 영문, 공백만 허용
-                if (value === '' || HOLDER_NAME_REGEX.test(value)) {
-                  setHolder(value);
-                }
+                setHolder(sanitizeAccountHolderInput(e.target.value));
               }}
-              placeholder="예금주 입력 (한글, 영문만 가능)"
+              placeholder="예금주 입력 (한글 2-10자)"
             />
           </div>
         </div>

@@ -31,6 +31,7 @@ import type {
  */
 export interface Match {
   id: string;
+  shortId: string;
   hostId: string;
   teamId: string | null;
   gymId: string;

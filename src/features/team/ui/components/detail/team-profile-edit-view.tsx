@@ -1,107 +1,217 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft } from 'lucide-react';
-import Image from 'next/image';
-import { toast } from 'sonner';
-import { cn } from '@/shared/lib/utils';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import { useSafeBack } from '@/shared/lib/hooks';
 import { Button } from '@/shared/ui/shadcn/button';
-import { Input } from '@/shared/ui/base/input';
-import { Textarea } from '@/shared/ui/base/textarea';
-import { Label } from '@/shared/ui/base/label';
 import { useTeamByCode } from '@/features/team/api/team-info/queries';
 import { useUpdateTeam } from '@/features/team/api/team-info/mutations';
 import { useMyMembership } from '@/features/team/api/membership/queries';
 import { useAuth } from '@/shared/session';
-import { GENDER_OPTIONS } from '@/shared/config/match-constants';
-import { REGULAR_DAY_OPTIONS, REGULAR_DAY_VALUES } from '@/shared/config/team-constants';
-
-// 프리셋 로고 옵션
-const PRESET_LOGOS = [
-  '/logos/preset/logo-01.webp',
-  '/logos/preset/logo-02.webp',
-] as const;
-
-const schema = z.object({
-  name: z.string().min(1, '팀 이름을 입력해주세요'),
-  shortIntro: z.string().optional(),
-  description: z.string().optional(),
-  regionDepth1: z.string().optional(),
-  regionDepth2: z.string().optional(),
-  regularDay: z.enum(REGULAR_DAY_VALUES).nullable().optional(),
-  regularStartTime: z.string().optional(),
-  regularEndTime: z.string().optional(),
-  teamGender: z.string().optional(),
-});
-
-type FormData = z.infer<typeof schema>;
+import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
+import { createGymService, gymKeys, useGymById } from '@/entities/gym';
+import { parseRegionFromAddress } from '@/shared/lib/parse-region';
+import type { LocationData } from '@/shared/types/location.types';
+import type { LocationSearchResolvedValue } from '@/shared/lib/hooks/use-location-search';
+import {
+  ageRangeToSelectedAges,
+  calcDurationFromTimes,
+  calcEndTimeFromDuration,
+  normalizeTimeValue,
+  sanitizeShortIntro,
+  selectedAgesToAgeRange,
+} from '@/features/team/lib';
+import {
+  TeamProfileEditBasicInfoSection,
+  TeamProfileEditScheduleSection,
+  TeamProfileEditTraitsSection,
+  type TeamProfileEditFormData,
+  isResolvedLocationData,
+  validateTeamProfileEditForm,
+} from '../edit';
+import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 interface TeamProfileEditViewProps {
   code: string;
 }
 
 export function TeamProfileEditView({ code }: TeamProfileEditViewProps) {
-  const router = useRouter();
+  const queryClient = useQueryClient();
   const { user } = useAuth();
   const handleBack = useSafeBack(`/team/${code}/settings`);
 
   const { data: team, isLoading: isLoadingTeam } = useTeamByCode(code);
-  const { data: membership } = useMyMembership(team?.id, user?.id);
+  const { data: membership, isLoading: isLoadingMembership } = useMyMembership(
+    team?.id,
+    user?.id
+  );
   const updateMutation = useUpdateTeam();
-
-  // 로고 상태
-  const [selectedLogo, setSelectedLogo] = useState<string | null>(null);
+  const { data: homeGym } = useGymById(team?.homeGymId);
 
   const isLeader = membership?.role === 'LEADER';
+  const [locationData, setLocationData] = useState<LocationData | null>(null);
+  const gymInitializedRef = useRef(false);
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm<FormData>({
-    resolver: zodResolver(schema),
-  });
+  const { register, handleSubmit, watch, setValue, reset, control } =
+    useForm<TeamProfileEditFormData>({
+      defaultValues: {
+        name: '',
+        shortIntro: '',
+        description: '',
+        logoId: '/logos/preset/logo-01.webp',
+        regularDay: '',
+        regularTime: '20:00',
+        duration: '2',
+        gender: 'MALE',
+        selectedAges: ['any'],
+        levelMin: 1,
+        levelMax: 7,
+      },
+    });
 
   useEffect(() => {
-    if (team) {
-      reset({
-        name: team.name,
-        shortIntro: team.shortIntro || '',
-        description: team.description || '',
-        regionDepth1: team.regionDepth1 || '',
-        regionDepth2: team.regionDepth2 || '',
-        regularDay: team.regularDay || undefined,
-        regularStartTime: team.regularStartTime || '',
-        regularEndTime: team.regularEndTime || '',
-        teamGender: team.teamGender || '',
-      });
-      setSelectedLogo(team.logoUrl || null);
-    }
+    if (!team) return;
+
+    reset({
+      name: team.name,
+      shortIntro: sanitizeShortIntro(team.shortIntro ?? ''),
+      description: team.description ?? '',
+      logoId: team.logoUrl ?? '/logos/preset/logo-01.webp',
+      regularDay: team.regularDay ?? '',
+      regularTime: normalizeTimeValue(team.regularStartTime, '20:00'),
+      duration: calcDurationFromTimes(team.regularStartTime, team.regularEndTime),
+      gender: (team.teamGender as TeamProfileEditFormData['gender']) ?? 'MALE',
+      selectedAges: ageRangeToSelectedAges(team.ageRange),
+      levelMin: team.levelRange?.min ?? 1,
+      levelMax: team.levelRange?.max ?? 7,
+    });
   }, [team, reset]);
 
-  const onSubmit = async (data: FormData) => {
+  useEffect(() => {
+    gymInitializedRef.current = false;
+  }, [team?.homeGymId]);
+
+  useEffect(() => {
+    if (!homeGym || gymInitializedRef.current) return;
+    gymInitializedRef.current = true;
+    setLocationData({
+      address: homeGym.address,
+      buildingName: homeGym.name,
+      x: String(homeGym.longitude),
+      y: String(homeGym.latitude),
+      kakaoPlaceId: homeGym.kakaoPlaceId,
+    });
+  }, [homeGym]);
+
+  const handleLocationResolvedChange = useCallback(
+    (next: LocationSearchResolvedValue) => {
+      setLocationData(next.locationData);
+    },
+    []
+  );
+
+  const selectedAges = watch('selectedAges');
+  const regularDay = watch('regularDay');
+  const gender = watch('gender');
+  const levelMin = watch('levelMin');
+  const levelMax = watch('levelMax');
+  const logoId = watch('logoId');
+  const name = watch('name') ?? '';
+  const shortIntro = watch('shortIntro') ?? '';
+
+  const handleAgeSelection = (age: string) => {
+    if (age === 'any') {
+      setValue('selectedAges', ['any'], { shouldDirty: true, shouldTouch: true });
+      return;
+    }
+
+    const current = selectedAges.filter((value) => value !== 'any');
+    if (current.includes(age)) {
+      const next = current.filter((value) => value !== age);
+      setValue('selectedAges', next.length > 0 ? next : ['any'], {
+        shouldDirty: true,
+        shouldTouch: true,
+      });
+      return;
+    }
+
+    setValue('selectedAges', [...current, age], {
+      shouldDirty: true,
+      shouldTouch: true,
+    });
+  };
+
+  const onSubmit = async (data: TeamProfileEditFormData) => {
     if (!team) return;
+
+    const validationError = validateTeamProfileEditForm(data, locationData);
+    if (validationError) {
+      toast.error(validationError);
+      return;
+    }
+    if (!data.regularDay) {
+      toast.error('정기 운동 요일을 선택해주세요');
+      return;
+    }
+
+    if (!isResolvedLocationData(locationData)) {
+      toast.error('홈구장을 다시 선택해주세요');
+      return;
+    }
+
+    let homeGymId: string | null = team.homeGymId;
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const gymService = createGymService(supabase);
+      homeGymId = await gymService.upsertGym({
+        name: locationData.buildingName || locationData.address,
+        address: locationData.address,
+        latitude: parseFloat(locationData.y),
+        longitude: parseFloat(locationData.x),
+        kakaoPlaceId: locationData.kakaoPlaceId,
+        facilities: {},
+      });
+      if (!homeGymId) {
+        toast.error('홈구장 저장에 실패했습니다');
+        return;
+      }
+      queryClient.invalidateQueries({ queryKey: gymKeys.all });
+      queryClient.invalidateQueries({ queryKey: gymKeys.detail(homeGymId) });
+      queryClient.invalidateQueries({
+        queryKey: gymKeys.byKakaoPlaceId(locationData.kakaoPlaceId),
+      });
+      if (team.homeGymId && team.homeGymId !== homeGymId) {
+        queryClient.invalidateQueries({ queryKey: gymKeys.detail(team.homeGymId) });
+      }
+    } catch {
+      toast.error('홈구장 저장에 실패했습니다');
+      return;
+    }
+
+    const region = parseRegionFromAddress(locationData.address);
+    const regularStartTime = normalizeTimeValue(data.regularTime, '20:00');
+    const regularEndTime = calcEndTimeFromDuration(regularStartTime, data.duration);
 
     updateMutation.mutate(
       {
         teamId: team.id,
         input: {
-          name: data.name,
-          shortIntro: data.shortIntro || null,
-          description: data.description || null,
-          logoUrl: selectedLogo,
-          regionDepth1: data.regionDepth1 || null,
-          regionDepth2: data.regionDepth2 || null,
-          regularDay: data.regularDay || null,
-          regularStartTime: data.regularStartTime || null,
-          regularEndTime: data.regularEndTime || null,
-          teamGender: data.teamGender || null,
+          name: data.name.trim(),
+          shortIntro: sanitizeShortIntro(data.shortIntro).trim() || null,
+          description: data.description.trim() || null,
+          logoUrl: data.logoId,
+          regionDepth1: region.depth1 ?? null,
+          regionDepth2: region.depth2 ?? null,
+          homeGymId,
+          regularDay: data.regularDay,
+          regularStartTime,
+          regularEndTime,
+          teamGender: data.gender,
+          levelRange: { min: data.levelMin, max: data.levelMax },
+          ageRange: selectedAgesToAgeRange(data.selectedAges),
         },
       },
       {
@@ -116,10 +226,10 @@ export function TeamProfileEditView({ code }: TeamProfileEditViewProps) {
     );
   };
 
-  if (isLoadingTeam) {
+  if (isLoadingTeam || isLoadingMembership) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        <Spinner className="h-8 w-8 text-muted-foreground" />
       </div>
     );
   }
@@ -139,116 +249,41 @@ export function TeamProfileEditView({ code }: TeamProfileEditViewProps) {
     <div className="min-h-screen bg-white">
       <Header onBack={handleBack} title="팀 프로필 수정" />
 
-      <form onSubmit={handleSubmit(onSubmit)} className="px-5 py-6 space-y-6">
-        {/* 팀 로고 */}
-        <div className="space-y-3">
-          <Label>팀 로고</Label>
-          <div className="grid grid-cols-4 gap-2">
-            {PRESET_LOGOS.map((logoUrl, index) => (
-              <button
-                key={index}
-                type="button"
-                onClick={() => setSelectedLogo(logoUrl)}
-                className={cn(
-                  'aspect-square rounded-xl flex items-center justify-center overflow-hidden transition-all border-2',
-                  selectedLogo === logoUrl
-                    ? 'border-primary bg-orange-50'
-                    : 'border-slate-200 bg-white hover:border-slate-300'
-                )}
-              >
-                <Image
-                  src={logoUrl}
-                  alt={`로고 ${index + 1}`}
-                  width={60}
-                  height={60}
-                  className="object-cover w-3/4 h-3/4"
-                />
-              </button>
-            ))}
-          </div>
-          <p className="text-xs text-slate-400">추후 사진 업로드 기능이 추가됩니다</p>
-        </div>
+      <form onSubmit={handleSubmit(onSubmit)} className="px-5 py-6 space-y-8">
+        <TeamProfileEditBasicInfoSection
+          logoId={logoId}
+          name={name}
+          shortIntro={shortIntro}
+          register={register}
+          setValue={setValue}
+        />
 
-        {/* 팀 이름 */}
-        <div className="space-y-2">
-          <Label>팀 이름 *</Label>
-          <Input {...register('name')} placeholder="팀 이름" />
-          {errors.name && <p className="text-sm text-red-500">{errors.name.message}</p>}
-        </div>
+        <div className="border-t border-slate-100" />
 
-        {/* 한줄 소개 */}
-        <div className="space-y-2">
-          <Label>한줄 소개</Label>
-          <Input {...register('shortIntro')} placeholder="한줄 소개" />
-        </div>
+        <TeamProfileEditScheduleSection
+          regularDay={regularDay}
+          control={control}
+          setValue={setValue}
+          locationData={locationData}
+          onLocationResolvedChange={handleLocationResolvedChange}
+        />
 
-        {/* 팀 소개 */}
-        <div className="space-y-2">
-          <Label>팀 소개</Label>
-          <Textarea {...register('description')} placeholder="팀 소개" rows={4} />
-        </div>
+        <div className="border-t border-slate-100" />
 
-        {/* 지역 */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-2">
-            <Label>시/도</Label>
-            <Input {...register('regionDepth1')} placeholder="서울특별시" />
-          </div>
-          <div className="space-y-2">
-            <Label>구/군</Label>
-            <Input {...register('regionDepth2')} placeholder="강남구" />
-          </div>
-        </div>
+        <TeamProfileEditTraitsSection
+          gender={gender}
+          selectedAges={selectedAges}
+          levelMin={levelMin}
+          levelMax={levelMax}
+          onAgeSelection={handleAgeSelection}
+          setValue={setValue}
+        />
 
-        {/* 정기 운동 */}
-        <div className="space-y-2">
-          <Label>정기 운동 요일</Label>
-          <select
-            {...register('regularDay')}
-            className="w-full h-10 px-3 rounded-lg border border-slate-200 text-sm"
-          >
-            <option value="">선택 안함</option>
-            {REGULAR_DAY_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-2">
-            <Label>시작 시간</Label>
-            <Input {...register('regularStartTime')} type="time" />
-          </div>
-          <div className="space-y-2">
-            <Label>종료 시간</Label>
-            <Input {...register('regularEndTime')} type="time" />
-          </div>
-        </div>
-
-        {/* 성별 */}
-        <div className="space-y-2">
-          <Label>성별</Label>
-          <select
-            {...register('teamGender')}
-            className="w-full h-10 px-3 rounded-lg border border-slate-200 text-sm"
-          >
-            <option value="">선택 안함</option>
-            {GENDER_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* 저장 버튼 */}
-        <div className="pt-4">
+        <div className="pt-2 pb-8">
           <Button
             type="submit"
-            className="w-full h-12 bg-primary hover:bg-primary/90 font-semibold"
-            disabled={isSubmitting || updateMutation.isPending}
+            className="w-full h-14 bg-primary hover:bg-primary/90 font-semibold text-base"
+            disabled={updateMutation.isPending}
           >
             {updateMutation.isPending ? '저장 중...' : '저장'}
           </Button>
@@ -260,11 +295,12 @@ export function TeamProfileEditView({ code }: TeamProfileEditViewProps) {
 
 function Header({ onBack, title }: { onBack: () => void; title?: string }) {
   return (
-    <header className="sticky top-0 z-40 bg-white border-b border-slate-100 h-14 flex items-center gap-3 px-4">
-      <button onClick={onBack} className="p-2 -ml-2 hover:bg-slate-50 rounded-full">
+    <header className="sticky top-0 z-40 bg-white border-b border-slate-100 h-14 flex items-center justify-between px-4">
+      <button onClick={onBack} className="p-2 hover:bg-slate-50 rounded-full">
         <ArrowLeft className="w-6 h-6" />
       </button>
       {title && <h1 className="text-lg font-bold text-slate-900">{title}</h1>}
+      <div className="w-10" />
     </header>
   );
 }

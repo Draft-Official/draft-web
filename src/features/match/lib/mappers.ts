@@ -75,6 +75,7 @@ export function toGuestMatchListItemDTO(
   return {
     // Match fields
     matchId: match.id,
+    publicId: match.shortId || match.id,
     dateISO: formatDateISO(match.startTime),
     startTime: formatTime(match.startTime),
     endTime: formatTime(match.endTime),

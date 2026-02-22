@@ -1,13 +1,14 @@
 'use client';
 
-import { Check, ChevronDown } from 'lucide-react';
-import { Button } from '@/shared/ui/base/button';
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/shared/ui/base/popover';
-import { cn } from '@/shared/lib/utils';
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from '@/shared/ui/shadcn/dropdown-menu';
+import { Chip } from '@/shared/ui/shadcn/chip';
 import type { FilterOption } from '../../model/types';
 
 // Single select props
@@ -56,42 +57,34 @@ export function FilterDropdown<T extends string>(props: FilterDropdownProps<T>) 
     };
 
     return (
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            className={cn(
-              'rounded-full h-8 px-3 text-xs font-bold border transition-all flex items-center gap-1',
-              isActive
-                ? 'border-primary text-primary bg-orange-50'
-                : 'border-slate-200 text-slate-600'
-            )}
-          >
-            {displayLabel}
-            <ChevronDown className="w-3 h-3" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent
-          className="w-36 p-1.5 rounded-2xl bg-white border border-slate-200 shadow-lg"
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Chip
+            label={displayLabel}
+            variant="orange"
+            isActive={isActive}
+            hasDropdown
+            showCheckIcon={false}
+            className="shrink-0"
+          />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          className="w-36"
           align="start"
         >
           {options.map((option) => (
-            <button
+            <DropdownMenuCheckboxItem
               key={option.value}
-              onClick={() => handleToggle(option.value)}
-              className={cn(
-                'w-full text-left px-3 py-2 text-sm rounded-xl hover:bg-slate-100 transition-colors flex items-center justify-between',
-                value.includes(option.value) && 'bg-slate-100'
-              )}
+              checked={value.includes(option.value)}
+              onCheckedChange={() => handleToggle(option.value)}
+              onSelect={(event) => event.preventDefault()}
+              className="rounded-xl"
             >
               {option.label}
-              {value.includes(option.value) && (
-                <Check className="h-4 w-4 text-slate-700" />
-              )}
-            </button>
+            </DropdownMenuCheckboxItem>
           ))}
-        </PopoverContent>
-      </Popover>
+        </DropdownMenuContent>
+      </DropdownMenu>
     );
   }
 
@@ -105,41 +98,36 @@ export function FilterDropdown<T extends string>(props: FilterDropdownProps<T>) 
   const isActive = value !== options[0]?.value;
 
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          className={cn(
-            'rounded-full h-8 px-3 text-xs font-bold border transition-all flex items-center gap-1',
-            isActive
-              ? 'border-primary text-primary bg-orange-50'
-              : 'border-slate-200 text-slate-600'
-          )}
-        >
-          {displayLabel}
-          <ChevronDown className="w-3 h-3" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent
-        className="w-36 p-1.5 rounded-2xl bg-white border border-slate-200 shadow-lg"
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Chip
+          label={displayLabel}
+          variant="orange"
+          isActive={isActive}
+          hasDropdown
+          showCheckIcon={false}
+          className="shrink-0"
+        />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        className="w-36"
         align="start"
       >
-        {options.map((option) => (
-          <button
-            key={option.value}
-            onClick={() => onChange(option.value)}
-            className={cn(
-              'w-full text-left px-3 py-2 text-sm rounded-xl hover:bg-slate-100 transition-colors flex items-center justify-between',
-              value === option.value && 'bg-slate-100'
-            )}
-          >
-            {option.label}
-            {value === option.value && (
-              <Check className="h-4 w-4 text-slate-700" />
-            )}
-          </button>
-        ))}
-      </PopoverContent>
-    </Popover>
+        <DropdownMenuRadioGroup
+          value={value}
+          onValueChange={(nextValue) => onChange(nextValue as T)}
+        >
+          {options.map((option) => (
+            <DropdownMenuRadioItem
+              key={option.value}
+              value={option.value}
+              className="rounded-xl"
+            >
+              {option.label}
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

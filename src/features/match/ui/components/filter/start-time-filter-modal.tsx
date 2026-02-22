@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/shared/ui/base/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/base/dialog";
+import { Button } from '@/shared/ui/shadcn/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/shadcn/dialog";
 import { Slider } from '@/shared/ui/shadcn/slider';
 
 interface StartTimeFilterModalProps {
@@ -48,7 +48,7 @@ export function StartTimeFilterModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[90%] max-w-[320px] rounded-2xl">
+      <DialogContent size="xs" className="rounded-2xl">
         <DialogHeader>
           <DialogTitle className="text-center">시작 시간</DialogTitle>
         </DialogHeader>
@@ -99,7 +99,7 @@ export function StartTimeFilterModal({
           </Button>
           <Button
             onClick={handleApply}
-            className="flex-1 h-12 bg-[#FF6600] text-white rounded-xl font-bold hover:bg-[#FF6600]/90"
+            className="flex-1 h-12 bg-primary text-white rounded-xl font-bold hover:bg-primary/90"
           >
             적용하기
           </Button>

@@ -1,14 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import { Info } from 'lucide-react';
 import { useAuth, useProfile, useUpdateProfile } from '@/shared/session';
 import type { SessionAccountInfo } from '@/shared/session';
-import { BankCombobox } from '@/shared/ui/base/bank-combobox';
-import { Input } from '@/shared/ui/base/input';
-import { Label } from '@/shared/ui/base/label';
-import { Button } from '@/shared/ui/base/button';
+import { BankCombobox } from '@/shared/ui/composite/bank-combobox';
+import { Input } from '@/shared/ui/shadcn/input';
+import { Label } from '@/shared/ui/shadcn/label';
+import { Button } from '@/shared/ui/shadcn/button';
+import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 export function BankAccountForm() {
   const { user } = useAuth();
@@ -68,7 +69,7 @@ export function BankAccountForm() {
   if (isLoading) {
     return (
       <div className="flex justify-center py-8">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        <Spinner className="h-6 w-6 text-muted-foreground" />
       </div>
     );
   }
@@ -77,7 +78,7 @@ export function BankAccountForm() {
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="flex items-start gap-2 p-3 bg-slate-50 rounded-lg">
         <Info className="h-4 w-4 text-slate-500 mt-0.5 shrink-0" />
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-muted-foreground">
           게스트 활동 시 참가비 환불 계좌로 사용됩니다.
         </p>
       </div>

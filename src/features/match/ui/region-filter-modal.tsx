@@ -1,10 +1,15 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { X, Check } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { REGIONS, RegionKey } from '@/shared/config/region-constants';
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogTitle,
+} from '@/shared/ui/shadcn/dialog';
 
 interface RegionFilterModalProps {
     open: boolean;
@@ -66,26 +71,25 @@ export function RegionFilterModal({ open, onOpenChange, onApply, selectedRegions
     };
 
     return (
-        <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
-            <DialogPrimitive.Portal>
-                {/* 1. Overlay (Dark Background) - Ensure High Z-Index & Opacity */}
-                <DialogPrimitive.Overlay className="fixed inset-0 z-[999] bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 backdrop-blur-[2px]" />
-                
-                {/* 2. Content (Centered Modal) */}
-                <DialogPrimitive.Content className="fixed left-[50%] top-[50%] z-[1000] w-[90%] max-w-[420px] translate-x-[-50%] translate-y-[-50%] rounded-2xl bg-white shadow-2xl duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 overflow-hidden outline-none flex flex-col h-[80vh] max-h-[600px]">
-                    
-                    {/* Header */}
-                    <div className="h-14 flex items-center justify-center border-b border-slate-100 shrink-0 relative bg-white z-10 w-full">
-                        <DialogPrimitive.Title className="text-lg font-bold text-gray-900">
-                            지역 선택
-                        </DialogPrimitive.Title>
-                        <DialogPrimitive.Close className="absolute right-4 p-2 rounded-full hover:bg-slate-100 transition-colors outline-none cursor-pointer">
-                            <X className="w-5 h-5 text-slate-500" />
-                        </DialogPrimitive.Close>
-                    </div>
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent
+                size="xl"
+                showCloseButton={false}
+                overlayClassName="z-[999] bg-black/80 backdrop-blur-[2px]"
+                className="z-[1000] w-[90%] rounded-2xl bg-white shadow-2xl duration-200 overflow-hidden flex flex-col h-[80vh] max-h-[600px] p-0 gap-0 ring-0"
+            >
+                {/* Header */}
+                <div className="h-14 flex items-center justify-center border-b border-slate-100 shrink-0 relative bg-white z-10 w-full">
+                    <DialogTitle className="text-lg font-bold text-gray-900">
+                        지역 선택
+                    </DialogTitle>
+                    <DialogClose className="absolute right-4 p-2 rounded-full hover:bg-slate-100 transition-colors outline-none cursor-pointer">
+                        <X className="w-5 h-5 text-slate-500" />
+                    </DialogClose>
+                </div>
 
-                    {/* Body (Split View) */}
-                    <div className="flex flex-1 overflow-hidden relative bg-white w-full">
+                {/* Body (Split View) */}
+                <div className="flex flex-1 overflow-hidden relative bg-white w-full">
                         {/* Left Sidebar (Regions) */}
                         <div className="w-[30%] bg-slate-50 border-r border-slate-100 h-full overflow-y-auto no-scrollbar">
                             {(Object.keys(REGIONS) as RegionKey[]).map(region => {
@@ -102,10 +106,10 @@ export function RegionFilterModal({ open, onOpenChange, onApply, selectedRegions
                                                 : "text-slate-500 hover:bg-slate-100 bg-slate-50 font-medium"
                                         )}
                                     >
-                                        {isActive && <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-[#FF6600]" />}
+                                        {isActive && <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-primary" />}
                                         <span className="truncate">{region}</span>
                                         {count > 0 && (
-                                            <span className="text-[#FF6600] font-bold text-xs ml-1">{count}</span>
+                                            <span className="text-primary font-bold text-xs ml-1">{count}</span>
                                         )}
                                     </button>
                                 );
@@ -117,18 +121,18 @@ export function RegionFilterModal({ open, onOpenChange, onApply, selectedRegions
                             {/* Select All */}
                             <button
                                 onClick={() => toggleSubRegion(`${activeRegionTab} 전체`)}
-                                className="w-full h-14 flex items-center justify-between px-5 border-b border-slate-50 active:bg-orange-50 transition-colors text-left outline-none cursor-pointer group"
+                                className="w-full h-14 flex items-center justify-between px-5 border-b border-slate-50 active:bg-brand-weak transition-colors text-left outline-none cursor-pointer group"
                             >
                                 <span className={cn(
                                     "text-base", 
-                                    tempSelected.includes(`${activeRegionTab} 전체`) ? "font-bold text-[#FF6600]" : "text-slate-700"
+                                    tempSelected.includes(`${activeRegionTab} 전체`) ? "font-bold text-primary" : "text-slate-700"
                                 )}>
                                     {activeRegionTab} 전체
                                 </span>
                                 <div className={cn(
                                     "w-5 h-5 rounded-[4px] border flex items-center justify-center transition-colors",
                                     tempSelected.includes(`${activeRegionTab} 전체`) 
-                                        ? "bg-[#FF6600] border-[#FF6600]" 
+                                        ? "bg-primary border-primary" 
                                         : "bg-white border-slate-300 group-hover:border-slate-400"
                                 )}>
                                     {tempSelected.includes(`${activeRegionTab} 전체`) && <Check className="w-3.5 h-3.5 text-white stroke-[3]" />}
@@ -143,15 +147,15 @@ export function RegionFilterModal({ open, onOpenChange, onApply, selectedRegions
                                     <button
                                         key={loc}
                                         onClick={() => toggleSubRegion(fullLoc)}
-                                        className="w-full h-14 flex items-center justify-between px-5 border-b border-slate-50 active:bg-orange-50 transition-colors text-left outline-none cursor-pointer group"
+                                        className="w-full h-14 flex items-center justify-between px-5 border-b border-slate-50 active:bg-brand-weak transition-colors text-left outline-none cursor-pointer group"
                                     >
-                                        <span className={cn("text-base", isSelected ? "font-bold text-[#FF6600]" : "text-slate-700")}>
+                                        <span className={cn("text-base", isSelected ? "font-bold text-primary" : "text-slate-700")}>
                                             {loc}
                                         </span>
                                         <div className={cn(
                                             "w-5 h-5 rounded-[4px] border flex items-center justify-center transition-colors",
                                             isSelected 
-                                                ? "bg-[#FF6600] border-[#FF6600]" 
+                                                ? "bg-primary border-primary" 
                                                 : "bg-white border-slate-300 group-hover:border-slate-400"
                                         )}>
                                             {isSelected && <Check className="w-3.5 h-3.5 text-white stroke-[3]" />}
@@ -162,14 +166,14 @@ export function RegionFilterModal({ open, onOpenChange, onApply, selectedRegions
                         </div>
                     </div>
 
-                    {/* Footer Area */}
-                    <div className="shrink-0 bg-white border-t border-slate-100 flex flex-col z-20 shadow-[0_-4px_10px_rgba(0,0,0,0.03)]">
+                {/* Footer Area */}
+                <div className="shrink-0 bg-white border-t border-slate-100 flex flex-col z-20 shadow-[0_-4px_10px_rgba(0,0,0,0.03)]">
                         {/* Selected Chips */}
                         {tempSelected.length > 0 && (
                             <div className="w-full overflow-x-auto no-scrollbar px-4 py-3 border-b border-slate-50">
                                 <div className="flex gap-2">
                                     {tempSelected.map(loc => (
-                                        <div key={loc} className="flex items-center gap-1 bg-slate-100 text-[#FF6600] border border-orange-100 pl-3 pr-2 py-1.5 rounded-lg text-xs font-bold animate-in fade-in zoom-in duration-200 whitespace-nowrap">
+                                        <div key={loc} className="flex items-center gap-1 bg-slate-100 text-primary border border-brand-stroke-weak pl-3 pr-2 py-1.5 rounded-lg text-xs font-bold animate-in fade-in zoom-in duration-200 whitespace-nowrap">
                                             {loc.endsWith('전체') ? loc : (loc.split(' ')[1] || loc)}
                                             <button 
                                                 onClick={(e) => { e.stopPropagation(); removeRegion(loc); }} 
@@ -196,7 +200,7 @@ export function RegionFilterModal({ open, onOpenChange, onApply, selectedRegions
                             </button>
                             <button 
                                 onClick={handleApply}
-                                className="flex-1 h-12 bg-[#FF6600] hover:bg-[#FF6600]/90 text-white rounded-xl text-base font-bold shadow-md shadow-orange-100 transition-transform active:scale-[0.98] outline-none flex items-center justify-center gap-1.5"
+                                className="flex-1 h-12 bg-primary hover:bg-primary/90 text-white rounded-xl text-base font-bold shadow-md shadow-draft-100 transition-transform active:scale-[0.98] outline-none flex items-center justify-center gap-1.5"
                             >
                                 <span>적용하기</span>
                                 {tempSelected.length > 0 && (
@@ -206,10 +210,9 @@ export function RegionFilterModal({ open, onOpenChange, onApply, selectedRegions
                                 )}
                             </button>
                         </div>
-                    </div>
+                </div>
 
-                </DialogPrimitive.Content>
-            </DialogPrimitive.Portal>
-        </DialogPrimitive.Root>
+            </DialogContent>
+        </Dialog>
     );
 }

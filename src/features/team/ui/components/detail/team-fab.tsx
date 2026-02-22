@@ -3,13 +3,13 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Calendar, Link2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import { cn } from '@/shared/lib/utils';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/shared/ui/base/popover';
+} from '@/shared/ui/shadcn/popover';
 import type { TeamRoleValue } from '@/shared/config/team-constants';
 
 interface TeamFabProps {
@@ -65,7 +65,7 @@ export function TeamFab({ teamCode, role }: TeamFabProps) {
   ];
 
   return (
-    <div className="fixed bottom-24 right-4 z-50 max-w-[430px]">
+    <div className="fixed bottom-24 right-4 z-50 max-w-(--layout-mobile-max)">
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <button

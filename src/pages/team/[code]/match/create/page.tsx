@@ -1,11 +1,12 @@
 'use client';
 
 import { use } from 'react';
-import { notFound, redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { useTeamByCode } from '@/features/team/api/team-info/queries';
 import { useMyMembership } from '@/features/team/api/membership/queries';
 import { useAuth } from '@/shared/session';
 import { TeamMatchCreateForm } from '@/features/team/ui/components/match/team-match-create-form';
+import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 interface TeamMatchCreatePageProps {
   params: Promise<{ code: string }>;
@@ -28,7 +29,7 @@ export default function TeamMatchCreatePage({ params }: TeamMatchCreatePageProps
   if (isAuthLoading || isTeamLoading || isMembershipLoading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        <Spinner className="h-8 w-8 text-muted-foreground" />
       </div>
     );
   }

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Search, ArrowDown, Loader2 } from 'lucide-react';
+import { Search, ArrowDown } from 'lucide-react';
 import { FilterBar } from '@/features/match/ui/filter-bar';
 import { MatchListItem } from '@/features/match/ui/match-list-item';
 import { useRecruitingMatchesInfinite } from '@/features/match/api/queries';
@@ -11,6 +11,7 @@ import { NotificationBell } from '@/features/notification/ui/notification-bell';
 import { useAuth } from '@/shared/session';
 import { useUserApplications } from '@/features/application';
 import type { ApplicationStatusValue } from '@/shared/config/application-constants';
+import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 export default function GuestMatchListPage() {
   const { user } = useAuth();
@@ -79,8 +80,8 @@ export default function GuestMatchListPage() {
   }, [filteredMatches]);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex justify-center font-sans">
-      <div className="w-full max-w-[760px] bg-white min-h-screen shadow-sm relative">
+    <div className="min-h-screen bg-background flex justify-center font-sans">
+      <div className="app-content-container bg-background min-h-screen relative">
 
         {/* --- Sticky Header & Filters --- */}
         <FilterBar
@@ -112,7 +113,7 @@ export default function GuestMatchListPage() {
           {isLoading ? (
             // Loading State
             <div className="flex flex-col items-center justify-center pt-20 px-6 text-center">
-              <div className="w-12 h-12 border-4 border-slate-200 border-t-[#FF6600] rounded-full animate-spin mb-4" />
+              <Spinner className="w-12 h-12 text-muted-foreground mb-4" />
               <p className="text-slate-500 text-sm">경기를 불러오는 중...</p>
             </div>
           ) : error ? (
@@ -127,7 +128,7 @@ export default function GuestMatchListPage() {
               </p>
               <button
                 onClick={() => window.location.reload()}
-                className="px-4 py-2 bg-[#FF6600] text-white rounded-lg text-sm font-medium"
+                className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium"
               >
                 새로고침
               </button>
@@ -143,8 +144,8 @@ export default function GuestMatchListPage() {
                 필터 조건을 변경해보시거나<br />직접 게스트를 모집해보는 건 어때요?
               </p>
               <div className="flex flex-col items-center gap-2 animate-bounce">
-                <span className="text-xs text-[#FF6600] font-bold">직접 모집하기</span>
-                <ArrowDown className="w-5 h-5 text-[#FF6600]" />
+                <span className="text-xs text-muted-foreground font-bold">직접 모집하기</span>
+                <ArrowDown className="w-5 h-5 text-muted-foreground" />
               </div>
             </div>
           ) : (
@@ -169,7 +170,7 @@ export default function GuestMatchListPage() {
                     disabled={isFetchingNextPage}
                     className="flex items-center gap-2 px-6 py-3 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isFetchingNextPage && <Loader2 className="w-4 h-4 animate-spin" />}
+                    {isFetchingNextPage && <Spinner className="w-4 h-4 " />}
                     더 보기
                   </button>
                 </div>

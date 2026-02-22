@@ -93,7 +93,6 @@ export function useCloseVoting() {
   return useMutation({
     mutationFn: async ({
       matchId,
-      teamId,
     }: {
       matchId: string;
       teamId: string;
@@ -125,7 +124,6 @@ export function useOpenGuestRecruitment() {
   return useMutation({
     mutationFn: async ({
       matchId,
-      teamId,
       recruitmentSetup,
     }: {
       matchId: string;
@@ -163,7 +161,6 @@ export function useReopenVoting() {
   return useMutation({
     mutationFn: async ({
       matchId,
-      teamId,
     }: {
       matchId: string;
       teamId: string;
@@ -232,7 +229,6 @@ export function useUpdateTeamMatch() {
   return useMutation({
     mutationFn: async ({
       matchId,
-      teamId,
       input,
     }: {
       matchId: string;
@@ -271,7 +267,6 @@ export function useCancelTeamMatch() {
   return useMutation({
     mutationFn: async ({
       matchId,
-      teamId,
     }: {
       matchId: string;
       teamId: string;

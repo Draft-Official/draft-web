@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { toast } from 'sonner';
+import Image from 'next/image';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import { cn } from '@/shared/lib/utils';
 import {
   Dialog,
@@ -74,7 +75,7 @@ export function DelegateLeaderDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-[400px]">
+        <DialogContent size="lg">
           <DialogHeader>
             <DialogTitle>팀 소유자 위임</DialogTitle>
           </DialogHeader>
@@ -106,9 +107,11 @@ export function DelegateLeaderDialog({
                       )}
                     >
                       {member.user?.avatarUrl ? (
-                        <img
+                        <Image
                           src={member.user.avatarUrl}
                           alt=""
+                          width={40}
+                          height={40}
                           className="w-10 h-10 rounded-full object-cover"
                         />
                       ) : (

@@ -2,8 +2,8 @@
 
 import { useRouter } from 'next/navigation';
 import { Users, Calendar, Link2, ArrowRight } from 'lucide-react';
-import { Card } from '@/shared/ui/base/card';
-import { Button } from '@/shared/ui/base/button';
+import { Card } from '@/shared/ui/shadcn/card';
+import { Button } from '@/shared/ui/shadcn/button';
 
 interface BenefitItem {
   icon: React.ReactNode;
@@ -66,7 +66,7 @@ export function TeamCreateTab() {
             className="p-4 border border-slate-200 rounded-xl"
           >
             <div className="flex gap-3 items-center mb-2">
-              <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-primary flex-shrink-0">
+              <div className="w-12 h-12 rounded-xl bg-brand-weak flex items-center justify-center text-primary flex-shrink-0">
                 {benefit.icon}
               </div>
               <h3 className="font-bold text-slate-900">{benefit.title}</h3>
