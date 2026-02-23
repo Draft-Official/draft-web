@@ -20,7 +20,7 @@ export const MATCH_TYPE_FILTER_OPTIONS: FilterOption<Exclude<MatchType, 'host'>>
 
 // 경기 타입 필터 옵션 (관리 모드 - guest 제외, 중복선택용)
 export const HOST_TYPE_FILTER_OPTIONS: FilterOption<Exclude<MatchType, 'guest'>>[] = [
-  { value: 'host', label: '호스트' },
+  { value: 'host', label: '게스트' },
   { value: 'team', label: '팀운동' },
   { value: 'tournament', label: '대회' },
 ];
@@ -63,7 +63,7 @@ export const MATCH_TYPE_COLORS: Record<MatchType, string> = {
 
 // 관리 도메인 타입별 레이블
 export const MANAGEMENT_TYPE_LABELS: Record<MatchManagementType, string> = {
-  guest_recruitment: '게스트 모집',
+  guest_recruitment: '게스트',
   team_exercise: '팀운동',
   tournament: '대회',
 };

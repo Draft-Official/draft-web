@@ -41,6 +41,7 @@ export function TeamExerciseCard({
   const [isVoteDialogOpen, setIsVoteDialogOpen] = useState(false);
   const [isVoteStatusOpen, setIsVoteStatusOpen] = useState(false);
   const dialogClosedAt = useRef(0);
+  const isManagingMode = match.scheduleMode === 'managing';
   const isPastMatch = PAST_MATCH_STATUSES.includes(match.status);
   const hasVoted = match.myVote && match.myVote !== 'PENDING';
   const isVoteClosed = match.status === 'closed';
@@ -167,35 +168,39 @@ export function TeamExerciseCard({
                 투표현황
               </Button>
 
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={isVoteClosed}
-                className={cn(
-                  'h-8 px-3 text-xs font-bold border-slate-200 text-slate-600 hover:bg-slate-50',
-                  isVoteClosed && 'bg-slate-100 text-slate-500 hover:bg-slate-100'
-                )}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (isVoteClosed) return;
-                  setIsVoteDialogOpen(true);
-                }}
-              >
-                {isVoteClosed ? '투표마감' : hasVoted ? '투표변경' : '투표하기'}
-              </Button>
+              {!isManagingMode && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={isVoteClosed}
+                  className={cn(
+                    'h-8 px-3 text-xs font-bold border-slate-200 text-slate-600 hover:bg-slate-50',
+                    isVoteClosed && 'bg-slate-100 text-slate-500 hover:bg-slate-100'
+                  )}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (isVoteClosed) return;
+                    setIsVoteDialogOpen(true);
+                  }}
+                >
+                  {isVoteClosed ? '투표마감' : hasVoted ? '투표변경' : '투표하기'}
+                </Button>
+              )}
             </div>
           </div>
         }
       />
 
-      <VoteDialog
-        open={isVoteDialogOpen}
-        onOpenChange={handleVoteDialogChange}
-        currentVote={match.myVote}
-        currentReason={match.myVoteReason}
-        onSubmit={handleVoteSubmit}
-        isSubmitting={isVoting}
-      />
+      {!isManagingMode && (
+        <VoteDialog
+          open={isVoteDialogOpen}
+          onOpenChange={handleVoteDialogChange}
+          currentVote={match.myVote}
+          currentReason={match.myVoteReason}
+          onSubmit={handleVoteSubmit}
+          isSubmitting={isVoting}
+        />
+      )}
 
       <TeamExerciseVoteStatusDialog
         open={isVoteStatusOpen}

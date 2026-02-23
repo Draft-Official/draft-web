@@ -1,7 +1,5 @@
 'use client';
 
-import { useState } from 'react';
-import { useSearchParams } from 'next/navigation';
 import {
   Dialog,
   DialogContent,
@@ -14,13 +12,11 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/shared/ui/shadcn/accordion';
-import { Button } from '@/shared/ui/shadcn/button';
 import { Spinner } from '@/shared/ui/shadcn/spinner';
-import { useTeamExerciseVotes } from '../../api/queries';
-import { MOCK_TEAM_EXERCISE_VOTES_30 } from '../../model/mock-data';
-import type { TeamExerciseVoteItemDTO } from '../../model/types';
+import { useTeamVotes } from '@/features/team/api/match/queries';
+import type { TeamVoteDTO } from '@/features/team/model/types';
 
-interface TeamExerciseVoteStatusDialogProps {
+interface TeamVoteStatusDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   matchId: string;
@@ -32,79 +28,44 @@ interface VoteGroup {
   names: string[];
 }
 
-function buildVoteGroups(votes: TeamExerciseVoteItemDTO[]): VoteGroup[] {
+function buildVoteGroups(votes: TeamVoteDTO[]): VoteGroup[] {
   const attending = votes
     .filter((vote) => vote.status === 'CONFIRMED' || vote.status === 'LATE')
-    .map((vote) => vote.name);
+    .map((vote) => vote.userNickname || '알 수 없음');
   const notAttending = votes
     .filter((vote) => vote.status === 'NOT_ATTENDING')
-    .map((vote) => vote.name);
+    .map((vote) => vote.userNickname || '알 수 없음');
   const maybe = votes
     .filter((vote) => vote.status === 'MAYBE')
-    .map((vote) => vote.name);
+    .map((vote) => vote.userNickname || '알 수 없음');
   const pending = votes
     .filter((vote) => vote.status === 'PENDING')
-    .map((vote) => vote.name);
+    .map((vote) => vote.userNickname || '알 수 없음');
 
   return [
-    {
-      key: 'attending',
-      label: '참석',
-      names: attending,
-    },
-    {
-      key: 'notAttending',
-      label: '불참',
-      names: notAttending,
-    },
-    {
-      key: 'maybe',
-      label: '미정',
-      names: maybe,
-    },
-    {
-      key: 'pending',
-      label: '미투표',
-      names: pending,
-    },
+    { key: 'attending', label: '참석', names: attending },
+    { key: 'notAttending', label: '불참', names: notAttending },
+    { key: 'maybe', label: '미정', names: maybe },
+    { key: 'pending', label: '미투표', names: pending },
   ];
 }
 
-export function TeamExerciseVoteStatusDialog({
+export function TeamVoteStatusDialog({
   open,
   onOpenChange,
   matchId,
-}: TeamExerciseVoteStatusDialogProps) {
-  const searchParams = useSearchParams();
-  const [isVoteMockMode, setIsVoteMockMode] = useState(
-    () => searchParams?.get('voteMock') === '1'
-  );
-  const { data: fetchedVotes = [], isLoading } = useTeamExerciseVotes(
-    matchId,
-    open && !isVoteMockMode
-  );
-  const votes = isVoteMockMode ? MOCK_TEAM_EXERCISE_VOTES_30 : fetchedVotes;
+}: TeamVoteStatusDialogProps) {
+  const { data: votes = [], isLoading } = useTeamVotes(open ? matchId : null);
   const groups = buildVoteGroups(votes);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent size="lg" className="rounded-2xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader className="space-y-0">
-          <div className="flex items-center justify-between gap-3">
-            <DialogTitle>투표현황</DialogTitle>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              className="h-8 px-3 text-xs font-semibold border-slate-200 text-slate-600 hover:bg-slate-50"
-              onClick={() => setIsVoteMockMode((prev) => !prev)}
-            >
-              {isVoteMockMode ? '실데이터 보기' : 'Mock 30명 보기'}
-            </Button>
-          </div>
+        <DialogHeader>
+          <DialogTitle>투표현황</DialogTitle>
         </DialogHeader>
 
-        {!isVoteMockMode && isLoading ? (
+        {isLoading ? (
           <div className="py-10 flex justify-center">
             <Spinner className="h-6 w-6 text-muted-foreground" />
           </div>
@@ -146,3 +107,4 @@ export function TeamExerciseVoteStatusDialog({
     </Dialog>
   );
 }
+
