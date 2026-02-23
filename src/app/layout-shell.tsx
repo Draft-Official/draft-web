@@ -8,9 +8,9 @@ import { SignupVerifyGuard } from "@/features/auth/ui/signup-verify-guard";
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() ?? '';
-  const isSignupVerify = pathname.startsWith('/signup/verify');
+  const isBareLayout = pathname.startsWith('/signup/verify') || pathname === '/login';
 
-  if (isSignupVerify) {
+  if (isBareLayout) {
     return (
       <div className="flex justify-center min-h-screen bg-(--layout-root-bg)">
         <main className="app-mobile-container min-h-screen bg-(--layout-root-bg) relative">

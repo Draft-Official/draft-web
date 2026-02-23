@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Search, ArrowDown } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowDown } from 'lucide-react';
 import { FilterBar } from '@/features/match/ui/filter-bar';
 import { MatchListItem } from '@/features/match/ui/match-list-item';
 import { useRecruitingMatchesInfinite } from '@/features/match/api/queries';
@@ -136,17 +137,17 @@ export default function GuestMatchListPage() {
           ) : Object.keys(groupedMatches).length === 0 ? (
             // Empty State
             <div className="flex flex-col items-center justify-center pt-20 px-6 text-center animate-in fade-in zoom-in duration-300">
-              <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
-                <Search className="w-8 h-8 text-slate-300" />
-              </div>
               <h3 className="text-lg font-bold text-slate-900 mb-1">조건에 맞는 경기가 없어요</h3>
               <p className="text-slate-500 text-sm mb-8">
                 필터 조건을 변경해보시거나<br />직접 게스트를 모집해보는 건 어때요?
               </p>
-              <div className="flex flex-col items-center gap-2 animate-bounce">
-                <span className="text-xs text-muted-foreground font-bold">직접 모집하기</span>
-                <ArrowDown className="w-5 h-5 text-muted-foreground" />
-              </div>
+              <Link
+                href="/matches/create"
+                className="flex flex-col items-center gap-2 animate-bounce text-primary hover:text-primary/90 transition-colors"
+              >
+                           <ArrowDown className="w-5 h-5" />
+                <span className="text-xs font-bold">직접 모집하기</span>
+              </Link>
             </div>
           ) : (
             // Match List (각 카드에 날짜가 포함되어 있으므로 sticky header 불필요)

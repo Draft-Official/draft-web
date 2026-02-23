@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { Search } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 
 interface HeaderProps {
@@ -34,7 +33,6 @@ export function Header({
           >
             경기 개설하기
           </Link>
-          <Search className="w-6 h-6 text-slate-900" />
           {notificationSlot}
         </div>
       </div>
