@@ -197,7 +197,7 @@ export function MatchCard({ match, notifications, onClick, onConfirmPayment, onV
             {match.matchType === 'team' && !hasVoted ? (
               <Badge
                 variant="outline"
-                className="text-xs font-medium border px-2.5 py-1 bg-yellow-50 text-yellow-600 border-yellow-200"
+                className="text-xs font-medium border px-2.5 py-1 bg-yellow-100 text-yellow-700 border-yellow-200"
               >
                 미투표
               </Badge>

@@ -2,13 +2,52 @@
  * Match Mutation Hooks
  * 경기 상태/설정 변경용 React Query hooks
  */
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { QueryClient, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from '@/shared/ui/shadcn/sonner';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { matchKeys } from '@/entities/match';
 import { useAuth } from '@/shared/session';
 import { matchManagementKeys } from './keys';
 import type { RecruitmentSetup, Json, Database } from '@/shared/types/database.types';
+
+function removeCanceledMatchFromHomeInfiniteCache(
+  queryClient: QueryClient,
+  canceledMatchId: string
+) {
+  queryClient.setQueriesData(
+    { queryKey: matchKeys.listInfinite() },
+    (oldData: unknown) => {
+      if (!oldData || typeof oldData !== 'object' || !('pages' in oldData)) {
+        return oldData;
+      }
+
+      const cached = oldData as {
+        pages: Array<Record<string, unknown> & { matches?: Array<{ matchId?: string }> }>;
+        pageParams?: unknown[];
+      };
+
+      const nextPages = cached.pages.map((page) => {
+        if (!Array.isArray(page.matches)) return page;
+
+        const nextMatches = page.matches.filter(
+          (match) => match.matchId !== canceledMatchId
+        );
+
+        if (nextMatches.length === page.matches.length) return page;
+
+        return {
+          ...page,
+          matches: nextMatches,
+        };
+      });
+
+      return {
+        ...cached,
+        pages: nextPages,
+      };
+    }
+  );
+}
 
 /**
  * 경기 상태 변경
@@ -48,6 +87,13 @@ export function useUpdateMatchStatus() {
       queryClient.invalidateQueries({
         queryKey: matchKeys.lists(),
       });
+      queryClient.invalidateQueries({
+        queryKey: matchKeys.listInfinite(),
+      });
+
+      if (variables.status === 'CANCELED') {
+        removeCanceledMatchFromHomeInfiniteCache(queryClient, variables.matchId);
+      }
 
       const messageMap: Record<string, string> = {
         CLOSED: '모집을 마감했습니다.',
@@ -107,8 +153,8 @@ export function useUpdateRecruitmentSetup() {
 /**
  * 경기 취소 일괄 처리
  * 1. 모든 활성 신청(PENDING, CONFIRMED)을 CANCELED로 변경
- * 2. 취소 공지 발송
- * 3. 경기 상태를 CANCELED로 변경
+ * 2. 경기 상태를 CANCELED로 변경
+ * 3. 취소 공지 발송 (실패해도 취소는 유지)
  */
 export function useCancelMatchFlow() {
   const queryClient = useQueryClient();
@@ -138,7 +184,15 @@ export function useCancelMatchFlow() {
 
       if (cancelAppsError) throw cancelAppsError;
 
-      // 2. 취소 공지 발송
+      // 2. 경기 상태를 CANCELED로 변경
+      const { error: matchError } = await supabase
+        .from('matches')
+        .update({ status: 'CANCELED' })
+        .eq('id', matchId);
+
+      if (matchError) throw matchError;
+
+      // 3. 취소 공지 발송 (실패해도 경기 취소는 유지)
       const fullMessage =
         message +
         '\n\n[환불 안내] 입금하신 참가비는 호스트가 1시간 이내에 환불할 예정입니다. 1시간이 지나도 환불받지 못한 경우, 고객센터를 통해 문의해 주세요.';
@@ -154,15 +208,9 @@ export function useCancelMatchFlow() {
           message: fullMessage,
         });
 
-      if (announcementError) throw announcementError;
-
-      // 3. 경기 상태를 CANCELED로 변경
-      const { error: matchError } = await supabase
-        .from('matches')
-        .update({ status: 'CANCELED' })
-        .eq('id', matchId);
-
-      if (matchError) throw matchError;
+      if (announcementError) {
+        console.error('Cancel match announcement error:', announcementError);
+      }
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
@@ -177,6 +225,10 @@ export function useCancelMatchFlow() {
       queryClient.invalidateQueries({
         queryKey: matchKeys.lists(),
       });
+      queryClient.invalidateQueries({
+        queryKey: matchKeys.listInfinite(),
+      });
+      removeCanceledMatchFromHomeInfiniteCache(queryClient, variables.matchId);
       toast.success('경기가 취소되었습니다.');
     },
     onError: (error: Error) => {

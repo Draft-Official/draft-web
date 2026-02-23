@@ -86,9 +86,9 @@ export function MatchCardLayout({
           </div>
 
           {showTeamName && (
-            <div className="flex items-center gap-1 text-base text-slate-500">
-              <Shield className="w-4 h-4" />
-              <span>{teamName}</span>
+            <div className="flex items-center gap-1 text-base">
+              <Shield className="w-4 h-4 text-slate-400" />
+              <span className="text-slate-900">{teamName}</span>
             </div>
           )}
         </div>

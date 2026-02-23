@@ -22,6 +22,8 @@ import { useAuth } from '@/shared/session';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { createApplicationService } from '@/entities/application';
 import { matchManagementKeys } from '@/features/schedule/api/keys';
+import { useCancelMatchFlow, useMatchApplicants, useUpdateMatchStatus } from '@/features/schedule';
+import { MatchCancelDialog } from '@/features/schedule/ui/detail/match-cancel-dialog';
 
 interface MatchDetailViewProps {
   match: GuestMatchDetailDTO;
@@ -34,6 +36,7 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
   const { isAuthenticated, user } = useAuth();
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isMatchCancelOpen, setIsMatchCancelOpen] = useState(false);
 
   // 경기관리 > 참여에서 들어온 경우
   const isFromSchedule = searchParams?.get('from') === 'schedule';
@@ -59,7 +62,7 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
   });
 
   // 확정된 게스트 수 조회 (호스트 메뉴용)
-  const { data: confirmedCount = 0 } = useQuery({
+  const { data: confirmedCount = 0, isLoading: isLoadingConfirmedCount } = useQuery({
     queryKey: ['confirmed-guests', match.id],
     queryFn: async () => {
       const supabase = getSupabaseBrowserClient();
@@ -102,6 +105,15 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
 
   // 호스트 여부
   const isHost = match.hostId === user?.id;
+  const hasConfirmedGuests = confirmedCount > 0;
+  const {
+    data: guests = [],
+    isLoading: isLoadingGuests,
+  } = useMatchApplicants(isHost ? match.id : '');
+  const confirmedGuests = guests.filter((g) => g.status === 'confirmed');
+
+  const statusMutation = useUpdateMatchStatus();
+  const cancelMatchFlowMutation = useCancelMatchFlow();
 
   // 신청 취소 mutation
   const cancelMutation = useMutation({
@@ -164,6 +176,20 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
     cancelMutation.mutate();
   };
 
+  const handleHostCancelMatch = () => {
+    if (!match.id) return;
+
+    if (hasConfirmedGuests) {
+      setIsMatchCancelOpen(true);
+      return;
+    }
+
+    statusMutation.mutate(
+      { matchId: match.id, status: 'CANCELED' },
+      { onSuccess: () => router.back() }
+    );
+  };
+
   return (
     <div className="min-h-screen bg-background relative pb-[100px] app-content-container">
       
@@ -185,11 +211,11 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
           <KebabMenu
             matchPublicId={match.publicId}
             isHost={isHost}
-            hasConfirmedGuests={confirmedCount > 0}
-            onCancelMatch={() => {
-              toast.success('경기가 취소되었습니다.');
-              router.back();
-            }}
+            hasConfirmedGuests={hasConfirmedGuests}
+            isCheckingConfirmedGuests={
+              isHost && (isLoadingConfirmedCount || (hasConfirmedGuests && isLoadingGuests))
+            }
+            onCancelMatch={handleHostCancelMatch}
           />
         </div>
       </header>
@@ -265,6 +291,18 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
           return `${month}월 ${date}일 (${day}) ${match.startTime}`;
         })()}
         location={match.location}
+      />
+
+      <MatchCancelDialog
+        open={isMatchCancelOpen}
+        onOpenChange={setIsMatchCancelOpen}
+        confirmedGuests={confirmedGuests}
+        onConfirm={(message) => {
+          cancelMatchFlowMutation.mutate(
+            { matchId: match.id, message },
+            { onSuccess: () => router.back() }
+          );
+        }}
       />
     </div>
   );

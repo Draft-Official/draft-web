@@ -23,6 +23,7 @@ interface KebabMenuProps {
   matchPublicId: string;
   isHost: boolean;
   hasConfirmedGuests: boolean;
+  isCheckingConfirmedGuests?: boolean;
   onCancelMatch?: () => void;
 }
 
@@ -30,6 +31,7 @@ export function KebabMenu({
   matchPublicId,
   isHost,
   hasConfirmedGuests,
+  isCheckingConfirmedGuests = false,
   onCancelMatch,
 }: KebabMenuProps) {
   const router = useRouter();
@@ -48,10 +50,16 @@ export function KebabMenu({
   };
 
   const handleCancelClick = () => {
-    if (hasConfirmedGuests) {
-      toast.error('확정된 게스트가 있어 경기를 취소할 수 없습니다.');
+    if (isCheckingConfirmedGuests) {
+      toast.info('신청자 정보를 확인 중입니다. 잠시 후 다시 시도해주세요.');
       return;
     }
+
+    if (hasConfirmedGuests) {
+      onCancelMatch?.();
+      return;
+    }
+
     setShowCancelDialog(true);
   };
 
@@ -78,8 +86,7 @@ export function KebabMenu({
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={handleCancelClick}
-            disabled={hasConfirmedGuests}
-            variant={hasConfirmedGuests ? 'default' : 'destructive'}
+            variant="destructive"
             className="flex items-center gap-2 py-2.5 px-3 cursor-pointer"
           >
             <XCircle className="w-4 h-4" />
