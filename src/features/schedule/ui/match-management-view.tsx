@@ -30,7 +30,7 @@ import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 type ViewMode = "guest" | "host";
 type GuestTypeFilterValue = Exclude<MatchType, "host">;
-type HostTypeFilterValue = Exclude<MatchType, "guest">;
+type HostTypeFilterValue = Exclude<MatchType, "host">;
 type GuestStatusFilterValue = "pending" | "payment_waiting" | "voting" | "confirmed" | "ended" | "cancelled";
 type HostStatusFilterValue = "recruiting" | "closed" | "voting" | "confirmed" | "ended" | "cancelled";
 

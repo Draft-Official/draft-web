@@ -12,9 +12,9 @@ export const MATCH_TYPE_FILTER_OPTIONS: FilterOption<Exclude<MatchType, 'host'>>
   { value: 'tournament', label: '대회' },
 ];
 
-// 경기 타입 필터 옵션 (관리 모드 - guest 제외, 중복선택용)
-export const HOST_TYPE_FILTER_OPTIONS: FilterOption<Exclude<MatchType, 'guest'>>[] = [
-  { value: 'host', label: '호스트' },
+// 경기 타입 필터 옵션 (관리 모드 - host 제외, 중복선택용)
+export const HOST_TYPE_FILTER_OPTIONS: FilterOption<Exclude<MatchType, 'host'>>[] = [
+  { value: 'guest', label: '게스트' },
   { value: 'team', label: '팀운동' },
   { value: 'tournament', label: '대회' },
 ];

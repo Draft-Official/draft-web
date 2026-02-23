@@ -193,7 +193,11 @@ export function useParticipatingMatches() {
           const position = mainParticipant?.position || 'G';
 
           // match_type에 따라 UI type 결정
-          const matchType = match.match_type === 'TEAM_MATCH' ? 'team' as const : 'guest' as const;
+          const matchType = match.match_type === 'TEAM_MATCH'
+            ? 'team' as const
+            : match.match_type === 'TOURNAMENT'
+              ? 'tournament' as const
+              : 'guest' as const;
           const scheduleMode = 'participating' as const;
 
           // Team 매치: 투표 상태 매핑
