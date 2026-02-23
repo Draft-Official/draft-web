@@ -10,6 +10,14 @@
 
 ---
 
+### Confirmed UX Wording (2026-02-23)
+
+- 팀운동 카드/상세 CTA는 `투표하기`, `투표변경`을 사용한다.
+- `응답하기`, `응답 변경` 용어는 사용하지 않는다.
+- `투표현황 모달`(이름 Chip 형태)은 전체 팀원에게 공개한다.
+
+---
+
 ### Task 1: Split schedule domain type (guest recruitment vs team exercise)
 
 **Files:**
@@ -78,12 +86,18 @@ Steps:
    - 투표 현황 (참석/지각/미정/불참/미투표)
    - 멤버별 투표/참여 명단
    - 공지/운영 메모
+   - 전체 팀원 공개 `투표현황 모달` (이름 Chip 빠른 조회)
 3. Include manager actions:
    - 투표 마감/재오픈
    - 일정/장소 수정
    - 팀운동 취소
    - 필요 시 게스트 모집 전환
 4. Enforce role-based permissions (LEADER/MANAGER only for manage actions).
+   - 단, `투표현황 모달` 열람은 MEMBER 포함 전체 팀원 허용
+5. 팀운동 CTA 라벨은 상태별로 고정:
+   - 미투표: `투표하기`
+   - 투표 완료: `투표변경`
+   - 투표 마감: `투표마감`
 
 ### Task 6: Stabilize legacy entry points and deep links
 
