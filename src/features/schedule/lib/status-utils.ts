@@ -6,24 +6,26 @@ import type { GuestStatus, MatchStatus } from '../model/types';
 import { GUEST_APPROVAL_STATUS_TEXT } from '../config/constants';
 
 /**
- * DB Application status + approved_at → UI GuestStatus 변환
+ * DB Application status → UI GuestStatus 변환
  *
  * 상태 해석:
- * - PENDING + approved_at IS NULL → 신청자 (pending)
- * - PENDING + approved_at IS NOT NULL → 입금대기 (payment_waiting)
+ * - PENDING → 승인 대기 (pending)
+ * - PAYMENT_PENDING → 입금 대기 (payment_waiting)
  * - CONFIRMED → 확정
  * - REJECTED → 거절
  * - CANCELED → 취소
  */
 export function resolveApplicationStatus(
   dbStatus: string,
-  approvedAt: string | null | undefined,
+  approvedAt?: string | null | undefined,
 ): GuestStatus {
   if (dbStatus === 'CONFIRMED') return 'confirmed';
   if (dbStatus === 'REJECTED') return 'rejected';
   if (dbStatus === 'CANCELED') return 'canceled';
+  if (dbStatus === 'PAYMENT_PENDING') return 'payment_waiting';
 
   if (dbStatus === 'PENDING') {
+    // 마이그레이션 이전 레거시 데이터 호환 (approved_at 있으면 입금대기)
     return approvedAt ? 'payment_waiting' : 'pending';
   }
 

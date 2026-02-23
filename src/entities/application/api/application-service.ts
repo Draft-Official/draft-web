@@ -191,13 +191,14 @@ export class ApplicationService {
   }
 
   /**
-   * 신청 승인 (PENDING 상태 유지, approved_at 설정)
+   * 신청 승인 (PENDING → PAYMENT_PENDING)
    * 입금대기 상태로 전환
    */
   async approveApplication(applicationId: string): Promise<Application> {
     const { data, error } = await this.supabase
       .from('applications')
       .update({
+        status: 'PAYMENT_PENDING',
         approved_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
