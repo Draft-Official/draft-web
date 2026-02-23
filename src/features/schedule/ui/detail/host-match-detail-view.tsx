@@ -348,7 +348,7 @@ export function HostMatchDetailView() {
       />
 
       <Dialog open={isRejectConfirmOpen} onOpenChange={setIsRejectConfirmOpen}>
-        <DialogContent size="base" className="rounded-2xl p-6">
+        <DialogContent size="base" className="rounded-2xl p-6" showCloseButton={false}>
           <DialogHeader>
             <DialogTitle>신청 거절</DialogTitle>
             <DialogDescription className="text-slate-600 pt-2">
