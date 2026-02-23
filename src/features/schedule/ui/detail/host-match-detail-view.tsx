@@ -32,15 +32,13 @@ import {
   useCancelMatchFlow,
 } from '@/features/schedule';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/shared/ui/shadcn/alert-dialog';
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/shared/ui/shadcn/dialog';
+import { Button } from '@/shared/ui/shadcn/button';
 import { GuestProfileDialog } from './guest-profile-dialog';
 import { EditQuotaDialog } from './edit-quota-dialog';
 import { CancelConfirmDialog } from './cancel-confirm-dialog';
@@ -349,27 +347,34 @@ export function HostMatchDetailView() {
         }}
       />
 
-      <AlertDialog open={isRejectConfirmOpen} onOpenChange={setIsRejectConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>신청 거절</AlertDialogTitle>
-            <AlertDialogDescription>
+      <Dialog open={isRejectConfirmOpen} onOpenChange={setIsRejectConfirmOpen}>
+        <DialogContent size="base" className="rounded-2xl p-6">
+          <DialogHeader>
+            <DialogTitle>신청 거절</DialogTitle>
+            <DialogDescription className="text-slate-600 pt-2">
               {guestToReject?.name}님의 신청을 거절하시겠습니까?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>취소</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-red-100 hover:bg-red-200 text-red-600 border border-red-200"
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-2 pt-2">
+            <Button
+              variant="outline"
+              className="flex-1 h-12 rounded-xl font-bold"
+              onClick={() => setIsRejectConfirmOpen(false)}
+            >
+              닫기
+            </Button>
+            <Button
+              className="flex-1 bg-red-100 hover:bg-red-200 text-red-600 border border-red-200 h-12 rounded-xl font-bold"
               onClick={() => {
                 if (guestToReject) handleReject(guestToReject);
+                setIsRejectConfirmOpen(false);
               }}
             >
               거절
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <CancelConfirmDialog
         open={isCancelConfirmOpen}
