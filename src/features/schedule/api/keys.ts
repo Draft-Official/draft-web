@@ -25,4 +25,8 @@ export const matchManagementKeys = {
   // 경기 신청자 목록
   applicants: (matchId: string) =>
     [...matchManagementKeys.all, 'applicants', matchId] as const,
+
+  // 팀운동 투표 목록 (모달용)
+  teamVotes: (matchId: string) =>
+    [...matchManagementKeys.all, 'team-votes', matchId] as const,
 };

@@ -11,6 +11,9 @@ import type { TeamVoteStatusValue } from '@/shared/config/application-constants'
 // 일정 화면 모드
 export type ScheduleMode = 'participating' | 'managing';
 
+// 관리 도메인 타입 (게스트 모집 / 팀운동 / 대회)
+export type MatchManagementType = 'guest_recruitment' | 'team_exercise' | 'tournament';
+
 // 신청 동반인 DTO
 export interface MatchApplicantCompanionDTO {
   name: string;
@@ -24,6 +27,15 @@ export interface MatchApplicantCompanionDTO {
 export interface MatchApplicantHistoryDTO {
   count: number;
   lastDate?: string;
+}
+
+// 팀운동 투표 현황 모달용 아이템 DTO
+export interface TeamExerciseVoteItemDTO {
+  id: string;
+  userId: string;
+  name: string;
+  status: TeamVoteStatusValue;
+  reason?: string;
 }
 
 // 경기 신청자 DTO (호스트 관리용)
@@ -46,6 +58,7 @@ export interface MatchApplicantDTO extends Participant {
 export interface ScheduleMatchListItemDTO {
   id: string;
   publicId: string;
+  managementType: MatchManagementType;
   matchType: MatchType;
   scheduleMode: ScheduleMode;
   status: MatchStatus;
@@ -82,7 +95,7 @@ export interface ScheduleMatchListItemDTO {
   tournamentName?: string;
   round?: string;
 
-  // Team vote fields (matchType === 'team')
+  // Team vote fields (managementType === 'team_exercise')
   myVote?: TeamVoteStatusValue;
   myVoteReason?: string;
   votingSummary?: {

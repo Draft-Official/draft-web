@@ -30,6 +30,9 @@ interface TeamMatchDetailViewProps {
   team: TeamInfoDTO;
   membership: TeamMembershipDTO;
   userId?: string;
+  showVoteAction?: boolean;
+  showExtraSections?: boolean;
+  canQuickAddGuest?: boolean;
 }
 
 export function TeamMatchDetailView({
@@ -37,6 +40,9 @@ export function TeamMatchDetailView({
   team,
   membership,
   userId,
+  showVoteAction = true,
+  showExtraSections = true,
+  canQuickAddGuest = false,
 }: TeamMatchDetailViewProps) {
   const handleBack = useSafeBack(`/team/${team.code}`);
   const [isVoteDialogOpen, setIsVoteDialogOpen] = useState(false);
@@ -180,48 +186,55 @@ export function TeamMatchDetailView({
           matchId={match.matchId}
           isVotingClosed={isVotingClosed}
           isLoading={isVotesLoading}
+          canQuickAddGuest={canQuickAddGuest}
         />
 
-        <div className="h-px bg-slate-100 mx-5" />
+        {showExtraSections && (
+          <>
+            <div className="h-px bg-slate-100 mx-5" />
 
-        <TeamInfoSection team={team} />
+            <TeamInfoSection team={team} />
 
-        <div className="h-px bg-slate-100 mx-5" />
+            <div className="h-px bg-slate-100 mx-5" />
 
-        <TeamFacilitySection match={match} id="facility-section" />
+            <TeamFacilitySection match={match} id="facility-section" />
+          </>
+        )}
       </main>
 
-      {/* Bottom Bar - 투표 버튼 */}
-      <div className="app-overlay-shell app-overlay-shell--with-sidebar">
-        <div className="app-overlay-content bg-white border-t border-slate-100 px-5 pt-4 pb-8 pointer-events-auto shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-          <button
-            onClick={() => setIsVoteDialogOpen(true)}
-            disabled={isVotingClosed}
-            className={cn(
-              'w-full h-12 rounded-xl font-bold text-lg transition-all',
-              isVotingClosed
-                ? 'bg-slate-200 text-slate-500 cursor-not-allowed'
-                : 'bg-primary text-white hover:bg-primary/90'
-            )}
-          >
-            {isVotingClosed
-              ? '투표가 마감되었습니다.'
-              : hasVoted
-              ? '투표 변경하기'
-              : '투표하기'}
-          </button>
+      {showVoteAction && (
+        <div className="app-overlay-shell app-overlay-shell--with-sidebar">
+          <div className="app-overlay-content bg-white border-t border-slate-100 px-5 pt-4 pb-8 pointer-events-auto shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+            <button
+              onClick={() => setIsVoteDialogOpen(true)}
+              disabled={isVotingClosed}
+              className={cn(
+                'w-full h-12 rounded-xl font-bold text-lg transition-all',
+                isVotingClosed
+                  ? 'bg-slate-200 text-slate-500 cursor-not-allowed'
+                  : 'bg-primary text-white hover:bg-primary/90'
+              )}
+            >
+              {isVotingClosed
+                ? '투표가 마감되었습니다.'
+                : hasVoted
+                ? '투표 변경하기'
+                : '투표하기'}
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Vote Dialog */}
-      <VoteDialog
-        open={isVoteDialogOpen}
-        onOpenChange={setIsVoteDialogOpen}
-        currentVote={myVoteStatus}
-        currentReason={myVote?.description || ''}
-        onSubmit={handleVote}
-        isSubmitting={isVoting}
-      />
+      {showVoteAction && (
+        <VoteDialog
+          open={isVoteDialogOpen}
+          onOpenChange={setIsVoteDialogOpen}
+          currentVote={myVoteStatus}
+          currentReason={myVote?.description || ''}
+          onSubmit={handleVote}
+          isSubmitting={isVoting}
+        />
+      )}
     </div>
   );
 }

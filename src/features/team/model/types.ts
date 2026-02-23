@@ -181,6 +181,7 @@ export interface MyPendingTeamVoteMatchDTO {
   teamCode: string;
   teamName: string;
   teamLogoUrl: string | null;
+  startTime: string;
   dateDisplay: string;
   timeDisplay: string;
   gymName: string;
