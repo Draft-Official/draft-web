@@ -31,6 +31,16 @@ import {
   useCreateAnnouncement,
   useCancelMatchFlow,
 } from '@/features/schedule';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/shared/ui/shadcn/alert-dialog';
 import { GuestProfileDialog } from './guest-profile-dialog';
 import { EditQuotaDialog } from './edit-quota-dialog';
 import { CancelConfirmDialog } from './cancel-confirm-dialog';
@@ -69,6 +79,8 @@ export function HostMatchDetailView() {
   const [isEditQuotaOpen, setIsEditQuotaOpen] = useState(false);
   const [isCancelConfirmOpen, setIsCancelConfirmOpen] = useState(false);
   const [guestToCancel, setGuestToCancel] = useState<MatchApplicantDTO | null>(null);
+  const [isRejectConfirmOpen, setIsRejectConfirmOpen] = useState(false);
+  const [guestToReject, setGuestToReject] = useState<MatchApplicantDTO | null>(null);
   const [isAnnouncementOpen, setIsAnnouncementOpen] = useState(false);
   const [isMatchCancelOpen, setIsMatchCancelOpen] = useState(false);
 
@@ -151,6 +163,11 @@ export function HostMatchDetailView() {
   const openCancelConfirm = (guest: MatchApplicantDTO) => {
     setGuestToCancel(guest);
     setIsCancelConfirmOpen(true);
+  };
+
+  const openRejectConfirm = (guest: MatchApplicantDTO) => {
+    setGuestToReject(guest);
+    setIsRejectConfirmOpen(true);
   };
 
   const handleCloseRecruiting = () => {
@@ -286,7 +303,7 @@ export function HostMatchDetailView() {
           isEnded={isEnded}
           onGuestClick={openGuestProfile}
           onApprove={handleApprove}
-          onReject={handleReject}
+          onReject={openRejectConfirm}
           onConfirmPayment={handleConfirmPayment}
           onCancelClick={openCancelConfirm}
         />
@@ -298,7 +315,10 @@ export function HostMatchDetailView() {
         open={isGuestProfileOpen}
         onOpenChange={setIsGuestProfileOpen}
         onApprove={handleApprove}
-        onReject={handleReject}
+        onReject={(guest) => {
+          setIsGuestProfileOpen(false);
+          openRejectConfirm(guest);
+        }}
         onConfirmPayment={handleConfirmPayment}
         onCancel={(guest) => {
           setIsGuestProfileOpen(false);
@@ -328,6 +348,28 @@ export function HostMatchDetailView() {
           announcementMutation.mutate({ matchId: internalMatchId, message });
         }}
       />
+
+      <AlertDialog open={isRejectConfirmOpen} onOpenChange={setIsRejectConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>신청 거절</AlertDialogTitle>
+            <AlertDialogDescription>
+              {guestToReject?.name}님의 신청을 거절하시겠습니까?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-100 hover:bg-red-200 text-red-600 border border-red-200"
+              onClick={() => {
+                if (guestToReject) handleReject(guestToReject);
+              }}
+            >
+              거절
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <CancelConfirmDialog
         open={isCancelConfirmOpen}
