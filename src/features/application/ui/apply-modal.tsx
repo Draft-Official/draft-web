@@ -149,9 +149,20 @@ export function ApplyModal({
             <div className="bg-brand-weak rounded-xl p-4">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-slate-600">참가비</span>
-                <span className="text-lg font-bold text-primary">
-                  {costAmount.toLocaleString()}원
-                </span>
+                {hasCompanions && companions.length > 0 ? (
+                  <div className="text-right">
+                    <span className="text-xs text-slate-500 block">
+                      1인 {costAmount.toLocaleString()}원 × {companions.length + 1}명
+                    </span>
+                    <span className="text-lg font-bold text-primary">
+                      {(costAmount * (companions.length + 1)).toLocaleString()}원
+                    </span>
+                  </div>
+                ) : (
+                  <span className="text-lg font-bold text-primary">
+                    {costAmount.toLocaleString()}원
+                  </span>
+                )}
               </div>
             </div>
           )}
