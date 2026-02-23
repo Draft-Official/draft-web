@@ -16,10 +16,12 @@ import {
 } from '@/shared/ui/shadcn/dialog';
 import { useAuth, useDeleteAccount } from '@/shared/session';
 import { Spinner } from '@/shared/ui/shadcn/spinner';
+import { ConfirmDialog } from '@/shared/ui/composite/confirm-dialog';
 
 export function MyPageFooter() {
   const { signOut } = useAuth();
   const router = useRouter();
+  const [logoutOpen, setLogoutOpen] = useState(false);
   const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [confirmedCount, setConfirmedCount] = useState<number | null>(null);
   const [loadingCheck, setLoadingCheck] = useState(false);
@@ -69,7 +71,6 @@ export function MyPageFooter() {
       await deleteAccount.mutateAsync();
       localStorage.removeItem('profileSkipped');
       localStorage.removeItem('draft-query-cache');
-      // auth.users가 이미 삭제된 상태이므로 signOut이 실패할 수 있음
       try { await signOut(); } catch { /* ignore */ }
       setWithdrawOpen(false);
       toast.success('탈퇴가 완료되었습니다.');
@@ -90,7 +91,7 @@ export function MyPageFooter() {
         <Button
           variant="outline"
           className="w-full justify-start p-4 h-auto font-normal text-destructive hover:text-destructive hover:bg-destructive/10"
-          onClick={handleLogout}
+          onClick={() => setLogoutOpen(true)}
         >
           <LogOut className="mr-3 h-5 w-5" />
           로그아웃
@@ -115,9 +116,24 @@ export function MyPageFooter() {
         </Link>
       </div>
 
+      {/* 로그아웃 확인 */}
+      <ConfirmDialog
+        open={logoutOpen}
+        onOpenChange={setLogoutOpen}
+        icon={LogOut}
+        title="로그아웃 하시겠습니까?"
+        confirmLabel="로그아웃"
+        variant="destructive"
+        onConfirm={handleLogout}
+      />
+
+      {/* 탈퇴 확인 */}
       <Dialog open={withdrawOpen} onOpenChange={setWithdrawOpen}>
         <DialogContent size="app" className="rounded-2xl">
-          <DialogHeader>
+          <DialogHeader className="items-center text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-red-50">
+              <UserX className="h-6 w-6 text-red-500" />
+            </div>
             <DialogTitle>정말 탈퇴하시겠습니까?</DialogTitle>
             <DialogDescription>
               탈퇴하면 모든 개인정보가 삭제되며 복구할 수 없습니다.
@@ -126,7 +142,7 @@ export function MyPageFooter() {
 
           {loadingCheck ? (
             <div className="flex items-center justify-center py-4">
-              <Spinner className="h-5 w-5  text-muted-foreground" />
+              <Spinner className="h-5 w-5 text-muted-foreground" />
             </div>
           ) : (
             <>
@@ -134,7 +150,7 @@ export function MyPageFooter() {
                 <>
                   <div className="rounded-lg bg-red-50 border border-red-200 p-4 space-y-2">
                     <div className="flex items-start gap-2">
-                      <AlertTriangle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+                      <AlertTriangle className="h-4 w-4 text-red-600 mt-0.5 shrink-0" />
                       <p className="text-sm text-red-700 font-bold">
                         현재 입금 완료된 확정자 {confirmedCount}명이 있습니다.
                       </p>
@@ -152,7 +168,7 @@ export function MyPageFooter() {
                       onChange={(e) =>
                         setSettlementAcknowledged(e.target.checked)
                       }
-                      className="w-4 h-4 mt-0.5 rounded border-slate-300 accent-primary flex-shrink-0"
+                      className="w-4 h-4 mt-0.5 rounded border-slate-300 accent-primary shrink-0"
                     />
                     <span className="text-sm text-slate-700 font-medium leading-snug">
                       모든 확정자에 대한 참가비 정산을 완료했습니다.
@@ -178,7 +194,7 @@ export function MyPageFooter() {
                 >
                   {deleteAccount.isPending ? (
                     <>
-                      <Spinner className="mr-2 h-4 w-4 " />
+                      <Spinner className="mr-2 h-4 w-4" />
                       처리 중...
                     </>
                   ) : (

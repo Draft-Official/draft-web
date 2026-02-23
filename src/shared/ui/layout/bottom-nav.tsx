@@ -3,12 +3,14 @@
 import { useRouter, usePathname } from 'next/navigation';
 import { Home, Users, Calendar, User } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
+import { useAuth } from '@/shared/session';
 
 import { useScrollDirection } from '@/shared/lib/hooks/use-scroll-direction';
 
 export function BottomNav() {
   const router = useRouter();
   const pathname = usePathname() ?? '';
+  const { isAuthenticated } = useAuth();
   const isScrolledDown = useScrollDirection(); // Shared scroll logic
 
   const NAV_ITEMS = [
@@ -20,6 +22,11 @@ export function BottomNav() {
 
   // Smart navigation handler
   const handleNavClick = (href: string) => {
+    if ((href === '/team' || href === '/schedule') && !isAuthenticated) {
+      router.push(`/auth/login?redirect=${encodeURIComponent(href)}`);
+      return;
+    }
+
     if (pathname === href) {
       // Same tab: scroll to top
       window.scrollTo({ top: 0, behavior: 'smooth' });

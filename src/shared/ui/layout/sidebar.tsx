@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Home, Users, Calendar, User } from 'lucide-react';
 import { Button } from '@/shared/ui/shadcn/button';
 import { cn } from '@/shared/lib/utils';
+import { useAuth } from '@/shared/session';
 import type { ReactNode } from 'react';
 
 interface SidebarProps {
@@ -13,6 +14,7 @@ interface SidebarProps {
 
 export function Sidebar({ notificationSlot }: SidebarProps) {
   const pathname = usePathname() ?? '';
+  const { isAuthenticated } = useAuth();
 
   const NAV_ITEMS = [
     { label: '홈', href: '/', icon: Home },
@@ -34,11 +36,16 @@ export function Sidebar({ notificationSlot }: SidebarProps) {
       {/* Menu */}
       <nav className="flex-1 space-y-1">
         {NAV_ITEMS.map((item) => {
+          const isProtectedTab = item.href === '/team' || item.href === '/schedule';
+          const href =
+            isProtectedTab && !isAuthenticated
+              ? `/auth/login?redirect=${encodeURIComponent(item.href)}`
+              : item.href;
           const isActive = pathname === item.href;
           return (
             <Link
               key={item.href}
-              href={item.href}
+              href={href}
               className={cn(
                 "flex items-center gap-4 px-6 py-3 rounded-sm text-xl font-medium transition-all duration-200 hover:bg-slate-100 w-full",
                 isActive ? "font-bold text-slate-900" : "text-slate-600"
