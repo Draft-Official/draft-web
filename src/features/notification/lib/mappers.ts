@@ -11,25 +11,42 @@ const HOST_NOTIFICATION_TYPES: ReadonlySet<NotificationTypeValue> = new Set([
   'GUEST_PAYMENT_CONFIRMED',
 ]);
 
+interface NotificationMatchRouteInfo {
+  publicId: string;
+  managementType: 'guest_recruitment' | 'team_exercise' | 'tournament';
+  teamCode?: string;
+}
+
 function resolveTargetPath(
   notification: NotificationEntity,
-  matchPublicId?: string
+  matchRouteInfo?: NotificationMatchRouteInfo
 ): string | null {
   if (!notification.matchId) {
     return null;
   }
 
-  const pathId = matchPublicId ?? notification.matchId;
+  const pathId = matchRouteInfo?.publicId ?? notification.matchId;
+  const isTeamExercise = matchRouteInfo?.managementType === 'team_exercise';
+  const teamCode = matchRouteInfo?.teamCode;
 
-  return HOST_NOTIFICATION_TYPES.has(notification.type)
-    ? `/matches/${pathId}/manage`
-    : `/matches/${pathId}`;
+  if (HOST_NOTIFICATION_TYPES.has(notification.type)) {
+    if (isTeamExercise && teamCode) {
+      return `/team/${teamCode}/matches/${pathId}/manage`;
+    }
+    return `/matches/${pathId}/manage`;
+  }
+
+  if (isTeamExercise && teamCode) {
+    return `/team/${teamCode}/matches/${pathId}`;
+  }
+
+  return `/matches/${pathId}`;
 }
 
 export function toNotificationListItemDTO(
   notification: NotificationEntity,
   announcementMessage?: string,
-  matchPublicId?: string
+  matchRouteInfo?: NotificationMatchRouteInfo
 ): NotificationListItemDTO {
   const description = announcementMessage ?? NOTIFICATION_TYPE_DESCRIPTIONS[notification.type];
 
@@ -46,7 +63,7 @@ export function toNotificationListItemDTO(
     title: NOTIFICATION_TYPE_LABELS[notification.type],
     description,
     ...(announcementMessage ? { announcementMessage } : {}),
-    targetPath: resolveTargetPath(notification, matchPublicId),
+    targetPath: resolveTargetPath(notification, matchRouteInfo),
   };
 }
 
