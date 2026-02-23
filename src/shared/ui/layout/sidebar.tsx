@@ -1,11 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Home, Users, Calendar, User } from 'lucide-react';
 import { Button } from '@/shared/ui/shadcn/button';
 import { cn } from '@/shared/lib/utils';
-import { useAuth } from '@/shared/session';
+import { useAuth, useRequireAuth } from '@/shared/session';
+import { LoginRequiredModal } from '@/features/auth';
 import type { ReactNode } from 'react';
 
 interface SidebarProps {
@@ -14,7 +15,18 @@ interface SidebarProps {
 
 export function Sidebar({ notificationSlot }: SidebarProps) {
   const pathname = usePathname() ?? '';
+  const router = useRouter();
   const { isAuthenticated } = useAuth();
+  const { requireAuth, modalProps } = useRequireAuth({
+    redirectTo: '/matches/create',
+    description: '모집글을 작성하려면 로그인이 필요합니다.\n로그인 후 이용해 주세요.',
+  });
+
+  const handleCreateMatch = () => {
+    if (requireAuth()) {
+      router.push('/matches/create');
+    }
+  };
 
   const NAV_ITEMS = [
     { label: '홈', href: '/', icon: Home },
@@ -24,6 +36,7 @@ export function Sidebar({ notificationSlot }: SidebarProps) {
   ];
 
   return (
+    <>
     <div className="flex flex-col h-full">
       {/* Logo + Notification */}
       <div className="h-14 flex items-center justify-between px-6 pt-6 mb-6">
@@ -61,15 +74,16 @@ export function Sidebar({ notificationSlot }: SidebarProps) {
       {/* Action Button - Only visible on Home Tab (Match List) */}
       {pathname === '/' && (
         <div className="mt-auto px-6 pb-6">
-          <Link href="/matches/create" className="block w-full">
-            <Button
-              className="w-full h-14 rounded-full bg-primary hover:bg-primary/90 text-white text-lg font-bold shadow-lg shadow-draft-200"
-            >
-              경기 개설하기
-            </Button>
-          </Link>
+          <Button
+            onClick={handleCreateMatch}
+            className="w-full h-14 rounded-full bg-primary hover:bg-primary/90 text-white text-lg font-bold shadow-lg shadow-draft-200"
+          >
+            경기 개설하기
+          </Button>
         </div>
       )}
     </div>
+    <LoginRequiredModal {...modalProps} />
+    </>
   );
 }

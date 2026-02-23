@@ -1,21 +1,33 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import Link from 'next/link';
 import { ArrowDown } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { FilterBar } from '@/features/match/ui/filter-bar';
 import { MatchListItem } from '@/features/match/ui/match-list-item';
 import { useRecruitingMatchesInfinite } from '@/features/match/api/queries';
 import { filterMatches, groupMatchesByDate } from '@/features/match/lib/utils';
 import { useLocalStorage } from '@/shared/lib/hooks/use-local-storage';
 import { NotificationBell } from '@/features/notification/ui/notification-bell';
-import { useAuth } from '@/shared/session';
+import { useAuth, useRequireAuth } from '@/shared/session';
+import { LoginRequiredModal } from '@/features/auth';
 import { useUserApplications } from '@/features/application';
 import type { ApplicationStatusValue } from '@/shared/config/application-constants';
 import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 export default function GuestMatchListPage() {
   const { user } = useAuth();
+  const router = useRouter();
+  const { requireAuth, modalProps } = useRequireAuth({
+    redirectTo: '/matches/create',
+    description: '모집글을 작성하려면 로그인이 필요합니다.\n로그인 후 이용해 주세요.',
+  });
+
+  const handleCreateMatch = () => {
+    if (requireAuth()) {
+      router.push('/matches/create');
+    }
+  };
   const {
     data,
     isLoading,
@@ -81,6 +93,7 @@ export default function GuestMatchListPage() {
   }, [filteredMatches]);
 
   return (
+    <>
     <div className="min-h-screen bg-background flex justify-center font-sans">
       <div className="app-content-container bg-background min-h-screen relative">
 
@@ -141,13 +154,13 @@ export default function GuestMatchListPage() {
               <p className="text-slate-500 text-sm mb-8">
                 필터 조건을 변경해보시거나<br />직접 게스트를 모집해보는 건 어때요?
               </p>
-              <Link
-                href="/matches/create"
+              <button
+                onClick={handleCreateMatch}
                 className="flex flex-col items-center gap-2 animate-bounce text-primary hover:text-primary/90 transition-colors"
               >
-                           <ArrowDown className="w-5 h-5" />
+                <ArrowDown className="w-5 h-5" />
                 <span className="text-xs font-bold">직접 모집하기</span>
-              </Link>
+              </button>
             </div>
           ) : (
             // Match List (각 카드에 날짜가 포함되어 있으므로 sticky header 불필요)
@@ -183,5 +196,7 @@ export default function GuestMatchListPage() {
 
       </div>
     </div>
+    <LoginRequiredModal {...modalProps} />
+    </>
   );
 }

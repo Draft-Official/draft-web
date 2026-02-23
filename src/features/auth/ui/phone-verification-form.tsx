@@ -220,7 +220,9 @@ export function PhoneVerificationForm({ onComplete }: PhoneVerificationFormProps
         <div className="flex items-start gap-2 p-3 bg-brand-weak rounded-lg">
           <Smartphone className="h-4 w-4 text-primary mt-0.5 shrink-0" />
           <p className="text-sm text-slate-700">
-            아래 버튼을 눌러 인증번호가 담긴 문자를 보내주세요. 문자 발송 후 자동으로 인증됩니다.
+            {isMobile
+              ? '아래 버튼을 눌러 인증번호가 담긴 문자를 보내주세요.'
+              : '아래 QR을 휴대폰으로 스캔해 인증번호가 담긴 문자를 보내주세요.'}
           </p>
         </div>
 
@@ -234,9 +236,6 @@ export function PhoneVerificationForm({ onComplete }: PhoneVerificationFormProps
         {/* 데스크탑: QR 코드 */}
         {!isMobile && (
           <div className="flex flex-col items-center gap-3">
-            <p className="text-sm text-slate-500">
-              휴대폰으로 QR을 스캔하세요
-            </p>
             <div className="p-4 bg-white border rounded-lg">
               <QRCodeSVG value={smsUri} size={160} />
             </div>
@@ -247,6 +246,11 @@ export function PhoneVerificationForm({ onComplete }: PhoneVerificationFormProps
             )}
           </div>
         )}
+
+        {/* 발송 후 대기 안내 */}
+        <p className="text-xs text-slate-400 text-center">
+          문자 발송 후 인증까지 수 초가 걸릴 수 있습니다.
+        </p>
 
         {/* 만료 시 재요청 */}
         {isExpired && (
