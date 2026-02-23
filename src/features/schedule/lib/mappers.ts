@@ -268,7 +268,7 @@ function calculateRecruitmentStats(setup?: RecruitmentSetup): {
   }
 
   if (setup.type === 'ANY') {
-    const max = setup.max_count || 10;
+    const max = setup.max_count ?? 10;
     const current = setup.current_count ?? 0;
     return { applicants: current, vacancies: Math.max(0, max - current) };
   }

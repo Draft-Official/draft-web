@@ -72,7 +72,7 @@ export function EditQuotaDialog({
   ) => {
     setEditPositions((prev) => ({
       ...prev,
-      [pos]: Math.max(0, prev[pos] + delta),
+      [pos]: Math.max(pos === 'total' ? 1 : 0, prev[pos] + delta),
     }));
   };
 
@@ -85,6 +85,17 @@ export function EditQuotaDialog({
   };
 
   const handleSave = () => {
+    // 포지션별 모드에서 전체 합계가 0이면 저장 불가
+    if (editMode === 'position') {
+      const total = isFlexBigman
+        ? editPositions.guard + editPositions.bigman
+        : editPositions.guard + editPositions.forward + editPositions.center;
+      if (total === 0) {
+        toast.error('최소 1명 이상 설정해야 합니다.');
+        return;
+      }
+    }
+
     const modeChanged = (editMode === 'total' && match.recruitmentMode === 'position') ||
                         (editMode === 'position' && match.recruitmentMode === 'total');
 
