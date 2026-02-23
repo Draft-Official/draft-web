@@ -58,6 +58,7 @@ export interface ScheduleMatchListItemDTO {
 
   applicationId?: string;
   approvalStatus?: string;
+  paymentNotifiedAt?: string;
   totalCost?: number;
   perCost?: number;
   companionCount?: number;

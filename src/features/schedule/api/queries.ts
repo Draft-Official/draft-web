@@ -217,8 +217,9 @@ export function useParticipatingMatches() {
             startTimeISO: match.start_time || '',
             location: match.gym?.name || match.gym?.address || '장소 미정',
             locationUrl: match.gym?.kakao_place_id ? `https://map.kakao.com/link/map/${match.gym.kakao_place_id}` : undefined,
-            applicationId: app.id, // 송금 완료 처리용
+            applicationId: app.id,
             approvalStatus: approvalStatusText,
+            paymentNotifiedAt: (app as unknown as { payment_notified_at?: string }).payment_notified_at || undefined,
             totalCost: match.cost_amount ? match.cost_amount * totalCount : undefined,
             perCost: companionCount > 0 ? match.cost_amount : undefined,
             companionCount: companionCount > 0 ? companionCount : undefined,

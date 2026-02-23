@@ -101,6 +101,12 @@ export function useConfirmPaymentByGuest() {
         });
 
       if (notifError) throw notifError;
+
+      // 중복 전송 방지용 타임스탬프 기록
+      await supabase
+        .from('applications')
+        .update({ payment_notified_at: new Date().toISOString() } as never)
+        .eq('id', applicationId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({

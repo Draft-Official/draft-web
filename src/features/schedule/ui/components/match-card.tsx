@@ -121,13 +121,14 @@ export function MatchCard({ match, notifications, onClick, onConfirmPayment, onV
             {match.bankInfo && match.status === 'payment_waiting' && (
               <Button
                 size="sm"
-                className="h-8 text-xs font-medium bg-primary hover:bg-primary/90 text-white"
+                disabled={!!match.paymentNotifiedAt}
+                className="h-8 text-xs font-medium bg-primary hover:bg-primary/90 text-white disabled:opacity-50"
                 onClick={(e) => {
                   e.stopPropagation();
                   setIsPaymentConfirmOpen(true);
                 }}
               >
-                송금하기
+                {match.paymentNotifiedAt ? '송금완료' : '송금하기'}
               </Button>
             )}
           </div>
