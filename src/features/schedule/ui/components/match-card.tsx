@@ -63,6 +63,47 @@ export function MatchCard({ match, notifications, onClick, onConfirmPayment, onV
   const hasVoted = match.myVote && match.myVote !== 'PENDING';
 
   const renderBottomSlot = () => {
+    // 관리 탭 (내가 주최한 경기)
+    if (match.scheduleMode === 'managing') {
+      if (match.matchType === 'guest') {
+        // 게스트 모집 경기: 신청자/빈자리 표시
+        return (
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1">
+              <Users className="w-4 h-4 text-slate-400" />
+              <span className="text-sm text-slate-500">신청자</span>
+              <span className="font-bold text-primary text-base">{match.applicants}명</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-sm text-slate-500">빈자리</span>
+              <span className="font-bold text-slate-900 text-base">{match.vacancies}명</span>
+            </div>
+          </div>
+        );
+      }
+      if (match.matchType === 'team') {
+        // 팀운동: 투표 현황
+        return (
+          <div className="flex items-center gap-4 text-sm">
+            <span>
+              참석{' '}
+              <strong className="text-green-600">{match.votingSummary?.attending ?? 0}명</strong>
+            </span>
+            <span>
+              불참{' '}
+              <strong className="text-red-500">{match.votingSummary?.notAttending ?? 0}명</strong>
+            </span>
+            <span>
+              미투표{' '}
+              <strong className="text-slate-600">{match.votingSummary?.pending ?? 0}명</strong>
+            </span>
+          </div>
+        );
+      }
+      return null;
+    }
+
+    // 참여 탭 (내가 참가한 경기) — matchType으로 분기
     switch (match.matchType) {
       case 'guest':
         return (
@@ -89,20 +130,6 @@ export function MatchCard({ match, notifications, onClick, onConfirmPayment, onV
                 송금하기
               </Button>
             )}
-          </div>
-        );
-      case 'host':
-        return (
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1">
-              <Users className="w-4 h-4 text-slate-400" />
-              <span className="text-sm text-slate-500">신청자</span>
-              <span className="font-bold text-primary text-base">{match.applicants}명</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="text-sm text-slate-500">빈자리</span>
-              <span className="font-bold text-slate-900 text-base">{match.vacancies}명</span>
-            </div>
           </div>
         );
       case 'team':
