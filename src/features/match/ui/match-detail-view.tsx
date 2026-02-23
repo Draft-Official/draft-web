@@ -183,7 +183,7 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
             <Share2 className="w-5 h-5" />
           </button>
           <KebabMenu
-            matchId={match.id}
+            matchPublicId={match.publicId}
             isHost={isHost}
             hasConfirmedGuests={confirmedCount > 0}
             onCancelMatch={() => {

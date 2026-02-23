@@ -151,7 +151,7 @@ export function toScheduleMatchListItemDTO(
 
   return {
     id: match.id,
-    publicId: match.short_id || match.id,
+    publicId: match.short_id,
     matchType,
     scheduleMode,
     type: matchType, // legacy compatibility
@@ -189,7 +189,7 @@ export function toHostMatchDetailDTO(match: MatchWithRelations): HostMatchDetail
 
   return {
     id: match.id,
-    publicId: match.short_id || match.id,
+    publicId: match.short_id,
     date: formatMatchDate(match.start_time),
     time: formatMatchTime(match.start_time),
     endTimeISO: match.end_time || '',

@@ -168,7 +168,7 @@ export function useMatchCreateSubmit({
         }
       }
 
-      onSuccessNavigate(match?.short_id ?? match?.id);
+      onSuccessNavigate(match?.short_id ?? undefined);
     };
 
     const handleError = (error: unknown) => {

@@ -4,11 +4,13 @@ import { useState, useCallback } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, LogOut } from 'lucide-react';
 import { toast } from '@/shared/ui/shadcn/sonner';
 import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 import { Button } from '@/shared/ui/shadcn/button';
+import { ConfirmDialog } from '@/shared/ui/composite/confirm-dialog';
+import { useLeaveGuard } from '@/shared/lib/hooks/use-leave-guard';
 
 import { useCreateTeam } from '@/features/team/api/team-info/mutations';
 import { useAuth } from '@/shared/session';
@@ -81,7 +83,10 @@ export function TeamCreateForm() {
     },
   });
 
-  const { handleSubmit, watch, setValue, trigger } = methods;
+  const { handleSubmit, watch, setValue, trigger, formState } = methods;
+
+  const isDirty = formState.isDirty || locationData !== null;
+  const leaveGuard = useLeaveGuard(isDirty);
 
   const handleLocationResolvedChange = useCallback((next: LocationSearchResolvedValue) => {
     setLocationData(next.locationData);
@@ -331,7 +336,7 @@ export function TeamCreateForm() {
         <header className="sticky top-0 z-40 bg-white border-b border-slate-100 h-14 flex items-center justify-between px-4">
           <button
             type="button"
-            onClick={() => currentStep > 1 ? handlePrev() : router.back()}
+            onClick={() => currentStep > 1 ? handlePrev() : leaveGuard.requestLeave()}
             className="p-2 text-slate-900 hover:bg-slate-50 rounded-full transition-colors"
           >
             <ArrowLeft className="w-6 h-6" />
@@ -426,6 +431,18 @@ export function TeamCreateForm() {
             )}
           </div>
         </form>
+
+        <ConfirmDialog
+          open={leaveGuard.showDialog}
+          onOpenChange={leaveGuard.cancelLeave}
+          icon={LogOut}
+          title="정말 나가시겠습니까?"
+          description="입력한 정보가 삭제됩니다."
+          variant="destructive"
+          confirmLabel="나가기"
+          cancelLabel="계속 작성"
+          onConfirm={leaveGuard.confirmLeave}
+        />
       </div>
     </FormProvider>
   );

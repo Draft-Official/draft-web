@@ -202,7 +202,7 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
       }
     } else if (match.matchType === "team" && match.teamCode) {
       // 팀 매치는 팀 상세 매치 페이지로
-      router.push(`/team/${match.teamCode}/matches/${match.id}`);
+      router.push(`/team/${match.teamCode}/matches/${match.publicId}`);
     } else {
       // host, guest는 matches로 통합
       if (viewMode === "host" || match.matchType === "host") {

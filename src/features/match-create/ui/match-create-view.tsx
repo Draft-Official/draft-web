@@ -1,10 +1,11 @@
 'use client';
 
 import { FormProvider } from 'react-hook-form';
-import { RefreshCw, Zap, X } from 'lucide-react';
+import { RefreshCw, Zap, X, LogOut } from 'lucide-react';
 import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 import { Button } from '@/shared/ui/shadcn/button';
+import { ConfirmDialog } from '@/shared/ui/composite/confirm-dialog';
 
 import { MatchCreateBasicInfo } from './components/match-create-basic-info';
 import { MatchCreateFacilities } from './components/match-create-facilities';
@@ -22,7 +23,7 @@ export function MatchCreateView() {
     isLoadingEditData,
     showTip,
     handleDismissTip,
-    onBack,
+    leaveGuard,
 
     selectedDate,
     setSelectedDate,
@@ -112,7 +113,7 @@ export function MatchCreateView() {
         <header className="sticky top-0 z-40 bg-white border-b border-slate-100 h-14 flex items-center justify-between px-4">
           <button
             type="button"
-            onClick={onBack}
+            onClick={leaveGuard.requestLeave}
             className="p-2 text-slate-900 hover:bg-slate-50 rounded-full transition-colors"
           >
             <X className="w-6 h-6" />
@@ -257,6 +258,18 @@ export function MatchCreateView() {
           matches={recentMatches || []}
           isLoading={isLoadingRecentMatches}
           onSelect={handleSelectRecentMatch}
+        />
+
+        <ConfirmDialog
+          open={leaveGuard.showDialog}
+          onOpenChange={leaveGuard.cancelLeave}
+          icon={LogOut}
+          title="정말 나가시겠습니까?"
+          description="입력한 정보가 삭제됩니다."
+          variant="destructive"
+          confirmLabel="나가기"
+          cancelLabel="계속 작성"
+          onConfirm={leaveGuard.confirmLeave}
         />
       </div>
     </FormProvider>

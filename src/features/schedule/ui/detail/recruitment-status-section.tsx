@@ -39,7 +39,9 @@ export function RecruitmentStatusSection({
       {/* 포지션별 모집 */}
       {match.recruitmentMode === 'position' && match.positionQuotas && (
         <div className="space-y-3">
-          {match.positionQuotas.map((quota, index) => {
+          {match.positionQuotas
+            .filter((quota) => quota.max > 0)
+            .map((quota, index) => {
             const currentCount = confirmedCountByPosition[quota.position] || 0;
             const isOverQuota = currentCount > quota.max;
             const progressPercent = Math.min((currentCount / quota.max) * 100, 100);

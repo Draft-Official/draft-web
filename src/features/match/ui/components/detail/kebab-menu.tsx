@@ -20,14 +20,14 @@ import {
 import { Button } from '@/shared/ui/shadcn/button';
 
 interface KebabMenuProps {
-  matchId: string;
+  matchPublicId: string;
   isHost: boolean;
   hasConfirmedGuests: boolean;
   onCancelMatch?: () => void;
 }
 
 export function KebabMenu({
-  matchId,
+  matchPublicId,
   isHost,
   hasConfirmedGuests,
   onCancelMatch,
@@ -44,7 +44,7 @@ export function KebabMenu({
     if (hasConfirmedGuests) {
       toast.info('확정된 게스트가 있어 가격/포지션만 수정 가능합니다.');
     }
-    router.push(`/matches/${matchId}/edit`);
+    router.push(`/matches/create?edit=${matchPublicId}`);
   };
 
   const handleCancelClick = () => {

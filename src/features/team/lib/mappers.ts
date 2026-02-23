@@ -146,7 +146,7 @@ export function toTeamScheduleMatchItemDTO(
 ): TeamScheduleMatchItemDTO {
   return {
     matchId: match.id,
-    publicId: match.shortId || match.id,
+    publicId: match.shortId,
     teamId: match.teamId,
     teamCode: extras?.team?.code ?? null,
     teamName: toTeamName(match, extras?.team),
@@ -219,7 +219,7 @@ export function toMyPendingTeamVoteMatchDTO(
 ): MyPendingTeamVoteMatchDTO {
   return {
     matchId: match.id,
-    publicId: match.shortId || match.id,
+    publicId: match.shortId,
     teamId: team.id,
     teamCode: team.code || '',
     teamName: team.name,

@@ -202,7 +202,7 @@ export function useParticipatingMatches() {
 
           return {
             id: match.id,
-            publicId: match.short_id || match.id,
+            publicId: match.short_id,
             matchType,
             scheduleMode,
             type: matchType,

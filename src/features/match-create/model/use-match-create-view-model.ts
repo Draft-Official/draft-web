@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from '@/shared/ui/shadcn/sonner';
+import { useLeaveGuard } from '@/shared/lib/hooks/use-leave-guard';
 import {
   GENDER_DEFAULT,
   MATCH_FORMAT_DEFAULT,
@@ -198,10 +199,11 @@ export function useMatchCreateViewModel() {
     setSelectedDate,
   });
   const isLoadingEditData = isEditMode && (isLoadingEditPrefill || isApplyingEditData);
+  const editMatchInternalId = editPrefillData?.matchId ?? editMatchId;
 
   const { isPending, onSubmit } = useMatchCreateSubmit({
     isEditMode,
-    editMatchId,
+    editMatchId: editMatchInternalId,
     selectedDate,
     locationData,
     recruitment: {
@@ -246,7 +248,8 @@ export function useMatchCreateViewModel() {
     },
   });
 
-  const onBack = () => router.back();
+  const isDirty = !isEditMode && (methods.formState.isDirty || locationData !== null);
+  const leaveGuard = useLeaveGuard(isDirty);
 
   const handleSelectRecentMatch = async (match: RecentMatchListItemDTO) => {
     setIsApplyingRecentPrefill(true);
@@ -266,7 +269,7 @@ export function useMatchCreateViewModel() {
     isLoadingEditData,
     showTip,
     handleDismissTip,
-    onBack,
+    leaveGuard,
 
     selectedDate,
     setSelectedDate,

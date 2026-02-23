@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { X, Building2, FileText } from 'lucide-react';
+import { X, Building2, FileText, LogOut } from 'lucide-react';
 import { Button } from '@/shared/ui/shadcn/button';
 import { Label } from '@/shared/ui/shadcn/label';
 import { Textarea } from '@/shared/ui/shadcn/textarea';
@@ -17,6 +17,8 @@ import type { Team } from '@/features/team/model/types';
 import type { RegularDayValue } from '@/shared/config/team-constants';
 import type { LocationData } from '@/shared/types/location.types';
 import { Spinner } from '@/shared/ui/shadcn/spinner';
+import { ConfirmDialog } from '@/shared/ui/composite/confirm-dialog';
+import { useLeaveGuard } from '@/shared/lib/hooks/use-leave-guard';
 
 interface TeamMatchCreateFormProps {
   team: Team & { homeGymName: string | null; homeGymAddress?: string | null };
@@ -154,6 +156,9 @@ export function TeamMatchCreateForm({ team, onClose }: TeamMatchCreateFormProps)
   const [duration, setDuration] = useState(defaultDuration);
   const [notice, setNotice] = useState('');
 
+  const isDirty = notice.length > 0 || selectedDate !== initialDate || startTime !== defaultStartTime || duration !== defaultDuration;
+  const leaveGuard = useLeaveGuard(isDirty);
+
   // Mutation
   const { mutate: createMatch, isPending } = useCreateTeamMatch();
 
@@ -201,7 +206,7 @@ export function TeamMatchCreateForm({ team, onClose }: TeamMatchCreateFormProps)
       {
         onSuccess: (data) => {
           toast.success('팀 운동이 생성되었습니다.');
-          router.push(`/team/${team.code}/matches/${data.shortId || data.id}`);
+          router.push(`/team/${team.code}/matches/${data.shortId}`);
         },
         onError: (error) => {
           toast.error('생성에 실패했습니다: ' + error.message);
@@ -216,7 +221,7 @@ export function TeamMatchCreateForm({ team, onClose }: TeamMatchCreateFormProps)
       <header className="sticky top-0 z-40 bg-white border-b border-slate-100 h-14 flex items-center justify-between px-4">
         <button
           type="button"
-          onClick={() => (onClose ? onClose() : router.back())}
+          onClick={() => (onClose ? onClose() : leaveGuard.requestLeave())}
           className="p-2 text-slate-900 hover:bg-slate-50 rounded-full transition-colors"
         >
           <X className="w-6 h-6" />
@@ -349,6 +354,17 @@ export function TeamMatchCreateForm({ team, onClose }: TeamMatchCreateFormProps)
           </Button>
         </div>
       </div>
+      <ConfirmDialog
+        open={leaveGuard.showDialog}
+        onOpenChange={leaveGuard.cancelLeave}
+        icon={LogOut}
+        title="정말 나가시겠습니까?"
+        description="입력한 정보가 삭제됩니다."
+        variant="destructive"
+        confirmLabel="나가기"
+        cancelLabel="계속 작성"
+        onConfirm={leaveGuard.confirmLeave}
+      />
     </div>
   );
 }
