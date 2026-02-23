@@ -126,9 +126,53 @@ export function useUpdateRecruitmentSetup() {
     }) => {
       const supabase = getSupabaseBrowserClient();
 
+      // DB에서 기존 recruitment_setup을 읽어 RPC가 관리하던 current 값 보존
+      const { data: matchRow } = await supabase
+        .from('matches')
+        .select('recruitment_setup')
+        .eq('id', matchId)
+        .single();
+
+      const existing = matchRow?.recruitment_setup as RecruitmentSetup | null;
+
+      let updatedSetup: RecruitmentSetup;
+
+      if (recruitmentSetup.type === 'ANY') {
+        let currentCount: number;
+        if (existing?.type === 'ANY') {
+          // 같은 모드 → current_count 그대로 보존
+          currentCount = existing.current_count ?? 0;
+        } else if (existing?.type === 'POSITION' && existing.positions) {
+          // 포지션별 → 포지션 무관 전환 → 기존 position current 합산
+          currentCount = Object.values(existing.positions).reduce(
+            (sum, pos) => sum + (pos?.current || 0),
+            0
+          );
+        } else {
+          currentCount = 0;
+        }
+        updatedSetup = { ...recruitmentSetup, current_count: currentCount };
+      } else {
+        if (existing?.type === 'POSITION' && existing.positions) {
+          // 같은 모드 → 포지션별 current 그대로 보존 (새 포지션엔 0)
+          updatedSetup = {
+            ...recruitmentSetup,
+            positions: Object.fromEntries(
+              Object.entries(recruitmentSetup.positions ?? {}).map(([pos, quota]) => [
+                pos,
+                { ...quota, current: existing.positions![pos]?.current ?? 0 },
+              ])
+            ),
+          };
+        } else {
+          // 포지션 무관 → 포지션별 전환 → 포지션 미상이므로 0 (불가피)
+          updatedSetup = recruitmentSetup;
+        }
+      }
+
       const { data, error } = await supabase
         .from('matches')
-        .update({ recruitment_setup: recruitmentSetup as unknown as Json })
+        .update({ recruitment_setup: updatedSetup as unknown as Json })
         .eq('id', matchId)
         .select()
         .single();
@@ -138,7 +182,7 @@ export function useUpdateRecruitmentSetup() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: matchManagementKeys.matchDetails(),
+        queryKey: matchManagementKeys.all,
       });
       queryClient.invalidateQueries({ queryKey: matchKeys.lists() });
       toast.success('모집 인원이 수정되었습니다.');
