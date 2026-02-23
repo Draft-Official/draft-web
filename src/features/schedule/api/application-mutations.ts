@@ -11,7 +11,7 @@ import type { CancelOptions } from '@/entities/application';
 import { matchManagementKeys } from './keys';
 
 /**
- * 신청 승인 (PENDING → approved_at 설정, 입금대기 상태)
+ * 신청 승인 (PENDING → PAYMENT_PENDING, 입금대기 상태)
  */
 export function useApproveApplication() {
   const queryClient = useQueryClient();
@@ -25,10 +25,10 @@ export function useApproveApplication() {
     }) => {
       const supabase = getSupabaseBrowserClient();
 
-      // approved_at 설정 (status는 PENDING 유지)
       const { data, error } = await supabase
         .from('applications')
         .update({
+          status: 'PAYMENT_PENDING',
           approved_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         })

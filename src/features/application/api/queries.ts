@@ -60,7 +60,7 @@ export function useUserTeams(userId: string | undefined) {
           )
         `)
         .eq('user_id', userId)
-        .eq('status', 'ACTIVE');
+        .eq('status', 'ACCEPTED');
 
       if (error) throw error;
 
