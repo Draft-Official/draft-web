@@ -1,5 +1,6 @@
 'use client';
 
+import { useSearchParams } from 'next/navigation';
 import {
   Dialog,
   DialogContent,
@@ -8,6 +9,7 @@ import {
 } from '@/shared/ui/shadcn/dialog';
 import { Spinner } from '@/shared/ui/shadcn/spinner';
 import { useTeamExerciseVotes } from '../../api/queries';
+import { MOCK_TEAM_EXERCISE_VOTES_30 } from '../../model/mock-data';
 import type { TeamExerciseVoteItemDTO } from '../../model/types';
 
 interface TeamExerciseVoteStatusDialogProps {
@@ -65,7 +67,13 @@ export function TeamExerciseVoteStatusDialog({
   onOpenChange,
   matchId,
 }: TeamExerciseVoteStatusDialogProps) {
-  const { data: votes = [], isLoading } = useTeamExerciseVotes(matchId, open);
+  const searchParams = useSearchParams();
+  const isVoteMockMode = searchParams?.get('voteMock') === '1';
+  const { data: fetchedVotes = [], isLoading } = useTeamExerciseVotes(
+    matchId,
+    open && !isVoteMockMode
+  );
+  const votes = isVoteMockMode ? MOCK_TEAM_EXERCISE_VOTES_30 : fetchedVotes;
   const groups = buildVoteGroups(votes);
 
   return (
@@ -75,7 +83,7 @@ export function TeamExerciseVoteStatusDialog({
           <DialogTitle>투표현황</DialogTitle>
         </DialogHeader>
 
-        {isLoading ? (
+        {!isVoteMockMode && isLoading ? (
           <div className="py-10 flex justify-center">
             <Spinner className="h-6 w-6 text-muted-foreground" />
           </div>
