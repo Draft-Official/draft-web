@@ -33,7 +33,7 @@ export function LoginRequiredModal({
   const handleLogin = () => {
     onOpenChange(false);
     const loginUrl = redirectTo ? `/login?redirect=${encodeURIComponent(redirectTo)}` : '/login';
-    router.push(loginUrl);
+    router.replace(loginUrl);
   };
 
   return (

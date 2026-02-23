@@ -18,7 +18,8 @@ import { ShareModal } from './components/detail/share-modal';
 import { KebabMenu } from './components/detail/kebab-menu';
 import { GuestMatchDetailDTO } from '@/features/match/model/types';
 import { ApplyModal } from '@/features/application/ui/apply-modal';
-import { useAuth } from '@/shared/session';
+import { useAuth, useRequireAuth } from '@/shared/session';
+import { LoginRequiredModal } from '@/features/auth';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { createApplicationService } from '@/entities/application';
 import { matchManagementKeys } from '@/features/schedule/api/keys';
@@ -34,6 +35,10 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const { isAuthenticated, user } = useAuth();
+  const { requireAuth, modalProps } = useRequireAuth({
+    redirectTo: `/matches/${match.publicId}`,
+    description: '경기를 신청하려면 로그인이 필요합니다.\n로그인 후 이용해 주세요.',
+  });
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isMatchCancelOpen, setIsMatchCancelOpen] = useState(false);
@@ -161,10 +166,7 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
   };
 
   const handleApplyClick = () => {
-    if (!isAuthenticated) {
-      router.push('/login');
-      return;
-    }
+    if (!requireAuth()) return;
     setIsApplyModalOpen(true);
   };
 
@@ -292,6 +294,8 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
         })()}
         location={match.location}
       />
+
+      <LoginRequiredModal {...modalProps} />
 
       <MatchCancelDialog
         open={isMatchCancelOpen}

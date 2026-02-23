@@ -1,19 +1,29 @@
 'use client';
 
 import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { getSupabaseAuthClient } from '@/shared/api/supabase/client';
 import { toast } from '@/shared/ui/shadcn/sonner';
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const searchParams = useSearchParams();
 
   const handleKakaoLogin = async () => {
     setIsLoading(true);
     const supabase = getSupabaseAuthClient();
+    const redirect = searchParams?.get('redirect');
+    const callbackUrl = redirect
+      ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirect)}`
+      : `${window.location.origin}/auth/callback`;
+
+    // 로그인 페이지를 히스토리에서 제거 — 로그인 후 뒤로가기 시 로그인 화면이 나오지 않도록
+    window.history.replaceState(null, '', redirect || '/');
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'kakao',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: callbackUrl,
       },
     });
 
