@@ -75,7 +75,7 @@ export function CancelConfirmDialog({
           {CANCEL_TYPE_VALUES.map((type) => (
             <div key={type} className="flex items-start space-x-3">
               <RadioGroupItem value={type} id={type} className="mt-0.5" />
-              <Label htmlFor={type} className="flex flex-col cursor-pointer">
+              <Label htmlFor={type} className="flex flex-col items-start cursor-pointer">
                 <span className="text-sm font-medium">{CANCEL_TYPE_LABELS[type]}</span>
                 <span className="text-xs text-slate-500">{CANCEL_TYPE_DESCRIPTIONS[type]}</span>
               </Label>
