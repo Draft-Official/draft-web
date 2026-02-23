@@ -47,6 +47,26 @@ export function useHostedMatches() {
       // 모든 호스트 경기 조회 (limit 없음)
       const rows = await matchService.getMyHostedMatches(user.id, 100);
 
+      // 게스트 모집 경기의 신청자 수 조회 (PENDING + PAYMENT_PENDING)
+      const guestMatchIds = rows
+        .filter((r) => r.match_type !== 'TEAM_MATCH')
+        .map((r) => r.id);
+      const applicantCountMap = new Map<string, number>();
+
+      if (guestMatchIds.length > 0) {
+        const { data: appRows } = await supabase
+          .from('applications')
+          .select('match_id')
+          .in('match_id', guestMatchIds)
+          .in('status', ['PENDING', 'PAYMENT_PENDING']);
+
+        if (appRows) {
+          for (const app of appRows) {
+            applicantCountMap.set(app.match_id, (applicantCountMap.get(app.match_id) ?? 0) + 1);
+          }
+        }
+      }
+
       // Team 매치의 투표 현황 조회
       const teamRows = rows.filter((r) => r.match_type === 'TEAM_MATCH');
       const votingSummaryMap = new Map<string, { attending: number; notAttending: number; pending: number }>();
@@ -81,6 +101,10 @@ export function useHostedMatches() {
         const myVoteData = myVoteMap.get(row.id);
         return {
           ...dto,
+          // 게스트 모집 경기: 실제 신청자 수(PENDING + PAYMENT_PENDING)로 덮어씌우기
+          applicants: row.match_type !== 'TEAM_MATCH'
+            ? (applicantCountMap.get(row.id) ?? 0)
+            : dto.applicants,
           myVote: myVoteData?.vote,
           myVoteReason: myVoteData?.reason,
           votingSummary: votingSummaryMap.get(row.id),
