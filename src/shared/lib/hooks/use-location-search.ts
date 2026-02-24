@@ -75,8 +75,15 @@ export function useLocationSearch(): UseLocationSearchReturn {
           kakaoPlaceId: place.id,
         }));
 
-        setSearchResults(mappedResults);
-        setIsDropdownOpen(mappedResults.length > 0);
+        if (mappedResults.length > 0) {
+          setSearchResults(mappedResults);
+          setIsDropdownOpen(true);
+        } else if (!isComposingRef.current) {
+          // 조합 중이 아닐 때만 결과를 비우고 드롭다운을 닫음
+          setSearchResults([]);
+          setIsDropdownOpen(false);
+        }
+        // 조합 중 + 0건이면 이전 결과를 유지
       } catch (error) {
         console.error('Search error', error);
       }
@@ -85,9 +92,6 @@ export function useLocationSearch(): UseLocationSearchReturn {
 
   const handleSearch = useCallback((query: string) => {
     setLocation(query);
-
-    if (isComposingRef.current) return;
-
     performSearch(query);
   }, [performSearch]);
 
