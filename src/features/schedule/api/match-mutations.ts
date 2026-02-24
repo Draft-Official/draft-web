@@ -8,7 +8,7 @@ import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { matchKeys } from '@/entities/match';
 import { useAuth } from '@/shared/session';
 import { matchManagementKeys } from './keys';
-import type { RecruitmentSetup, Json, Database } from '@/shared/types/database.types';
+import type { RecruitmentSetup, Json, Database, ParticipantInfo } from '@/shared/types/database.types';
 
 function removeCanceledMatchFromHomeInfiniteCache(
   queryClient: QueryClient,
@@ -126,9 +126,84 @@ export function useUpdateRecruitmentSetup() {
     }) => {
       const supabase = getSupabaseBrowserClient();
 
+      // DB에서 기존 recruitment_setup을 읽어 RPC가 관리하던 current 값 보존
+      const { data: matchRow } = await supabase
+        .from('matches')
+        .select('recruitment_setup')
+        .eq('id', matchId)
+        .single();
+
+      const existing = matchRow?.recruitment_setup as RecruitmentSetup | null;
+
+      let updatedSetup: RecruitmentSetup;
+
+      if (recruitmentSetup.type === 'ANY') {
+        let currentCount: number;
+        if (existing?.type === 'ANY') {
+          // 같은 모드 → current_count 그대로 보존
+          currentCount = existing.current_count ?? 0;
+        } else if (existing?.type === 'POSITION' && existing.positions) {
+          // 포지션별 → 포지션 무관 전환 → 기존 position current 합산
+          currentCount = Object.values(existing.positions).reduce(
+            (sum, pos) => sum + (pos?.current || 0),
+            0
+          );
+        } else {
+          currentCount = 0;
+        }
+        updatedSetup = { ...recruitmentSetup, current_count: currentCount };
+      } else {
+        if (existing?.type === 'POSITION' && existing.positions) {
+          // 같은 모드 → 포지션별 current 그대로 보존 (새 포지션엔 0)
+          updatedSetup = {
+            ...recruitmentSetup,
+            positions: Object.fromEntries(
+              Object.entries(recruitmentSetup.positions ?? {}).map(([pos, quota]) => [
+                pos,
+                { ...quota, current: existing.positions![pos]?.current ?? 0 },
+              ])
+            ),
+          };
+        } else {
+          // 포지션 무관 → 포지션별 전환 → CONFIRMED 신청의 participants_info에서 포지션별 카운트 도출
+          const { data: confirmedApps } = await supabase
+            .from('applications')
+            .select('participants_info')
+            .eq('match_id', matchId)
+            .eq('status', 'CONFIRMED');
+
+          const positionCounts: Record<string, number> = {};
+          if (confirmedApps) {
+            for (const app of confirmedApps) {
+              const participants = (app.participants_info as ParticipantInfo[]) ?? [];
+              for (const p of participants) {
+                const pos = p.position;
+                // RPC와 동일한 F/C → B 매핑
+                const mappedPos =
+                  (pos === 'F' || pos === 'C') &&
+                  recruitmentSetup.positions?.['B'] != null
+                    ? 'B'
+                    : pos;
+                positionCounts[mappedPos] = (positionCounts[mappedPos] ?? 0) + 1;
+              }
+            }
+          }
+
+          updatedSetup = {
+            ...recruitmentSetup,
+            positions: Object.fromEntries(
+              Object.entries(recruitmentSetup.positions ?? {}).map(([pos, quota]) => [
+                pos,
+                { ...quota, current: positionCounts[pos] ?? 0 },
+              ])
+            ),
+          };
+        }
+      }
+
       const { data, error } = await supabase
         .from('matches')
-        .update({ recruitment_setup: recruitmentSetup as unknown as Json })
+        .update({ recruitment_setup: updatedSetup as unknown as Json })
         .eq('id', matchId)
         .select()
         .single();
@@ -138,7 +213,7 @@ export function useUpdateRecruitmentSetup() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: matchManagementKeys.matchDetails(),
+        queryKey: matchManagementKeys.all,
       });
       queryClient.invalidateQueries({ queryKey: matchKeys.lists() });
       toast.success('모집 인원이 수정되었습니다.');

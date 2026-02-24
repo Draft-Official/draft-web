@@ -232,10 +232,11 @@ export function ApplicationInfoDialog({
             {/* 송금 완료 버튼 (입금대기 상태) */}
             {isPaymentWaiting && match.bankInfo && onConfirmPayment && (
               <Button
+                disabled={!!match.paymentNotifiedAt}
                 onClick={() => setIsPaymentDialogOpen(true)}
-                className="w-full h-12 rounded-xl font-bold bg-primary hover:bg-primary/90 text-white"
+                className="w-full h-12 rounded-xl font-bold bg-primary hover:bg-primary/90 text-white disabled:opacity-50"
               >
-                송금 완료
+                {match.paymentNotifiedAt ? '송금 완료 알림 발송됨' : '송금 완료'}
               </Button>
             )}
 

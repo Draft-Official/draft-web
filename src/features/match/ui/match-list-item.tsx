@@ -59,10 +59,17 @@ export const MatchListItem = React.memo(function MatchListItem({ match, applicat
             {match.gymName}
           </h3>
           
-          <span className={cn(
-            "flex items-center gap-0.5 text-sm truncate",
-            match.isClosed ? "text-slate-300" : "text-slate-700"
-          )}>
+          <span
+            className={cn(
+              "flex items-center gap-0.5 text-sm truncate",
+              match.isClosed ? "text-slate-300" : "text-slate-700 active:text-primary"
+            )}
+            onClick={(e) => {
+              e.stopPropagation();
+              const url = `https://map.kakao.com/link/search/${encodeURIComponent(match.gymAddress)}`;
+              window.open(url, '_blank', 'noopener,noreferrer');
+            }}
+          >
             <MapPin className={cn(
               "w-3 h-3 shrink-0",
               match.isClosed ? "text-slate-300" : "text-slate-400"

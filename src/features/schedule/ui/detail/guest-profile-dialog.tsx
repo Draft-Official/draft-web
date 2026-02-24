@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Button } from '@/shared/ui/shadcn/button';
 import {
   Dialog,
@@ -32,8 +33,15 @@ export function GuestProfileDialog({
   onCancel,
   isEnded = false,
 }: GuestProfileDialogProps) {
+  const [phoneRevealed, setPhoneRevealed] = useState(false);
+
+  const handleOpenChange = (next: boolean) => {
+    if (!next) setPhoneRevealed(false);
+    onOpenChange(next);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent size="base" className="rounded-2xl p-6">
         {guest && (
           <div className="flex flex-col items-center space-y-6 pt-2">
@@ -81,6 +89,26 @@ export function GuestProfileDialog({
                 <span className="text-slate-500">팀</span>
                 <span className="font-medium text-slate-900">{guest.teamName || '-'}</span>
               </div>
+              {guest.phone && (
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500">연락처</span>
+                  {phoneRevealed ? (
+                    <a
+                      href={`tel:${guest.phone}`}
+                      className="font-medium text-primary underline underline-offset-2"
+                    >
+                      {guest.phone}
+                    </a>
+                  ) : (
+                    <button
+                      onClick={() => setPhoneRevealed(true)}
+                      className="text-sm font-medium text-slate-400 underline underline-offset-2"
+                    >
+                      번호 확인
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* 신청시간 */}

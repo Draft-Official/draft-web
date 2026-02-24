@@ -31,6 +31,14 @@ import {
   useCreateAnnouncement,
   useCancelMatchFlow,
 } from '@/features/schedule';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/shared/ui/shadcn/dialog';
+import { Button } from '@/shared/ui/shadcn/button';
 import { GuestProfileDialog } from './guest-profile-dialog';
 import { EditQuotaDialog } from './edit-quota-dialog';
 import { CancelConfirmDialog } from './cancel-confirm-dialog';
@@ -69,8 +77,11 @@ export function HostMatchDetailView() {
   const [isEditQuotaOpen, setIsEditQuotaOpen] = useState(false);
   const [isCancelConfirmOpen, setIsCancelConfirmOpen] = useState(false);
   const [guestToCancel, setGuestToCancel] = useState<MatchApplicantDTO | null>(null);
+  const [isRejectConfirmOpen, setIsRejectConfirmOpen] = useState(false);
+  const [guestToReject, setGuestToReject] = useState<MatchApplicantDTO | null>(null);
   const [isAnnouncementOpen, setIsAnnouncementOpen] = useState(false);
   const [isMatchCancelOpen, setIsMatchCancelOpen] = useState(false);
+  const [overQuotaGuest, setOverQuotaGuest] = useState<MatchApplicantDTO | null>(null);
 
   const isLoading = isLoadingMatch || (!!internalMatchId && isLoadingGuests);
 
@@ -106,13 +117,35 @@ export function HostMatchDetailView() {
     .filter((g) => g.status === 'confirmed')
     .reduce((sum, g) => sum + 1 + (g.companions?.length || 0), 0);
 
-  // Handlers
-  const handleApprove = (guest: MatchApplicantDTO) => {
-    if (!internalMatchId) return;
+  // 포지션/전체 모집 인원이 찼는지 확인
+  const isPositionFull = (guest: MatchApplicantDTO): boolean => {
+    if (!match) return false;
+    if (match.recruitmentMode === 'position' && match.positionQuotas) {
+      const posCode = guest.position.match(/\(([A-Z]+)\)/)?.[1] ?? 'G';
+      const quota = match.positionQuotas.find((q) => q.position === posCode);
+      return !!quota && quota.current >= quota.max;
+    }
+    if (match.recruitmentMode === 'total' && match.totalQuota) {
+      return totalConfirmedCount >= match.totalQuota.max;
+    }
+    return false;
+  };
+
+  const doApprove = (guest: MatchApplicantDTO) => {
     approveMutation.mutate(
       { applicationId: guest.id, matchId: internalMatchId },
       { onSuccess: () => setIsGuestProfileOpen(false) }
     );
+  };
+
+  // Handlers
+  const handleApprove = (guest: MatchApplicantDTO) => {
+    if (!internalMatchId) return;
+    if (isPositionFull(guest)) {
+      setOverQuotaGuest(guest);
+      return;
+    }
+    doApprove(guest);
   };
 
   const handleConfirmPayment = (guest: MatchApplicantDTO) => {
@@ -151,6 +184,11 @@ export function HostMatchDetailView() {
   const openCancelConfirm = (guest: MatchApplicantDTO) => {
     setGuestToCancel(guest);
     setIsCancelConfirmOpen(true);
+  };
+
+  const openRejectConfirm = (guest: MatchApplicantDTO) => {
+    setGuestToReject(guest);
+    setIsRejectConfirmOpen(true);
   };
 
   const handleCloseRecruiting = () => {
@@ -286,7 +324,7 @@ export function HostMatchDetailView() {
           isEnded={isEnded}
           onGuestClick={openGuestProfile}
           onApprove={handleApprove}
-          onReject={handleReject}
+          onReject={openRejectConfirm}
           onConfirmPayment={handleConfirmPayment}
           onCancelClick={openCancelConfirm}
         />
@@ -298,7 +336,10 @@ export function HostMatchDetailView() {
         open={isGuestProfileOpen}
         onOpenChange={setIsGuestProfileOpen}
         onApprove={handleApprove}
-        onReject={handleReject}
+        onReject={(guest) => {
+          setIsGuestProfileOpen(false);
+          openRejectConfirm(guest);
+        }}
         onConfirmPayment={handleConfirmPayment}
         onCancel={(guest) => {
           setIsGuestProfileOpen(false);
@@ -329,6 +370,35 @@ export function HostMatchDetailView() {
         }}
       />
 
+      <Dialog open={isRejectConfirmOpen} onOpenChange={setIsRejectConfirmOpen}>
+        <DialogContent size="base" className="rounded-2xl p-6" showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>신청 거절</DialogTitle>
+            <DialogDescription className="text-slate-600 pt-2">
+              {guestToReject?.name}님의 신청을 거절하시겠습니까?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-2 pt-2">
+            <Button
+              variant="outline"
+              className="flex-1 h-12 rounded-xl font-bold"
+              onClick={() => setIsRejectConfirmOpen(false)}
+            >
+              닫기
+            </Button>
+            <Button
+              className="flex-1 bg-red-100 hover:bg-red-200 text-red-600 border border-red-200 h-12 rounded-xl font-bold"
+              onClick={() => {
+                if (guestToReject) handleReject(guestToReject);
+                setIsRejectConfirmOpen(false);
+              }}
+            >
+              거절
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <CancelConfirmDialog
         open={isCancelConfirmOpen}
         onOpenChange={setIsCancelConfirmOpen}
@@ -353,6 +423,43 @@ export function HostMatchDetailView() {
           );
         }}
       />
+
+      {/* 포지션 초과 승인 경고 */}
+      <Dialog open={!!overQuotaGuest} onOpenChange={(open) => { if (!open) setOverQuotaGuest(null); }}>
+        <DialogContent size="base" className="rounded-2xl p-6" showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>모집 인원이 찼습니다</DialogTitle>
+            <DialogDescription className="text-slate-600 pt-2">
+              {overQuotaGuest && (() => {
+                if (match?.recruitmentMode === 'position') {
+                  const posCode = overQuotaGuest.position.match(/\(([A-Z]+)\)/)?.[1] ?? 'G';
+                  const quota = match.positionQuotas?.find((q) => q.position === posCode);
+                  return `${quota?.label ?? overQuotaGuest.position} 모집 인원이 찼습니다 (${quota?.current}/${quota?.max}). 초과 승인하시겠습니까?`;
+                }
+                return `모집 인원이 찼습니다 (${totalConfirmedCount}/${match?.totalQuota?.max}). 초과 승인하시겠습니까?`;
+              })()}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-2 pt-4">
+            <Button
+              onClick={() => setOverQuotaGuest(null)}
+              variant="outline"
+              className="flex-1 h-12 rounded-xl font-bold"
+            >
+              취소
+            </Button>
+            <Button
+              onClick={() => {
+                if (overQuotaGuest) doApprove(overQuotaGuest);
+                setOverQuotaGuest(null);
+              }}
+              className="flex-1 h-12 rounded-xl font-bold"
+            >
+              초과 승인
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* 하단 고정 버튼 */}
       <MatchActionButton

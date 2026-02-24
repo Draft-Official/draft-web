@@ -22,16 +22,11 @@ export function useSafeBack(fallbackPath: string): () => void {
   const router = useRouter();
 
   return useCallback(() => {
-    // Check if browser history exists
-    // Next.js uses window.history.state.idx to track history index
-    const hasHistory = window.history.state?.idx > 0;
-
-    if (hasHistory) {
-      // Has history: use browser back
+    // window.history.length > 1: 이전 페이지가 있으면 back
+    // 1이면 직접 진입(딥링크) → fallback으로 이동
+    if (window.history.length > 1) {
       router.back();
     } else {
-      // No history (deep link): navigate to fallback
-      // Use replace to avoid adding to history
       router.replace(fallbackPath);
     }
   }, [router, fallbackPath]);

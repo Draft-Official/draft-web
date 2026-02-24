@@ -59,7 +59,7 @@ export function CancelConfirmDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent size="base" className="rounded-2xl p-6">
+      <DialogContent size="base" className="rounded-2xl p-6" showCloseButton={false}>
         <DialogHeader>
           <DialogTitle>참가 취소</DialogTitle>
           <DialogDescription className="text-slate-600 pt-2">
@@ -75,7 +75,7 @@ export function CancelConfirmDialog({
           {CANCEL_TYPE_VALUES.map((type) => (
             <div key={type} className="flex items-start space-x-3">
               <RadioGroupItem value={type} id={type} className="mt-0.5" />
-              <Label htmlFor={type} className="flex flex-col cursor-pointer">
+              <Label htmlFor={type} className="flex flex-col items-start cursor-pointer">
                 <span className="text-sm font-medium">{CANCEL_TYPE_LABELS[type]}</span>
                 <span className="text-xs text-slate-500">{CANCEL_TYPE_DESCRIPTIONS[type]}</span>
               </Label>
@@ -86,7 +86,7 @@ export function CancelConfirmDialog({
         {selectedType === 'FRAUDULENT_PAYMENT' && (
           <div className="rounded-lg bg-red-50 border border-red-200 p-3 mt-1">
             <p className="text-xs text-red-600 font-medium">
-              해당 유저는 허위 송금으로 신고되며, 운영진에게 통보됩니다.
+              해당 유저는 허위 송금으로 처리됩니다. 추가 제재(이용 제한 등)를 원하시면 문의하기를 통해 신고해 주세요.
             </p>
           </div>
         )}

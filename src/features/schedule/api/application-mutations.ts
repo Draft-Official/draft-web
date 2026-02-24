@@ -101,6 +101,12 @@ export function useConfirmPaymentByGuest() {
         });
 
       if (notifError) throw notifError;
+
+      // 중복 전송 방지용 타임스탬프 기록
+      await supabase
+        .from('applications')
+        .update({ payment_notified_at: new Date().toISOString() } as never)
+        .eq('id', applicationId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -320,7 +326,7 @@ export function useCancelParticipation() {
 
       const cancelType = variables.cancelOptions?.cancelType;
       if (cancelType === 'FRAUDULENT_PAYMENT') {
-        toast.error('허위 송금으로 신고되었습니다. 운영진에게 통보됩니다.');
+        toast.error('허위 송금으로 처리되었습니다.');
       } else {
         toast.error('참가를 취소했습니다.');
       }
