@@ -86,7 +86,7 @@ export function CancelConfirmDialog({
         {selectedType === 'FRAUDULENT_PAYMENT' && (
           <div className="rounded-lg bg-red-50 border border-red-200 p-3 mt-1">
             <p className="text-xs text-red-600 font-medium">
-              해당 유저는 허위 송금으로 신고되며, 운영진에게 통보됩니다.
+              해당 유저는 허위 송금으로 처리되며, 이의가 있을 경우 문의하기를 통해 연락하도록 안내됩니다.
             </p>
           </div>
         )}
