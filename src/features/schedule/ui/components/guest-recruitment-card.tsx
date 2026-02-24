@@ -102,7 +102,7 @@ export function GuestRecruitmentCard({
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-1">
                 <Users className="w-4 h-4 text-slate-400" />
-                <span className="text-sm text-slate-500">신청자</span>
+                <span className="text-sm text-slate-500">대기자</span>
                 <span className="font-bold text-primary text-base">{match.applicants}명</span>
               </div>
               <div className="flex items-center gap-1">

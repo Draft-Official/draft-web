@@ -8,7 +8,7 @@ import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { matchKeys } from '@/entities/match';
 import { useAuth } from '@/shared/session';
 import { matchManagementKeys } from './keys';
-import type { RecruitmentSetup, Json, Database } from '@/shared/types/database.types';
+import type { RecruitmentSetup, Json, Database, ParticipantInfo } from '@/shared/types/database.types';
 
 function removeCanceledMatchFromHomeInfiniteCache(
   queryClient: QueryClient,
@@ -165,8 +165,39 @@ export function useUpdateRecruitmentSetup() {
             ),
           };
         } else {
-          // 포지션 무관 → 포지션별 전환 → 포지션 미상이므로 0 (불가피)
-          updatedSetup = recruitmentSetup;
+          // 포지션 무관 → 포지션별 전환 → CONFIRMED 신청의 participants_info에서 포지션별 카운트 도출
+          const { data: confirmedApps } = await supabase
+            .from('applications')
+            .select('participants_info')
+            .eq('match_id', matchId)
+            .eq('status', 'CONFIRMED');
+
+          const positionCounts: Record<string, number> = {};
+          if (confirmedApps) {
+            for (const app of confirmedApps) {
+              const participants = (app.participants_info as ParticipantInfo[]) ?? [];
+              for (const p of participants) {
+                const pos = p.position;
+                // RPC와 동일한 F/C → B 매핑
+                const mappedPos =
+                  (pos === 'F' || pos === 'C') &&
+                  recruitmentSetup.positions?.['B'] != null
+                    ? 'B'
+                    : pos;
+                positionCounts[mappedPos] = (positionCounts[mappedPos] ?? 0) + 1;
+              }
+            }
+          }
+
+          updatedSetup = {
+            ...recruitmentSetup,
+            positions: Object.fromEntries(
+              Object.entries(recruitmentSetup.positions ?? {}).map(([pos, quota]) => [
+                pos,
+                { ...quota, current: positionCounts[pos] ?? 0 },
+              ])
+            ),
+          };
         }
       }
 

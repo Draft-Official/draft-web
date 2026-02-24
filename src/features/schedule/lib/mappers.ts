@@ -296,23 +296,23 @@ function calculateRecruitmentStats(setup?: RecruitmentSetup): {
     return { applicants: current, vacancies: Math.max(0, max - current) };
   }
 
-  // POSITION 타입
+  // POSITION 타입 - 포지션별로 각각 계산 (한 포지션 초과가 다른 포지션 빈자리에 영향 X)
   let totalCurrent = 0;
-  let totalMax = 0;
+  let totalVacancy = 0;
 
   if (setup.positions) {
     const positions = setup.positions as Record<string, { max: number; current: number } | undefined>;
     for (const pos of Object.values(positions)) {
       if (pos) {
         totalCurrent += pos.current || 0;
-        totalMax += pos.max || 0;
+        totalVacancy += Math.max(0, (pos.max || 0) - (pos.current || 0));
       }
     }
   }
 
   return {
     applicants: totalCurrent,
-    vacancies: Math.max(0, totalMax - totalCurrent),
+    vacancies: totalVacancy,
   };
 }
 
