@@ -52,17 +52,22 @@ export function RecentMatchesDialog({
                       "hover:bg-slate-50 active:bg-slate-100"
                     )}
                   >
-                    {/* Top Row: Badge + Date */}
+                    {/* Top Row: Badge + Type + Date + Time */}
                     <div className="flex items-center justify-between mb-1">
-                      <span className={cn(
-                        "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium",
-                        match.isTeamHost
-                          ? "bg-brand-weak text-brand-contrast"
-                          : "bg-slate-100 text-muted-foreground"
-                      )}>
-                        {match.isTeamHost ? '🏀' : '🙋‍♂️'} {match.hostLabel}
+                      <div className="flex items-center gap-1.5">
+                        <span className={cn(
+                          "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium",
+                          match.isTeamHost
+                            ? "bg-brand-weak text-brand-contrast"
+                            : "bg-slate-100 text-muted-foreground"
+                        )}>
+                          {match.isTeamHost ? '🏀' : '🙋‍♂️'} {match.hostLabel}
+                        </span>
+                        <span className="text-xs text-slate-400 font-medium">{match.typeLabel}</span>
+                      </div>
+                      <span className="text-sm text-slate-500">
+                        {match.dateLabel} {match.timeLabel}
                       </span>
-                      <span className="text-sm text-slate-500">{match.dateLabel}</span>
                     </div>
 
                     {/* Bottom Row: Gym Name + Price */}

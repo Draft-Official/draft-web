@@ -19,7 +19,6 @@ interface MatchCreateSpecsProps {
   levelMax: number;
   onLevelChange: (min: number, max: number) => void;
   selectedAges: string[];
-  handleAgeSelection: (age: string) => void;
   handleAgeRangeUpdate: (ages: string[]) => void;
 }
 
@@ -27,7 +26,7 @@ export function MatchCreateSpecs({
   matchFormat, setMatchFormat,
   gender, setGender,
   levelMin, levelMax, onLevelChange,
-  selectedAges, handleAgeSelection,
+  selectedAges,
   handleAgeRangeUpdate,
 }: MatchCreateSpecsProps) {
   
@@ -80,7 +79,6 @@ export function MatchCreateSpecs({
                 <Label className="text-sm font-bold text-slate-600">권장 나이</Label>
                 <AgeSelector 
                     selectedAges={selectedAges}
-                    onSelect={handleAgeSelection}
                     onRangeUpdate={handleAgeRangeUpdate}
                 />
             </div>

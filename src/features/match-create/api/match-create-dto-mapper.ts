@@ -17,7 +17,7 @@ import type {
   MatchCreateUserDTO,
   RecentMatchListItemDTO,
 } from '@/features/match-create/model/types';
-import { getKSTDateParts } from '@/shared/lib/datetime';
+import { getKSTDateParts, formatKSTTime } from '@/shared/lib/datetime';
 
 type UserRow = Database['public']['Tables']['users']['Row'];
 type TeamRow = Database['public']['Tables']['teams']['Row'];
@@ -128,12 +128,15 @@ export function toRecentMatchListItemDTO(match: MatchWithGymTeamRow): RecentMatc
   const prefill = toMatchCreatePrefillDTO(match);
   const isTeamHost = !!prefill.teamId;
   const hostLabel = isTeamHost ? prefill.teamName || '팀' : '개인';
+  const typeLabel = match.match_type === 'TEAM_MATCH' ? '팀운동' : '게스트';
 
   return {
     ...prefill,
     dateLabel: formatDateLabel(match.start_time),
+    timeLabel: formatKSTTime(match.start_time),
     priceLabel: formatPriceLabel(prefill.costAmount, prefill.costType),
     hostLabel,
+    typeLabel,
     gymLabel: prefill.gymName,
     isTeamHost,
   };

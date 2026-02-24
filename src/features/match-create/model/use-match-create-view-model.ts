@@ -23,7 +23,6 @@ import { useMatchCreateFacilities } from '@/features/match-create/model/hooks/us
 import { useMatchCreateEditPrefillLoader } from '@/features/match-create/model/hooks/use-match-create-edit-prefill-loader';
 import { useMatchCreateSubmit } from '@/features/match-create/model/hooks/use-match-create-submit';
 import { usePrefillFromRecentMatch } from '@/features/match-create/model/hooks/use-prefill-from-recent-match';
-import { nextSelectedAges } from '@/features/match-create/lib/age-range';
 import { getNext14Days } from '@/features/match-create/lib/utils';
 
 export function useMatchCreateViewModel() {
@@ -134,10 +133,6 @@ export function useMatchCreateViewModel() {
 
   const handleAgeRangeUpdate = (newAges: string[]) => {
     setSelectedAges(newAges);
-  };
-
-  const handleAgeSelection = (age: string) => {
-    setSelectedAges((prev) => nextSelectedAges(prev, age));
   };
 
   const handleLevelChange = (min: number, max: number) => {
@@ -327,7 +322,6 @@ export function useMatchCreateViewModel() {
     levelMax,
     handleLevelChange,
     selectedAges,
-    handleAgeSelection,
     handleAgeRangeUpdate,
 
     gameFormatType,
