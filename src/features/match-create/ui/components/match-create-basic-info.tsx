@@ -74,7 +74,7 @@ export function MatchCreateBasicInfo({
   const methods = { getValues }; // Helper to match prev code
 
   // Watch startTime and duration for time range display
-  const startTime = watch('startTime', '19:00');
+  const startTime = watch('startTime');
   const duration = watch('duration', '2');
   const feeValue = watch('fee', '10000');
 
@@ -112,6 +112,13 @@ export function MatchCreateBasicInfo({
                 경기 날짜
                 {selectedDate && (() => {
                     const [, m, d] = selectedDate.split('-');
+                    if (!startTime) {
+                      return (
+                        <span className="text-primary">
+                          {parseInt(m)}월 {parseInt(d)}일
+                        </span>
+                      );
+                    }
                     const endTime = calculateEndTime(startTime, duration);
                     const timeRange = `${formatTimeDisplay(startTime)} ~ ${formatTimeDisplay(endTime)}`;
                     return (
@@ -139,12 +146,10 @@ export function MatchCreateBasicInfo({
                 <Controller
                     name="startTime"
                     control={control}
-                    defaultValue="19:00"
                     render={({ field }) => (
                         <TimePickerSelect
                             value={field.value}
                             onValueChange={field.onChange}
-                            defaultValue="19:00"
                         />
                     )}
                 />

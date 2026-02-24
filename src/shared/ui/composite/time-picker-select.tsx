@@ -44,7 +44,7 @@ const formatTimeDisplay = (timeValue: string): string => {
 export function TimePickerSelect({
   value,
   onValueChange,
-  defaultValue = '19:00'
+  defaultValue
 }: TimePickerSelectProps) {
   const [selectedPeriod, setSelectedPeriod] = useState<'AM' | 'PM' | null>(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -70,7 +70,7 @@ export function TimePickerSelect({
     }
   };
 
-  const displayValue = value ? formatTimeDisplay(value) : formatTimeDisplay(defaultValue);
+  const displayValue = value ? formatTimeDisplay(value) : (defaultValue ? formatTimeDisplay(defaultValue) : '시간 선택');
 
   return (
     <Popover open={isOpen} onOpenChange={handleOpenChange}>
@@ -81,7 +81,7 @@ export function TimePickerSelect({
         >
           <div className="flex items-center gap-2">
             <Clock className="h-5 w-5 shrink-0 text-muted-foreground" />
-            <span>{displayValue}</span>
+            <span className={cn(!value && !defaultValue && "text-muted-foreground")}>{displayValue}</span>
           </div>
           <svg
             className="h-4 w-4 text-muted-foreground"

@@ -4,19 +4,29 @@
  */
 
 /**
- * ISO timestamp에서 시간 추출
- * @example "2026-02-14T19:00:00Z" => "19:00"
+ * ISO timestamp에서 KST 시간 추출
+ * @example "2026-02-14T10:00:00+00:00" => "19:00" (KST)
  */
 export function formatTime(isoString: string): string {
-  return isoString.split('T')[1]?.substring(0, 5) ?? '';
+  const date = new Date(isoString);
+  return date.toLocaleTimeString('ko-KR', {
+    timeZone: 'Asia/Seoul',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
 }
 
 /**
- * ISO timestamp에서 날짜 추출
- * @example "2026-02-14T19:00:00Z" => "2026-02-14"
+ * ISO timestamp에서 KST 날짜 추출
+ * @example "2026-02-14T10:00:00+00:00" => "2026-02-14" (KST)
  */
 export function formatDateISO(isoString: string): string {
-  return isoString.split('T')[0] ?? '';
+  const date = new Date(isoString);
+  const year = date.toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', year: 'numeric' }).replace(/[^0-9]/g, '');
+  const month = date.toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: '2-digit' }).replace(/[^0-9]/g, '');
+  const day = date.toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', day: '2-digit' }).replace(/[^0-9]/g, '');
+  return `${year}-${month}-${day}`;
 }
 
 /**

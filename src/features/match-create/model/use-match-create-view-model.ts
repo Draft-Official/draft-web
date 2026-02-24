@@ -201,6 +201,16 @@ export function useMatchCreateViewModel() {
   const isLoadingEditData = isEditMode && (isLoadingEditPrefill || isApplyingEditData);
   const editMatchInternalId = editPrefillData?.matchId ?? editMatchId;
 
+  const isDirty = !isEditMode && (
+    methods.formState.isDirty ||
+    locationData !== null ||
+    isGameFormatSelected ||
+    isRulesSelected ||
+    isRefereeSelected ||
+    totalCount !== 1
+  );
+  const leaveGuard = useLeaveGuard(isDirty);
+
   const { isPending, onSubmit } = useMatchCreateSubmit({
     isEditMode,
     editMatchId: editMatchInternalId,
@@ -243,20 +253,13 @@ export function useMatchCreateViewModel() {
       if (isEditMode) {
         router.back();
       } else {
-        window.location.replace(publicId ? `/matches/${publicId}` : '/');
+        const targetPath = publicId ? `/matches/${publicId}?from=create` : '/';
+        leaveGuard.bypassNavigation(() => {
+          window.location.replace(targetPath);
+        });
       }
     },
   });
-
-  const isDirty = !isEditMode && (
-    methods.formState.isDirty ||
-    locationData !== null ||
-    isGameFormatSelected ||
-    isRulesSelected ||
-    isRefereeSelected ||
-    totalCount !== 1
-  );
-  const leaveGuard = useLeaveGuard(isDirty);
 
   const handleSelectRecentMatch = async (match: RecentMatchListItemDTO) => {
     setIsApplyingRecentPrefill(true);
