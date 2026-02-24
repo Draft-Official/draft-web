@@ -48,16 +48,6 @@ import { RecruitmentStatusSection } from './recruitment-status-section';
 import { GuestListSection } from './guest-list-section';
 import { MatchActionButton } from './match-action-button';
 import { Spinner } from '@/shared/ui/shadcn/spinner';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/shared/ui/shadcn/alert-dialog';
 
 export function HostMatchDetailView() {
   const router = useRouter();
@@ -435,11 +425,11 @@ export function HostMatchDetailView() {
       />
 
       {/* 포지션 초과 승인 경고 */}
-      <AlertDialog open={!!overQuotaGuest} onOpenChange={(open) => { if (!open) setOverQuotaGuest(null); }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>모집 인원이 찼습니다</AlertDialogTitle>
-            <AlertDialogDescription>
+      <Dialog open={!!overQuotaGuest} onOpenChange={(open) => { if (!open) setOverQuotaGuest(null); }}>
+        <DialogContent size="base" className="rounded-2xl p-6" showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>모집 인원이 찼습니다</DialogTitle>
+            <DialogDescription className="text-slate-600 pt-2">
               {overQuotaGuest && (() => {
                 if (match?.recruitmentMode === 'position') {
                   const posCode = overQuotaGuest.position.match(/\(([A-Z]+)\)/)?.[1] ?? 'G';
@@ -448,21 +438,28 @@ export function HostMatchDetailView() {
                 }
                 return `모집 인원이 찼습니다 (${totalConfirmedCount}/${match?.totalQuota?.max}). 초과 승인하시겠습니까?`;
               })()}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>취소</AlertDialogCancel>
-            <AlertDialogAction
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-2 pt-4">
+            <Button
+              onClick={() => setOverQuotaGuest(null)}
+              variant="outline"
+              className="flex-1 h-12 rounded-xl font-bold"
+            >
+              취소
+            </Button>
+            <Button
               onClick={() => {
                 if (overQuotaGuest) doApprove(overQuotaGuest);
                 setOverQuotaGuest(null);
               }}
+              className="flex-1 h-12 rounded-xl font-bold"
             >
               초과 승인
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* 하단 고정 버튼 */}
       <MatchActionButton
