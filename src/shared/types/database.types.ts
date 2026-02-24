@@ -190,6 +190,7 @@ export type Database = {
           match_format: string
           match_rule: Json | null
           match_type: string
+          confirmed_participant_count: number
           operation_info: Json | null
           provides_beverage: boolean | null
           recruitment_setup: Json
@@ -215,6 +216,7 @@ export type Database = {
           match_format?: string
           match_rule?: Json | null
           match_type: string
+          confirmed_participant_count?: number
           operation_info?: Json | null
           provides_beverage?: boolean | null
           recruitment_setup?: Json
@@ -240,6 +242,7 @@ export type Database = {
           match_format?: string
           match_rule?: Json | null
           match_type?: string
+          confirmed_participant_count?: number
           operation_info?: Json | null
           provides_beverage?: boolean | null
           recruitment_setup?: Json

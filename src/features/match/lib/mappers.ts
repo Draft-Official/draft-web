@@ -133,18 +133,18 @@ export function toGuestMatchDetailDTO(
   // Calculate recruitment status + detailed position status
   const positions = toPositionStatuses(match.recruitmentSetup) as GuestMatchDetailDTO['positions'];
   let total = 0;
-  let current = 0;
 
   if (match.recruitmentSetup.type === 'ANY') {
     total = match.recruitmentSetup.max_count;
-    current = match.recruitmentSetup.current_count;
   } else if (match.recruitmentSetup.type === 'POSITION') {
     for (const quota of Object.values(match.recruitmentSetup.positions)) {
       if (!quota || quota.max <= 0) continue;
       total += quota.max;
-      current += quota.current ?? 0;
     }
   }
+
+  // confirmed_participant_count 컬럼 사용 (동반인 포함, 포지션 모드 전환 후에도 정확)
+  const current = match.confirmedParticipantCount;
 
   const recruitmentStatus = {
     total,
