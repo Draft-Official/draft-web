@@ -61,7 +61,7 @@ export function EditQuotaDialog({
         forward: getQuotaMax(match, 'F'),
         center: getQuotaMax(match, 'C'),
         bigman: getQuotaMax(match, 'B'),
-        total: 0,
+        total: 1,
       });
     }
   }, [open, match]);
@@ -72,44 +72,47 @@ export function EditQuotaDialog({
   ) => {
     setEditPositions((prev) => ({
       ...prev,
-      [pos]: Math.max(0, prev[pos] + delta),
+      [pos]: Math.max(pos === 'total' ? 1 : 0, prev[pos] + delta),
     }));
   };
 
-  const getCurrentCount = (positionCode: string): number => {
-    if (match.positionQuotas) {
-      const quota = match.positionQuotas.find(q => q.position === positionCode);
-      return quota?.current || 0;
-    }
-    return 0;
-  };
-
   const handleSave = () => {
-    const modeChanged = (editMode === 'total' && match.recruitmentMode === 'position') ||
-                        (editMode === 'position' && match.recruitmentMode === 'total');
-
-    if (modeChanged) {
-      toast.warning('모집 모드가 변경되어 현재 인원이 초기화됩니다.');
+    // 포지션별 모드에서 전체 합계가 0이면 저장 불가
+    if (editMode === 'position') {
+      const total = isFlexBigman
+        ? editPositions.guard + editPositions.bigman
+        : editPositions.guard + editPositions.forward + editPositions.center;
+      if (total === 0) {
+        toast.error('최소 1명 이상 설정해야 합니다.');
+        return;
+      }
     }
 
+    // 포지션 무관 모드에서 0이면 저장 불가
+    if (editMode === 'total' && editPositions.total < 1) {
+      toast.error('최소 1명 이상 설정해야 합니다.');
+      return;
+    }
+
+    // current 값은 mutation에서 DB 조회로 정확하게 세팅
     const recruitmentSetup: RecruitmentSetup =
       editMode === 'total'
         ? {
             type: 'ANY',
             max_count: editPositions.total,
-            current_count: modeChanged ? 0 : (match.totalQuota?.current || 0),
+            current_count: 0,
           }
         : {
             type: 'POSITION',
             positions: isFlexBigman
               ? {
-                  G: { max: editPositions.guard, current: modeChanged ? 0 : getCurrentCount('G') },
-                  B: { max: editPositions.bigman, current: modeChanged ? 0 : getCurrentCount('B') },
+                  G: { max: editPositions.guard, current: 0 },
+                  B: { max: editPositions.bigman, current: 0 },
                 }
               : {
-                  G: { max: editPositions.guard, current: modeChanged ? 0 : getCurrentCount('G') },
-                  F: { max: editPositions.forward, current: modeChanged ? 0 : getCurrentCount('F') },
-                  C: { max: editPositions.center, current: modeChanged ? 0 : getCurrentCount('C') },
+                  G: { max: editPositions.guard, current: 0 },
+                  F: { max: editPositions.forward, current: 0 },
+                  C: { max: editPositions.center, current: 0 },
                 },
           };
 

@@ -29,6 +29,10 @@ function resolveTargetPath(
   const isTeamExercise = matchRouteInfo?.managementType === 'team_exercise';
   const teamCode = matchRouteInfo?.teamCode;
 
+  if (notification.type === 'APPLICATION_CANCELED_FRAUDULENT_PAYMENT') {
+    return '/my/contact';
+  }
+
   if (HOST_NOTIFICATION_TYPES.has(notification.type)) {
     if (isTeamExercise && teamCode) {
       return `/team/${teamCode}/matches/${pathId}/manage`;

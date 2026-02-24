@@ -53,7 +53,7 @@ function getTotalCurrentFromSetup(setup: RecruitmentSetup | null | undefined): n
 }
 
 type ApplicationWithUser = Application & {
-  user: Pick<User, 'id' | 'nickname' | 'avatar_url' | 'positions' | 'manner_score' | 'metadata' | 'account_info' | 'real_name'>;
+  user: Pick<User, 'id' | 'nickname' | 'avatar_url' | 'positions' | 'manner_score' | 'metadata' | 'account_info' | 'real_name' | 'phone'>;
   team?: Pick<Team, 'name'> | null;
 };
 
@@ -87,7 +87,7 @@ function toMatchManagementType(matchType: string | null | undefined): MatchManag
 // ============================================
 
 export function getGuestStatus(application: Application) {
-  return resolveApplicationStatus(application.status ?? 'PENDING', application.approved_at);
+  return resolveApplicationStatus(application.status ?? 'PENDING');
 }
 
 // ============================================
@@ -146,12 +146,22 @@ export function toMatchApplicantDTO(
     appliedAt: app.created_at || undefined,
     accountInfo,
     matchHistory,
+    phone: app.user.phone || undefined,
   };
 }
 
 // ============================================
 // Match → ScheduleMatchListItemDTO Mapper
 // ============================================
+
+/**
+ * DB match_type → UI MatchType 변환
+ */
+function dbMatchTypeToMatchType(dbMatchType: string | null | undefined): MatchType {
+  if (dbMatchType === 'TEAM_MATCH') return 'team';
+  if (dbMatchType === 'TOURNAMENT') return 'tournament';
+  return 'guest'; // GUEST_RECRUIT, PICKUP, 기타 → guest
+}
 
 /**
  * DB Match → ScheduleMatchListItemDTO 변환
@@ -282,28 +292,28 @@ function calculateRecruitmentStats(setup?: RecruitmentSetup): {
   }
 
   if (setup.type === 'ANY') {
-    const max = setup.max_count || 10;
+    const max = setup.max_count ?? 10;
     const current = setup.current_count ?? 0;
     return { applicants: current, vacancies: Math.max(0, max - current) };
   }
 
-  // POSITION 타입
+  // POSITION 타입 - 포지션별로 각각 계산 (한 포지션 초과가 다른 포지션 빈자리에 영향 X)
   let totalCurrent = 0;
-  let totalMax = 0;
+  let totalVacancy = 0;
 
   if (setup.positions) {
     const positions = setup.positions as Record<string, { max: number; current: number } | undefined>;
     for (const pos of Object.values(positions)) {
       if (pos) {
         totalCurrent += pos.current || 0;
-        totalMax += pos.max || 0;
+        totalVacancy += Math.max(0, (pos.max || 0) - (pos.current || 0));
       }
     }
   }
 
   return {
     applicants: totalCurrent,
-    vacancies: Math.max(0, totalMax - totalCurrent),
+    vacancies: totalVacancy,
   };
 }
 

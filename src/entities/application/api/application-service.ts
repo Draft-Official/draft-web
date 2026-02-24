@@ -55,7 +55,8 @@ export class ApplicationService {
           positions,
           manner_score,
           metadata,
-          account_info
+          account_info,
+          phone
         ),
         team:teams!team_id (
           name

@@ -374,7 +374,7 @@ export const NOTIFICATION_TYPE_DESCRIPTIONS: Record<NotificationTypeValue, strin
   APPLICATION_REJECTED: '신청이 거절되었습니다.',
   APPLICATION_CANCELED_USER_REQUEST: '호스트와 합의하여 취소되었습니다.',
   APPLICATION_CANCELED_PAYMENT_TIMEOUT: '기한 내 미송금으로 취소되었습니다.',
-  APPLICATION_CANCELED_FRAUDULENT_PAYMENT: '허위 송금 신고로 취소되었습니다.',
+  APPLICATION_CANCELED_FRAUDULENT_PAYMENT: '허위 송금 신고로 취소되었습니다. 이의가 있으시면 마이페이지 > 문의하기를 통해 연락해 주세요.',
   MATCH_CANCELED: '경기가 취소되었습니다.',
   NEW_APPLICATION: '새로운 경기 신청이 접수되었습니다.',
   GUEST_CANCELED: '게스트가 신청을 취소했습니다.',
