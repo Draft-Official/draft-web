@@ -11,7 +11,6 @@ import { useAuth } from '@/shared/session';
 import { formatMatchDate, formatMatchTime } from '@/shared/lib/date';
 import { getPositionLabel } from '@/shared/config/match-constants';
 import type { TeamVoteStatusValue } from '@/shared/config/application-constants';
-import type { RecruitmentSetup } from '@/shared/types/database.types';
 import { matchManagementKeys } from './keys';
 import {
   toScheduleMatchListItemDTO,
@@ -115,26 +114,12 @@ export function useHostedMatches() {
         const dto = toScheduleMatchListItemDTO(row, 'host');
         const myVoteData = myVoteMap.get(row.id);
 
-        // 게스트 모집 경기: confirmed_participant_count 기반으로 빈자리 계산
-        let applicants = dto.applicants;
-        let vacancies = dto.vacancies;
-        if (row.match_type !== 'TEAM_MATCH') {
-          const confirmedCount = (row as typeof row & { confirmed_participant_count?: number }).confirmed_participant_count ?? 0;
-          const setup = row.recruitment_setup as RecruitmentSetup | null;
-          const maxCount = setup?.type === 'ANY'
-            ? (setup.max_count ?? 10)
-            : setup?.type === 'POSITION' && setup.positions
-              ? Object.values(setup.positions as Record<string, { max: number; current: number }>)
-                  .reduce((sum, pos) => sum + (pos?.max || 0), 0)
-              : 10;
-          applicants = applicantCountMap.get(row.id) ?? 0;
-          vacancies = Math.max(0, maxCount - confirmedCount);
-        }
-
         return {
           ...dto,
-          applicants,
-          vacancies,
+          // 미처리 신청 건수 (PENDING + PAYMENT_PENDING)로 덮어씌우기
+          applicants: row.match_type !== 'TEAM_MATCH'
+            ? (applicantCountMap.get(row.id) ?? 0)
+            : dto.applicants,
           myVote: myVoteData?.vote,
           myVoteReason: myVoteData?.reason,
           votingSummary: votingSummaryMap.get(row.id),
