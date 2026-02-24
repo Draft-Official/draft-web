@@ -12,6 +12,7 @@ import type {
   GuestMatchDetail,
   TeamExerciseManageDetailDTO,
   TournamentManageDetailDTO,
+  TeamExerciseVoteItemDTO,
 } from './types';
 
 // ============================================
@@ -144,6 +145,40 @@ export const MOCK_TEAM_EXERCISE_MANAGE: TeamExerciseManageDetailDTO = {
   description: '오늘은 속공 연습 + 존 디펜스 연습합니다. 링크의 영상 보고오세요',
   participants: MOCK_PARTICIPANTS,
 };
+
+// 팀운동 투표 현황 Mock (30명, 다양한 상태)
+export const MOCK_TEAM_EXERCISE_VOTES_30: TeamExerciseVoteItemDTO[] = [
+  { id: 'vote-01', userId: 'user-01', name: '김민수', status: 'CONFIRMED' },
+  { id: 'vote-02', userId: 'user-02', name: '이준호', status: 'CONFIRMED' },
+  { id: 'vote-03', userId: 'user-03', name: '박서연', status: 'CONFIRMED' },
+  { id: 'vote-04', userId: 'user-04', name: '최윤아', status: 'CONFIRMED' },
+  { id: 'vote-05', userId: 'user-05', name: '정태민', status: 'CONFIRMED' },
+  { id: 'vote-06', userId: 'user-06', name: '강동현', status: 'CONFIRMED' },
+  { id: 'vote-07', userId: 'user-07', name: '오지은', status: 'CONFIRMED' },
+  { id: 'vote-08', userId: 'user-08', name: '한승우', status: 'LATE', reason: '퇴근 후 15분 지각 예정' },
+  { id: 'vote-09', userId: 'user-09', name: '신예진', status: 'LATE', reason: '병원 진료 후 합류' },
+  { id: 'vote-10', userId: 'user-10', name: '윤성호', status: 'LATE', reason: '교통 정체 예상' },
+  { id: 'vote-11', userId: 'user-11', name: '임지훈', status: 'NOT_ATTENDING', reason: '출장 일정' },
+  { id: 'vote-12', userId: 'user-12', name: '송하린', status: 'NOT_ATTENDING', reason: '개인 사정' },
+  { id: 'vote-13', userId: 'user-13', name: '조현우', status: 'NOT_ATTENDING' },
+  { id: 'vote-14', userId: 'user-14', name: '문다은', status: 'NOT_ATTENDING' },
+  { id: 'vote-15', userId: 'user-15', name: '백지훈', status: 'NOT_ATTENDING' },
+  { id: 'vote-16', userId: 'user-16', name: '나유진', status: 'NOT_ATTENDING' },
+  { id: 'vote-17', userId: 'user-17', name: '고은찬', status: 'MAYBE', reason: '야근 가능성 있음' },
+  { id: 'vote-18', userId: 'user-18', name: '서지민', status: 'MAYBE' },
+  { id: 'vote-19', userId: 'user-19', name: '장태훈', status: 'MAYBE' },
+  { id: 'vote-20', userId: 'user-20', name: '유리아', status: 'MAYBE', reason: '컨디션 확인 필요' },
+  { id: 'vote-21', userId: 'user-21', name: '배성민', status: 'MAYBE' },
+  { id: 'vote-22', userId: 'user-22', name: '한예지', status: 'MAYBE' },
+  { id: 'vote-23', userId: 'user-23', name: '최민석', status: 'MAYBE' },
+  { id: 'vote-24', userId: 'user-24', name: '권서연', status: 'PENDING' },
+  { id: 'vote-25', userId: 'user-25', name: '김도윤', status: 'PENDING' },
+  { id: 'vote-26', userId: 'user-26', name: '박지후', status: 'PENDING' },
+  { id: 'vote-27', userId: 'user-27', name: '이채원', status: 'PENDING' },
+  { id: 'vote-28', userId: 'user-28', name: '정하람', status: 'PENDING' },
+  { id: 'vote-29', userId: 'user-29', name: '오세훈', status: 'PENDING' },
+  { id: 'vote-30', userId: 'user-30', name: '류민아', status: 'PENDING' },
+];
 
 // 대회 관리 상세 Mock
 export const MOCK_TOURNAMENT_MANAGE: TournamentManageDetailDTO = {

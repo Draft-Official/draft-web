@@ -181,8 +181,8 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
     const match = allMatches.find((m) => m.id === matchId);
     if (!match) return;
 
-    // 참여 탭에서 guest 타입 클릭 시 바텀시트 표시
-    if (viewMode === "guest" && match.matchType === "guest") {
+    // 참여 탭에서 게스트 모집 타입 클릭 시 바텀시트 표시
+    if (viewMode === "guest" && match.managementType === "guest_recruitment") {
       setSelectedMatch(match);
       setIsSheetOpen(true);
       return;
@@ -193,22 +193,24 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
   };
 
   const navigateToMatchDetail = (match: ScheduleMatchListItemDTO) => {
-    if (match.matchType === "tournament") {
+    if (match.managementType === "tournament") {
       // 대회는 별도 라우트
       if (viewMode === "host") {
         router.push(`/tournaments/${match.id}/manage`);
       } else {
         router.push(`/tournaments/${match.id}`);
       }
-    } else if (match.matchType === "team" && match.teamCode) {
-      // 팀 매치는 팀 상세 매치 페이지로
-      router.push(`/team/${match.teamCode}/matches/${match.publicId}`);
+    } else if (match.managementType === "team_exercise" && match.teamCode) {
+      if (viewMode === "host") {
+        router.push(`/team/${match.teamCode}/matches/${match.publicId}/manage`);
+      } else {
+        router.push(`/team/${match.teamCode}/matches/${match.publicId}`);
+      }
     } else {
-      // host, guest는 matches로 통합
-      if (viewMode === "host" || match.matchType === "host") {
+      // 게스트 모집은 matches 라우트 사용
+      if (viewMode === "host") {
         router.push(`/matches/${match.publicId}/manage`);
       } else {
-        // 참여 탭에서 들어가는 경우 from=schedule 파라미터 추가
         router.push(`/matches/${match.publicId}?from=schedule`);
       }
     }

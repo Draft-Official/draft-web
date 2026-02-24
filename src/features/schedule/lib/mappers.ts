@@ -18,6 +18,7 @@ import { getPositionLabel } from '@/shared/config/match-constants';
 import type {
   ScheduleMatchListItemDTO,
   MatchType,
+  MatchManagementType,
   MatchStatus,
   MatchApplicantDTO,
   HostMatchDetailDTO,
@@ -60,6 +61,26 @@ type MatchWithRelations = Match & {
   gym?: Gym | null;
   team?: Pick<Team, 'name'> | null;
 };
+
+function isTeamMatch(matchType: string | null | undefined): boolean {
+  return matchType === 'TEAM_MATCH';
+}
+
+function isTournamentMatch(matchType: string | null | undefined): boolean {
+  return matchType === 'TOURNAMENT' || matchType === 'TOURNAMENT_MATCH';
+}
+
+function toScheduleMatchType(matchType: string | null | undefined, type: 'host' | 'guest'): MatchType {
+  if (isTeamMatch(matchType)) return 'team';
+  if (isTournamentMatch(matchType)) return 'tournament';
+  return type === 'host' ? 'host' : 'guest';
+}
+
+function toMatchManagementType(matchType: string | null | undefined): MatchManagementType {
+  if (isTeamMatch(matchType)) return 'team_exercise';
+  if (isTournamentMatch(matchType)) return 'tournament';
+  return 'guest_recruitment';
+}
 
 // ============================================
 // Guest Status Logic
@@ -148,7 +169,8 @@ export function toScheduleMatchListItemDTO(
   match: MatchWithRelations,
   type: 'host' | 'guest'
 ): ScheduleMatchListItemDTO {
-  const matchType: MatchType = dbMatchTypeToMatchType(match.match_type);
+  const matchType = toScheduleMatchType(match.match_type, type);
+  const managementType = toMatchManagementType(match.match_type);
   const scheduleMode = type === 'host' ? 'managing' : 'participating';
 
   // Match status 변환 (시간 기반 파생 포함)
@@ -161,6 +183,7 @@ export function toScheduleMatchListItemDTO(
   return {
     id: match.id,
     publicId: match.short_id,
+    managementType,
     matchType,
     scheduleMode,
     type: matchType, // legacy compatibility

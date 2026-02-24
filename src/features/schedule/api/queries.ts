@@ -27,7 +27,21 @@ import type {
   MatchApplicantDTO,
   HostMatchDetailDTO,
   ParticipatingMatchRow,
+  TeamExerciseVoteItemDTO,
 } from '../model/types';
+
+function toTeamVoteStatus(status: string | null | undefined): TeamVoteStatusValue {
+  switch (status) {
+    case 'CONFIRMED':
+    case 'LATE':
+    case 'NOT_ATTENDING':
+    case 'MAYBE':
+      return status;
+    case 'PENDING':
+    default:
+      return 'PENDING';
+  }
+}
 
 /**
  * 내가 주최한 경기 목록 조회
@@ -216,21 +230,29 @@ export function useParticipatingMatches() {
 
           const position = mainParticipant?.position || 'G';
 
-          // match_type에 따라 UI type 결정
-          const matchType = match.match_type === 'TEAM_MATCH'
+          // match_type에 따라 관리 도메인/카드 타입 결정
+          const isTeamExercise = match.match_type === 'TEAM_MATCH';
+          const isTournament = match.match_type === 'TOURNAMENT' || match.match_type === 'TOURNAMENT_MATCH';
+          const managementType = isTeamExercise
+            ? 'team_exercise' as const
+            : isTournament
+              ? 'tournament' as const
+              : 'guest_recruitment' as const;
+          const matchType = isTeamExercise
             ? 'team' as const
-            : match.match_type === 'TOURNAMENT'
+            : isTournament
               ? 'tournament' as const
               : 'guest' as const;
           const scheduleMode = 'participating' as const;
 
           // Team 매치: 투표 상태 매핑
-          const myVote = matchType === 'team' ? (app.status as TeamVoteStatusValue) : undefined;
-          const myVoteReason = matchType === 'team' ? (app.description || undefined) : undefined;
+          const myVote = managementType === 'team_exercise' ? (app.status as TeamVoteStatusValue) : undefined;
+          const myVoteReason = managementType === 'team_exercise' ? (app.description || undefined) : undefined;
 
           return {
             id: match.id,
             publicId: match.short_id,
+            managementType,
             matchType,
             scheduleMode,
             type: matchType,
@@ -296,6 +318,38 @@ export function useHostMatchDetail(matchIdentifier: string) {
       return toHostMatchDetailDTO(row);
     },
     enabled: !!matchIdentifier,
+  });
+}
+
+/**
+ * 팀운동 투표 목록 조회 (투표현황 모달용)
+ * @param matchId 경기 ID
+ */
+export function useTeamExerciseVotes(matchId: string, enabled: boolean = true) {
+  return useQuery({
+    queryKey: matchManagementKeys.teamVotes(matchId),
+    queryFn: async (): Promise<TeamExerciseVoteItemDTO[]> => {
+      if (!matchId) return [];
+
+      const supabase = getSupabaseBrowserClient();
+      const teamService = createTeamService(supabase);
+      const rows = await teamService.getTeamVotes(matchId);
+
+      return rows.map((row) => {
+        const typed = row as typeof row & {
+          users?: { id?: string | null; nickname?: string | null; real_name?: string | null } | null;
+        };
+
+        return {
+          id: row.id,
+          userId: row.user_id,
+          name: typed.users?.nickname || typed.users?.real_name || '알 수 없음',
+          status: toTeamVoteStatus(row.status),
+          reason: row.description || undefined,
+        };
+      });
+    },
+    enabled: !!matchId && enabled,
   });
 }
 

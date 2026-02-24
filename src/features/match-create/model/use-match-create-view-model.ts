@@ -248,7 +248,14 @@ export function useMatchCreateViewModel() {
     },
   });
 
-  const isDirty = !isEditMode && (methods.formState.isDirty || locationData !== null);
+  const isDirty = !isEditMode && (
+    methods.formState.isDirty ||
+    locationData !== null ||
+    isGameFormatSelected ||
+    isRulesSelected ||
+    isRefereeSelected ||
+    totalCount !== 1
+  );
   const leaveGuard = useLeaveGuard(isDirty);
 
   const handleSelectRecentMatch = async (match: RecentMatchListItemDTO) => {

@@ -1,24 +1,23 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Badge } from '@/shared/ui/shadcn/badge';
 import { Button } from '@/shared/ui/shadcn/button';
 import { MatchCardLayout } from '@/shared/ui/composite/match-card-layout';
 import { cn } from '@/shared/lib/utils';
 import {
-  MATCH_STATUS_LABELS,
-  MATCH_STATUS_STYLES,
   type MatchStatusValue,
 } from '@/shared/config/match-constants';
 import {
   TEAM_VOTE_STATUS_LABELS,
-  TEAM_VOTE_STATUS_STYLES,
   type TeamVoteStatusValue,
 } from '@/shared/config/team-constants';
 import { VoteDialog } from '@/shared/ui/composite/vote-dialog';
+import { TeamVoteStatusDialog } from './match/team-vote-status-dialog';
 
 interface TeamMatchItemProps {
+  matchId: string;
   publicId: string;
   teamCode: string;
   teamName: string;
@@ -46,6 +45,7 @@ interface TeamMatchItemProps {
  * - 투표 현황 표시
  */
 export function TeamMatchItem({
+  matchId,
   publicId,
   teamCode,
   teamName,
@@ -63,14 +63,22 @@ export function TeamMatchItem({
 }: TeamMatchItemProps) {
   const router = useRouter();
   const [isVoteDialogOpen, setIsVoteDialogOpen] = useState(false);
+  const [isVoteStatusOpen, setIsVoteStatusOpen] = useState(false);
+  const dialogClosedAt = useRef(0);
 
   const handleClick = () => {
+    if (Date.now() - dialogClosedAt.current < 300) return;
     router.push(`/team/${teamCode}/matches/${publicId}`);
   };
 
-  const handleVoteClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsVoteDialogOpen(true);
+  const handleVoteDialogChange = (open: boolean) => {
+    if (!open) dialogClosedAt.current = Date.now();
+    setIsVoteDialogOpen(open);
+  };
+
+  const handleVoteStatusChange = (open: boolean) => {
+    if (!open) dialogClosedAt.current = Date.now();
+    setIsVoteStatusOpen(open);
   };
 
   const handleVoteSubmit = (vote: TeamVoteStatusValue, reason: string) => {
@@ -78,9 +86,39 @@ export function TeamMatchItem({
     setIsVoteDialogOpen(false);
   };
 
-  const statusLabel = MATCH_STATUS_LABELS[status];
-  const statusStyle = MATCH_STATUS_STYLES[status];
+  const isPastMatch = status === 'FINISHED' || status === 'CANCELED';
+  const isVoteClosed = status === 'CLOSED';
+  const currentVote = (myVote ?? 'PENDING') as TeamVoteStatusValue;
   const hasVoted = myVote && myVote !== 'PENDING';
+
+  const voteBadgeColors: Record<TeamVoteStatusValue, string> = {
+    PENDING: 'bg-yellow-500/10 text-yellow-700 border-yellow-500/20',
+    CONFIRMED: 'bg-green-500/10 text-green-700 border-green-500/20',
+    LATE: 'bg-amber-500/10 text-amber-700 border-amber-500/20',
+    NOT_ATTENDING: 'bg-red-500/10 text-red-700 border-red-500/20',
+    MAYBE: 'bg-slate-500/10 text-slate-700 border-slate-500/20',
+  };
+
+  const statusBadge = (() => {
+    if (isPastMatch) {
+      return {
+        label: status === 'CANCELED' ? '취소' : '종료',
+        className: 'bg-gray-100 text-gray-500 border-gray-200',
+      };
+    }
+
+    if (isVoteClosed) {
+      return {
+        label: '투표마감',
+        className: 'bg-slate-100 text-slate-600 border-slate-200',
+      };
+    }
+
+    return {
+      label: TEAM_VOTE_STATUS_LABELS[currentVote],
+      className: voteBadgeColors[currentVote],
+    };
+  })();
 
   return (
     <>
@@ -93,29 +131,26 @@ export function TeamMatchItem({
         onClick={handleClick}
         className={className}
         topSlot={
-          <div className="flex items-center gap-2">
+          <>
+            <Badge
+              variant="outline"
+              className="text-xs font-medium border px-2.5 py-1 bg-green-500/10 text-green-700 border-green-500/20"
+            >
+              팀운동
+            </Badge>
             <Badge
               variant="outline"
               className={cn(
                 'text-xs font-medium border px-2.5 py-1',
-                statusStyle.color,
-                statusStyle.bgColor
+                statusBadge.className
               )}
             >
-              {statusLabel}
+              {statusBadge.label}
             </Badge>
-            {!hasVoted && (
-              <Badge
-                variant="outline"
-                className="text-xs font-medium border px-2.5 py-1 bg-yellow-50 text-yellow-600 border-yellow-200"
-              >
-                미투표
-              </Badge>
-            )}
-          </div>
+          </>
         }
         bottomSlot={
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-4 text-sm">
               <span>
                 참석{' '}
@@ -131,29 +166,53 @@ export function TeamMatchItem({
               </span>
             </div>
 
-            <Button
-              size="sm"
-              variant="outline"
-              className={cn(
-                'h-8 px-3 text-xs font-bold',
-                hasVoted && TEAM_VOTE_STATUS_STYLES[myVote!].color,
-                hasVoted && TEAM_VOTE_STATUS_STYLES[myVote!].borderColor
-              )}
-              onClick={handleVoteClick}
-            >
-              {hasVoted ? TEAM_VOTE_STATUS_LABELS[myVote!] : '투표하기'}
-            </Button>
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-8 px-3 text-xs font-bold border-slate-200 text-slate-600 hover:bg-slate-50"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsVoteStatusOpen(true);
+                }}
+              >
+                투표현황
+              </Button>
+
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={isVoteClosed}
+                className={cn(
+                  'h-8 px-3 text-xs font-bold border-slate-200 text-slate-600 hover:bg-slate-50',
+                  isVoteClosed && 'bg-slate-100 text-slate-500 hover:bg-slate-100'
+                )}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (isVoteClosed) return;
+                  setIsVoteDialogOpen(true);
+                }}
+              >
+                {isVoteClosed ? '투표마감' : hasVoted ? '투표변경' : '투표하기'}
+              </Button>
+            </div>
           </div>
         }
       />
 
       <VoteDialog
         open={isVoteDialogOpen}
-        onOpenChange={setIsVoteDialogOpen}
+        onOpenChange={handleVoteDialogChange}
         currentVote={myVote}
         currentReason={myVoteReason}
         onSubmit={handleVoteSubmit}
         isSubmitting={isVoting}
+      />
+
+      <TeamVoteStatusDialog
+        open={isVoteStatusOpen}
+        onOpenChange={handleVoteStatusChange}
+        matchId={matchId}
       />
     </>
   );

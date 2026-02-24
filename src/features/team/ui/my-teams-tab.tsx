@@ -12,6 +12,7 @@ import { TeamProfileCard } from './components/team-profile-card';
 import { TeamMatchItem } from './components/team-match-item';
 import type { TeamVoteStatusValue } from '@/shared/config/team-constants';
 import { Spinner } from '@/shared/ui/shadcn/spinner';
+import { isCurrentWeekMatch } from '../lib/is-current-week';
 
 /**
  * 나의 팀 탭
@@ -89,7 +90,7 @@ export function MyTeamsTab() {
 
       {/* 팀 정기운동 섹션 */}
       <section className="px-(--dimension-spacing-x-global-gutter)">
-        <h2 className="font-bold text-slate-900 text-lg mb-(--dimension-spacing-y-component-default)">팀 정기운동</h2>
+        <h2 className="font-bold text-slate-900 text-lg mb-(--dimension-spacing-y-component-default)">이번주 팀 정기운동</h2>
         <PendingVoteMatches teamIds={teams.map((t) => t.id)} userId={user!.id} />
       </section>
     </div>
@@ -102,6 +103,7 @@ export function MyTeamsTab() {
 function PendingVoteMatches({ teamIds, userId }: { teamIds: string[]; userId: string }) {
   const { data: matches, isLoading } = useMyPendingVoteMatches(teamIds, userId);
   const voteMutation = useVote();
+  const currentWeekMatches = (matches ?? []).filter((match) => isCurrentWeekMatch(match.startTime));
 
   const handleVote = (matchId: string, vote: TeamVoteStatusValue, reason: string) => {
     voteMutation.mutate({
@@ -122,20 +124,21 @@ function PendingVoteMatches({ teamIds, userId }: { teamIds: string[]; userId: st
     );
   }
 
-  if (!matches || matches.length === 0) {
+  if (currentWeekMatches.length === 0) {
     return (
       <p className="text-sm text-muted-foreground py-(--dimension-spacing-y-component-default) text-center">
-        예정된 팀 운동이 없습니다
+        이번 주 예정된 팀 운동이 없습니다
       </p>
     );
   }
 
   return (
     <div className="space-y-(--dimension-spacing-y-component-default)">
-      {matches.map((item) => {
+      {currentWeekMatches.map((item) => {
         return (
           <TeamMatchItem
             key={item.matchId}
+            matchId={item.matchId}
             publicId={item.publicId}
             teamCode={item.teamCode}
             teamName={item.teamName}

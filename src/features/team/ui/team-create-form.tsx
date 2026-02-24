@@ -83,10 +83,7 @@ export function TeamCreateForm() {
     },
   });
 
-  const { handleSubmit, watch, setValue, trigger, formState } = methods;
-
-  const isDirty = formState.isDirty || locationData !== null;
-  const leaveGuard = useLeaveGuard(isDirty);
+  const { handleSubmit, watch, setValue, trigger } = methods;
 
   const handleLocationResolvedChange = useCallback((next: LocationSearchResolvedValue) => {
     setLocationData(next.locationData);
@@ -110,6 +107,9 @@ export function TeamCreateForm() {
   const levelMin = watch('levelMin');
   const levelMax = watch('levelMax');
   const trimmedName = name.trim();
+
+  const isDirty = trimmedName !== '' || shortIntro !== '' || code !== '' || locationData !== null;
+  const leaveGuard = useLeaveGuard(isDirty);
 
   // Step별 다음 버튼 disabled 여부
   const isStep1Valid = Boolean(

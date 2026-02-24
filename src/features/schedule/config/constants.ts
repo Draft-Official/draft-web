@@ -3,7 +3,13 @@
  * Config-Driven UI 패턴 적용
  */
 
-import type { MatchType, MatchStatus, FilterOption } from '../model/types';
+import type {
+  MatchType,
+  MatchStatus,
+  FilterOption,
+  MatchManagementType,
+} from '../model/types';
+import type { TeamVoteStatusValue } from '@/shared/config/application-constants';
 
 // 경기 타입 필터 옵션 (참여 모드 - guest 제외, 중복선택용)
 export const MATCH_TYPE_FILTER_OPTIONS: FilterOption<Exclude<MatchType, 'host'>>[] = [
@@ -12,9 +18,9 @@ export const MATCH_TYPE_FILTER_OPTIONS: FilterOption<Exclude<MatchType, 'host'>>
   { value: 'tournament', label: '대회' },
 ];
 
-// 경기 타입 필터 옵션 (관리 모드 - host 제외, 중복선택용)
-export const HOST_TYPE_FILTER_OPTIONS: FilterOption<Exclude<MatchType, 'host'>>[] = [
-  { value: 'guest', label: '게스트' },
+// 경기 타입 필터 옵션 (관리 모드 - guest 제외, 중복선택용)
+export const HOST_TYPE_FILTER_OPTIONS: FilterOption<Exclude<MatchType, 'guest'>>[] = [
+  { value: 'host', label: '게스트' },
   { value: 'team', label: '팀운동' },
   { value: 'tournament', label: '대회' },
 ];
@@ -53,6 +59,29 @@ export const MATCH_TYPE_COLORS: Record<MatchType, string> = {
   host: 'bg-draft-500/10 text-primary border-draft-500/20',
   team: 'bg-green-500/10 text-green-700 border-green-500/20',
   tournament: 'bg-purple-500/10 text-purple-700 border-purple-500/20',
+};
+
+// 관리 도메인 타입별 레이블
+export const MANAGEMENT_TYPE_LABELS: Record<MatchManagementType, string> = {
+  guest_recruitment: '게스트',
+  team_exercise: '팀운동',
+  tournament: '대회',
+};
+
+// 관리 도메인 타입별 색상 (Tailwind classes)
+export const MANAGEMENT_TYPE_COLORS: Record<MatchManagementType, string> = {
+  guest_recruitment: 'bg-draft-500/10 text-primary border-draft-500/20',
+  team_exercise: 'bg-green-500/10 text-green-700 border-green-500/20',
+  tournament: 'bg-purple-500/10 text-purple-700 border-purple-500/20',
+};
+
+// 팀운동 투표 상태 배지 색상 (타입 배지와 같은 톤)
+export const TEAM_EXERCISE_VOTE_BADGE_COLORS: Record<TeamVoteStatusValue, string> = {
+  PENDING: 'bg-yellow-500/10 text-yellow-700 border-yellow-500/20',
+  CONFIRMED: 'bg-green-500/10 text-green-700 border-green-500/20',
+  LATE: 'bg-amber-500/10 text-amber-700 border-amber-500/20',
+  NOT_ATTENDING: 'bg-red-500/10 text-red-700 border-red-500/20',
+  MAYBE: 'bg-slate-500/10 text-slate-700 border-slate-500/20',
 };
 
 // 경기 상태별 레이블

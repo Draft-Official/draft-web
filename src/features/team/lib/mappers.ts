@@ -224,6 +224,7 @@ export function toMyPendingTeamVoteMatchDTO(
     teamCode: team.code || '',
     teamName: team.name,
     teamLogoUrl: team.logoUrl,
+    startTime: match.startTime,
     dateDisplay: formatTeamMatchDate(match.startTime),
     timeDisplay: formatTeamMatchTime(match.startTime),
     gymName: gym?.name ?? '장소 미정',
