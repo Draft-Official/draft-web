@@ -117,12 +117,6 @@ export function useSaveMatchCreateDefaults() {
             notice: input.hostNotice,
           },
         });
-
-        if (input.contactInfo.type === 'PHONE') {
-          await authService.updateProfile(input.userId, {
-            phone: input.contactInfo.content,
-          });
-        }
         return;
       }
 
@@ -143,12 +137,6 @@ export function useSaveMatchCreateDefaults() {
           url: input.contactInfo.type === 'KAKAO_OPEN_CHAT' ? input.contactInfo.content : undefined,
         },
       });
-
-      if (input.contactInfo.type === 'PHONE') {
-        await authService.updateProfile(input.userId, {
-          phone: input.contactInfo.content,
-        });
-      }
     },
   });
 }

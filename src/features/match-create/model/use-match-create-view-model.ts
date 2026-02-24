@@ -211,6 +211,7 @@ export function useMatchCreateViewModel() {
     editMatchId: editMatchInternalId,
     selectedDate,
     locationData,
+    currentUserPhone: currentUser?.phone,
     recruitment: {
       isPositionMode,
       isFlexBigman,

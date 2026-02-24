@@ -20,7 +20,7 @@ import type {
   Application,
 } from '@/shared/types/database.types';
 import type { AccountInfo, OperationInfo } from '@/shared/types/jsonb.types';
-import { handleSupabaseError } from '@/shared/lib/errors';
+import { handleSupabaseError, ValidationError } from '@/shared/lib/errors';
 import { normalizeRegularDay } from '@/shared/config/team-constants';
 import type { TeamRoleValue, TeamVoteStatusValue } from '@/shared/config/team-constants';
 import { toKSTDateTimeISO } from '@/shared/lib/datetime';
@@ -66,6 +66,20 @@ function normalizeMatchDateTimeInput(value: string): string {
 
 export class TeamService {
   constructor(private supabase: SupabaseClient<Database>) {}
+
+  private async assertPhoneVerified(userId: string, actionLabel: string): Promise<void> {
+    const { data, error } = await this.supabase
+      .from('users')
+      .select('phone_verified')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (error) handleSupabaseError(error, '사용자 인증 정보');
+
+    if (!data?.phone_verified) {
+      throw new ValidationError(`전화번호 인증 후 ${actionLabel}이 가능합니다.`);
+    }
+  }
 
   // ============================================
   // Core - Team CRUD
@@ -643,6 +657,8 @@ export class TeamService {
    * - 매치 생성 후 모든 팀원에게 PENDING 상태의 투표(application) 생성
    */
   async createTeamMatch(hostId: string, input: CreateTeamMatchInput): Promise<Match> {
+    await this.assertPhoneVerified(hostId, '팀 운동 개설');
+
     const matchInsert: MatchInsert = {
       team_id: input.teamId,
       host_id: hostId,

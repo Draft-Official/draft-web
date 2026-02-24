@@ -5,10 +5,9 @@ import { useFormContext } from 'react-hook-form';
 import { Input } from '@/shared/ui/shadcn/input';
 import { Label } from '@/shared/ui/shadcn/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/shadcn/select';
-import { Switch } from '@/shared/ui/shadcn/switch';
 import { Textarea } from '@/shared/ui/shadcn/textarea';
 import { BankCombobox } from '@/shared/ui/composite/bank-combobox';
-import { FileText, MessageCircle, Phone, UserPlus } from 'lucide-react';
+import { FileText, Phone, UserPlus } from 'lucide-react';
 import { toast } from '@/shared/ui/shadcn/sonner';
 import type { AccountInfo, OperationInfo } from '@/shared/types/jsonb.types';
 import type { MatchCreateTeamOptionDTO, MatchCreateUserDTO } from '@/features/match-create/model/types';
@@ -16,6 +15,7 @@ import {
   sanitizeAccountHolderInput,
   sanitizeAccountNumberInput,
 } from '@/shared/lib/validation/account';
+import { formatPhoneNumber } from '@/shared/lib/phone-utils';
 
 // Helper to safely cast JSONB to specific type
 const getAccountInfo = (info: MatchCreateUserDTO['accountInfo'] | MatchCreateTeamOptionDTO['accountInfo']): Partial<AccountInfo> => info ?? {};
@@ -57,8 +57,6 @@ export function MatchCreateOperations({
   const accountNumber = watch('accountNumber') || '';
   const accountHolder = watch('accountHolder') || '';
   const description = watch('description') || '';
-  const contactType = watch('operations.contactType') || 'PHONE';
-  const kakaoLink = watch('kakaoLink') || '';
   const phoneNumber = watch('phoneNumber') || '';
   const saveAsDefault = watch('operations.saveAsDefault') || false;
 
@@ -68,6 +66,7 @@ export function MatchCreateOperations({
   // Check if user has existing info
   const userAccount = user ? getAccountInfo(user.accountInfo) : null;
   const userOps = user ? getOperationInfo(user.operationInfo) : null;
+  const verifiedPhone = user?.phone ? formatPhoneNumber(user.phone) : '';
 
   const hasExistingInfo = Boolean(
     userAccount?.bank &&
@@ -91,23 +90,13 @@ export function MatchCreateOperations({
       const number = userAccount.number || '';
       const holder = userAccount.holder || '';
       const notice = userOps.notice || '';
-      const contact = userOps.type || 'PHONE';
-      const contactVal = contact === 'PHONE'
-        ? user.phone || ''
-        : userOps.url || '';
 
       setValue('bankName', bank);
       setValue('accountNumber', number);
       setValue('accountHolder', holder);
       setValue('description', notice);
-      // Contact type logic
-      setValue('operations.contactType', contact);
-      
-      if (contact === 'PHONE') {
-        setValue('phoneNumber', contactVal);
-      } else {
-        setValue('kakaoLink', contactVal);
-      }
+      setValue('operations.contactType', 'PHONE', { shouldDirty: false });
+      setValue('phoneNumber', verifiedPhone, { shouldDirty: false });
 
       if (hasExistingInfo) {
         toast.success('개인 기본값을 불러왔습니다.');
@@ -129,23 +118,23 @@ export function MatchCreateOperations({
         setValue('accountHolder', holder);
         setValue('description', notice);
 
-        // Contact info from user (always defaults to user's contact initially)
-        if (user) {
-          const userOps = getOperationInfo(user.operationInfo);
-          const contact = userOps.type || 'PHONE';
-          setValue('operations.contactType', contact);
-          
-          if (contact === 'PHONE') {
-            setValue('phoneNumber', user.phone || '');
-          } else {
-            setValue('kakaoLink', userOps.url || '');
-          }
-        }
+        setValue('operations.contactType', 'PHONE', { shouldDirty: false });
+        setValue('phoneNumber', verifiedPhone, { shouldDirty: false });
 
         toast.success(`${team.name} 정보를 불러왔습니다.`);
       }
     }
   };
+
+  useEffect(() => {
+    setValue('operations.contactType', 'PHONE', { shouldDirty: false });
+  }, [setValue]);
+
+  useEffect(() => {
+    if (phoneNumber === verifiedPhone) return;
+
+    setValue('phoneNumber', verifiedPhone, { shouldDirty: false });
+  }, [verifiedPhone, phoneNumber, setValue]);
 
   // Sync data to parent via onDataChange
   useEffect(() => {
@@ -159,8 +148,8 @@ export function MatchCreateOperations({
         holder: accountHolder,
       },
       contactInfo: {
-        type: contactType,
-        content: contactType === 'PHONE' ? phoneNumber : kakaoLink,
+        type: 'PHONE',
+        content: verifiedPhone,
       },
       hostNotice: description,
       saveAsDefault,
@@ -170,9 +159,7 @@ export function MatchCreateOperations({
     bankName,
     accountNumber,
     accountHolder,
-    contactType,
-    phoneNumber,
-    kakaoLink,
+    verifiedPhone,
     description,
     saveAsDefault,
     onDataChange,
@@ -221,7 +208,7 @@ export function MatchCreateOperations({
             <SelectValue placeholder="주최자를 선택해주세요" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="me">🙋‍♂️ 내 프로필 (개인)</SelectItem>
+            <SelectItem value="me">🙋‍♂️ 개인 주최</SelectItem>
             {teams.map((team) => (
               <SelectItem key={team.id} value={team.id}>
                 🏀 {team.name}
@@ -290,68 +277,25 @@ export function MatchCreateOperations({
 
         {/* Contact Info - Toggle style */}
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1">
-              <Label className="text-sm font-bold text-slate-600">
-                문의연락처
-              </Label>
-              <span className="text-red-500 text-xs">*</span>
-            </div>
-            {/* Toggle: 전화번호 / 오픈채팅 */}
-            <div className="flex items-center gap-2">
-              <span className={`text-xs font-bold ${contactType === 'PHONE' ? 'text-primary' : 'text-slate-400'}`}>
-                <Phone className="w-3 h-3 inline mr-0.5" />
-                전화
-              </span>
-              <Switch
-                checked={contactType === 'KAKAO_OPEN_CHAT'}
-                onCheckedChange={(checked) => {
-                  setValue('operations.contactType', checked ? 'KAKAO_OPEN_CHAT' : 'PHONE');
-                  // Value persistence: Do not reset content
-                }}
-                className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-slate-200"
-              />
-              <span className={`text-xs font-bold ${contactType === 'KAKAO_OPEN_CHAT' ? 'text-primary' : 'text-slate-400'}`}>
-                <MessageCircle className="w-3 h-3 inline mr-0.5" />
-                오픈채팅
-              </span>
-            </div>
+          <div className="flex items-center gap-1">
+            <Label className="text-sm font-bold text-slate-600">
+              문의연락처
+            </Label>
+            <span className="text-red-500 text-xs">*</span>
           </div>
 
           <div className="relative">
-            {contactType === 'PHONE' ? (
-              <Phone className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
-            ) : (
-              <MessageCircle className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
-            )}
-            {contactType === 'PHONE' ? (
-              <Input
-                {...register('phoneNumber')}
-                placeholder="010-1234-5678"
-                inputMode="tel"
-                className="pl-9 h-11 bg-white border-slate-200 text-sm focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary"
-                onChange={(e) => {
-                  // 전화번호 자동 포맷팅 (숫자만 추출 후 하이픈 추가)
-                  const digits = e.target.value.replace(/[^0-9]/g, '').slice(0, 11);
-                  let formatted = digits;
-                  if (digits.length > 3 && digits.length <= 7) {
-                    formatted = `${digits.slice(0, 3)}-${digits.slice(3)}`;
-                  } else if (digits.length > 7) {
-                    formatted = `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
-                  }
-                  setValue('phoneNumber', formatted);
-                }}
-              />
-            ) : (
-              <Input
-                {...register('kakaoLink')}
-                placeholder="오픈채팅 링크"
-                className="pl-9 h-11 bg-white border-slate-200 text-sm focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary"
-              />
-            )}
+            <Phone className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
+            <Input
+              value={verifiedPhone}
+              readOnly
+              placeholder="인증된 전화번호가 없습니다"
+              inputMode="tel"
+              className="pl-9 h-11 bg-slate-50 border-slate-200 text-sm text-slate-700"
+            />
           </div>
           <p className="text-xs text-slate-400">
-            {contactType === 'PHONE' ? '* 010-XXXX-XXXX 형식으로 입력해주세요' : '* 승인된 게스트에게만 공개됩니다'}
+            * 인증된 내 전화번호가 자동 적용됩니다
           </p>
         </div>
 
