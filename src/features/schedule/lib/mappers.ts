@@ -53,7 +53,7 @@ function getTotalCurrentFromSetup(setup: RecruitmentSetup | null | undefined): n
 }
 
 type ApplicationWithUser = Application & {
-  user: Pick<User, 'id' | 'nickname' | 'avatar_url' | 'positions' | 'manner_score' | 'metadata' | 'account_info' | 'real_name'>;
+  user: Pick<User, 'id' | 'nickname' | 'avatar_url' | 'positions' | 'manner_score' | 'metadata' | 'account_info' | 'real_name' | 'phone'>;
   team?: Pick<Team, 'name'> | null;
 };
 
@@ -146,6 +146,7 @@ export function toMatchApplicantDTO(
     appliedAt: app.created_at || undefined,
     accountInfo,
     matchHistory,
+    phone: app.user.phone || undefined,
   };
 }
 

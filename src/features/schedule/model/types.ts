@@ -52,6 +52,7 @@ export interface MatchApplicantDTO extends Participant {
     holder?: string;
   };
   matchHistory?: MatchApplicantHistoryDTO;
+  phone?: string;
 }
 
 // 경기 관리 리스트 아이템 DTO
