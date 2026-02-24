@@ -178,11 +178,7 @@ export function toScheduleMatchListItemDTO(
 
   // 모집 현황 계산
   const recruitmentSetup = match.recruitment_setup as RecruitmentSetup | null;
-  const maxCount = getMaxCountFromSetup(recruitmentSetup ?? undefined);
-
-  // confirmed_participant_count 컬럼 사용 (동반인 포함, 포지션 모드 전환 후에도 정확)
-  const confirmedCount = match.confirmed_participant_count ?? 0;
-  const vacancies = Math.max(0, maxCount - confirmedCount);
+  const { vacancies } = calculateRecruitmentStats(recruitmentSetup ?? undefined);
 
   return {
     id: match.id,
@@ -202,6 +198,7 @@ export function toScheduleMatchListItemDTO(
       : undefined,
 
     // Host specific
+    // recruitment_setup에서 현재 인원 계산 (current_players_count deprecated)
     applicants: type === 'host' ? getTotalCurrentFromSetup(recruitmentSetup) : undefined,
     vacancies: type === 'host' ? vacancies : undefined,
 
@@ -283,16 +280,6 @@ function getMatchStatus(
     CANCELED: 'cancelled',      // 취소
   };
   return statusMap[dbStatus] || 'recruiting';
-}
-
-function getMaxCountFromSetup(setup?: RecruitmentSetup): number {
-  if (!setup) return 10;
-  if (setup.type === 'ANY') return setup.max_count ?? 10;
-  if (setup.type === 'POSITION' && setup.positions) {
-    const positions = setup.positions as Record<string, { max: number; current: number } | undefined>;
-    return Object.values(positions).reduce((sum, pos) => sum + (pos?.max || 0), 0);
-  }
-  return 10;
 }
 
 function calculateRecruitmentStats(setup?: RecruitmentSetup): {

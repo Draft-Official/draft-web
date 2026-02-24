@@ -61,7 +61,7 @@ export function useHostedMatches() {
       // 모든 호스트 경기 조회 (limit 없음)
       const rows = await matchService.getMyHostedMatches(user.id, 100);
 
-      // 게스트 모집 경기의 미처리 신청자 수 조회 (PENDING + PAYMENT_PENDING)
+      // 게스트 모집 경기의 신청자 수 조회 (PENDING + PAYMENT_PENDING)
       const guestMatchIds = rows
         .filter((r) => r.match_type !== 'TEAM_MATCH')
         .map((r) => r.id);
@@ -113,10 +113,9 @@ export function useHostedMatches() {
       return rows.map((row) => {
         const dto = toScheduleMatchListItemDTO(row, 'host');
         const myVoteData = myVoteMap.get(row.id);
-
         return {
           ...dto,
-          // 미처리 신청 건수 (PENDING + PAYMENT_PENDING)로 덮어씌우기
+          // 게스트 모집 경기: 실제 신청자 수(PENDING + PAYMENT_PENDING)로 덮어씌우기
           applicants: row.match_type !== 'TEAM_MATCH'
             ? (applicantCountMap.get(row.id) ?? 0)
             : dto.applicants,

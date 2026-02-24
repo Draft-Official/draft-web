@@ -47,7 +47,6 @@ export interface Match {
   levelRange: LevelRange | null;
   ageRange: AgeRange | null;
   recruitmentSetup: RecruitmentSetup;
-  confirmedParticipantCount: number;
   matchRule: MatchRule | null;
   accountInfo: AccountInfo | null;
   operationInfo: OperationInfo | null;

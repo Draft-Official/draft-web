@@ -43,7 +43,6 @@ export function matchRowToEntity(row: MatchRow): MatchEntity {
     levelRange: (row.level_range as unknown as LevelRange) ?? null,
     ageRange: (row.age_range as unknown as AgeRange) ?? null,
     recruitmentSetup: row.recruitment_setup as unknown as RecruitmentSetup,
-    confirmedParticipantCount: row.confirmed_participant_count ?? 0,
     matchRule: (row.match_rule as unknown as MatchRule) ?? null,
     accountInfo: (row.account_info as unknown as AccountInfo) ?? null,
     operationInfo: (row.operation_info as unknown as OperationInfo) ?? null,
