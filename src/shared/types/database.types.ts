@@ -589,6 +589,7 @@ export type Database = {
           phone_verified: boolean | null
           positions: string[] | null
           real_name: string | null
+          role: string
         }
         Insert: {
           account_info?: Json | null
@@ -605,6 +606,7 @@ export type Database = {
           phone_verified?: boolean | null
           positions?: string[] | null
           real_name?: string | null
+          role?: string
         }
         Update: {
           account_info?: Json | null
@@ -621,6 +623,7 @@ export type Database = {
           phone_verified?: boolean | null
           positions?: string[] | null
           real_name?: string | null
+          role?: string
         }
         Relationships: []
       }
