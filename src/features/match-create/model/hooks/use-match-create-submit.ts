@@ -56,6 +56,7 @@ interface UseMatchCreateSubmitParams {
   editMatchId: string | null;
   selectedDate: string | null;
   locationData: LocationData | null;
+  currentUserPhone?: string | null;
   recruitment: RecruitmentState;
   matchSpec: MatchSpecState;
   facilities: FacilitiesState;
@@ -75,6 +76,7 @@ export function useMatchCreateSubmit({
   editMatchId,
   selectedDate,
   locationData,
+  currentUserPhone,
   recruitment,
   matchSpec,
   facilities,
@@ -92,6 +94,7 @@ export function useMatchCreateSubmit({
       form: data,
       selectedDate,
       locationData,
+      currentUserPhone,
       isPositionMode: recruitment.isPositionMode,
       positions: recruitment.positions,
       totalCount: recruitment.totalCount,

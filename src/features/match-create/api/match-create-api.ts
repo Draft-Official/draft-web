@@ -7,19 +7,66 @@ import {
 import type { MatchCreateFormData } from '@/features/match-create/model/form-data.types';
 import { createGymService } from '@/entities/gym';
 import { logRequest, logResponse, logSupabaseQuery, logSupabaseResult } from '@/shared/lib/logger';
+import { handleSupabaseError, ValidationError } from '@/shared/lib/errors';
+import { normalizePhoneNumber, PHONE_REGEX } from '@/shared/lib/phone-utils';
 
 export class MatchCreateService {
   private readonly SERVICE_NAME = 'MatchCreateService';
 
   constructor(private supabase: SupabaseClient<Database>) {}
 
+  private async assertPhoneVerified(
+    userId: string,
+    actionLabel: string
+  ): Promise<{ phone: string | null }> {
+    const { data, error } = await this.supabase
+      .from('users')
+      .select('phone_verified, phone')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (error) {
+      handleSupabaseError(error, '사용자 인증 정보');
+    }
+
+    if (!data?.phone_verified) {
+      throw new ValidationError(`전화번호 인증 후 ${actionLabel}이 가능합니다.`);
+    }
+
+    return { phone: data.phone };
+  }
+
+  private resolveVerifiedPhone(phone: string | null, actionLabel: string): string {
+    const normalizedPhone = normalizePhoneNumber(phone || '');
+    if (!PHONE_REGEX.test(normalizedPhone)) {
+      throw new ValidationError(`인증된 전화번호 정보가 없어 ${actionLabel}이 불가능합니다.`);
+    }
+    return normalizedPhone;
+  }
+
+  private applyVerifiedPhoneContact(
+    form: MatchCreateFormData,
+    verifiedPhone: string
+  ): MatchCreateFormData {
+    return {
+      ...form,
+      contactType: 'PHONE',
+      contactContent: verifiedPhone,
+    };
+  }
+
   /**
    * Form → DB 데이터 준비 (Gym upsert + Match 매핑 + Team Name 보정)
    */
-  private async prepareMatchData(hostId: string, form: MatchCreateFormData) {
+  private async prepareMatchData(
+    hostId: string,
+    form: MatchCreateFormData,
+    verifiedPhone: string
+  ) {
     const gymService = createGymService(this.supabase);
-    const gymId = await gymService.upsertGym(extractGymDataV3(form));
-    const matchData = toMatchInsertDataV3(hostId, form, gymId);
+    const normalizedForm = this.applyVerifiedPhoneContact(form, verifiedPhone);
+    const gymId = await gymService.upsertGym(extractGymDataV3(normalizedForm));
+    const matchData = toMatchInsertDataV3(hostId, normalizedForm, gymId);
 
     // Team Name 보정
     if (matchData.manual_team_name === '' && matchData.team_id) {
@@ -47,7 +94,9 @@ export class MatchCreateService {
     logRequest(this.SERVICE_NAME, 'createMatch', { hostId, form });
 
     try {
-      const { matchData, gymId } = await this.prepareMatchData(hostId, form);
+      const { phone } = await this.assertPhoneVerified(hostId, '경기 생성');
+      const verifiedPhone = this.resolveVerifiedPhone(phone, '경기 생성');
+      const { matchData, gymId } = await this.prepareMatchData(hostId, form, verifiedPhone);
 
       logSupabaseQuery('matches', 'INSERT', matchData);
       const { data: match, error } = await this.supabase
@@ -74,7 +123,12 @@ export class MatchCreateService {
     logRequest(this.SERVICE_NAME, 'updateMatch', { matchId, hostId, form });
 
     try {
-      const { matchData, gymId } = await this.prepareMatchData(hostId, form);
+      const verifiedPhone = this.resolveVerifiedPhone(
+        (await this.assertPhoneVerified(hostId, '경기 수정')).phone,
+        '경기 수정'
+      );
+
+      const { matchData, gymId } = await this.prepareMatchData(hostId, form, verifiedPhone);
       const { status, ...updateData } = matchData; // 수정 시 기존 상태 유지
       void status;
 

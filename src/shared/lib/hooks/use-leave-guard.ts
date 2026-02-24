@@ -66,10 +66,33 @@ export function useLeaveGuard(isDirty: boolean) {
     }
   }, [router]);
 
+  /**
+   * 폼 저장 완료 등 "정상 이탈" 시 사용.
+   * leaveGuard dummy history가 있으면 먼저 1칸 정리한 뒤 목적지 이동을 실행한다.
+   */
+  const bypassNavigation = useCallback((navigate: () => void) => {
+    setShowDialog(false);
+    isLeavingRef.current = true;
+
+    if (!hasDummyRef.current) {
+      navigate();
+      return;
+    }
+
+    const handleBypassPopState = () => {
+      window.removeEventListener('popstate', handleBypassPopState);
+      hasDummyRef.current = false;
+      navigate();
+    };
+
+    window.addEventListener('popstate', handleBypassPopState, { once: true });
+    window.history.go(-1);
+  }, []);
+
   // 다이얼로그에서 "취소"
   const cancelLeave = useCallback(() => {
     setShowDialog(false);
   }, []);
 
-  return { showDialog, requestLeave, confirmLeave, cancelLeave };
+  return { showDialog, requestLeave, confirmLeave, cancelLeave, bypassNavigation };
 }

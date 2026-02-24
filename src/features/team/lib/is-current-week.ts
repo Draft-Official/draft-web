@@ -1,20 +1,25 @@
-import { endOfWeek, isWithinInterval, startOfWeek } from 'date-fns';
+import { formatKSTDateISO, getKSTDateParts, parseKSTDateISO } from '@/shared/lib/datetime';
+
+const DAY_IN_MS = 24 * 60 * 60 * 1000;
 
 /**
  * 매치 시작 시간이 기준일의 이번 주(월~일)에 포함되는지 확인한다.
  */
 export function isCurrentWeekMatch(startTime: string, referenceDate: Date = new Date()): boolean {
-  const matchDate = new Date(startTime);
+  const matchDateISO = formatKSTDateISO(startTime);
+  const referenceDateISO = formatKSTDateISO(referenceDate);
+  const referenceParts = getKSTDateParts(referenceDate);
 
-  if (Number.isNaN(matchDate.getTime())) {
+  if (!matchDateISO || !referenceDateISO || !referenceParts) {
     return false;
   }
 
-  const weekStart = startOfWeek(referenceDate, { weekStartsOn: 1 });
-  const weekEnd = endOfWeek(referenceDate, { weekStartsOn: 1 });
+  const matchDate = parseKSTDateISO(matchDateISO);
+  const referenceDateAtKST = parseKSTDateISO(referenceDateISO);
 
-  return isWithinInterval(matchDate, {
-    start: weekStart,
-    end: weekEnd,
-  });
+  const diffToMonday = (referenceParts.weekday + 6) % 7;
+  const weekStart = new Date(referenceDateAtKST.getTime() - diffToMonday * DAY_IN_MS);
+  const weekEnd = new Date(weekStart.getTime() + 6 * DAY_IN_MS);
+
+  return matchDate.getTime() >= weekStart.getTime() && matchDate.getTime() <= weekEnd.getTime();
 }

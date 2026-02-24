@@ -78,8 +78,10 @@ export interface MatchCreatePrefillDTO {
 
 export interface RecentMatchListItemDTO extends MatchCreatePrefillDTO {
   dateLabel: string;
+  timeLabel: string;
   priceLabel: string;
   hostLabel: string;
+  typeLabel: string;
   gymLabel: string;
   isTeamHost: boolean;
 }

@@ -17,6 +17,7 @@ import type {
   MatchCreateUserDTO,
   RecentMatchListItemDTO,
 } from '@/features/match-create/model/types';
+import { getKSTDateParts, formatKSTTime } from '@/shared/lib/datetime';
 
 type UserRow = Database['public']['Tables']['users']['Row'];
 type TeamRow = Database['public']['Tables']['teams']['Row'];
@@ -53,12 +54,9 @@ function toCostTypeValue(value: string | null): CostTypeValue | null {
 }
 
 function formatDateLabel(isoString: string): string {
-  const date = new Date(isoString);
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-  const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
-  const weekday = weekdays[date.getDay()];
-  return `${month}/${day} (${weekday})`;
+  const parts = getKSTDateParts(isoString);
+  if (!parts) return '';
+  return `${parts.month}/${parts.day} (${parts.weekdayLabel})`;
 }
 
 function formatPriceLabel(amount: number | null, costType: CostTypeValue | null): string {
@@ -130,12 +128,15 @@ export function toRecentMatchListItemDTO(match: MatchWithGymTeamRow): RecentMatc
   const prefill = toMatchCreatePrefillDTO(match);
   const isTeamHost = !!prefill.teamId;
   const hostLabel = isTeamHost ? prefill.teamName || '팀' : '개인';
+  const typeLabel = match.match_type === 'TEAM_MATCH' ? '팀운동' : '게스트';
 
   return {
     ...prefill,
     dateLabel: formatDateLabel(match.start_time),
+    timeLabel: formatKSTTime(match.start_time),
     priceLabel: formatPriceLabel(prefill.costAmount, prefill.costType),
     hostLabel,
+    typeLabel,
     gymLabel: prefill.gymName,
     isTeamHost,
   };

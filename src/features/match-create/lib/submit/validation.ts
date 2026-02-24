@@ -1,6 +1,5 @@
 import type { LocationData } from '@/features/match-create/model/types';
 import type {
-  MatchCreateContactType,
   MatchCreateSubmitFormValues,
 } from '@/features/match-create/model/submit-form.types';
 import type {
@@ -11,11 +10,13 @@ import {
   isValidAccountHolder,
   isValidAccountNumber,
 } from '@/shared/lib/validation/account';
+import { normalizePhoneNumber, PHONE_REGEX } from '@/shared/lib/phone-utils';
 
 interface ValidationInput {
   form: MatchCreateSubmitFormValues;
   selectedDate: string | null;
   locationData: LocationData | null;
+  currentUserPhone?: string | null;
   isPositionMode: boolean;
   positions: {
     guard: number;
@@ -34,6 +35,7 @@ export function validateMatchCreateSubmit({
   form,
   selectedDate,
   locationData,
+  currentUserPhone,
   isPositionMode,
   positions,
   totalCount,
@@ -130,43 +132,26 @@ export function validateMatchCreateSubmit({
     };
   }
 
-  const normalizedContactType: MatchCreateContactType =
-    form.operations?.contactType === 'KAKAO_OPEN_CHAT' ? 'KAKAO_OPEN_CHAT' : 'PHONE';
-
-  const opsContactContent =
-    normalizedContactType === 'PHONE'
-      ? form.phoneNumber || ''
-      : form.kakaoLink || '';
+  const normalizedUserPhone = normalizePhoneNumber(currentUserPhone || '');
+  const normalizedContactType = 'PHONE' as const;
+  const opsContactContent = normalizedUserPhone;
 
   if (!opsContactContent) {
     return {
       ok: false,
       error: {
         sectionId: 'section-operations',
-        message: '⚠️ 운영 정보를 확인해주세요: 연락처를 입력해주세요.',
+        message: '⚠️ 운영 정보를 확인해주세요: 전화번호 인증 후 이용해주세요.',
       },
     };
   }
 
-  if (normalizedContactType === 'PHONE') {
-    const phoneRegex = /^01[0-9]-?\d{3,4}-?\d{4}$/;
-    if (!phoneRegex.test(opsContactContent)) {
-      return {
-        ok: false,
-        error: {
-          sectionId: 'section-operations',
-          message: '⚠️ 운영 정보를 확인해주세요: 올바른 전화번호 형식으로 입력해주세요 (예: 010-1234-5678)',
-        },
-      };
-    }
-  }
-
-  if (normalizedContactType === 'KAKAO_OPEN_CHAT' && !opsContactContent.startsWith('http')) {
+  if (!PHONE_REGEX.test(opsContactContent)) {
     return {
       ok: false,
       error: {
         sectionId: 'section-operations',
-        message: '⚠️ 운영 정보를 확인해주세요: 올바른 오픈채팅 링크를 입력해주세요.',
+        message: '⚠️ 운영 정보를 확인해주세요: 전화번호 인증 후 이용해주세요.',
       },
     };
   }

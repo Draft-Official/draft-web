@@ -168,11 +168,11 @@ export function FilterBar({
     // Count active detailed filters (hideClosed는 기본값이므로 제외)
     let count = 0;
     if (selectedPositions.length > 0) count++;
-    if (minVacancy !== null && minVacancy > 0) count++;
+    if (minVacancy !== null && minVacancy > 1) count++;
     if (selectedGenders.length > 0) count++;
     if (selectedAges.length > 0) count++;
     if (selectedGameFormats.length > 0) count++;
-    // hideClosed는 기본 동작이므로 카운트에서 제외
+    if (hideClosed === false) count++; // 기본값(true)에서 벗어난 경우만 카운트
     return count > 0 ? `상세 (${count})` : "상세";
   };
 
@@ -252,10 +252,11 @@ export function FilterBar({
           variant="orange"
           isActive={
             selectedPositions.length > 0 ||
-            (minVacancy !== null && minVacancy > 0) ||
+            (minVacancy !== null && minVacancy > 1) ||
             selectedGenders.length > 0 ||
             selectedAges.length > 0 ||
-            selectedGameFormats.length > 0
+            selectedGameFormats.length > 0 ||
+            hideClosed === false
           }
           hasDropdown={true}
           showCheckIcon={false}

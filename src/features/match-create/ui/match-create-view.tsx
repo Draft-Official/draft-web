@@ -71,7 +71,6 @@ export function MatchCreateView() {
     levelMax,
     handleLevelChange,
     selectedAges,
-    handleAgeSelection,
     handleAgeRangeUpdate,
 
     gameFormatType,
@@ -213,7 +212,7 @@ export function MatchCreateView() {
               matchFormat={matchFormat} setMatchFormat={setMatchFormat}
               gender={gender} setGender={setGender}
               levelMin={levelMin} levelMax={levelMax} onLevelChange={handleLevelChange}
-              selectedAges={selectedAges} handleAgeSelection={handleAgeSelection}
+              selectedAges={selectedAges}
               handleAgeRangeUpdate={handleAgeRangeUpdate}
             />
           </div>

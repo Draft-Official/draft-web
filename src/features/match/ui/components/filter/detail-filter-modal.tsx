@@ -95,7 +95,8 @@ export function DetailedFilterModal({
   const handleApply = () => {
     onApply({
       positions: onPositionsChange ? tempPositions : undefined,
-      minVacancy: onMinVacancyChange ? tempMinVacancy : undefined,
+      // 1명은 사실상 필터 미적용 (모든 경기가 해당) → null 처리
+      minVacancy: onMinVacancyChange ? (tempMinVacancy <= 1 ? null : tempMinVacancy) : undefined,
       genders: tempGenders,
       ages: tempAges,
       gameFormats: tempGameFormats,

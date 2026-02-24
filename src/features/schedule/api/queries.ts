@@ -8,7 +8,7 @@ import { createMatchService } from '@/entities/match';
 import { createApplicationService } from '@/entities/application';
 import { createTeamService } from '@/entities/team';
 import { useAuth } from '@/shared/session';
-import { formatMatchDate, formatMatchTime } from '@/shared/lib/date';
+import { formatMatchDate, formatMatchTime } from '@/shared/lib/datetime';
 import { getPositionLabel } from '@/shared/config/match-constants';
 import type { TeamVoteStatusValue } from '@/shared/config/application-constants';
 import { matchManagementKeys } from './keys';

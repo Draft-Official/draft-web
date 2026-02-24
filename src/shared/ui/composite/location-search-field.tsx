@@ -44,6 +44,8 @@ export function LocationSearchField({
     handleSearch,
     handleSelect,
     handleClear,
+    handleCompositionStart,
+    handleCompositionEnd,
   } = useLocationSearch();
 
   const externalKey = getLocationKey(value);
@@ -100,6 +102,8 @@ export function LocationSearchField({
             placeholder={placeholder}
             value={location}
             onChange={(e) => handleSearch(e.target.value)}
+            onCompositionStart={handleCompositionStart}
+            onCompositionEnd={(e) => handleCompositionEnd((e.target as HTMLInputElement).value)}
             onFocus={onInputFocus}
             onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
             className="pl-10 h-12 pr-12"

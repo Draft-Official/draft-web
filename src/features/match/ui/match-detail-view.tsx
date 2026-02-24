@@ -25,6 +25,7 @@ import { createApplicationService } from '@/entities/application';
 import { matchManagementKeys } from '@/features/schedule/api/keys';
 import { useCancelMatchFlow, useMatchApplicants, useUpdateMatchStatus } from '@/features/schedule';
 import { MatchCancelDialog } from '@/features/schedule/ui/detail/match-cancel-dialog';
+import { getKSTDateParts, parseKSTDateISO, parseKSTDateTime } from '@/shared/lib/datetime';
 
 interface MatchDetailViewProps {
   match: GuestMatchDetailDTO;
@@ -34,7 +35,7 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
-  const { isAuthenticated, user } = useAuth();
+  const { user } = useAuth();
   const { requireAuth, modalProps } = useRequireAuth({
     redirectTo: `/matches/${match.publicId}`,
     description: '경기를 신청하려면 로그인이 필요합니다.\n로그인 후 이용해 주세요.',
@@ -45,6 +46,15 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
 
   // 경기관리 > 참여에서 들어온 경우
   const isFromSchedule = searchParams?.get('from') === 'schedule';
+  const isFromCreate = searchParams?.get('from') === 'create';
+
+  const navigateBack = () => {
+    if (isFromCreate) {
+      router.replace('/');
+      return;
+    }
+    router.back();
+  };
 
   // 내 신청 정보 조회
   const { data: myApplication, isLoading: isLoadingApplication } = useQuery({
@@ -136,7 +146,7 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
       toast.success('참가 신청이 취소되었습니다.');
       queryClient.invalidateQueries({ queryKey: ['my-application', match.id] });
       queryClient.invalidateQueries({ queryKey: matchManagementKeys.participatingMatches(user?.id ?? '') });
-      router.back();
+      navigateBack();
     },
     onError: (error: Error) => {
       toast.error(`취소 실패: ${error.message}`);
@@ -145,7 +155,7 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
 
   // 경기 종료 여부 (시간 기반)
   const isMatchEnded = !!(match.dateISO && match.endTime &&
-    new Date() >= new Date(`${match.dateISO}T${match.endTime}`));
+    new Date() >= parseKSTDateTime(match.dateISO, match.endTime));
 
   // 이미 신청한 경기인지 (from=schedule이거나 myApplication이 있는 경우)
   const hasApplied = isFromSchedule || !!myApplication;
@@ -188,7 +198,7 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
 
     statusMutation.mutate(
       { matchId: match.id, status: 'CANCELED' },
-      { onSuccess: () => router.back() }
+      { onSuccess: navigateBack }
     );
   };
 
@@ -198,7 +208,7 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
       {/* 1. Header (Sticky) */}
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-100 h-[52px] flex items-center justify-between px-2">
         <button
-          onClick={() => router.back()}
+          onClick={navigateBack}
           className="p-2.5 text-slate-900 hover:bg-slate-50 rounded-full transition-colors"
         >
           <ArrowLeft className="w-6 h-6" />
@@ -286,11 +296,9 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
         matchPublicId={match.publicId}
         matchTitle={match.title}
         matchDate={(() => {
-          const d = new Date(match.dateISO);
-          const month = d.getMonth() + 1;
-          const date = d.getDate();
-          const day = ['일', '월', '화', '수', '목', '금', '토'][d.getDay()];
-          return `${month}월 ${date}일 (${day}) ${match.startTime}`;
+          const parts = getKSTDateParts(parseKSTDateISO(match.dateISO));
+          if (!parts) return match.startTime;
+          return `${parts.month}월 ${parts.day}일 (${parts.weekdayLabel}) ${match.startTime}`;
         })()}
         location={match.location}
       />
@@ -304,7 +312,7 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
         onConfirm={(message) => {
           cancelMatchFlowMutation.mutate(
             { matchId: match.id, message },
-            { onSuccess: () => router.back() }
+            { onSuccess: navigateBack }
           );
         }}
       />

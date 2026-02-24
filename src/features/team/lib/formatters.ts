@@ -1,8 +1,7 @@
 import { REGULAR_DAY_SHORT_LABELS, type RegularDayValue } from '@/shared/config/team-constants';
 import { getLevelLabel } from '@/shared/config/skill-constants';
 import type { AgeRange, LevelRange } from '@/shared/types/jsonb.types';
-
-const DAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'] as const;
+import { formatKSTTime, getKSTDateParts } from '@/shared/lib/datetime';
 
 /**
  * 팀 지역 표시 문자열 생성
@@ -70,12 +69,9 @@ export function formatTeamAgeRange(ageRange: AgeRange | null): string | null {
  * @example 2026. 2. 14 (토)
  */
 export function formatTeamMatchDate(dateISO: string): string {
-  const date = new Date(dateISO);
-  const year = date.getFullYear();
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-  const dayLabel = DAY_LABELS[date.getDay()];
-  return `${year}. ${month}. ${day} (${dayLabel})`;
+  const parts = getKSTDateParts(dateISO);
+  if (!parts) return '';
+  return `${parts.year}. ${parts.month}. ${parts.day} (${parts.weekdayLabel})`;
 }
 
 /**
@@ -83,8 +79,5 @@ export function formatTeamMatchDate(dateISO: string): string {
  * @example 19:00
  */
 export function formatTeamMatchTime(dateISO: string): string {
-  const date = new Date(dateISO);
-  const hours = date.getHours().toString().padStart(2, '0');
-  const minutes = date.getMinutes().toString().padStart(2, '0');
-  return `${hours}:${minutes}`;
+  return formatKSTTime(dateISO);
 }

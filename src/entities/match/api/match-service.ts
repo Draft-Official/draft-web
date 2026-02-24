@@ -6,6 +6,7 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import { Database, MatchInsert, MatchUpdate } from '@/shared/types/database.types';
 import { logRequest, logResponse } from '@/shared/lib/logger';
 import type { MatchStatusValue } from '@/shared/config/match-constants';
+import { getKSTStartOfTodayISO } from '@/shared/lib/datetime';
 
 type MatchType = 'GUEST_RECRUIT' | 'TEAM_MATCH';
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -193,7 +194,7 @@ export class MatchService {
   async getRecruitingMatchesPaginated(pageParam: number = 0, pageSize: number = 20) {
     logRequest(this.SERVICE_NAME, 'getRecruitingMatchesPaginated', { pageParam, pageSize });
 
-    const todayISO = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' });
+    const todayISO = getKSTStartOfTodayISO();
     const VISIBLE_STATUSES: MatchStatusValue[] = ['RECRUITING', 'CLOSED'];
 
     const { data, error } = await this.supabase

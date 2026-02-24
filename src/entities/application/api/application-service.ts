@@ -38,6 +38,20 @@ function extractPositionsFromParticipants(
 export class ApplicationService {
   constructor(private supabase: SupabaseClient<Database>) {}
 
+  private async assertPhoneVerified(userId: string, actionLabel: string): Promise<void> {
+    const { data, error } = await this.supabase
+      .from('users')
+      .select('phone_verified')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (error) handleSupabaseError(error, '사용자 인증 정보');
+
+    if (!data?.phone_verified) {
+      throw new ValidationError(`전화번호 인증 후 ${actionLabel}이 가능합니다.`);
+    }
+  }
+
   /**
    * 매치의 신청 목록 조회 (호스트용)
    */
@@ -150,6 +164,8 @@ export class ApplicationService {
     participantsInfo: ParticipantInfo[],
     teamId?: string | null
   ): Promise<Application> {
+    await this.assertPhoneVerified(userId, '경기 신청');
+
     const { data, error } = await this.supabase
       .from('applications')
       .insert({

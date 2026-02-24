@@ -2,6 +2,7 @@
 
 import { toast } from '@/shared/ui/shadcn/sonner';
 import type { TeamMatchDetailDTO } from '@/features/team/model/types';
+import { formatKSTTime, getKSTDateParts } from '@/shared/lib/datetime';
 
 interface TeamHeroSectionProps {
   match: TeamMatchDetailDTO;
@@ -11,22 +12,12 @@ interface TeamHeroSectionProps {
 export function TeamHeroSection({ match, teamName }: TeamHeroSectionProps) {
   // 날짜/시간 포맷팅
   const formatDateTime = () => {
-    const startDate = new Date(match.startTime);
-    const endDate = new Date(match.endTime);
-    const month = startDate.getMonth() + 1;
-    const date = startDate.getDate();
-    const day = ['일', '월', '화', '수', '목', '금', '토'][startDate.getDay()];
-    const startTime = startDate.toLocaleTimeString('ko-KR', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-    });
-    const endTime = endDate.toLocaleTimeString('ko-KR', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-    });
-    return `${month}월 ${date}일 (${day}) ${startTime} ~ ${endTime}`;
+    const startParts = getKSTDateParts(match.startTime);
+    if (!startParts) return '-';
+
+    const startTime = formatKSTTime(match.startTime);
+    const endTime = formatKSTTime(match.endTime);
+    return `${startParts.month}월 ${startParts.day}일 (${startParts.weekdayLabel}) ${startTime} ~ ${endTime}`;
   };
 
   // 주소 복사 핸들러

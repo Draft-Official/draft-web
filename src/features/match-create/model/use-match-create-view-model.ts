@@ -23,7 +23,6 @@ import { useMatchCreateFacilities } from '@/features/match-create/model/hooks/us
 import { useMatchCreateEditPrefillLoader } from '@/features/match-create/model/hooks/use-match-create-edit-prefill-loader';
 import { useMatchCreateSubmit } from '@/features/match-create/model/hooks/use-match-create-submit';
 import { usePrefillFromRecentMatch } from '@/features/match-create/model/hooks/use-prefill-from-recent-match';
-import { nextSelectedAges } from '@/features/match-create/lib/age-range';
 import { getNext14Days } from '@/features/match-create/lib/utils';
 
 export function useMatchCreateViewModel() {
@@ -136,10 +135,6 @@ export function useMatchCreateViewModel() {
     setSelectedAges(newAges);
   };
 
-  const handleAgeSelection = (age: string) => {
-    setSelectedAges((prev) => nextSelectedAges(prev, age));
-  };
-
   const handleLevelChange = (min: number, max: number) => {
     setLevelMin(min);
     setLevelMax(max);
@@ -201,11 +196,22 @@ export function useMatchCreateViewModel() {
   const isLoadingEditData = isEditMode && (isLoadingEditPrefill || isApplyingEditData);
   const editMatchInternalId = editPrefillData?.matchId ?? editMatchId;
 
+  const isDirty = !isEditMode && (
+    methods.formState.isDirty ||
+    locationData !== null ||
+    isGameFormatSelected ||
+    isRulesSelected ||
+    isRefereeSelected ||
+    totalCount !== 1
+  );
+  const leaveGuard = useLeaveGuard(isDirty);
+
   const { isPending, onSubmit } = useMatchCreateSubmit({
     isEditMode,
     editMatchId: editMatchInternalId,
     selectedDate,
     locationData,
+    currentUserPhone: currentUser?.phone,
     recruitment: {
       isPositionMode,
       isFlexBigman,
@@ -243,20 +249,13 @@ export function useMatchCreateViewModel() {
       if (isEditMode) {
         router.back();
       } else {
-        router.replace(publicId ? `/matches/${publicId}` : '/');
+        const targetPath = publicId ? `/matches/${publicId}?from=create` : '/';
+        leaveGuard.bypassNavigation(() => {
+          window.location.replace(targetPath);
+        });
       }
     },
   });
-
-  const isDirty = !isEditMode && (
-    methods.formState.isDirty ||
-    locationData !== null ||
-    isGameFormatSelected ||
-    isRulesSelected ||
-    isRefereeSelected ||
-    totalCount !== 1
-  );
-  const leaveGuard = useLeaveGuard(isDirty);
 
   const handleSelectRecentMatch = async (match: RecentMatchListItemDTO) => {
     setIsApplyingRecentPrefill(true);
@@ -324,7 +323,6 @@ export function useMatchCreateViewModel() {
     levelMax,
     handleLevelChange,
     selectedAges,
-    handleAgeSelection,
     handleAgeRangeUpdate,
 
     gameFormatType,

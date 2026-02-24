@@ -74,12 +74,12 @@ export function MatchCreateBasicInfo({
   const methods = { getValues }; // Helper to match prev code
 
   // Watch startTime and duration for time range display
-  const startTime = watch('startTime', '19:00');
+  const startTime = watch('startTime');
   const duration = watch('duration', '2');
   const feeValue = watch('fee', '10000');
 
   // Fee Persistence
-  const lastCostRef = useRef<string>("10000");
+  const lastCostRef = useRef<string>("");
   const lastBeverageRef = useRef<string>("1");
 
   // 음수 입력 차단 핸들러
@@ -89,14 +89,24 @@ export function MatchCreateBasicInfo({
     }
   };
 
+  // register에서 onChange/onBlur를 분리하여 커스텀 핸들러와 통합
+  const feeRegistration = register('fee', { required: true });
+
   // 참가비 입력 핸들러 (양의 정수만, 음료는 1 이상)
   const handleFeeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/[^0-9]/g, ''); // 숫자만 허용
-    if (feeType === 'beverage' && value === '0') {
-      setValue('fee', '1'); // 음료는 최소 1개
-    } else {
-      setValue('fee', value);
+    e.target.value = value; // input 값을 직접 업데이트
+    if (feeType === 'beverage') {
+      if (value === '0') {
+        setValue('fee', '1', { shouldValidate: true });
+        e.target.value = '1';
+      } else if (Number(value) > 5) {
+        setValue('fee', '5', { shouldValidate: true });
+        e.target.value = '5';
+      }
     }
+    // register의 onChange도 호출하여 react-hook-form 상태 동기화
+    feeRegistration.onChange(e);
   };
 
   return (
@@ -112,6 +122,13 @@ export function MatchCreateBasicInfo({
                 경기 날짜
                 {selectedDate && (() => {
                     const [, m, d] = selectedDate.split('-');
+                    if (!startTime) {
+                      return (
+                        <span className="text-primary">
+                          {parseInt(m)}월 {parseInt(d)}일
+                        </span>
+                      );
+                    }
                     const endTime = calculateEndTime(startTime, duration);
                     const timeRange = `${formatTimeDisplay(startTime)} ~ ${formatTimeDisplay(endTime)}`;
                     return (
@@ -139,12 +156,10 @@ export function MatchCreateBasicInfo({
                 <Controller
                     name="startTime"
                     control={control}
-                    defaultValue="19:00"
                     render={({ field }) => (
                         <TimePickerSelect
                             value={field.value}
                             onValueChange={field.onChange}
-                            defaultValue="19:00"
                         />
                     )}
                 />
@@ -205,7 +220,7 @@ export function MatchCreateBasicInfo({
                             if (newType === 'beverage') {
                                 setValue('fee', lastBeverageRef.current || '1');
                             } else {
-                                setValue('fee', lastCostRef.current || '10000');
+                                setValue('fee', lastCostRef.current);
                             }
                         }}
                         className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-slate-200" 
@@ -217,12 +232,13 @@ export function MatchCreateBasicInfo({
                 <Input
                     type="text"
                     inputMode="numeric"
-                    {...register('fee', { required: true })}
+                    name={feeRegistration.name}
+                    ref={feeRegistration.ref}
+                    onBlur={feeRegistration.onBlur}
                     onChange={handleFeeChange}
                     onKeyDown={handleFeeKeyDown}
-                    defaultValue="10000"
-                    className="h-12 bg-white border-slate-200 pr-10 text-right font-bold text-lg [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                    placeholder={feeType === 'cost' ? '10000' : '1'}
+                    className="h-12 bg-white border-slate-200 pr-10 text-right font-bold text-lg placeholder:text-slate-400 placeholder:font-normal placeholder:text-base [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    placeholder={feeType === 'cost' ? '0 입력시 무료 매치로 등록됩니다' : '1'}
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 font-medium">
                     {feeType === 'cost' ? '원' : '병'}

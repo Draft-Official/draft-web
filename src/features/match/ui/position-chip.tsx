@@ -8,9 +8,10 @@ interface PositionChipProps {
   status: 'open' | 'closed';
   max: number;
   current: number;
+  matchClosed?: boolean;
 }
 
-export function PositionChip({ label, status, max, current }: PositionChipProps) {
+export function PositionChip({ label, status, max, current, matchClosed = false }: PositionChipProps) {
   // Figma Spec:
   // - Font Size: 11px
   // - Padding: vertical 4px(token x1), horizontal 6px
@@ -33,8 +34,8 @@ export function PositionChip({ label, status, max, current }: PositionChipProps)
       <span>{label}</span>
       {isOpen ? (
         <span className="font-bold">
-          <span className="text-primary">{current}</span>
-          <span className="text-slate-700">/{max}</span>
+          <span className={matchClosed ? "text-slate-400" : "text-primary"}>{current}</span>
+          <span className={matchClosed ? "text-slate-400" : "text-slate-700"}>/{max}</span>
         </span>
       ) : (
         <span className="font-bold text-slate-400">마감</span>
