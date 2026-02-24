@@ -23,6 +23,7 @@ import type { AccountInfo, OperationInfo } from '@/shared/types/jsonb.types';
 import { handleSupabaseError } from '@/shared/lib/errors';
 import { normalizeRegularDay } from '@/shared/config/team-constants';
 import type { TeamRoleValue, TeamVoteStatusValue } from '@/shared/config/team-constants';
+import { toKSTDateTimeISO } from '@/shared/lib/datetime';
 import type {
   CreateTeamInput,
   UpdateTeamInput,
@@ -51,6 +52,17 @@ export type TeamFeeWithUserRow = TeamFee & {
 };
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const HAS_TIMEZONE_PATTERN = /(Z|[+-]\d{2}:\d{2})$/i;
+const LOCAL_DATETIME_PATTERN = /^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})(?::\d{2})?$/;
+
+function normalizeMatchDateTimeInput(value: string): string {
+  if (HAS_TIMEZONE_PATTERN.test(value)) return value;
+
+  const match = value.match(LOCAL_DATETIME_PATTERN);
+  if (!match) return value;
+
+  return toKSTDateTimeISO(match[1], match[2]);
+}
 
 export class TeamService {
   constructor(private supabase: SupabaseClient<Database>) {}
@@ -635,8 +647,8 @@ export class TeamService {
       team_id: input.teamId,
       host_id: hostId,
       match_type: 'TEAM_MATCH',
-      start_time: input.startTime,
-      end_time: input.endTime,
+      start_time: normalizeMatchDateTimeInput(input.startTime),
+      end_time: normalizeMatchDateTimeInput(input.endTime),
       gym_id: input.gymId,
       cost_type: input.costType || 'FREE',
       cost_amount: input.costAmount,
@@ -1006,8 +1018,8 @@ export class TeamService {
     }
   ): Promise<Match> {
     const updateData: Record<string, unknown> = {};
-    if (input.startTime) updateData.start_time = input.startTime;
-    if (input.endTime) updateData.end_time = input.endTime;
+    if (input.startTime) updateData.start_time = normalizeMatchDateTimeInput(input.startTime);
+    if (input.endTime) updateData.end_time = normalizeMatchDateTimeInput(input.endTime);
     if (input.gymId) updateData.gym_id = input.gymId;
     if (input.operationInfo) updateData.operation_info = input.operationInfo;
 

@@ -25,6 +25,7 @@ import { createApplicationService } from '@/entities/application';
 import { matchManagementKeys } from '@/features/schedule/api/keys';
 import { useCancelMatchFlow, useMatchApplicants, useUpdateMatchStatus } from '@/features/schedule';
 import { MatchCancelDialog } from '@/features/schedule/ui/detail/match-cancel-dialog';
+import { getKSTDateParts, parseKSTDateISO, parseKSTDateTime } from '@/shared/lib/datetime';
 
 interface MatchDetailViewProps {
   match: GuestMatchDetailDTO;
@@ -154,7 +155,7 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
 
   // 경기 종료 여부 (시간 기반)
   const isMatchEnded = !!(match.dateISO && match.endTime &&
-    new Date() >= new Date(`${match.dateISO}T${match.endTime}`));
+    new Date() >= parseKSTDateTime(match.dateISO, match.endTime));
 
   // 이미 신청한 경기인지 (from=schedule이거나 myApplication이 있는 경우)
   const hasApplied = isFromSchedule || !!myApplication;
@@ -295,11 +296,9 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
         matchPublicId={match.publicId}
         matchTitle={match.title}
         matchDate={(() => {
-          const d = new Date(match.dateISO);
-          const month = d.getMonth() + 1;
-          const date = d.getDate();
-          const day = ['일', '월', '화', '수', '목', '금', '토'][d.getDay()];
-          return `${month}월 ${date}일 (${day}) ${match.startTime}`;
+          const parts = getKSTDateParts(parseKSTDateISO(match.dateISO));
+          if (!parts) return match.startTime;
+          return `${parts.month}월 ${parts.day}일 (${parts.weekdayLabel}) ${match.startTime}`;
         })()}
         location={match.location}
       />

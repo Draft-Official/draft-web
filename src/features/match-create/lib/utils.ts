@@ -1,10 +1,8 @@
 // --- Date Utils for Match Create ---
+import { formatKSTDateISO, getKSTDateParts, parseKSTDateISO } from '@/shared/lib/datetime';
 
 const formatDateISO = (date: Date): string => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  return formatKSTDateISO(date);
 };
 
 export interface DateOption {
@@ -18,14 +16,15 @@ export interface DateOption {
 export const getNext14Days = (): DateOption[] => {
   const days = ['일', '월', '화', '수', '목', '금', '토'];
   const dates = [];
-  const today = new Date();
+  const today = parseKSTDateISO(formatKSTDateISO(new Date()));
 
   for (let i = 0; i < 14; i++) {
-    const d = new Date(today);
-    d.setDate(today.getDate() + i);
-    const month = d.getMonth() + 1;
-    const date = d.getDate();
-    const day = days[d.getDay()];
+    const d = new Date(today.getTime() + i * 24 * 60 * 60 * 1000);
+    const parts = getKSTDateParts(d);
+    if (!parts) continue;
+    const month = parts.month;
+    const date = parts.day;
+    const day = days[parts.weekday];
 
     dates.push({
       dateISO: formatDateISO(d),

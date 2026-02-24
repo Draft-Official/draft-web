@@ -3,6 +3,7 @@
 import React from 'react';
 import { toast } from '@/shared/ui/shadcn/sonner';
 import { GuestMatchDetailDTO } from '@/features/match/model/types';
+import { getKSTDateParts, parseKSTDateISO } from '@/shared/lib/datetime';
 
 interface HeroSectionProps {
   match: GuestMatchDetailDTO;
@@ -51,11 +52,9 @@ export function HeroSection({ match }: HeroSectionProps) {
           <span className="text-base font-normal text-slate-500 w-12 shrink-0">날짜</span>
           <span className="text-base font-medium text-slate-900">
             {(() => {
-              const d = new Date(match.dateISO);
-              const month = d.getMonth() + 1;
-              const date = d.getDate();
-              const day = ['일','월','화','수','목','금','토'][d.getDay()];
-              return `${month}월 ${date}일 (${day}) ${match.startTime} ~ ${match.endTime}`;
+              const parts = getKSTDateParts(parseKSTDateISO(match.dateISO));
+              if (!parts) return `${match.startTime} ~ ${match.endTime}`;
+              return `${parts.month}월 ${parts.day}일 (${parts.weekdayLabel}) ${match.startTime} ~ ${match.endTime}`;
             })()}
           </span>
         </div>

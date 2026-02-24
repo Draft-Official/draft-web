@@ -8,7 +8,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/shared/ui/shadcn/dialog';
-import { formatMatchDate, formatMatchTime } from '@/shared/lib/date';
+import { formatMatchDate, formatMatchTime } from '@/shared/lib/datetime';
 import type { MatchApplicantDTO } from '../../model/types';
 
 interface GuestProfileDialogProps {

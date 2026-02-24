@@ -11,6 +11,7 @@ import {
 } from '@/shared/types/database.types';
 import { GymData } from '@/entities/gym';
 import type { MatchCreateFormData } from '@/features/match-create/model/form-data.types';
+import { toKSTDateTimeISO } from '@/shared/lib/datetime';
 
 // ==============================================
 // 1. Gym Data Extraction
@@ -64,18 +65,14 @@ export function extractGymDataV3(form: MatchCreateFormData): GymData {
 // 2. Match Data Transformation
 // ==============================================
 
-function toKSTISOString(dateStr: string, timeStr: string): string {
-  return `${dateStr}T${timeStr}:00+09:00`;
-}
-
 export function toMatchInsertDataV3(
   hostId: string,
   form: MatchCreateFormData,
   gymId: string
 ): MatchInsert {
   // A. Time
-  const startTimeISO = toKSTISOString(form.date, form.startTime);
-  const endTimeISO = toKSTISOString(form.date, form.endTime); // Form has explicit endTime
+  const startTimeISO = toKSTDateTimeISO(form.date, form.startTime);
+  const endTimeISO = toKSTDateTimeISO(form.date, form.endTime); // Form has explicit endTime
 
   // C. Cost Logic
   // costInputType으로 현금/음료 구분

@@ -5,6 +5,7 @@ import type {
   RefereeTypeValue,
 } from '@/shared/config/match-constants';
 import type { LocationData, MatchCreatePrefillDTO } from '@/features/match-create/model/types';
+import { formatKSTTime } from '@/shared/lib/datetime';
 
 interface MatchCreatePrefillLocationData {
   locationInfo: LocationData;
@@ -95,9 +96,7 @@ function mapLocation(match: MatchCreatePrefillDTO): MatchCreatePrefillLocationDa
   };
 }
 
-function roundToHalfHour(date: Date): { hour: number; minute: number } {
-  const hour = date.getHours();
-  const minute = date.getMinutes();
+function roundToHalfHour(hour: number, minute: number): { hour: number; minute: number } {
   // Round to nearest 30min
   const rounded = Math.round(minute / 30) * 30;
   if (rounded === 60) {
@@ -109,10 +108,16 @@ function roundToHalfHour(date: Date): { hour: number; minute: number } {
 function mapTimeInfo(match: MatchCreatePrefillDTO): MatchCreatePrefillTimeData | null {
   if (!match.startTimeISO || !match.endTimeISO) return null;
 
+  const startTimeKST = formatKSTTime(match.startTimeISO);
+  if (!startTimeKST) return null;
+
+  const [startHour, startMinute] = startTimeKST.split(':').map(Number);
+  if (Number.isNaN(startHour) || Number.isNaN(startMinute)) return null;
+
   const startDate = new Date(match.startTimeISO);
   const endDate = new Date(match.endTimeISO);
 
-  const { hour, minute } = roundToHalfHour(startDate);
+  const { hour, minute } = roundToHalfHour(startHour, startMinute);
   const startTime = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
 
   const durationMs = endDate.getTime() - startDate.getTime();

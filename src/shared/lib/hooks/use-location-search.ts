@@ -19,6 +19,8 @@ export interface UseLocationSearchReturn {
   handleSelect: (data: LocationData) => Promise<void>;
   handleClear: () => void;
   openKakaoMap: () => void;
+  handleCompositionStart: () => void;
+  handleCompositionEnd: (query: string) => void;
 }
 
 export function useLocationSearch(): UseLocationSearchReturn {
@@ -29,6 +31,7 @@ export function useLocationSearch(): UseLocationSearchReturn {
   const [isExistingGym, setIsExistingGym] = useState(false);
   const [gymFacilities, setGymFacilities] = useState<GymFacilities | null>(null);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isComposingRef = useRef(false);
 
   interface KakaoPlaceResult {
     road_address_name?: string;
@@ -47,17 +50,15 @@ export function useLocationSearch(): UseLocationSearchReturn {
     return data.address;
   };
 
-  const handleSearch = useCallback((query: string) => {
-    setLocation(query);
+  const performSearch = useCallback((query: string) => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
 
     if (query.trim().length < 2) {
       setSearchResults([]);
       setIsDropdownOpen(false);
       return;
-    }
-
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
     }
 
     searchTimeoutRef.current = setTimeout(async () => {
@@ -81,6 +82,23 @@ export function useLocationSearch(): UseLocationSearchReturn {
       }
     }, 200);
   }, []);
+
+  const handleSearch = useCallback((query: string) => {
+    setLocation(query);
+
+    if (isComposingRef.current) return;
+
+    performSearch(query);
+  }, [performSearch]);
+
+  const handleCompositionStart = useCallback(() => {
+    isComposingRef.current = true;
+  }, []);
+
+  const handleCompositionEnd = useCallback((query: string) => {
+    isComposingRef.current = false;
+    performSearch(query);
+  }, [performSearch]);
 
   const handleSelect = useCallback(async (data: LocationData) => {
     setLocationData(data);
@@ -134,5 +152,7 @@ export function useLocationSearch(): UseLocationSearchReturn {
     handleSelect,
     handleClear,
     openKakaoMap,
+    handleCompositionStart,
+    handleCompositionEnd,
   };
 }

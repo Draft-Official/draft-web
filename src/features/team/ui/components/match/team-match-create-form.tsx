@@ -19,6 +19,13 @@ import type { LocationData } from '@/shared/types/location.types';
 import { Spinner } from '@/shared/ui/shadcn/spinner';
 import { ConfirmDialog } from '@/shared/ui/composite/confirm-dialog';
 import { useLeaveGuard } from '@/shared/lib/hooks/use-leave-guard';
+import {
+  formatKSTDateISO,
+  getKSTDateParts,
+  normalizeHHMM,
+  parseKSTDateISO,
+  toKSTDateTimeISO,
+} from '@/shared/lib/datetime';
 
 interface TeamMatchCreateFormProps {
   team: Team & { homeGymName: string | null; homeGymAddress?: string | null };
@@ -52,17 +59,21 @@ const DAY_LABELS: Record<string, string> = {
  */
 function getNext14Days(): DateOption[] {
   const dates: DateOption[] = [];
-  const today = new Date();
+  const todayISO = formatKSTDateISO(new Date());
+  const todayKST = parseKSTDateISO(todayISO);
 
   for (let i = 0; i < 14; i++) {
-    const d = new Date(today);
-    d.setDate(today.getDate() + i);
-    const dayValue = DAY_MAP[d.getDay()];
+    const d = new Date(todayKST.getTime() + i * 24 * 60 * 60 * 1000);
+    const parts = getKSTDateParts(d);
+    if (!parts) continue;
+
+    const dayValue = DAY_MAP[parts.weekday];
+    const dateISO = `${parts.year}-${String(parts.month).padStart(2, '0')}-${String(parts.day).padStart(2, '0')}`;
 
     dates.push({
-      dateISO: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`,
-      label: `${d.getMonth() + 1}.${d.getDate()} (${DAY_LABELS[dayValue]})`,
-      dayNum: d.getDate(),
+      dateISO,
+      label: `${parts.month}.${parts.day} (${DAY_LABELS[dayValue]})`,
+      dayNum: parts.day,
       dayStr: DAY_LABELS[dayValue],
     });
   }
@@ -76,8 +87,8 @@ function findNextRegularDay(regularDay: RegularDayValue | null, dates: DateOptio
   if (!regularDay) return dates[0]?.dateISO || '';
 
   for (const date of dates) {
-    const d = new Date(date.dateISO);
-    if (DAY_MAP[d.getDay()] === regularDay) {
+    const parts = getKSTDateParts(parseKSTDateISO(date.dateISO));
+    if (parts && DAY_MAP[parts.weekday] === regularDay) {
       return date.dateISO;
     }
   }
@@ -88,10 +99,7 @@ function findNextRegularDay(regularDay: RegularDayValue | null, dates: DateOptio
  * 시간을 HH:MM 형식으로 정규화 (초 제거)
  */
 function normalizeTime(time: string): string {
-  const parts = time.split(':');
-  const hours = (parts[0] || '00').padStart(2, '0');
-  const minutes = (parts[1] || '00').padStart(2, '0');
-  return `${hours}:${minutes}`;
+  return normalizeHHMM(time);
 }
 
 /**
@@ -189,9 +197,9 @@ export function TeamMatchCreateForm({ team, onClose }: TeamMatchCreateFormProps)
       return;
     }
 
-    // ISO 시간 생성 (로컬 시간 기준, HH:MM:00 형식 보장)
-    const startDateTime = `${selectedDate}T${normalizeTime(startTime)}:00`;
-    const endDateTime = `${selectedDate}T${normalizeTime(endTime)}:00`;
+    // 저장은 KST 오프셋이 포함된 ISO 문자열로 통일
+    const startDateTime = toKSTDateTimeISO(selectedDate, normalizeTime(startTime));
+    const endDateTime = toKSTDateTimeISO(selectedDate, normalizeTime(endTime));
 
     createMatch(
       {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { toast } from '@/shared/ui/shadcn/sonner';
 import type { MatchCreatePrefillDTO } from '@/features/match-create/model/types';
+import { formatKSTDateISO } from '@/shared/lib/datetime';
 
 interface UseMatchCreateEditPrefillLoaderParams {
   isEditMode: boolean;
@@ -27,8 +28,10 @@ export function useMatchCreateEditPrefillLoader({
         await fillFromRecentMatch(editPrefillData);
 
         if (editPrefillData.startTimeISO) {
-          const dateISO = editPrefillData.startTimeISO.split('T')[0];
-          setSelectedDate(dateISO);
+          const dateISO = formatKSTDateISO(editPrefillData.startTimeISO);
+          if (dateISO) {
+            setSelectedDate(dateISO);
+          }
         }
 
         setEditDataLoaded(true);

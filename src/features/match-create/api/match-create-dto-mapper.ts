@@ -17,6 +17,7 @@ import type {
   MatchCreateUserDTO,
   RecentMatchListItemDTO,
 } from '@/features/match-create/model/types';
+import { getKSTDateParts } from '@/shared/lib/datetime';
 
 type UserRow = Database['public']['Tables']['users']['Row'];
 type TeamRow = Database['public']['Tables']['teams']['Row'];
@@ -53,12 +54,9 @@ function toCostTypeValue(value: string | null): CostTypeValue | null {
 }
 
 function formatDateLabel(isoString: string): string {
-  const date = new Date(isoString);
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-  const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
-  const weekday = weekdays[date.getDay()];
-  return `${month}/${day} (${weekday})`;
+  const parts = getKSTDateParts(isoString);
+  if (!parts) return '';
+  return `${parts.month}/${parts.day} (${parts.weekdayLabel})`;
 }
 
 function formatPriceLabel(amount: number | null, costType: CostTypeValue | null): string {

@@ -1,4 +1,5 @@
 import type { GuestMatchListItemDTO } from '../model/types';
+import { formatKSTDateISO, getKSTDateParts, parseKSTDateISO } from '@/shared/lib/datetime';
 
 // --- Date Utils ---
 
@@ -13,14 +14,15 @@ export interface DateOption {
 export const getNext14Days = (): DateOption[] => {
     const days = ['일', '월', '화', '수', '목', '금', '토'];
     const dates = [];
-    const today = new Date();
+    const today = parseKSTDateISO(formatKSTDateISO(new Date()));
 
     for (let i = 0; i < 14; i++) {
-        const d = new Date(today);
-        d.setDate(today.getDate() + i);
-        const month = d.getMonth() + 1;
-        const date = d.getDate();
-        const day = days[d.getDay()];
+        const d = new Date(today.getTime() + i * 24 * 60 * 60 * 1000);
+        const parts = getKSTDateParts(d);
+        if (!parts) continue;
+        const month = parts.month;
+        const date = parts.day;
+        const day = days[parts.weekday];
 
         dates.push({
             dateISO: formatDateISO(d),
@@ -34,25 +36,19 @@ export const getNext14Days = (): DateOption[] => {
 };
 
 export const formatDateISO = (date: Date): string => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    return formatKSTDateISO(date);
 };
 
 export const getDayLabel = (dateISO: string): string => {
-    const date = new Date(dateISO);
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
-    const dayOfWeek = ['일', '월', '화', '수', '목', '금', '토'][date.getDay()];
-    return `${month}월 ${day}일 (${dayOfWeek})`;
+    const parts = getKSTDateParts(parseKSTDateISO(dateISO));
+    if (!parts) return '';
+    return `${parts.month}월 ${parts.day}일 (${parts.weekdayLabel})`;
 };
 
 export const getShortDayLabel = (dateISO: string): string => {
-    const date = new Date(dateISO);
-    const day = date.getDate();
-    const dayOfWeek = ['일', '월', '화', '수', '목', '금', '토'][date.getDay()];
-    return `${day} (${dayOfWeek})`;
+    const parts = getKSTDateParts(parseKSTDateISO(dateISO));
+    if (!parts) return '';
+    return `${parts.day} (${parts.weekdayLabel})`;
 };
 
 /**
