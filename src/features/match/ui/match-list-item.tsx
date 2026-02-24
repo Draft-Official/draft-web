@@ -70,8 +70,8 @@ export const MatchListItem = React.memo(function MatchListItem({ match, applicat
             {formatShortAddress(match.gymAddress)}
           </span>
           
-          {/* NEW Badge */}
-          {match.isNew && (
+          {/* NEW Badge (마감 경기에는 미표시) */}
+          {match.isNew && !match.isClosed && (
             <Badge variant="destructive" className="text-[10px] px-1.5 py-0 h-[18px]">
               NEW
             </Badge>
@@ -118,6 +118,7 @@ export const MatchListItem = React.memo(function MatchListItem({ match, applicat
                   status={match.positions.all.status}
                   max={match.positions.all.max}
                   current={match.positions.all.current}
+                  matchClosed={match.isClosed}
                 />
               )}
               {match.positions.g && (
@@ -126,6 +127,7 @@ export const MatchListItem = React.memo(function MatchListItem({ match, applicat
                   status={match.positions.g.status}
                   max={match.positions.g.max}
                   current={match.positions.g.current}
+                  matchClosed={match.isClosed}
                 />
               )}
               {match.positions.f && (
@@ -134,6 +136,7 @@ export const MatchListItem = React.memo(function MatchListItem({ match, applicat
                   status={match.positions.f.status}
                   max={match.positions.f.max}
                   current={match.positions.f.current}
+                  matchClosed={match.isClosed}
                 />
               )}
               {match.positions.c && (
@@ -142,6 +145,7 @@ export const MatchListItem = React.memo(function MatchListItem({ match, applicat
                   status={match.positions.c.status}
                   max={match.positions.c.max}
                   current={match.positions.c.current}
+                  matchClosed={match.isClosed}
                 />
               )}
               {match.positions.bigman && (
@@ -150,6 +154,7 @@ export const MatchListItem = React.memo(function MatchListItem({ match, applicat
                   status={match.positions.bigman.status}
                   max={match.positions.bigman.max}
                   current={match.positions.bigman.current}
+                  matchClosed={match.isClosed}
                 />
               )}
             </>
@@ -197,13 +202,13 @@ export const MatchListItem = React.memo(function MatchListItem({ match, applicat
         {/* Button or Badge */}
         <div className="flex shrink-0 ml-2">
           {match.isClosed ? (
-            <Badge variant="secondary" className="h-8 px-3 text-xs font-bold">
+            <Badge variant="secondary" className="h-8 px-3 text-xs font-bold rounded-lg">
               모집 마감
             </Badge>
           ) : applicationStatus && STATUS_BADGE_CONFIG[applicationStatus] ? (
             <Badge
               variant={STATUS_BADGE_CONFIG[applicationStatus].variant}
-              className="h-8 px-3 text-xs font-bold"
+              className="h-8 px-3 text-xs font-bold rounded-lg"
             >
               {STATUS_BADGE_CONFIG[applicationStatus].label}
             </Badge>

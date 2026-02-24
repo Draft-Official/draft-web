@@ -14,7 +14,7 @@ import {
   formatAgeRange,
   formatTime,
   formatDateISO,
-  isWithin24Hours,
+  isWithin1Hour,
 } from '@/shared/lib/formatters';
 import { formatPositions } from './formatters';
 
@@ -107,7 +107,7 @@ export function toGuestMatchListItemDTO(
     positions: toPositionStatuses(match.recruitmentSetup),
     levelDisplay: formatLevelRange(match.levelRange),
     ageDisplay: formatAgeRange(match.ageRange),
-    isNew: isWithin24Hours(match.createdAt),
+    isNew: isWithin1Hour(match.createdAt),
     isClosed: match.status === 'CLOSED',
   };
 }

@@ -59,13 +59,11 @@ export function FacilitySection({ match, id }: FacilitySectionProps) {
     };
   };
 
-  // 코트 사이즈 정보 처리
-  const getCourtSizeInfo = () => {
+  // 코트 사이즈 정보 처리 (값이 있을 때만 표시)
+  const getCourtSizeInfo = (): string | null => {
     const courtSizeType = facilities?.court_size_type as CourtSizeValue | undefined;
-    if (courtSizeType && COURT_SIZE_LABELS[courtSizeType]) {
-      return COURT_SIZE_LABELS[courtSizeType].label;
-    }
-    return '정규 사이즈';
+    if (!courtSizeType || !COURT_SIZE_LABELS[courtSizeType]) return null;
+    return COURT_SIZE_LABELS[courtSizeType].label;
   };
 
   // 공 제공 정보 처리
@@ -136,13 +134,15 @@ export function FacilitySection({ match, id }: FacilitySectionProps) {
           isActive={showerInfo.isActive}
         />
 
-        {/* 3. 코트 사이즈 - 항상 표시 */}
-        <FacilityRow
-          icon={<BoxSelect className="w-5 h-5" />}
-          label="코트 사이즈"
-          value={getCourtSizeInfo()}
-          isActive={true}
-        />
+        {/* 3. 코트 사이즈 - 값 있을 때만 표시 */}
+        {getCourtSizeInfo() && (
+          <FacilityRow
+            icon={<BoxSelect className="w-5 h-5" />}
+            label="코트 사이즈"
+            value={getCourtSizeInfo()!}
+            isActive={true}
+          />
+        )}
 
         {/* 4. 정수기 - 값 있을 때만 표시 */}
         {hasWaterPurifier !== undefined && (

@@ -84,40 +84,10 @@ export interface FilterOptions {
     gameFormats?: string[]; // '3vs3', '5vs5'
 }
 
-interface ParsedPositionQuota {
-    current: number;
-    max: number;
-}
-
-interface ParsedPositions {
-    all?: ParsedPositionQuota;
-    g?: ParsedPositionQuota;
-    f?: ParsedPositionQuota;
-    c?: ParsedPositionQuota;
-}
-
 function parsePriceAmount(priceDisplay: string): number {
     if (priceDisplay === '무료') return 0;
     if (priceDisplay.startsWith('음료수')) return 0;
     return Number(priceDisplay.replace(/[^\d]/g, '')) || 0;
-}
-
-function parsePositionsDisplay(positionsDisplay: string): ParsedPositions {
-    const parsed: ParsedPositions = {};
-    const parts = positionsDisplay.split(',').map((part) => part.trim());
-
-    for (const part of parts) {
-        const matched = part.match(/^(포지션 무관|가드|포워드|센터)\s+(\d+)\/(\d+)$/);
-        if (!matched) continue;
-        const [, label, currentRaw, maxRaw] = matched;
-        const quota = { current: Number(currentRaw), max: Number(maxRaw) };
-        if (label === '포지션 무관') parsed.all = quota;
-        if (label === '가드') parsed.g = quota;
-        if (label === '포워드') parsed.f = quota;
-        if (label === '센터') parsed.c = quota;
-    }
-
-    return parsed;
 }
 
 function parseAgeDisplay(ageDisplay: string | null): { min: number; max: number | null } | null {
@@ -172,14 +142,14 @@ export const filterMatches = (
         });
     }
 
-    // 4. Position Filter
+    // 4. Position Filter (DTO의 positions 객체 직접 사용)
     if (options.positions.length > 0) {
         filtered = filtered.filter(m => {
-            const positions = parsePositionsDisplay(m.positionsDisplay);
-            const hasAllVacancy = !!positions.all && positions.all.current < positions.all.max;
+            const p = m.positions;
+            const hasAllVacancy = !!p.all && p.all.status === 'open' && p.all.current < p.all.max;
             if (options.positions.includes('포지션 무관')) return hasAllVacancy;
 
-            const posMap: Record<string, keyof ParsedPositions> = {
+            const posMap: Record<string, keyof typeof p> = {
                 '가드': 'g',
                 '포워드': 'f',
                 '센터': 'c',
@@ -189,8 +159,8 @@ export const filterMatches = (
                 const posKey = posMap[posLabel];
                 if (!posKey) return false;
 
-                const posData = positions[posKey];
-                if (posData && posData.current < posData.max) return true;
+                const posData = p[posKey];
+                if (posData && posData.status === 'open' && posData.current < posData.max) return true;
                 if (hasAllVacancy) return true;
 
                 return false;
@@ -208,28 +178,24 @@ export const filterMatches = (
         filtered = filtered.filter(m => !m.isClosed);
     }
 
-    // 디버깅에 방해되므로 추후에 다시 확인
-    // // 7. Min Vacancy Filter (hideClosed와 독립적으로 적용)
-    // if (options.minVacancy && options.minVacancy > 0) {
-    //     filtered = filtered.filter(m => {
-    //         // Calculate total vacancy
-    //         let totalVacancy = 0;
-    //         const p = m.positionsUI;
+    // 7. Min Vacancy Filter (hideClosed와 독립적으로 적용)
+    if (options.minVacancy && options.minVacancy > 1) {
+        filtered = filtered.filter(m => {
+            let totalVacancy = 0;
+            const p = m.positions;
 
-    //         // Helper to add vacancy (max - current = remaining spots)
-    //         const add = (pos?: { status: string, max: number, current: number }) => {
-    //             if (pos && pos.status === 'open') totalVacancy += (pos.max - pos.current);
-    //         };
+            const add = (pos?: { status: string; max: number; current: number }) => {
+                if (pos && pos.status === 'open') totalVacancy += (pos.max - pos.current);
+            };
 
-    //         // Sum up positions
-    //         add(p.all);
-    //         add(p.g);
-    //         add(p.f);
-    //         add(p.c);
+            add(p.all);
+            add(p.g);
+            add(p.f);
+            add(p.c);
 
-    //         return totalVacancy >= options.minVacancy!;
-    //     });
-    // }
+            return totalVacancy >= options.minVacancy!;
+        });
+    }
 
     // 7. Detailed Filters (Gender, Age, GameFormat)
     if (options.genders && options.genders.length > 0) {

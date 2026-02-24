@@ -20,12 +20,13 @@ export function formatDateISO(isoString: string): string {
 }
 
 /**
- * 24시간 이내 생성된지 확인 (NEW 배지용)
+ * 1시간 이내 생성된지 확인 (NEW 배지용)
  */
-export function isWithin24Hours(createdAt: string | null): boolean {
+export function isWithin1Hour(createdAt: string | null): boolean {
   if (!createdAt) return false;
   const created = new Date(createdAt);
   const now = new Date();
   const diff = now.getTime() - created.getTime();
-  return diff < 24 * 60 * 60 * 1000;
+  return diff < 60 * 60 * 1000;
 }
+
