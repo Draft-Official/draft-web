@@ -222,7 +222,7 @@ export function useParticipatingMatches() {
             now >= new Date(match.start_time) && now < new Date(match.end_time);
 
           // Application status → 공통 GuestStatus → UI 매핑
-          const baseStatus = resolveApplicationStatus(app.status ?? 'PENDING', app.approved_at);
+          const baseStatus = resolveApplicationStatus(app.status ?? 'PENDING');
 
           let status: ScheduleMatchListItemDTO['status'];
           if (matchEnded) {

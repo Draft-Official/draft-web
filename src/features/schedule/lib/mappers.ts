@@ -87,7 +87,7 @@ function toMatchManagementType(matchType: string | null | undefined): MatchManag
 // ============================================
 
 export function getGuestStatus(application: Application) {
-  return resolveApplicationStatus(application.status ?? 'PENDING', application.approved_at);
+  return resolveApplicationStatus(application.status ?? 'PENDING');
 }
 
 // ============================================

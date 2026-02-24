@@ -17,18 +17,11 @@ import { GUEST_APPROVAL_STATUS_TEXT } from '../config/constants';
  */
 export function resolveApplicationStatus(
   dbStatus: string,
-  approvedAt?: string | null | undefined,
 ): GuestStatus {
   if (dbStatus === 'CONFIRMED') return 'confirmed';
   if (dbStatus === 'REJECTED') return 'rejected';
   if (dbStatus === 'CANCELED') return 'canceled';
   if (dbStatus === 'PAYMENT_PENDING') return 'payment_waiting';
-
-  if (dbStatus === 'PENDING') {
-    // 마이그레이션 이전 레거시 데이터 호환 (approved_at 있으면 입금대기)
-    return approvedAt ? 'payment_waiting' : 'pending';
-  }
-
   return 'pending';
 }
 
