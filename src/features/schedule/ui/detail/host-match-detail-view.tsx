@@ -48,6 +48,16 @@ import { RecruitmentStatusSection } from './recruitment-status-section';
 import { GuestListSection } from './guest-list-section';
 import { MatchActionButton } from './match-action-button';
 import { Spinner } from '@/shared/ui/shadcn/spinner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/shared/ui/shadcn/alert-dialog';
 
 export function HostMatchDetailView() {
   const router = useRouter();
@@ -81,6 +91,7 @@ export function HostMatchDetailView() {
   const [guestToReject, setGuestToReject] = useState<MatchApplicantDTO | null>(null);
   const [isAnnouncementOpen, setIsAnnouncementOpen] = useState(false);
   const [isMatchCancelOpen, setIsMatchCancelOpen] = useState(false);
+  const [overQuotaGuest, setOverQuotaGuest] = useState<MatchApplicantDTO | null>(null);
 
   const isLoading = isLoadingMatch || (!!internalMatchId && isLoadingGuests);
 
@@ -116,13 +127,35 @@ export function HostMatchDetailView() {
     .filter((g) => g.status === 'confirmed')
     .reduce((sum, g) => sum + 1 + (g.companions?.length || 0), 0);
 
-  // Handlers
-  const handleApprove = (guest: MatchApplicantDTO) => {
-    if (!internalMatchId) return;
+  // 포지션/전체 모집 인원이 찼는지 확인
+  const isPositionFull = (guest: MatchApplicantDTO): boolean => {
+    if (!match) return false;
+    if (match.recruitmentMode === 'position' && match.positionQuotas) {
+      const posCode = guest.position.match(/\(([A-Z]+)\)/)?.[1] ?? 'G';
+      const quota = match.positionQuotas.find((q) => q.position === posCode);
+      return !!quota && quota.current >= quota.max;
+    }
+    if (match.recruitmentMode === 'total' && match.totalQuota) {
+      return totalConfirmedCount >= match.totalQuota.max;
+    }
+    return false;
+  };
+
+  const doApprove = (guest: MatchApplicantDTO) => {
     approveMutation.mutate(
       { applicationId: guest.id, matchId: internalMatchId },
       { onSuccess: () => setIsGuestProfileOpen(false) }
     );
+  };
+
+  // Handlers
+  const handleApprove = (guest: MatchApplicantDTO) => {
+    if (!internalMatchId) return;
+    if (isPositionFull(guest)) {
+      setOverQuotaGuest(guest);
+      return;
+    }
+    doApprove(guest);
   };
 
   const handleConfirmPayment = (guest: MatchApplicantDTO) => {
@@ -400,6 +433,36 @@ export function HostMatchDetailView() {
           );
         }}
       />
+
+      {/* 포지션 초과 승인 경고 */}
+      <AlertDialog open={!!overQuotaGuest} onOpenChange={(open) => { if (!open) setOverQuotaGuest(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>모집 인원이 찼습니다</AlertDialogTitle>
+            <AlertDialogDescription>
+              {overQuotaGuest && (() => {
+                if (match?.recruitmentMode === 'position') {
+                  const posCode = overQuotaGuest.position.match(/\(([A-Z]+)\)/)?.[1] ?? 'G';
+                  const quota = match.positionQuotas?.find((q) => q.position === posCode);
+                  return `${quota?.label ?? overQuotaGuest.position} 모집 인원이 찼습니다 (${quota?.current}/${quota?.max}). 초과 승인하시겠습니까?`;
+                }
+                return `모집 인원이 찼습니다 (${totalConfirmedCount}/${match?.totalQuota?.max}). 초과 승인하시겠습니까?`;
+              })()}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (overQuotaGuest) doApprove(overQuotaGuest);
+                setOverQuotaGuest(null);
+              }}
+            >
+              초과 승인
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* 하단 고정 버튼 */}
       <MatchActionButton
