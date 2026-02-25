@@ -55,7 +55,7 @@ export function ApplicationInfoDialog({
   const isCancelled = match.status === 'cancelled' || match.status === 'rejected';
   const isPaymentWaiting = match.status === 'payment_waiting';
   const isPending = match.status === 'waiting' || match.status === 'pending';
-  const canCancel = isPending || isPaymentWaiting;
+  const canCancel = isPending;
 
   const handleCopyBankInfo = () => {
     if (!match.bankInfo) return;

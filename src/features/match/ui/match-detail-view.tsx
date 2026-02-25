@@ -160,8 +160,9 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
   // 이미 신청한 경기인지 (from=schedule이거나 myApplication이 있는 경우)
   const hasApplied = isFromSchedule || !!myApplication;
 
-  // 취소 가능 여부 (종료/확정/거절/취소 상태가 아닌 경우만)
+  // 취소 가능 여부 (종료/입금대기/확정/거절/취소 상태가 아닌 경우만)
   const canCancel = !isMatchEnded && !!(myApplication &&
+    myApplication.status !== 'PAYMENT_PENDING' &&
     myApplication.status !== 'CONFIRMED' &&
     myApplication.status !== 'REJECTED' &&
     myApplication.status !== 'CANCELED');
@@ -171,6 +172,7 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
     if (!myApplication) return undefined;
     if (myApplication.status === 'CANCELED') return '취소 완료';
     if (myApplication.status === 'REJECTED') return '승인 거절';
+    if (myApplication.status === 'PAYMENT_PENDING') return '입금 대기 중';
     if (myApplication.status === 'CONFIRMED') return '확정된 경기입니다';
     return undefined;
   };
