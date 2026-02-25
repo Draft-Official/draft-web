@@ -69,6 +69,7 @@ export default function TeamMatchDetailPage({ params }: TeamMatchDetailPageProps
       team={team}
       membership={membership}
       userId={user?.id}
+      canQuickAddGuest={true}
     />
   );
 }

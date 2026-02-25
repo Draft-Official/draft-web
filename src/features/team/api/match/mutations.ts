@@ -12,6 +12,7 @@ import { applicationRowToEntity } from '@/entities/application';
 import { toTeamVoteDTO } from '../../lib';
 import type { CreateTeamMatchInput, VoteInput } from '@/entities/team/model/types';
 import type { TeamVoteStatusValue } from '@/shared/config/team-constants';
+import type { PositionValue } from '@/shared/config/match-constants';
 import type { Match as MatchEntity } from '@/entities/match';
 import type { TeamVoteDTO } from '../../model/types';
 
@@ -79,6 +80,46 @@ export function useVote() {
       // 미투표 목록 갱신
       queryClient.invalidateQueries({
         queryKey: teamMatchKeys.myPendingVotes(userId),
+      });
+    },
+  });
+}
+
+/**
+ * 팀 투표 참여자에 게스트 추가
+ */
+export function useAddTeamVoteGuest() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      matchId,
+      ownerUserId,
+      guestName,
+      guestPosition,
+    }: {
+      matchId: string;
+      ownerUserId: string;
+      guestName: string;
+      guestPosition: PositionValue;
+    }): Promise<TeamVoteDTO> => {
+      const supabase = getSupabaseBrowserClient();
+      const service = createTeamService(supabase);
+      const row = await service.addGuestToTeamVote(matchId, ownerUserId, {
+        name: guestName,
+        position: guestPosition,
+      });
+      return toTeamVoteDTO(applicationRowToEntity(row));
+    },
+    onSuccess: (_, { matchId, ownerUserId }) => {
+      queryClient.invalidateQueries({
+        queryKey: teamMatchKeys.votingStatus(matchId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: teamMatchKeys.myVote(matchId, ownerUserId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: teamMatchKeys.myPendingVotes(ownerUserId),
       });
     },
   });

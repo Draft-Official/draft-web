@@ -18,12 +18,19 @@ import type {
   Match,
   MatchInsert,
   Application,
+  ParticipantInfo,
 } from '@/shared/types/database.types';
 import type { AccountInfo, OperationInfo } from '@/shared/types/jsonb.types';
 import { handleSupabaseError, ValidationError } from '@/shared/lib/errors';
-import { normalizeRegularDay } from '@/shared/config/team-constants';
 import type { TeamRoleValue, TeamVoteStatusValue } from '@/shared/config/team-constants';
+import type { PositionValue } from '@/shared/config/match-constants';
 import { toKSTDateTimeISO } from '@/shared/lib/datetime';
+import {
+  countTeamVoteParticipants,
+  normalizeTeamVotePosition,
+  parseTeamVoteParticipants,
+  TEAM_VOTE_STATUS_TO_APPLICATION_STATUS,
+} from '@/shared/lib/team-vote';
 import type {
   CreateTeamInput,
   UpdateTeamInput,
@@ -40,6 +47,7 @@ export type TeamMemberWithUserRow = TeamMember & {
     nickname: string | null;
     avatar_url: string | null;
     positions: string[] | null;
+    metadata: Database['public']['Tables']['users']['Row']['metadata'];
   } | null;
 };
 
@@ -48,6 +56,12 @@ export type TeamFeeWithUserRow = TeamFee & {
     id: string;
     nickname: string | null;
     avatar_url: string | null;
+  } | null;
+};
+
+type TeamVoteWithUserRow = Application & {
+  users?: {
+    positions: string[] | null;
   } | null;
 };
 
@@ -148,7 +162,7 @@ export class TeamService {
       region_depth1: input.regionDepth1,
       region_depth2: input.regionDepth2,
       home_gym_id: input.homeGymId,
-      regular_day: normalizeRegularDay(input.regularDay ?? null),
+      regular_day: input.regularDays ?? [],
       regular_start_time: input.regularStartTime,
       regular_end_time: input.regularEndTime,
       team_gender: input.teamGender,
@@ -182,8 +196,8 @@ export class TeamService {
     if (input.regionDepth1 !== undefined) teamUpdate.region_depth1 = input.regionDepth1;
     if (input.regionDepth2 !== undefined) teamUpdate.region_depth2 = input.regionDepth2;
     if (input.homeGymId !== undefined) teamUpdate.home_gym_id = input.homeGymId;
-    if (input.regularDay !== undefined) {
-      teamUpdate.regular_day = normalizeRegularDay(input.regularDay ?? null);
+    if (input.regularDays !== undefined) {
+      teamUpdate.regular_day = input.regularDays ?? [];
     }
     if (input.regularStartTime !== undefined) {
       (teamUpdate as Record<string, unknown>).regular_start_time = input.regularStartTime;
@@ -290,7 +304,7 @@ export class TeamService {
   async getTeamMembers(teamId: string): Promise<TeamMemberWithUserRow[]> {
     const { data, error } = await this.supabase
       .from('team_members')
-      .select('*, users(id, nickname, avatar_url, positions)')
+      .select('*, users(id, nickname, avatar_url, positions, metadata)')
       .eq('team_id', teamId)
       .eq('status', 'ACCEPTED')
       .order('joined_at', { ascending: true });
@@ -305,7 +319,7 @@ export class TeamService {
   async getPendingMembers(teamId: string): Promise<TeamMemberWithUserRow[]> {
     const { data, error } = await this.supabase
       .from('team_members')
-      .select('*, users(id, nickname, avatar_url, positions)')
+      .select('*, users(id, nickname, avatar_url, positions, metadata)')
       .eq('team_id', teamId)
       .eq('status', 'PENDING')
       .order('id', { ascending: true });
@@ -452,33 +466,47 @@ export class TeamService {
    * 팀장 권한 이전
    */
   async transferLeadership(teamId: string, currentLeaderId: string, newLeaderId: string): Promise<void> {
+    if (currentLeaderId === newLeaderId) {
+      throw new Error('현재 팀장에게 다시 위임할 수 없습니다');
+    }
+
     const newLeaderMembership = await this.getMembership(teamId, newLeaderId);
     if (!newLeaderMembership || newLeaderMembership.status !== 'ACCEPTED') {
       throw new Error('유효한 팀원만 팀장이 될 수 있습니다');
     }
 
-    const { error: error1 } = await this.supabase
+    // NOTE:
+    // RLS 정책상 현재 사용자가 LEADER 권한을 유지해야 다른 멤버를 LEADER로 업데이트할 수 있다.
+    // 따라서 기존 팀장을 먼저 MEMBER로 내리면 다음 승격 쿼리가 권한 부족으로 실패한다.
+    // 순서를 "신규 팀장 승격 -> 기존 팀장 강등"으로 유지한다.
+    const { error: promoteError } = await this.supabase
+      .from('team_members')
+      .update({ role: 'LEADER' })
+      .eq('team_id', teamId)
+      .eq('user_id', newLeaderId)
+      .eq('status', 'ACCEPTED');
+
+    if (promoteError) handleSupabaseError(promoteError, '새 팀장 지정');
+
+    const { error: demoteError } = await this.supabase
       .from('team_members')
       .update({ role: 'MEMBER' })
       .eq('team_id', teamId)
       .eq('user_id', currentLeaderId)
       .eq('role', 'LEADER');
 
-    if (error1) handleSupabaseError(error1, '팀장 권한 해제');
-
-    const { error: error2 } = await this.supabase
-      .from('team_members')
-      .update({ role: 'LEADER' })
-      .eq('team_id', teamId)
-      .eq('user_id', newLeaderId);
-
-    if (error2) {
-      await this.supabase
+    if (demoteError) {
+      const { error: rollbackError } = await this.supabase
         .from('team_members')
-        .update({ role: 'LEADER' })
+        .update({ role: newLeaderMembership.role })
         .eq('team_id', teamId)
-        .eq('user_id', currentLeaderId);
-      handleSupabaseError(error2, '새 팀장 지정');
+        .eq('user_id', newLeaderId);
+
+      if (rollbackError) {
+        handleSupabaseError(rollbackError, '팀장 위임 롤백');
+      }
+
+      handleSupabaseError(demoteError, '기존 팀장 권한 해제');
     }
   }
 
@@ -709,6 +737,13 @@ export class TeamService {
       user_id: member.user_id,
       source: 'TEAM_VOTE' as const,
       status: 'PENDING' as const,
+      participants_info: [
+        {
+          type: 'MAIN',
+          name: '',
+          position: normalizeTeamVotePosition(member.users?.positions?.[0]),
+        },
+      ] as unknown as Application['participants_info'],
     }));
 
     const { error } = await this.supabase.from('applications').insert(applications);
@@ -731,11 +766,28 @@ export class TeamService {
 
     if (!upcomingMatches || upcomingMatches.length === 0) return;
 
+    const { data: user, error: userError } = await this.supabase
+      .from('users')
+      .select('positions')
+      .eq('id', userId)
+      .single();
+
+    if (userError) handleSupabaseError(userError, '사용자 포지션 조회');
+
+    const defaultMainPosition = normalizeTeamVotePosition(user?.positions?.[0]);
+
     const applications = upcomingMatches.map((match) => ({
       match_id: match.id,
       user_id: userId,
       source: 'TEAM_VOTE' as const,
       status: 'PENDING' as const,
+      participants_info: [
+        {
+          type: 'MAIN',
+          name: '',
+          position: defaultMainPosition,
+        },
+      ] as unknown as Application['participants_info'],
     }));
 
     const { error } = await this.supabase.from('applications').insert(applications);
@@ -825,21 +877,13 @@ export class TeamService {
       throw new Error('투표가 마감되었습니다');
     }
 
-    const statusMap: Record<TeamVoteStatusValue, string> = {
-      PENDING: 'PENDING',
-      CONFIRMED: 'CONFIRMED',
-      LATE: 'LATE',
-      NOT_ATTENDING: 'NOT_ATTENDING',
-      MAYBE: 'MAYBE',
-    };
-
-    const applicationStatus = statusMap[input.status];
+    const applicationStatus = TEAM_VOTE_STATUS_TO_APPLICATION_STATUS[input.status];
 
     if (existing) {
       const { data, error } = await this.supabase
         .from('applications')
         .update({
-          status: applicationStatus as Application['status'],
+          status: applicationStatus,
           description: input.description || null,
           updated_at: new Date().toISOString(),
         })
@@ -856,7 +900,7 @@ export class TeamService {
           match_id: input.matchId,
           user_id: userId,
           source: 'TEAM_VOTE',
-          status: applicationStatus as Application['status'],
+          status: applicationStatus,
           description: input.description || null,
         })
         .select()
@@ -865,6 +909,85 @@ export class TeamService {
       if (error) handleSupabaseError(error, '투표 생성');
       return data!;
     }
+  }
+
+  /**
+   * 팀 투표 참여자에 게스트 추가
+   * - 게스트 상태는 대표 참여자(application.status)를 그대로 상속
+   */
+  async addGuestToTeamVote(
+    matchId: string,
+    ownerUserId: string,
+    input: {
+      name: string;
+      position: PositionValue;
+    }
+  ): Promise<Application> {
+    const guestName = input.name.trim();
+    if (!guestName) {
+      throw new ValidationError('게스트 이름을 입력해주세요');
+    }
+
+    const { data: match, error: matchError } = await this.supabase
+      .from('matches')
+      .select('status')
+      .eq('id', matchId)
+      .single();
+
+    if (matchError) handleSupabaseError(matchError, '경기 상태 조회');
+
+    if (match?.status === 'CLOSED') {
+      throw new ValidationError('투표가 마감된 경기에는 게스트를 추가할 수 없습니다');
+    }
+
+    const { data: voteRow, error: voteError } = await this.supabase
+      .from('applications')
+      .select('*, users(positions)')
+      .eq('match_id', matchId)
+      .eq('user_id', ownerUserId)
+      .eq('source', 'TEAM_VOTE')
+      .single();
+
+    if (voteError) {
+      if (voteError.code === 'PGRST116') {
+        throw new ValidationError('내 투표 정보를 찾을 수 없습니다');
+      }
+      handleSupabaseError(voteError, '게스트 추가 대상 조회');
+    }
+
+    const typedVoteRow = voteRow as TeamVoteWithUserRow;
+    const currentParticipants = parseTeamVoteParticipants(typedVoteRow.participants_info);
+    const hasMainParticipant = currentParticipants.some((participant) => participant.type === 'MAIN');
+
+    const nextParticipants: ParticipantInfo[] = hasMainParticipant
+      ? [...currentParticipants]
+      : [
+          {
+            type: 'MAIN',
+            name: '',
+            position: normalizeTeamVotePosition(typedVoteRow.users?.positions?.[0]),
+          },
+          ...currentParticipants,
+        ];
+
+    nextParticipants.push({
+      type: 'GUEST',
+      name: guestName,
+      position: normalizeTeamVotePosition(input.position),
+    });
+
+    const { data: updatedVote, error: updateError } = await this.supabase
+      .from('applications')
+      .update({
+        participants_info: nextParticipants as unknown as Application['participants_info'],
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', typedVoteRow.id)
+      .select()
+      .single();
+
+    if (updateError) handleSupabaseError(updateError, '게스트 추가');
+    return updatedVote!;
   }
 
   /**
@@ -908,7 +1031,7 @@ export class TeamService {
   async getVotingSummary(matchId: string): Promise<VotingSummary> {
     const { data: votes, error } = await this.supabase
       .from('applications')
-      .select('status')
+      .select('status, participants_info')
       .eq('match_id', matchId)
       .eq('source', 'TEAM_VOTE');
 
@@ -923,21 +1046,23 @@ export class TeamService {
     };
 
     const voteCounts = (votes || []).reduce((acc, vote) => {
+      const participantCount = countTeamVoteParticipants(vote.participants_info);
+
       switch (vote.status) {
         case 'PENDING':
-          acc.pending++;
+          acc.pending += participantCount;
           break;
         case 'CONFIRMED':
-          acc.attending++;
+          acc.attending += participantCount;
           break;
         case 'LATE':
-          acc.late++;
+          acc.late += participantCount;
           break;
         case 'MAYBE':
-          acc.maybe++;
+          acc.maybe += participantCount;
           break;
         case 'NOT_ATTENDING':
-          acc.notAttending++;
+          acc.notAttending += participantCount;
           break;
       }
       return acc;
@@ -945,7 +1070,10 @@ export class TeamService {
 
     return {
       ...voteCounts,
-      totalMembers: votes?.length || 0,
+      totalMembers: (votes || []).reduce(
+        (sum, vote) => sum + countTeamVoteParticipants(vote.participants_info),
+        0
+      ),
     };
   }
 
@@ -994,20 +1122,12 @@ export class TeamService {
     status: TeamVoteStatusValue,
     description?: string
   ): Promise<Application> {
-    const statusMap: Record<TeamVoteStatusValue, string> = {
-      PENDING: 'PENDING',
-      CONFIRMED: 'CONFIRMED',
-      LATE: 'LATE',
-      NOT_ATTENDING: 'NOT_ATTENDING',
-      MAYBE: 'MAYBE',
-    };
-
-    const applicationStatus = statusMap[status];
+    const applicationStatus = TEAM_VOTE_STATUS_TO_APPLICATION_STATUS[status];
 
     const { data, error } = await this.supabase
       .from('applications')
       .update({
-        status: applicationStatus as Application['status'],
+        status: applicationStatus,
         description: description || null,
         updated_at: new Date().toISOString(),
       })
@@ -1170,13 +1290,21 @@ export class TeamService {
       const myVote = matchVotes.find((v) => v.user_id === userId) || null;
 
       const votingSummary = {
-        attending: matchVotes.filter(
-          (v) => v.status === 'CONFIRMED' || v.status === 'LATE'
-        ).length,
-        notAttending: matchVotes.filter((v) => v.status === 'NOT_ATTENDING').length,
-        pending: matchVotes.filter(
-          (v) => v.status === 'PENDING' || v.status === 'MAYBE'
-        ).length,
+        attending: matchVotes.reduce((sum, vote) => (
+          vote.status === 'CONFIRMED' || vote.status === 'LATE'
+            ? sum + countTeamVoteParticipants(vote.participants_info)
+            : sum
+        ), 0),
+        notAttending: matchVotes.reduce((sum, vote) => (
+          vote.status === 'NOT_ATTENDING'
+            ? sum + countTeamVoteParticipants(vote.participants_info)
+            : sum
+        ), 0),
+        pending: matchVotes.reduce((sum, vote) => (
+          vote.status === 'PENDING'
+            ? sum + countTeamVoteParticipants(vote.participants_info)
+            : sum
+        ), 0),
       };
 
       const team = match.teams as unknown as Team;

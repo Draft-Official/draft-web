@@ -193,9 +193,10 @@ export function TeamSettingsView({ code }: TeamSettingsViewProps) {
 
             {/* 환불 계좌 */}
             <MenuItem
-              label="환불 계좌"
+              label="입금 계좌"
               value={team.accountInfo?.bank ? `${team.accountInfo.bank} ${team.accountInfo.number || ''}` : '-'}
               action="수정"
+              actionClassName="text-blue-600 hover:text-blue-700"
               onAction={() => setShowAccountDialog(true)}
             />
 
@@ -302,6 +303,7 @@ interface MenuItemProps {
   label: string;
   value?: string;
   action?: string;
+  actionClassName?: string;
   onAction?: () => void;
   onClick?: () => void;
   showArrow?: boolean;
@@ -312,6 +314,7 @@ function MenuItem({
   label,
   value,
   action,
+  actionClassName,
   onAction,
   onClick,
   showArrow,
@@ -337,7 +340,7 @@ function MenuItem({
               e.stopPropagation();
               onAction?.();
             }}
-            className="text-sm text-muted-foreground font-medium"
+            className={cn('text-sm font-medium', actionClassName || 'text-muted-foreground')}
           >
             {action}
           </button>

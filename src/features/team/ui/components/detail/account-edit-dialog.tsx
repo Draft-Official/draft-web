@@ -84,7 +84,7 @@ export function AccountEditDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent size="lg">
         <DialogHeader>
-          <DialogTitle>환불 계좌 수정</DialogTitle>
+          <DialogTitle>입금 계좌 수정</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-4">

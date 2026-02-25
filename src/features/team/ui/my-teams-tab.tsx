@@ -78,7 +78,7 @@ export function MyTeamsTab() {
                 name={team.name}
                 logoUrl={team.logoUrl}
                 role={team.role}
-                regularDay={team.regularDay}
+                regularDays={team.regularDays}
                 regularTime={team.regularTime}
                 homeGymName={team.homeGymName}
               />

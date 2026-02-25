@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { toast } from '@/shared/ui/shadcn/sonner';
 import { Button } from '@/shared/ui/shadcn/button';
 import { Input } from '@/shared/ui/shadcn/input';
@@ -20,9 +20,12 @@ import {
   SelectValue,
 } from '@/shared/ui/shadcn/select';
 import {
-  TEAM_VOTE_STATUS_LABELS,
-  type TeamVoteStatusValue,
-} from '@/shared/config/team-constants';
+  POSITION_DEFAULT,
+  POSITION_OPTIONS,
+  type PositionValue,
+} from '@/shared/config/match-constants';
+import { useAuth } from '@/shared/session';
+import { useAddTeamVoteGuest } from '@/features/team/api/match/mutations';
 import { VotingAccordion } from './voting-accordion';
 import type { TeamVoteDTO, VotingSummary } from '@/features/team/model/types';
 
@@ -36,48 +39,6 @@ interface TeamVotingSectionProps {
   canQuickAddGuest?: boolean;
 }
 
-const QUICK_ADD_STATUS_OPTIONS: TeamVoteStatusValue[] = [
-  'PENDING',
-  'CONFIRMED',
-  'LATE',
-  'NOT_ATTENDING',
-  'MAYBE',
-];
-
-function toVotingSummary(votes: TeamVoteDTO[]): VotingSummary {
-  const summary = {
-    pending: 0,
-    attending: 0,
-    late: 0,
-    maybe: 0,
-    notAttending: 0,
-    totalMembers: votes.length,
-  };
-
-  votes.forEach((vote) => {
-    switch (vote.status) {
-      case 'CONFIRMED':
-        summary.attending += 1;
-        break;
-      case 'LATE':
-        summary.late += 1;
-        break;
-      case 'NOT_ATTENDING':
-        summary.notAttending += 1;
-        break;
-      case 'MAYBE':
-        summary.maybe += 1;
-        break;
-      case 'PENDING':
-      default:
-        summary.pending += 1;
-        break;
-    }
-  });
-
-  return summary;
-}
-
 export function TeamVotingSection({
   votes,
   votingSummary,
@@ -87,19 +48,11 @@ export function TeamVotingSection({
   isLoading,
   canQuickAddGuest = false,
 }: TeamVotingSectionProps) {
+  const { user } = useAuth();
+  const addTeamVoteGuest = useAddTeamVoteGuest();
   const [isAddGuestOpen, setIsAddGuestOpen] = useState(false);
   const [guestName, setGuestName] = useState('');
-  const [guestStatus, setGuestStatus] = useState<TeamVoteStatusValue>('PENDING');
-  const [manualGuestVotes, setManualGuestVotes] = useState<TeamVoteDTO[]>([]);
-
-  const mergedVotes = useMemo(
-    () => [...votes, ...manualGuestVotes],
-    [votes, manualGuestVotes]
-  );
-  const mergedSummary = useMemo(() => {
-    if (manualGuestVotes.length === 0) return votingSummary;
-    return toVotingSummary(mergedVotes);
-  }, [manualGuestVotes.length, mergedVotes, votingSummary]);
+  const [guestPosition, setGuestPosition] = useState<PositionValue>(POSITION_DEFAULT);
 
   const handleAddGuest = () => {
     const trimmedName = guestName.trim();
@@ -108,27 +61,27 @@ export function TeamVotingSection({
       return;
     }
 
-    const now = new Date().toISOString();
-    const tempId = `manual-guest-${Date.now()}`;
+    if (!user?.id) {
+      toast.error('로그인이 필요합니다.');
+      return;
+    }
 
-    const newGuestVote: TeamVoteDTO = {
-      id: tempId,
-      matchId,
-      userId: tempId,
-      status: guestStatus,
-      source: 'TEAM_VOTE',
-      description: null,
-      createdAt: now,
-      updatedAt: now,
-      userNickname: trimmedName,
-      userAvatarUrl: null,
-    };
-
-    setManualGuestVotes((prev) => [...prev, newGuestVote]);
-    toast.success(`${trimmedName} 게스트를 추가했습니다.`);
-    setGuestName('');
-    setGuestStatus('PENDING');
-    setIsAddGuestOpen(false);
+    addTeamVoteGuest.mutate(
+      {
+        matchId,
+        ownerUserId: user.id,
+        guestName: trimmedName,
+        guestPosition,
+      },
+      {
+        onSuccess: () => {
+          toast.success(`${trimmedName} 게스트를 추가했습니다.`);
+          setGuestName('');
+          setGuestPosition(POSITION_DEFAULT);
+          setIsAddGuestOpen(false);
+        },
+      }
+    );
   };
 
   return (
@@ -136,9 +89,9 @@ export function TeamVotingSection({
       <div className="mb-4 flex items-center justify-between gap-3">
         <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
           투표 현황
-          {mergedSummary && (
+          {votingSummary && (
             <span className="text-sm font-normal text-slate-500">
-              ({mergedSummary.attending + mergedSummary.late}명 참석 / {mergedSummary.totalMembers}명)
+              ({votingSummary.attending + votingSummary.late}명 참석 / {votingSummary.totalMembers}명)
             </span>
           )}
         </h2>
@@ -146,8 +99,9 @@ export function TeamVotingSection({
         {canQuickAddGuest && (
           <button
             type="button"
-            className="text-sm font-semibold text-primary hover:text-primary/80 transition-colors shrink-0"
+            className="text-sm font-semibold text-primary hover:text-primary/80 transition-colors shrink-0 disabled:text-slate-400 disabled:cursor-not-allowed disabled:hover:text-slate-400"
             onClick={() => setIsAddGuestOpen(true)}
+            disabled={isVotingClosed}
           >
             게스트 추가
           </button>
@@ -160,8 +114,8 @@ export function TeamVotingSection({
         </div>
       ) : (
         <VotingAccordion
-          votes={mergedVotes}
-          votingSummary={mergedSummary}
+          votes={votes}
+          votingSummary={votingSummary}
           isAdmin={isAdmin}
           matchId={matchId}
           isVotingClosed={isVotingClosed}
@@ -187,30 +141,34 @@ export function TeamVotingSection({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="quick-guest-status">투표 상태</Label>
+                <Label htmlFor="quick-guest-position">포지션</Label>
                 <Select
-                  value={guestStatus}
-                  onValueChange={(value) => setGuestStatus(value as TeamVoteStatusValue)}
+                  value={guestPosition}
+                  onValueChange={(value) => setGuestPosition(value as PositionValue)}
                 >
-                  <SelectTrigger id="quick-guest-status">
+                  <SelectTrigger id="quick-guest-position">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {QUICK_ADD_STATUS_OPTIONS.map((status) => (
-                      <SelectItem key={status} value={status}>
-                        {TEAM_VOTE_STATUS_LABELS[status]}
+                    {POSITION_OPTIONS.map((position) => (
+                      <SelectItem key={position.value} value={position.value}>
+                        {position.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                <p className="text-xs text-slate-500">
+                  게스트 상태는 내 투표 상태를 그대로 따릅니다.
+                </p>
               </div>
 
               <Button
                 type="button"
                 className="w-full h-11 font-bold"
                 onClick={handleAddGuest}
+                disabled={addTeamVoteGuest.isPending}
               >
-                추가하기
+                {addTeamVoteGuest.isPending ? '추가 중...' : '추가하기'}
               </Button>
             </div>
           </DialogContent>

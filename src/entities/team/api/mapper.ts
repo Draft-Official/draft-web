@@ -9,7 +9,7 @@ import type {
   TeamRoleValue,
   TeamMemberStatusValue,
 } from '@/shared/config/team-constants';
-import { normalizeRegularDay } from '@/shared/config/team-constants';
+import { normalizeRegularDays } from '@/shared/config/team-constants';
 import type { Team as TeamEntity, TeamMember as TeamMemberEntity, TeamFee as TeamFeeEntity } from '../model/types';
 
 /**
@@ -26,7 +26,7 @@ export function teamRowToEntity(row: TeamRow): TeamEntity {
     regionDepth1: row.region_depth1,
     regionDepth2: row.region_depth2,
     homeGymId: row.home_gym_id,
-    regularDay: normalizeRegularDay(row.regular_day),
+    regularDays: normalizeRegularDays(row.regular_day as unknown as string[]),
     regularStartTime: row.regular_start_time ?? null,
     regularEndTime: row.regular_end_time ?? null,
     teamGender: row.team_gender,
@@ -83,14 +83,14 @@ export function formatRegion(regionDepth1: string | null, regionDepth2: string |
 }
 
 /**
- * 정기 운동 시간을 문자열로 변환
+ * 정기 운동 시간을 문자열로 변환 (복수 요일 지원)
  */
 export function formatRegularSchedule(
-  regularDay: string | null,
+  regularDays: string[] | string | null,
   regularStartTime: string | null,
   regularEndTime?: string | null
 ): string | null {
-  if (!regularDay) return null;
+  if (!regularDays) return null;
 
   const dayLabels: Record<string, string> = {
     MON: '월',
@@ -102,7 +102,11 @@ export function formatRegularSchedule(
     SUN: '일',
   };
 
-  const day = dayLabels[regularDay] || regularDay;
+  // 하위 호환: 단일 문자열도 처리
+  const days = typeof regularDays === 'string' ? [regularDays] : regularDays;
+  if (days.length === 0) return null;
+
+  const dayStr = days.map((d) => dayLabels[d] || d).join(', ');
 
   // 시작~종료 시간 포맷
   let timeStr = '';
@@ -116,5 +120,5 @@ export function formatRegularSchedule(
     }
   }
 
-  return `${day}요일${timeStr}`;
+  return `${dayStr}요일${timeStr}`;
 }

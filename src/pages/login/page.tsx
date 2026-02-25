@@ -5,6 +5,8 @@ import { useSearchParams } from 'next/navigation';
 import { getSupabaseAuthClient } from '@/shared/api/supabase/client';
 import { toast } from '@/shared/ui/shadcn/sonner';
 
+const FORCE_KAKAO_REAUTH_KEY = 'force_kakao_reauth';
+
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const searchParams = useSearchParams();
@@ -12,18 +14,25 @@ export default function LoginPage() {
   const handleKakaoLogin = async () => {
     setIsLoading(true);
     const supabase = getSupabaseAuthClient();
+    const shouldForceReauth =
+      typeof window !== 'undefined' &&
+      window.sessionStorage.getItem(FORCE_KAKAO_REAUTH_KEY) === '1';
     const redirect = searchParams?.get('redirect');
     const callbackUrl = redirect
       ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirect)}`
       : `${window.location.origin}/auth/callback`;
 
-    // 로그인 페이지를 히스토리에서 제거 — 로그인 후 뒤로가기 시 로그인 화면이 나오지 않도록
-    window.history.replaceState(null, '', redirect || '/');
-
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'kakao',
       options: {
         redirectTo: callbackUrl,
+        ...(shouldForceReauth
+          ? {
+              queryParams: {
+                prompt: 'login',
+              },
+            }
+          : {}),
       },
     });
 
@@ -31,6 +40,11 @@ export default function LoginPage() {
       console.error(error);
       toast.error('카카오 로그인 실패: ' + error.message);
       setIsLoading(false);
+      return;
+    }
+
+    if (shouldForceReauth && typeof window !== 'undefined') {
+      window.sessionStorage.removeItem(FORCE_KAKAO_REAUTH_KEY);
     }
   };
 

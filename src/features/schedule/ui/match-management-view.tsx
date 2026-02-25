@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Calendar, RotateCcw } from "lucide-react";
 import { useLocalStorage } from "@/shared/lib/hooks/use-local-storage";
@@ -276,18 +275,27 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
               onValueChange={(v) => setViewMode(v as "guest" | "host")}
               className="w-auto gap-0"
             >
-              <TabsList variant="default" className="relative rounded-full h-auto p-1 bg-neutral-100">
-                <motion.div
-                  className="absolute top-1 bottom-1 left-1 rounded-full bg-neutral-900 pointer-events-none"
-                  style={{ width: "calc(50% - 4px)" }}
-                  animate={{ x: viewMode === "host" ? "100%" : "0%" }}
-                  initial={false}
-                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+              <TabsList
+                variant="default"
+                className="relative h-auto rounded-full border border-slate-200 bg-neutral-100 p-0.5"
+              >
+                <div
+                  className="pointer-events-none absolute top-0.5 bottom-0.5 left-0.5 rounded-full border border-slate-200 bg-white shadow-sm"
+                  style={{
+                    width: "calc(50% - 2px)",
+                    transform: viewMode === "host" ? "translateX(100%)" : "translateX(0)",
+                  }}
                 />
-                <TabsTrigger value="guest" className="relative z-10 rounded-full px-4 py-1.5 text-sm font-bold data-active:bg-transparent data-active:shadow-none data-active:text-white">
+                <TabsTrigger
+                  value="guest"
+                  className="relative z-10 rounded-full px-4 py-1.5 text-base font-semibold text-slate-500 hover:text-slate-700 data-active:bg-transparent data-active:shadow-none data-active:text-slate-900"
+                >
                   참여
                 </TabsTrigger>
-                <TabsTrigger value="host" className="relative z-10 rounded-full px-4 py-1.5 text-sm font-bold data-active:bg-transparent data-active:shadow-none data-active:text-white">
+                <TabsTrigger
+                  value="host"
+                  className="relative z-10 rounded-full px-4 py-1.5 text-base font-semibold text-slate-500 hover:text-slate-700 data-active:bg-transparent data-active:shadow-none data-active:text-slate-900"
+                >
                   관리
                 </TabsTrigger>
               </TabsList>

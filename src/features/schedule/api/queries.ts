@@ -5,7 +5,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { createMatchService } from '@/entities/match';
-import { createApplicationService } from '@/entities/application';
+import {
+  createApplicationService,
+  extractTeamVoteGuestNames,
+  toTeamVoteStatus,
+} from '@/entities/application';
 import { createTeamService } from '@/entities/team';
 import { useAuth } from '@/shared/session';
 import { formatMatchDate, formatMatchTime } from '@/shared/lib/datetime';
@@ -29,19 +33,6 @@ import type {
   ParticipatingMatchRow,
   TeamExerciseVoteItemDTO,
 } from '../model/types';
-
-function toTeamVoteStatus(status: string | null | undefined): TeamVoteStatusValue {
-  switch (status) {
-    case 'CONFIRMED':
-    case 'LATE':
-    case 'NOT_ATTENDING':
-    case 'MAYBE':
-      return status;
-    case 'PENDING':
-    default:
-      return 'PENDING';
-  }
-}
 
 /**
  * 내가 주최한 경기 목록 조회
@@ -97,11 +88,11 @@ export function useHostedMatches() {
             votingSummaryMap.set(row.id, {
               attending: summary.attending + summary.late,
               notAttending: summary.notAttending,
-              pending: summary.pending + summary.maybe,
+              pending: summary.pending,
             });
             if (myVoteRow) {
               myVoteMap.set(row.id, {
-                vote: myVoteRow.status as TeamVoteStatusValue,
+                vote: toTeamVoteStatus(myVoteRow.status),
                 reason: myVoteRow.description || undefined,
               });
             }
@@ -189,7 +180,7 @@ export function useParticipatingMatches() {
             votingSummaryMap.set(matchId, {
               attending: summary.attending + summary.late,
               notAttending: summary.notAttending,
-              pending: summary.pending + summary.maybe,
+              pending: summary.pending,
             });
           })
         );
@@ -246,7 +237,7 @@ export function useParticipatingMatches() {
           const scheduleMode = 'participating' as const;
 
           // Team 매치: 투표 상태 매핑
-          const myVote = managementType === 'team_exercise' ? (app.status as TeamVoteStatusValue) : undefined;
+          const myVote = managementType === 'team_exercise' ? toTeamVoteStatus(app.status) : undefined;
           const myVoteReason = managementType === 'team_exercise' ? (app.description || undefined) : undefined;
 
           return {
@@ -339,6 +330,7 @@ export function useTeamExerciseVotes(matchId: string, enabled: boolean = true) {
         const typed = row as typeof row & {
           users?: { id?: string | null; nickname?: string | null; real_name?: string | null } | null;
         };
+        const guestNames = extractTeamVoteGuestNames(row.participants_info);
 
         return {
           id: row.id,
@@ -346,6 +338,7 @@ export function useTeamExerciseVotes(matchId: string, enabled: boolean = true) {
           name: typed.users?.nickname || typed.users?.real_name || '알 수 없음',
           status: toTeamVoteStatus(row.status),
           reason: row.description || undefined,
+          guestNames,
         };
       });
     },

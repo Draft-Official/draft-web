@@ -4,10 +4,14 @@ import type { Gym as GymEntity } from '@/entities/gym';
 import type { User as UserEntity } from '@/entities/user';
 import type { Application as ApplicationEntity } from '@/entities/application';
 import {
+  extractTeamVoteGuestParticipants,
+  toTeamVoteStatus,
+} from '@/entities/application';
+import {
   MATCH_STATUS_LABELS,
   type MatchStatusValue,
 } from '@/shared/config/match-constants';
-import type { TeamRoleValue, TeamVoteStatusValue } from '@/shared/config/team-constants';
+import type { TeamRoleValue } from '@/shared/config/team-constants';
 import type {
   MyPendingTeamVoteMatchDTO,
   MyTeamListItemDTO,
@@ -31,21 +35,10 @@ type TeamMemberUserInput = {
   nickname: string | null;
   avatarUrl: string | null;
   positions: string[] | null;
+  height: number | null;
+  weight: number | null;
 };
-type TeamVoteUserInput = Pick<UserEntity, 'nickname' | 'avatarUrl'>;
-
-function toTeamVoteStatus(status: string | null): TeamVoteStatusValue {
-  switch (status) {
-    case 'CONFIRMED':
-    case 'LATE':
-    case 'NOT_ATTENDING':
-    case 'MAYBE':
-      return status;
-    case 'PENDING':
-    default:
-      return 'PENDING';
-  }
-}
+type TeamVoteUserInput = Pick<UserEntity, 'nickname' | 'avatarUrl' | 'positions'>;
 
 function toMatchStatusLabel(status: MatchStatusValue | null): string {
   if (!status) return '상태 미정';
@@ -73,11 +66,11 @@ export function toTeamInfoDTO(
     homeGymId: team.homeGymId,
     homeGymName: extras?.homeGymName ?? null,
     homeGymAddress: extras?.homeGymAddress ?? null,
-    regularDay: team.regularDay,
+    regularDays: team.regularDays,
     regularStartTime: team.regularStartTime,
     regularEndTime: team.regularEndTime,
     regularScheduleDisplay: formatTeamRegularSchedule(
-      team.regularDay,
+      team.regularDays,
       team.regularStartTime,
       team.regularEndTime
     ),
@@ -104,10 +97,10 @@ export function toMyTeamListItemDTO(
     name: team.name,
     logoUrl: team.logoUrl,
     role,
-    regularDay: team.regularDay,
+    regularDays: team.regularDays,
     regularTime: team.regularStartTime?.slice(0, 5) ?? null,
     regularScheduleDisplay: formatTeamRegularSchedule(
-      team.regularDay,
+      team.regularDays,
       team.regularStartTime,
       team.regularEndTime
     ),
@@ -132,6 +125,8 @@ export function toTeamMembershipDTO(
           nickname: user.nickname,
           avatarUrl: user.avatarUrl,
           positions: user.positions,
+          height: user.height,
+          weight: user.weight,
         }
       : undefined,
   };
@@ -168,6 +163,8 @@ export function toTeamVoteDTO(
   application: ApplicationEntity,
   user?: TeamVoteUserInput | null
 ): TeamVoteDTO {
+  const guestParticipants = extractTeamVoteGuestParticipants(application.participantsInfo);
+
   return {
     id: application.id,
     matchId: application.matchId,
@@ -179,6 +176,8 @@ export function toTeamVoteDTO(
     updatedAt: application.updatedAt,
     userNickname: user?.nickname ?? null,
     userAvatarUrl: user?.avatarUrl ?? null,
+    userPositions: user?.positions ?? null,
+    guestParticipants,
   };
 }
 

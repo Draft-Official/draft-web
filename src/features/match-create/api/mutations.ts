@@ -130,13 +130,6 @@ export function useSaveMatchCreateDefaults() {
           notice: input.hostNotice,
         },
       });
-
-      await authService.updateOperationsDefaults(input.userId, {
-        operationInfo: {
-          type: input.contactInfo.type,
-          url: input.contactInfo.type === 'KAKAO_OPEN_CHAT' ? input.contactInfo.content : undefined,
-        },
-      });
     },
   });
 }

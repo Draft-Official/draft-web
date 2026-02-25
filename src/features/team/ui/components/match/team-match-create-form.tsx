@@ -81,14 +81,14 @@ function getNext14Days(): DateOption[] {
 }
 
 /**
- * 정기운동일에 가장 가까운 날짜 찾기
+ * 정기운동일에 가장 가까운 날짜 찾기 (복수 요일 지원)
  */
-function findNextRegularDay(regularDay: RegularDayValue | null, dates: DateOption[]): string {
-  if (!regularDay) return dates[0]?.dateISO || '';
+function findNextRegularDay(regularDays: RegularDayValue[], dates: DateOption[]): string {
+  if (regularDays.length === 0) return dates[0]?.dateISO || '';
 
   for (const date of dates) {
     const parts = getKSTDateParts(parseKSTDateISO(date.dateISO));
-    if (parts && DAY_MAP[parts.weekday] === regularDay) {
+    if (parts && regularDays.includes(DAY_MAP[parts.weekday] as RegularDayValue)) {
       return date.dateISO;
     }
   }
@@ -149,8 +149,8 @@ export function TeamMatchCreateForm({ team, onClose }: TeamMatchCreateFormProps)
 
   // 정기운동일에 가장 가까운 날짜 자동 선택
   const initialDate = useMemo(
-    () => findNextRegularDay(team.regularDay, calendarDates),
-    [team.regularDay, calendarDates]
+    () => findNextRegularDay(team.regularDays, calendarDates),
+    [team.regularDays, calendarDates]
   );
 
   // 팀의 기본 시간 사용 (DB에서 HH:MM:SS로 올 수 있으므로 정규화)

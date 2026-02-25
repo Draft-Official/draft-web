@@ -15,17 +15,24 @@ import { REGULAR_DAY_OPTIONS, type RegularDayValue } from '@/shared/config/team-
 import type { LocationData } from '@/shared/types/location.types';
 
 interface TeamCreateStepScheduleProps {
-  regularDay: RegularDayValue | '';
+  regularDays: RegularDayValue[];
   locationData: LocationData | null;
   onLocationResolvedChange: (next: LocationSearchResolvedValue) => void;
 }
 
 export function TeamCreateStepSchedule({
-  regularDay,
+  regularDays,
   locationData,
   onLocationResolvedChange,
 }: TeamCreateStepScheduleProps) {
   const { control, setValue } = useFormContext();
+
+  const toggleDay = (day: RegularDayValue) => {
+    const next = regularDays.includes(day)
+      ? regularDays.filter((d) => d !== day)
+      : [...regularDays, day];
+    setValue('regularDays', next);
+  };
 
   return (
     <div className="space-y-6">
@@ -41,10 +48,10 @@ export function TeamCreateStepSchedule({
             <button
               key={day.value}
               type="button"
-              onClick={() => setValue('regularDay', regularDay === day.value ? '' : day.value)}
+              onClick={() => toggleDay(day.value)}
               className={cn(
                 'aspect-square rounded-lg flex items-center justify-center text-base font-bold transition-all border',
-                regularDay === day.value
+                regularDays.includes(day.value)
                   ? 'bg-slate-800 text-white border-slate-800'
                   : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
               )}

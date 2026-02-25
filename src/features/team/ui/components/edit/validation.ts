@@ -38,7 +38,7 @@ export function validateTeamProfileEditForm(
   if (!isValidTeamName(trimmedName)) return TEAM_NAME_CHARACTER_ERROR_MESSAGE;
   if (!form.shortIntro.trim()) return '한줄 소개를 입력해주세요';
   if (form.shortIntro.length > 15) return '한줄 소개는 15자 이내로 입력해주세요';
-  if (!form.regularDay) return '정기 운동 요일을 선택해주세요';
+  if (form.regularDays.length === 0) return '정기 운동 요일을 선택해주세요';
   if (!form.regularTime) return '시작 시간을 선택해주세요';
 
   const isValidDuration = TEAM_DURATION_OPTIONS.some(

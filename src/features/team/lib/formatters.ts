@@ -15,24 +15,27 @@ export function formatTeamRegion(
 }
 
 /**
- * 팀 정기운동 스케줄 표시 문자열 생성
+ * 팀 정기운동 스케줄 표시 문자열 생성 (복수 요일 지원)
  */
 export function formatTeamRegularSchedule(
-  regularDay: RegularDayValue | null,
+  regularDays: RegularDayValue[] | null,
   regularStartTime: string | null,
   regularEndTime: string | null
 ): string | null {
-  if (!regularDay) return null;
+  if (!regularDays || regularDays.length === 0) return null;
 
-  const day = REGULAR_DAY_SHORT_LABELS[regularDay];
+  // 1개: "화요일", 2개 이상: "화, 목"
+  const dayStr = regularDays.length === 1
+    ? `${REGULAR_DAY_SHORT_LABELS[regularDays[0]]}요일`
+    : regularDays.map((d) => REGULAR_DAY_SHORT_LABELS[d]).join(', ');
 
-  if (!regularStartTime) return `${day}요일`;
+  if (!regularStartTime) return dayStr;
 
   const start = regularStartTime.slice(0, 5);
-  if (!regularEndTime) return `${day}요일 ${start}`;
+  if (!regularEndTime) return `${dayStr} ${start}`;
 
   const end = regularEndTime.slice(0, 5);
-  return `${day}요일 ${start} ~ ${end}`;
+  return `${dayStr} ${start} ~ ${end}`;
 }
 
 /**

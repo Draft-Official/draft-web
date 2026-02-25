@@ -8,6 +8,8 @@ import type {
 import type { OperationInfo, AccountInfo } from '@/shared/types/jsonb.types';
 import { handleSupabaseError, AuthError } from '@/shared/lib/errors';
 
+const FORCE_KAKAO_REAUTH_KEY = 'force_kakao_reauth';
+
 export class AuthService {
   constructor(private supabase: SupabaseClient<Database>) {}
 
@@ -86,14 +88,28 @@ export class AuthService {
   }
 
   async signInWithKakao(redirectTo?: string) {
+    const shouldForceReauth =
+      typeof window !== 'undefined' &&
+      window.sessionStorage.getItem(FORCE_KAKAO_REAUTH_KEY) === '1';
+
     const { data, error } = await this.supabase.auth.signInWithOAuth({
       provider: 'kakao',
       options: {
         redirectTo: redirectTo || `${window.location.origin}/auth/callback`,
+        ...(shouldForceReauth
+          ? {
+              queryParams: {
+                prompt: 'login',
+              },
+            }
+          : {}),
       },
     });
 
     if (error) throw new AuthError(error.message);
+    if (shouldForceReauth && typeof window !== 'undefined') {
+      window.sessionStorage.removeItem(FORCE_KAKAO_REAUTH_KEY);
+    }
     return data;
   }
 

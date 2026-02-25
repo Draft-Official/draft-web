@@ -29,7 +29,13 @@ import type {
   TeamVoteStatusValue,
   RegularDayValue,
 } from '@/shared/config/team-constants';
-import type { MatchStatusValue, MatchTypeValue, MatchFormatValue, GenderValue } from '@/shared/config/match-constants';
+import type {
+  MatchStatusValue,
+  MatchTypeValue,
+  MatchFormatValue,
+  GenderValue,
+  PositionValue,
+} from '@/shared/config/match-constants';
 import type {
   AccountInfo,
   AgeRange,
@@ -62,7 +68,7 @@ export interface TeamInfoDTO {
   homeGymId: string | null;
   homeGymName: string | null;
   homeGymAddress: string | null;
-  regularDay: RegularDayValue | null;
+  regularDays: RegularDayValue[];
   regularStartTime: string | null;
   regularEndTime: string | null;
   regularScheduleDisplay: string | null;
@@ -87,7 +93,7 @@ export interface MyTeamListItemDTO {
   name: string;
   logoUrl: string | null;
   role: TeamRoleValue;
-  regularDay: RegularDayValue | null;
+  regularDays: RegularDayValue[];
   regularTime: string | null;
   regularScheduleDisplay: string | null;
   homeGymName: string | null;
@@ -128,6 +134,11 @@ export interface TeamVoteDTO {
   updatedAt: string | null;
   userNickname: string | null;
   userAvatarUrl: string | null;
+  userPositions: PositionValue[] | null;
+  guestParticipants: {
+    name: string;
+    position: PositionValue;
+  }[];
 }
 
 /**
@@ -204,6 +215,8 @@ export interface TeamMemberUser {
   nickname: string | null;
   avatarUrl: string | null;
   positions: string[] | null;
+  height: number | null;
+  weight: number | null;
 }
 
 /**
