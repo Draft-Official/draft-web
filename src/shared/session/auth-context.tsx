@@ -15,6 +15,8 @@ interface AuthProviderProps {
   children: React.ReactNode;
 }
 
+const FORCE_KAKAO_REAUTH_KEY = 'force_kakao_reauth';
+
 function getProfileQueryKey(userId: string) {
   return ['auth', 'profile', userId] as const;
 }
@@ -43,6 +45,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const queryClient = useQueryClient();
   const isCacheRestored = useCacheRestored();
 
+  const clearSignOutCache = useCallback(() => {
+    queryClient.clear();
+    if (typeof window === 'undefined') return;
+    window.localStorage.removeItem('draft-query-cache');
+    window.localStorage.removeItem('profileSkipped');
+    window.localStorage.removeItem('hideMatchCreateTip');
+    window.sessionStorage.setItem(FORCE_KAKAO_REAUTH_KEY, '1');
+  }, [queryClient]);
+
   const loadProfile = useCallback(async (userId: string) => {
     if (!isSupabaseConfigured()) {
       setProfile(null);
@@ -51,16 +62,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     try {
       const queryKey = getProfileQueryKey(userId);
-      const existingData = queryClient.getQueryData(queryKey);
-      if (existingData) {
-        setProfile(profileRowToSessionProfile(existingData as ProfileRow));
-        return;
-      }
-
       const profileData = await queryClient.fetchQuery({
         queryKey,
         queryFn: () => fetchProfile(userId),
-        staleTime: 1000 * 60 * 5,
+        staleTime: 0,
       });
       setProfile(profileData);
     } catch (error) {
@@ -81,7 +86,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setUser(null);
       setProfile(null);
       setStatus('unauthenticated');
-      queryClient.clear();
+      clearSignOutCache();
       return;
     }
 
@@ -92,16 +97,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setUser(null);
       setProfile(null);
       setStatus('unauthenticated');
-      queryClient.clear();
+      clearSignOutCache();
     } catch (error) {
       console.error('Failed to sign out:', error);
       throw error;
     }
-  }, [queryClient]);
+  }, [clearSignOutCache]);
 
   useEffect(() => {
     if (!isCacheRestored) return;
-    if (user && !profile) {
+    if (user && (!profile || profile.id !== user.id)) {
       loadProfile(user.id).catch(console.error);
     }
   }, [isCacheRestored, user, profile, loadProfile]);
@@ -177,6 +182,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === 'SIGNED_IN' && session?.user) {
+          if (typeof window !== 'undefined') {
+            window.sessionStorage.removeItem(FORCE_KAKAO_REAUTH_KEY);
+          }
+          if (profile && profile.id !== session.user.id) {
+            setProfile(null);
+          }
           setUser(session.user);
           setStatus('authenticated');
           isSessionFound.current = true;
@@ -184,6 +195,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setUser(null);
           setProfile(null);
           setStatus('unauthenticated');
+          clearSignOutCache();
         } else if (event === 'TOKEN_REFRESHED' && session?.user) {
           setUser(session.user);
         }
@@ -200,7 +212,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       subscription.unsubscribe();
       window.removeEventListener('auth:error', handleAuthError);
     };
-  }, []);
+  }, [profile, clearSignOutCache]);
 
   const value: AuthContextValue = {
     user,

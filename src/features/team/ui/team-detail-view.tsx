@@ -200,6 +200,7 @@ export function TeamDetailView({ code }: TeamDetailViewProps) {
             team={team}
             homeGymName={team.homeGymName}
             memberCount={memberCount}
+            membership={membership || null}
           />
         </TabsContent>
 

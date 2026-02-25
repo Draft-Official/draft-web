@@ -8,7 +8,10 @@ import { SignupVerifyGuard } from "@/features/auth/ui/signup-verify-guard";
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() ?? '';
-  const isBareLayout = pathname.startsWith('/signup/verify') || pathname === '/login';
+  const isBareLayout =
+    pathname.startsWith('/signup/verify') ||
+    pathname === '/login' ||
+    pathname.startsWith('/auth');
 
   if (isBareLayout) {
     return (

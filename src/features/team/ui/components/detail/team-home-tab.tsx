@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import {
   MapPin,
   Home,
@@ -8,22 +9,83 @@ import {
   Trophy,
   User,
   Users2,
+  Pencil,
 } from 'lucide-react';
 import { formatTeamRegion, formatTeamRegularSchedule } from '@/features/team/lib';
+import { useUpdateTeam } from '@/features/team/api/team-info/mutations';
 import { GENDER_LABELS, type GenderValue } from '@/shared/config/match-constants';
 import { SKILL_LEVEL_NAMES } from '@/shared/config/skill-constants';
-import type { TeamInfoDTO } from '@/features/team/model/types';
+import type { TeamInfoDTO, TeamMembershipDTO } from '@/features/team/model/types';
+import { Button } from '@/shared/ui/shadcn/button';
+import { Textarea } from '@/shared/ui/shadcn/textarea';
+import { toast } from '@/shared/ui/shadcn/sonner';
 
 interface TeamHomeTabProps {
   team: TeamInfoDTO;
   homeGymName: string | null;
   memberCount: number;
+  membership: TeamMembershipDTO | null;
 }
 
 /**
  * 팀 홈 탭 - 팀 정보 대시보드
  */
-export function TeamHomeTab({ team, homeGymName, memberCount }: TeamHomeTabProps) {
+export function TeamHomeTab({
+  team,
+  homeGymName,
+  memberCount,
+  membership,
+}: TeamHomeTabProps) {
+  const updateTeamMutation = useUpdateTeam();
+  const [isEditingDescription, setIsEditingDescription] = useState(false);
+  const [descriptionDraft, setDescriptionDraft] = useState(team.description ?? '');
+
+  const canEditDescription =
+    membership?.status === 'ACCEPTED' &&
+    membership.role === 'LEADER';
+  const hasDescription = (team.description ?? '').trim().length > 0;
+  const showDescriptionSection = hasDescription || canEditDescription;
+  const isDescriptionEditorOpen = canEditDescription && isEditingDescription;
+
+  useEffect(() => {
+    if (!isEditingDescription) {
+      setDescriptionDraft(team.description ?? '');
+    }
+  }, [team.description, isEditingDescription]);
+
+  const handleSaveDescription = () => {
+    const currentDescription = (team.description ?? '').trim();
+    const nextDescription = descriptionDraft.trim();
+
+    if (currentDescription === nextDescription) {
+      setIsEditingDescription(false);
+      return;
+    }
+
+    updateTeamMutation.mutate(
+      {
+        teamId: team.id,
+        input: {
+          description: nextDescription || null,
+        },
+      },
+      {
+        onSuccess: () => {
+          toast.success('팀 소개가 저장되었습니다');
+          setIsEditingDescription(false);
+        },
+        onError: () => {
+          toast.error('팀 소개 저장에 실패했습니다');
+        },
+      }
+    );
+  };
+
+  const handleCancelDescriptionEdit = () => {
+    setDescriptionDraft(team.description ?? '');
+    setIsEditingDescription(false);
+  };
+
   // 지역 정보
   const regionText = formatTeamRegion(team.regionDepth1, team.regionDepth2);
 
@@ -101,17 +163,76 @@ export function TeamHomeTab({ team, homeGymName, memberCount }: TeamHomeTabProps
   return (
     <div className="bg-white">
       {/* 팀 소개 */}
-      {team.description && (
+      {showDescriptionSection && (
         <section className="px-5 py-6">
-          <h2 className="text-lg font-bold text-slate-900 mb-4">팀 소개</h2>
-          <p className="text-base text-slate-600 whitespace-pre-wrap">
-            {team.description}
-          </p>
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="text-lg font-bold text-slate-900">팀 소개</h2>
+            {canEditDescription && !isDescriptionEditorOpen && (
+              hasDescription ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setIsEditingDescription(true)}
+                >
+                  수정
+                </Button>
+              ) : (
+                <button
+                  type="button"
+                  aria-label="팀 소개 작성"
+                  onClick={() => setIsEditingDescription(true)}
+                  className="rounded-full p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
+              )
+            )}
+          </div>
+
+          {isDescriptionEditorOpen ? (
+            <div className="space-y-3">
+              <Textarea
+                value={descriptionDraft}
+                onChange={(event) => setDescriptionDraft(event.target.value)}
+                placeholder="팀을 소개해주세요"
+                rows={4}
+                disabled={updateTeamMutation.isPending}
+              />
+              <div className="flex justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={handleCancelDescriptionEdit}
+                  disabled={updateTeamMutation.isPending}
+                >
+                  취소
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleSaveDescription}
+                  disabled={updateTeamMutation.isPending}
+                >
+                  {updateTeamMutation.isPending ? '저장 중...' : '저장'}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            hasDescription ? (
+              <p className="text-base text-slate-600 whitespace-pre-wrap">
+                {team.description}
+              </p>
+            ) : (
+              <p className="text-sm text-slate-400">
+                아직 등록된 팀 소개가 없습니다.
+              </p>
+            )
+          )}
         </section>
       )}
 
       {/* 팀 정보 섹션 */}
-      <section className={`px-5 py-6 ${team.description ? 'border-t border-slate-100' : ''}`}>
+      <section className={`px-5 py-6 ${showDescriptionSection ? 'border-t border-slate-100' : ''}`}>
         <h2 className="text-lg font-bold text-slate-900 mb-4">팀 정보</h2>
 
         <div className="space-y-4">
