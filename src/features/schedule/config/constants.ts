@@ -36,11 +36,10 @@ export const GUEST_STATUS_FILTER_OPTIONS: FilterOption<'pending' | 'payment_wait
 ];
 
 // 경기 상태 필터 옵션 - 관리 모드 (중복선택용)
-export const HOST_STATUS_FILTER_OPTIONS: FilterOption<'recruiting' | 'closed' | 'voting' | 'confirmed' | 'ended' | 'cancelled'>[] = [
+export const HOST_STATUS_FILTER_OPTIONS: FilterOption<'recruiting' | 'closed' | 'voting' | 'ended' | 'cancelled'>[] = [
   { value: 'recruiting', label: '모집 중' },
   { value: 'closed', label: '모집 마감' },
   { value: 'voting', label: '투표 중' },
-  { value: 'confirmed', label: '경기 확정' },
   { value: 'ended', label: '종료' },
   { value: 'cancelled', label: '취소' },
 ];

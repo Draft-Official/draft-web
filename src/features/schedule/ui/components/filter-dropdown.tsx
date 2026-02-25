@@ -2,13 +2,12 @@
 
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
+  DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/shared/ui/shadcn/dropdown-menu';
 import { Chip } from '@/shared/ui/shadcn/chip';
+import { cn } from '@/shared/lib/utils';
 import type { FilterOption } from '../../model/types';
 
 // Single select props
@@ -35,7 +34,6 @@ export function FilterDropdown<T extends string>(props: FilterDropdownProps<T>) 
   const { options, multiSelect } = props;
 
   if (multiSelect) {
-    // Multi-select mode
     const { value, onChange, getDisplayLabel } = props as MultiSelectProps<T>;
 
     const displayLabel = getDisplayLabel
@@ -68,27 +66,22 @@ export function FilterDropdown<T extends string>(props: FilterDropdownProps<T>) 
             className="shrink-0"
           />
         </DropdownMenuTrigger>
-        <DropdownMenuContent
-          className="w-36"
-          align="start"
-        >
+        <DropdownMenuContent className="w-36" align="start">
           {options.map((option) => (
-            <DropdownMenuCheckboxItem
+            <DropdownMenuItem
               key={option.value}
-              checked={value.includes(option.value)}
-              onCheckedChange={() => handleToggle(option.value)}
-              onSelect={(event) => event.preventDefault()}
-              className="rounded-xl"
+              onSelect={(e) => { e.preventDefault(); handleToggle(option.value); }}
+              className={cn(value.includes(option.value) && 'bg-brand-weak text-primary')}
             >
               {option.label}
-            </DropdownMenuCheckboxItem>
+            </DropdownMenuItem>
           ))}
         </DropdownMenuContent>
       </DropdownMenu>
     );
   }
 
-  // Single-select mode (default)
+  // Single-select mode
   const { value, onChange, getDisplayLabel } = props as SingleSelectProps<T>;
 
   const displayLabel = getDisplayLabel
@@ -109,24 +102,16 @@ export function FilterDropdown<T extends string>(props: FilterDropdownProps<T>) 
           className="shrink-0"
         />
       </DropdownMenuTrigger>
-      <DropdownMenuContent
-        className="w-36"
-        align="start"
-      >
-        <DropdownMenuRadioGroup
-          value={value}
-          onValueChange={(nextValue) => onChange(nextValue as T)}
-        >
-          {options.map((option) => (
-            <DropdownMenuRadioItem
-              key={option.value}
-              value={option.value}
-              className="rounded-xl"
-            >
-              {option.label}
-            </DropdownMenuRadioItem>
-          ))}
-        </DropdownMenuRadioGroup>
+      <DropdownMenuContent className="w-36" align="start">
+        {options.map((option) => (
+          <DropdownMenuItem
+            key={option.value}
+            onSelect={() => onChange(option.value as T)}
+            className={cn(option.value === value && 'bg-brand-weak text-primary')}
+          >
+            {option.label}
+          </DropdownMenuItem>
+        ))}
       </DropdownMenuContent>
     </DropdownMenu>
   );
