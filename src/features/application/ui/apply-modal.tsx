@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
   DialogDescription,
 } from '@/shared/ui/shadcn/dialog';
@@ -19,9 +18,9 @@ import {
   SelectValue,
 } from '@/shared/ui/shadcn/select';
 import { Switch } from '@/shared/ui/shadcn/switch';
+import { Toggle } from '@/shared/ui/shadcn/toggle';
 import { Checkbox } from '@/shared/ui/shadcn/checkbox';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/shared/ui/shadcn/accordion';
-import { cn } from '@/shared/lib/utils';
 import { useAuth, useUpdateProfile } from '@/shared/session';
 import { useCreateApplication, useUserTeams } from '@/features/application';
 import type { ApplyCompanionDTO, ApplyFormDTO } from '../model/types';
@@ -67,7 +66,6 @@ export function ApplyModal({
   const [companions, setCompanions] = useState<ApplyCompanionDTO[]>([]);
   const [isAgreed, setIsAgreed] = useState(false);
 
-  // 프로필 데이터로 폼 초기화
   useEffect(() => {
     if (profile) {
       setFormData(sessionProfileToApplyFormDTO(profile));
@@ -102,18 +100,13 @@ export function ApplyModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!isFormValid() || !user) return;
-
     try {
-      // 1. 프로필에 비어있는 필드가 있으면 자동 저장
       const profileUpdates = buildProfileUpdateFromApplyForm(formData, profile);
       if (profileUpdates && user) {
         await updateProfile.mutateAsync({ userId: user.id, updates: profileUpdates });
         await refreshProfile();
       }
-
-      // 2. 신청 생성
       await createApplication.mutateAsync(buildCreateApplicationDTO({
         matchId,
         userId: user.id,
@@ -122,7 +115,6 @@ export function ApplyModal({
         hasCompanions,
         profile,
       }));
-
       onOpenChange(false);
     } catch {
       // 에러는 mutation에서 toast로 처리됨
@@ -131,8 +123,10 @@ export function ApplyModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="xl" className="max-h-[95vh] overflow-y-auto p-6 scrollbar-hide [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-        <DialogHeader>
+      <DialogContent size="xl" className="p-0 flex flex-col max-h-[90vh] gap-0 overflow-hidden">
+
+        {/* 헤더 고정 */}
+        <div className="px-6 pt-6 pb-4 pr-14 flex-shrink-0 border-b border-slate-100">
           <DialogTitle className="text-xl font-bold text-slate-900 mb-1">
             경기 신청
           </DialogTitle>
@@ -141,9 +135,14 @@ export function ApplyModal({
               {matchTitle}
             </DialogDescription>
           )}
-        </DialogHeader>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5 mt-4">
+        {/* 스크롤 영역 */}
+        <form
+          id="apply-form"
+          onSubmit={handleSubmit}
+          className="flex-1 min-h-0 overflow-y-auto px-6 space-y-5 pb-4"
+        >
           {/* 참가비 표시 */}
           {costAmount !== undefined && (
             <div className="bg-brand-weak rounded-xl p-4">
@@ -170,19 +169,12 @@ export function ApplyModal({
           {/* 내 정보 섹션 */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label className="text-sm font-semibold text-slate-900">
-                내 정보
-              </Label>
-              <span className="text-xs text-slate-400">
-                빈 항목은 프로필에 자동 저장됩니다
-              </span>
+              <Label className="text-sm font-semibold text-slate-900">내 정보</Label>
+              <span className="text-xs text-slate-400">빈 항목은 프로필에 자동 저장됩니다</span>
             </div>
 
-            {/* 키 */}
             <div>
-              <Label htmlFor="height" className="text-sm text-slate-600 mb-1 block">
-                키 (cm)
-              </Label>
+              <Label htmlFor="height" className="text-sm text-slate-600 mb-1 block">키 (cm)</Label>
               <div className="relative">
                 <Input
                   id="height"
@@ -190,21 +182,15 @@ export function ApplyModal({
                   inputMode="numeric"
                   placeholder="175"
                   value={formData.height}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/[^0-9]/g, '');
-                    setFormData({ ...formData, height: value });
-                  }}
+                  onChange={(e) => setFormData({ ...formData, height: e.target.value.replace(/[^0-9]/g, '') })}
                   className="h-12 bg-white border-slate-300 focus-visible:ring-primary pr-12"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500">cm</span>
               </div>
             </div>
 
-            {/* 나이 */}
             <div>
-              <Label htmlFor="age" className="text-sm text-slate-600 mb-1 block">
-                나이
-              </Label>
+              <Label htmlFor="age" className="text-sm text-slate-600 mb-1 block">나이</Label>
               <div className="relative">
                 <Input
                   id="age"
@@ -212,21 +198,15 @@ export function ApplyModal({
                   inputMode="numeric"
                   placeholder="28"
                   value={formData.age}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/[^0-9]/g, '');
-                    setFormData({ ...formData, age: value });
-                  }}
+                  onChange={(e) => setFormData({ ...formData, age: e.target.value.replace(/[^0-9]/g, '') })}
                   className="h-12 bg-white border-slate-300 focus-visible:ring-primary pr-12"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500">세</span>
               </div>
             </div>
 
-            {/* 몸무게 */}
             <div>
-              <Label htmlFor="weight" className="text-sm text-slate-600 mb-1 block">
-                몸무게 (kg)
-              </Label>
+              <Label htmlFor="weight" className="text-sm text-slate-600 mb-1 block">몸무게 (kg)</Label>
               <div className="relative">
                 <Input
                   id="weight"
@@ -234,47 +214,37 @@ export function ApplyModal({
                   inputMode="numeric"
                   placeholder="72"
                   value={formData.weight}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/[^0-9]/g, '');
-                    setFormData({ ...formData, weight: value });
-                  }}
+                  onChange={(e) => setFormData({ ...formData, weight: e.target.value.replace(/[^0-9]/g, '') })}
                   className="h-12 bg-white border-slate-300 focus-visible:ring-primary pr-12"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500">kg</span>
               </div>
             </div>
 
-            {/* 포지션 (필수) */}
             <div>
               <Label className="text-sm text-slate-600 mb-2 block">
                 포지션 <span className="text-red-500">*</span>
               </Label>
-            <div className="grid grid-cols-3 gap-2">
-              {POSITION_OPTIONS.map((pos) => (
-                <button
-                  key={pos.value}
-                  type="button"
-                  onClick={() => setFormData({ ...formData, position: pos.value })}
-                  className={cn(
-                    "h-12 rounded-lg font-medium transition-all",
-                    formData.position === pos.value
-                      ? "bg-primary text-white"
-                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                  )}
-                >
-                  {pos.label}
-                </button>
-              ))}
-            </div>
+              <div className="grid grid-cols-3 gap-2">
+                {POSITION_OPTIONS.map((pos) => (
+                  <Toggle
+                    key={pos.value}
+                    variant="outline"
+                    pressed={formData.position === pos.value}
+                    onPressedChange={() => setFormData({ ...formData, position: pos.value })}
+                    className="h-12 rounded-xl text-sm font-bold"
+                  >
+                    {pos.label}
+                  </Toggle>
+                ))}
+              </div>
             </div>
           </div>
 
           {/* 동반인 섹션 */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label className="text-sm font-semibold text-slate-900">
-                동반인 신청
-              </Label>
+              <Label className="text-sm font-semibold text-slate-900">동반인 신청</Label>
               <Switch
                 checked={hasCompanions}
                 className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-slate-200"
@@ -283,9 +253,7 @@ export function ApplyModal({
                   if (checked && companions.length === 0) {
                     setCompanions([{ name: '', position: '', height: '', age: '', skillLevel: getUserSkillLevel() }]);
                   }
-                  if (!checked) {
-                    setCompanions([]);
-                  }
+                  if (!checked) setCompanions([]);
                 }}
               />
             </div>
@@ -293,28 +261,16 @@ export function ApplyModal({
             {hasCompanions && (
               <div className="space-y-3">
                 {companions.map((companion, index) => (
-                  <div
-                    key={index}
-                    className="bg-slate-50 rounded-xl p-4 space-y-3 relative"
-                  >
+                  <div key={index} className="bg-slate-50 rounded-xl p-4 space-y-3 relative">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-slate-700">
-                        동반인 {index + 1}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => removeCompanion(index)}
-                        className="text-xs text-red-500 hover:text-red-700"
-                      >
+                      <span className="text-sm font-medium text-slate-700">동반인 {index + 1}</span>
+                      <button type="button" onClick={() => removeCompanion(index)} className="text-xs text-red-500 hover:text-red-700">
                         삭제
                       </button>
                     </div>
 
-                    {/* 이름 */}
                     <div>
-                      <Label className="text-sm text-slate-600 mb-1 block">
-                        이름 <span className="text-red-500">*</span>
-                      </Label>
+                      <Label className="text-sm text-slate-600 mb-1 block">이름 <span className="text-red-500">*</span></Label>
                       <Input
                         type="text"
                         placeholder="동반인 이름"
@@ -324,31 +280,23 @@ export function ApplyModal({
                       />
                     </div>
 
-                    {/* 포지션 */}
                     <div>
-                      <Label className="text-sm text-slate-600 mb-1 block">
-                        포지션 <span className="text-red-500">*</span>
-                      </Label>
+                      <Label className="text-sm text-slate-600 mb-1 block">포지션 <span className="text-red-500">*</span></Label>
                       <div className="grid grid-cols-3 gap-2">
                         {POSITION_OPTIONS.map((pos) => (
-                          <button
+                          <Toggle
                             key={pos.value}
-                            type="button"
-                            onClick={() => updateCompanion(index, 'position', pos.value)}
-                            className={cn(
-                              'h-10 rounded-lg text-sm font-medium transition-all',
-                              companion.position === pos.value
-                                ? 'bg-primary text-white'
-                                : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
-                            )}
+                            variant="outline"
+                            pressed={companion.position === pos.value}
+                            onPressedChange={() => updateCompanion(index, 'position', pos.value)}
+                            className="h-10 rounded-xl text-sm font-bold"
                           >
                             {pos.label}
-                          </button>
+                          </Toggle>
                         ))}
                       </div>
                     </div>
 
-                    {/* 키 / 나이 */}
                     <div className="grid grid-cols-2 gap-2">
                       <div>
                         <Label className="text-sm text-slate-600 mb-1 block">키</Label>
@@ -358,10 +306,7 @@ export function ApplyModal({
                             inputMode="numeric"
                             placeholder="175"
                             value={companion.height}
-                            onChange={(e) => {
-                              const value = e.target.value.replace(/[^0-9]/g, '');
-                              updateCompanion(index, 'height', value);
-                            }}
+                            onChange={(e) => updateCompanion(index, 'height', e.target.value.replace(/[^0-9]/g, ''))}
                             className="h-10 bg-white border-slate-300 focus-visible:ring-primary pr-10"
                           />
                           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500">cm</span>
@@ -375,10 +320,7 @@ export function ApplyModal({
                             inputMode="numeric"
                             placeholder="28"
                             value={companion.age}
-                            onChange={(e) => {
-                              const value = e.target.value.replace(/[^0-9]/g, '');
-                              updateCompanion(index, 'age', value);
-                            }}
+                            onChange={(e) => updateCompanion(index, 'age', e.target.value.replace(/[^0-9]/g, ''))}
                             className="h-10 bg-white border-slate-300 focus-visible:ring-primary pr-8"
                           />
                           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500">세</span>
@@ -386,7 +328,6 @@ export function ApplyModal({
                       </div>
                     </div>
 
-                    {/* 실력 */}
                     <div>
                       <Label className="text-sm text-slate-600 mb-1 block">실력</Label>
                       <Select
@@ -423,9 +364,7 @@ export function ApplyModal({
 
           {/* 팀 선택 */}
           <div>
-            <Label className="text-sm font-semibold text-slate-900 mb-2 block">
-              팀 선택
-            </Label>
+            <Label className="text-sm font-semibold text-slate-900 mb-2 block">팀 선택</Label>
             <Select
               value={formData.teamId || 'none'}
               onValueChange={(value) => setFormData({ ...formData, teamId: value === 'none' ? '' : value })}
@@ -436,15 +375,13 @@ export function ApplyModal({
               <SelectContent>
                 <SelectItem value="none">팀 없음</SelectItem>
                 {userTeams?.map((team) => (
-                  <SelectItem key={team.id} value={team.id}>
-                    {team.name}
-                  </SelectItem>
+                  <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
-          {/* Guest Essential Reading */}
+          {/* 필독 수칙 */}
           <div className="space-y-4">
             <Accordion type="single" collapsible className="w-full border border-slate-200 rounded-xl">
               <AccordionItem value="guest-rules">
@@ -474,7 +411,6 @@ export function ApplyModal({
               </AccordionItem>
             </Accordion>
 
-            {/* Agreement Checkbox */}
             <div className="flex items-start space-x-3">
               <Checkbox
                 id="agree-terms"
@@ -482,33 +418,25 @@ export function ApplyModal({
                 onCheckedChange={(checked) => setIsAgreed(checked === true)}
                 className="mt-1"
               />
-              <label
-                htmlFor="agree-terms"
-                className="text-sm text-slate-700 leading-relaxed cursor-pointer"
-              >
+              <label htmlFor="agree-terms" className="text-sm text-slate-700 leading-relaxed cursor-pointer">
                 위 내용을 모두 확인하였으며, <strong>취소 및 환불 규정, 법적 책임 면제 사항</strong>에 동의합니다.
               </label>
             </div>
           </div>
+        </form>
 
-          {/* 신청하기 버튼 */}
+        {/* 하단 고정 */}
+        <div className="px-6 pb-6 pt-4 flex-shrink-0 space-y-2 border-t border-slate-100">
           <Button
             type="submit"
+            form="apply-form"
             disabled={!isFormValid() || !isAgreed || createApplication.isPending || updateProfile.isPending}
             className="w-full h-12 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl disabled:bg-slate-300 disabled:text-slate-500"
           >
             {createApplication.isPending || updateProfile.isPending ? '신청 중...' : '신청하기'}
           </Button>
+        </div>
 
-          {/* 취소 버튼 */}
-          <button
-            type="button"
-            onClick={() => onOpenChange(false)}
-            className="w-full text-sm text-slate-500 hover:text-slate-700 py-2"
-          >
-            취소
-          </button>
-        </form>
       </DialogContent>
     </Dialog>
   );

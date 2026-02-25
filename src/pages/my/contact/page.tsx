@@ -1,12 +1,7 @@
 'use client';
 
-import { SubPageHeader, ContactView } from '@/features/my';
+import { ContactView } from '@/features/my';
 
 export default function ContactPage() {
-  return (
-    <div className="min-h-screen bg-white">
-      <SubPageHeader title="문의하기" />
-      <ContactView />
-    </div>
-  );
+  return <ContactView />;
 }

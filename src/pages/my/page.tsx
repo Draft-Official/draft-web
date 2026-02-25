@@ -19,6 +19,10 @@ import { useMyTeams } from '@/features/team/api/team-info/queries';
 
 export default function MyPage() {
   const { user, profile: dbProfile, refreshProfile, isLoading: authLoading } = useAuth();
+  const kakaoAvatarUrl =
+    (user?.user_metadata?.avatar_url as string | undefined) ??
+    (user?.user_metadata?.picture as string | undefined) ??
+    null;
   const updateProfileMutation = useUpdateProfile();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -56,7 +60,7 @@ export default function MyPage() {
     );
   }
 
-  const handleProfileComplete = async (data: UpdateMyProfileInput) => {
+  const handleProfileComplete = async (data: UpdateMyProfileInput, avatarUrl: string | null | undefined) => {
     if (!user) {
       console.error('User not logged in');
       return;
@@ -64,6 +68,9 @@ export default function MyPage() {
 
     try {
       const updates = myProfileFormDTOToUpdateSessionProfileInput(data, teamOptions);
+      if (avatarUrl !== undefined) {
+        updates.avatar_url = avatarUrl;
+      }
       await updateProfileMutation.mutateAsync({ userId: user.id, updates });
       await refreshProfile();
     } catch (error) {
@@ -84,19 +91,25 @@ export default function MyPage() {
         profile={profile}
         userName={userName}
         userInitials={userInitials}
+        avatarUrl={dbProfile?.avatar_url}
         teamName={displayTeamName}
         isAuthenticated={!!user}
         onEditClick={handleEditClick}
       />
 
-      <SupportSection />
-
       <NotificationSettingsSection />
 
       {user && (
         <>
-          <AccountSection />
           <PaymentSection />
+        </>
+      )}
+
+      <SupportSection />
+
+      {user && (
+        <>
+          <AccountSection />
           <MyPageFooter />
         </>
       )}
@@ -107,6 +120,8 @@ export default function MyPage() {
         onComplete={handleProfileComplete}
         initialData={profile || undefined}
         isEditing={!!profile}
+        avatarUrl={dbProfile?.avatar_url}
+        kakaoAvatarUrl={kakaoAvatarUrl}
         teams={teamOptions}
       />
     </div>

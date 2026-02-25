@@ -22,7 +22,7 @@ export function ContactView() {
       </p>
 
       <Button
-        className="w-full max-w-[280px] gap-2"
+        className="w-full h-12 gap-2"
         onClick={() => window.open(KAKAO_CHANNEL_URL, '_blank')}
       >
         카카오톡으로 문의하기

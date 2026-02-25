@@ -88,7 +88,7 @@ export function toMyProfileViewDTO(params: {
   return {
     profile,
     userName,
-    userInitials: userName.slice(0, 2),
+    userInitials: userName.slice(0, 1),
     displayTeamName,
   };
 }
