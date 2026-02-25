@@ -201,7 +201,7 @@ export function MatchCreateBasicInfo({
             <div className="flex items-center justify-between">
                 <Label className="text-sm font-bold text-slate-600">참가비 (1인)</Label>
                 <div className="flex items-center gap-2">
-                    <span className={cn("text-xs font-bold", feeType === 'cost' ? "text-primary" : "text-slate-400")}>현금</span>
+                    <span className={cn("text-sm font-bold", feeType === 'cost' ? "text-slate-800" : "text-slate-400")}>현금</span>
                     <Switch
                         checked={feeType === 'beverage'}
                         onCheckedChange={(c) => {
@@ -223,9 +223,10 @@ export function MatchCreateBasicInfo({
                                 setValue('fee', lastCostRef.current);
                             }
                         }}
-                        className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-slate-200" 
+                        size="flat"
+                        className="data-[state=checked]:bg-slate-800 data-[state=unchecked]:bg-slate-200" 
                     />
-                    <span className={cn("text-xs font-bold", feeType === 'beverage' ? "text-primary" : "text-slate-400")}>음료</span>
+                    <span className={cn("text-sm font-bold", feeType === 'beverage' ? "text-slate-800" : "text-slate-400")}>음료</span>
                 </div>
             </div>
             <div className="relative">
