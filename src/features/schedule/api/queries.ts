@@ -97,7 +97,7 @@ export function useHostedMatches() {
             votingSummaryMap.set(row.id, {
               attending: summary.attending + summary.late,
               notAttending: summary.notAttending,
-              pending: summary.pending + summary.maybe,
+              pending: summary.pending,
             });
             if (myVoteRow) {
               myVoteMap.set(row.id, {
@@ -189,7 +189,7 @@ export function useParticipatingMatches() {
             votingSummaryMap.set(matchId, {
               attending: summary.attending + summary.late,
               notAttending: summary.notAttending,
-              pending: summary.pending + summary.maybe,
+              pending: summary.pending,
             });
           })
         );

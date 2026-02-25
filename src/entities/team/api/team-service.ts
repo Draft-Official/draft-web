@@ -1174,9 +1174,7 @@ export class TeamService {
           (v) => v.status === 'CONFIRMED' || v.status === 'LATE'
         ).length,
         notAttending: matchVotes.filter((v) => v.status === 'NOT_ATTENDING').length,
-        pending: matchVotes.filter(
-          (v) => v.status === 'PENDING' || v.status === 'MAYBE'
-        ).length,
+        pending: matchVotes.filter((v) => v.status === 'PENDING').length,
       };
 
       const team = match.teams as unknown as Team;
