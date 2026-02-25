@@ -32,19 +32,24 @@ interface VoteGroup {
   names: string[];
 }
 
+function toVoteDisplayNames(vote: TeamExerciseVoteItemDTO): string[] {
+  const guestNames = (vote.guestNames ?? []).map((name) => `${name} (게스트)`);
+  return [vote.name, ...guestNames];
+}
+
 function buildVoteGroups(votes: TeamExerciseVoteItemDTO[]): VoteGroup[] {
   const attending = votes
     .filter((vote) => vote.status === 'CONFIRMED' || vote.status === 'LATE')
-    .map((vote) => vote.name);
+    .flatMap(toVoteDisplayNames);
   const notAttending = votes
     .filter((vote) => vote.status === 'NOT_ATTENDING')
-    .map((vote) => vote.name);
+    .flatMap(toVoteDisplayNames);
   const maybe = votes
     .filter((vote) => vote.status === 'MAYBE')
-    .map((vote) => vote.name);
+    .flatMap(toVoteDisplayNames);
   const pending = votes
     .filter((vote) => vote.status === 'PENDING')
-    .map((vote) => vote.name);
+    .flatMap(toVoteDisplayNames);
 
   return [
     {

@@ -6,6 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/shared/ui/shadcn/dialog';
+import { getPositionLabel } from '@/shared/config/match-constants';
 import {
   Accordion,
   AccordionContent,
@@ -28,19 +29,27 @@ interface VoteGroup {
   names: string[];
 }
 
+function toVoteDisplayNames(vote: TeamVoteDTO): string[] {
+  const ownerName = vote.userNickname || '알 수 없음';
+  const guestNames = vote.guestParticipants.map((guest) =>
+    `${guest.name || '게스트'} (${getPositionLabel(guest.position, 'combined')})`
+  );
+  return [ownerName, ...guestNames];
+}
+
 function buildVoteGroups(votes: TeamVoteDTO[]): VoteGroup[] {
   const attending = votes
     .filter((vote) => vote.status === 'CONFIRMED' || vote.status === 'LATE')
-    .map((vote) => vote.userNickname || '알 수 없음');
+    .flatMap(toVoteDisplayNames);
   const notAttending = votes
     .filter((vote) => vote.status === 'NOT_ATTENDING')
-    .map((vote) => vote.userNickname || '알 수 없음');
+    .flatMap(toVoteDisplayNames);
   const maybe = votes
     .filter((vote) => vote.status === 'MAYBE')
-    .map((vote) => vote.userNickname || '알 수 없음');
+    .flatMap(toVoteDisplayNames);
   const pending = votes
     .filter((vote) => vote.status === 'PENDING')
-    .map((vote) => vote.userNickname || '알 수 없음');
+    .flatMap(toVoteDisplayNames);
 
   return [
     { key: 'attending', label: '참석', names: attending },
@@ -107,4 +116,3 @@ export function TeamVoteStatusDialog({
     </Dialog>
   );
 }
-

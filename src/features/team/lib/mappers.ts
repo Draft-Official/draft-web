@@ -3,6 +3,7 @@ import type { Match as MatchEntity } from '@/entities/match';
 import type { Gym as GymEntity } from '@/entities/gym';
 import type { User as UserEntity } from '@/entities/user';
 import type { Application as ApplicationEntity } from '@/entities/application';
+import type { PositionValue } from '@/shared/config/match-constants';
 import {
   MATCH_STATUS_LABELS,
   type MatchStatusValue,
@@ -34,7 +35,7 @@ type TeamMemberUserInput = {
   height: number | null;
   weight: number | null;
 };
-type TeamVoteUserInput = Pick<UserEntity, 'nickname' | 'avatarUrl'>;
+type TeamVoteUserInput = Pick<UserEntity, 'nickname' | 'avatarUrl' | 'positions'>;
 
 function toTeamVoteStatus(status: string | null): TeamVoteStatusValue {
   switch (status) {
@@ -172,6 +173,13 @@ export function toTeamVoteDTO(
   application: ApplicationEntity,
   user?: TeamVoteUserInput | null
 ): TeamVoteDTO {
+  const guestParticipants = (application.participantsInfo ?? [])
+    .filter((participant) => participant.type === 'GUEST')
+    .map((participant) => ({
+      name: participant.name,
+      position: participant.position as PositionValue,
+    }));
+
   return {
     id: application.id,
     matchId: application.matchId,
@@ -183,6 +191,8 @@ export function toTeamVoteDTO(
     updatedAt: application.updatedAt,
     userNickname: user?.nickname ?? null,
     userAvatarUrl: user?.avatarUrl ?? null,
+    userPositions: user?.positions ?? null,
+    guestParticipants,
   };
 }
 

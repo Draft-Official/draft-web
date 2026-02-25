@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { ChevronDown, Check, Clock, X, HelpCircle, User } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
+import { getPositionLabel } from '@/shared/config/match-constants';
 import {
   Accordion,
   AccordionContent,
@@ -207,6 +208,10 @@ function VoterItem({
 
   const nickname = voter.userNickname || '알 수 없음';
   const avatarUrl = voter.userAvatarUrl;
+  const primaryPosition = voter.userPositions?.[0] ?? null;
+  const guestCount = voter.guestParticipants.length;
+  const hasGuests = guestCount > 0;
+  const isTwoGuests = guestCount === 2;
   const hasReason = showReason && !!voter.description;
 
   // 사유가 50자 이상이면 더보기 필요
@@ -245,6 +250,11 @@ function VoterItem({
             <span className="text-sm font-medium text-slate-900 truncate">
               {nickname}
             </span>
+            {primaryPosition && (
+              <span className="text-xs text-slate-500">
+                {getPositionLabel(primaryPosition, 'combined')}
+              </span>
+            )}
             {showLateTag && (
               <span className="px-1.5 py-0.5 text-xs font-medium bg-brand-weak-pressed text-brand rounded">
                 늦참
@@ -255,7 +265,31 @@ function VoterItem({
                 미정
               </span>
             )}
+            {hasGuests && (
+              <span className="px-1.5 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 rounded">
+                +{guestCount}명
+              </span>
+            )}
           </div>
+          {hasGuests && (
+            <div className="mt-0 pl-3">
+              <div
+                className={cn(
+                  'mt-0 items-start',
+                  isTwoGuests ? 'flex flex-row flex-wrap gap-1.5' : 'flex flex-col gap-1'
+                )}
+              >
+                {voter.guestParticipants.map((guest, index) => (
+                  <span
+                    key={`${voter.id}-guest-${index}-${guest.name}`}
+                    className="inline-block w-fit max-w-[9rem] whitespace-normal break-words rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium leading-snug text-slate-700"
+                  >
+                    {guest.name || '게스트'} {getPositionLabel(guest.position, 'combined')}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {hasReason && (

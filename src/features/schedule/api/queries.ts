@@ -339,6 +339,12 @@ export function useTeamExerciseVotes(matchId: string, enabled: boolean = true) {
         const typed = row as typeof row & {
           users?: { id?: string | null; nickname?: string | null; real_name?: string | null } | null;
         };
+        const participants = (
+          row.participants_info as Array<{ type?: string; name?: string }> | null
+        ) ?? [];
+        const guestNames = participants
+          .filter((participant) => participant.type === 'GUEST')
+          .map((participant) => participant.name || '게스트');
 
         return {
           id: row.id,
@@ -346,6 +352,7 @@ export function useTeamExerciseVotes(matchId: string, enabled: boolean = true) {
           name: typed.users?.nickname || typed.users?.real_name || '알 수 없음',
           status: toTeamVoteStatus(row.status),
           reason: row.description || undefined,
+          guestNames,
         };
       });
     },

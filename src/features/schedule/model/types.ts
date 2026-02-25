@@ -36,6 +36,7 @@ export interface TeamExerciseVoteItemDTO {
   name: string;
   status: TeamVoteStatusValue;
   reason?: string;
+  guestNames?: string[];
 }
 
 // 경기 신청자 DTO (호스트 관리용)

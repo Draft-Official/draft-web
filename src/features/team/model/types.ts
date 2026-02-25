@@ -29,7 +29,13 @@ import type {
   TeamVoteStatusValue,
   RegularDayValue,
 } from '@/shared/config/team-constants';
-import type { MatchStatusValue, MatchTypeValue, MatchFormatValue, GenderValue } from '@/shared/config/match-constants';
+import type {
+  MatchStatusValue,
+  MatchTypeValue,
+  MatchFormatValue,
+  GenderValue,
+  PositionValue,
+} from '@/shared/config/match-constants';
 import type {
   AccountInfo,
   AgeRange,
@@ -128,6 +134,11 @@ export interface TeamVoteDTO {
   updatedAt: string | null;
   userNickname: string | null;
   userAvatarUrl: string | null;
+  userPositions: PositionValue[] | null;
+  guestParticipants: {
+    name: string;
+    position: PositionValue;
+  }[];
 }
 
 /**
