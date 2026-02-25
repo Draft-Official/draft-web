@@ -51,7 +51,7 @@ function removeCanceledMatchFromHomeInfiniteCache(
 
 /**
  * 경기 상태 변경
- * RECRUITING (모집 중) → CLOSED (모집 마감) → CONFIRMED (경기 확정)
+ * RECRUITING (모집 중) → CLOSED (모집 마감) → CANCELED (취소)
  */
 export function useUpdateMatchStatus() {
   const queryClient = useQueryClient();
@@ -63,7 +63,7 @@ export function useUpdateMatchStatus() {
       status,
     }: {
       matchId: string;
-      status: 'RECRUITING' | 'CLOSED' | 'CONFIRMED' | 'CANCELED';
+      status: 'RECRUITING' | 'CLOSED' | 'CANCELED';
     }) => {
       const supabase = getSupabaseBrowserClient();
 
@@ -98,7 +98,6 @@ export function useUpdateMatchStatus() {
       const messageMap: Record<string, string> = {
         CLOSED: '모집을 마감했습니다.',
         RECRUITING: '추가 모집을 시작했습니다.',
-        CONFIRMED: '경기가 확정되었습니다.',
         CANCELED: '경기가 취소되었습니다.',
       };
       toast.success(messageMap[variables.status]);
