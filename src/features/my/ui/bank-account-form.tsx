@@ -90,7 +90,7 @@ export function BankAccountForm() {
             value={bank}
             onValueChange={setBank}
             placeholder="은행 선택"
-            className="w-full"
+            className="w-full h-12"
           />
         </div>
 
@@ -103,6 +103,7 @@ export function BankAccountForm() {
             placeholder="- 없이 숫자만 입력"
             value={accountNumber}
             onChange={(e) => setAccountNumber(e.target.value.replace(/[^0-9]/g, ''))}
+            className="h-12"
           />
         </div>
 
@@ -118,13 +119,14 @@ export function BankAccountForm() {
               const value = e.target.value.replace(/[^가-힣ㄱ-ㅎㅏ-ㅣ\s]/g, '');
               setAccountHolder(value);
             }}
+            className="h-12"
           />
         </div>
       </div>
 
       <Button
         type="submit"
-        className="w-full"
+        className="w-full h-12"
         disabled={updateProfile.isPending}
       >
         {updateProfile.isPending ? '저장 중...' : '저장하기'}

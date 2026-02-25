@@ -167,7 +167,7 @@ export function PhoneVerificationForm({ onComplete }: PhoneVerificationFormProps
   // Step 1: 번호 입력
   if (step === 'input') {
     return (
-      <div className="space-y-6 p-4">
+      <div className="space-y-6 px-4 pt-6 pb-4">
         <div className="flex items-start gap-2 p-3 bg-slate-50 rounded-lg">
           <Info className="h-4 w-4 text-slate-500 mt-0.5 shrink-0" />
           <p className="text-sm text-slate-600">
@@ -185,11 +185,12 @@ export function PhoneVerificationForm({ onComplete }: PhoneVerificationFormProps
             value={phone}
             onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ''))}
             maxLength={11}
+            className="h-12"
           />
         </div>
 
         <Button
-          className="w-full"
+          className="w-full h-12"
           onClick={handleRequest}
           disabled={isAuthLoading || isRequesting || phone.length < 10}
         >
@@ -204,7 +205,7 @@ export function PhoneVerificationForm({ onComplete }: PhoneVerificationFormProps
     const isExpired = remainingSeconds <= 0;
 
     return (
-      <div className="space-y-6 p-4">
+      <div className="space-y-6 px-4 pt-6 pb-4">
         {/* 인증번호 표시 */}
         <div className="text-center space-y-2">
           <p className="text-sm text-slate-500">인증번호</p>
@@ -228,7 +229,7 @@ export function PhoneVerificationForm({ onComplete }: PhoneVerificationFormProps
 
         {/* 모바일: SMS 링크 버튼 */}
         {isMobile && (
-          <Button className="w-full" asChild disabled={isExpired}>
+          <Button className="w-full h-12" asChild disabled={isExpired}>
             <a href={smsUri}>문자 보내기</a>
           </Button>
         )}
@@ -254,7 +255,7 @@ export function PhoneVerificationForm({ onComplete }: PhoneVerificationFormProps
 
         {/* 만료 시 재요청 */}
         {isExpired && (
-          <Button variant="outline" className="w-full" onClick={handleRetry}>
+          <Button variant="outline" className="w-full h-12" onClick={handleRetry}>
             다시 요청하기
           </Button>
         )}
@@ -264,7 +265,7 @@ export function PhoneVerificationForm({ onComplete }: PhoneVerificationFormProps
 
   // Step 3: 인증 완료
   return (
-    <div className="space-y-6 p-4">
+    <div className="space-y-6 px-4 pt-6 pb-4">
       <div className="flex flex-col items-center gap-4 py-8">
         <CheckCircle2 className="h-16 w-16 text-green-500" />
         <div className="text-center space-y-1">
@@ -275,7 +276,7 @@ export function PhoneVerificationForm({ onComplete }: PhoneVerificationFormProps
         </div>
       </div>
 
-      <Button className="w-full" onClick={() => onComplete ? onComplete() : router.back()}>
+      <Button className="w-full h-12" onClick={() => onComplete ? onComplete() : router.back()}>
         완료
       </Button>
     </div>

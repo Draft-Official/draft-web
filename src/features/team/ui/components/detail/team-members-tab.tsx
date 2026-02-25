@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, User } from 'lucide-react';
 import { Badge } from '@/shared/ui/shadcn/badge';
 import { cn } from '@/shared/lib/utils';
 import {
@@ -88,18 +88,6 @@ interface MemberRowProps {
 }
 
 function MemberRow({ member }: MemberRowProps) {
-  // 아바타 기본값
-  const avatarChar = member.user?.nickname?.charAt(0) || '?';
-  const avatarColors = [
-    'bg-purple-500',
-    'bg-blue-500',
-    'bg-green-500',
-    'bg-draft-500',
-    'bg-pink-500',
-  ];
-  const avatarColorIndex = (member.user?.nickname || '').charCodeAt(0) % avatarColors.length;
-  const avatarBgColor = avatarColors[avatarColorIndex];
-
   const roleStyle = TEAM_ROLE_STYLES[member.role];
 
   return (
@@ -114,14 +102,8 @@ function MemberRow({ member }: MemberRowProps) {
           className="w-10 h-10 rounded-full object-cover"
         />
       ) : (
-        <div
-          className={cn(
-            'w-10 h-10 rounded-full flex items-center justify-center',
-            'text-white text-sm font-bold',
-            avatarBgColor
-          )}
-        >
-          {avatarChar}
+        <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center">
+          <User className="w-5 h-5 text-slate-500" />
         </div>
       )}
 

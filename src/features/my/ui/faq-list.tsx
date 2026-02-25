@@ -63,10 +63,10 @@ export function FaqList() {
     <Accordion type="single" collapsible className="w-full">
       {FAQ_ITEMS.map((item, index) => (
         <AccordionItem key={index} value={`faq-${index}`} className="border-border/50">
-          <AccordionTrigger className="px-1 text-left font-medium hover:no-underline">
+          <AccordionTrigger className="px-1 text-left text-base font-medium hover:no-underline">
             {item.question}
           </AccordionTrigger>
-          <AccordionContent className="px-1 text-sm text-foreground leading-relaxed">
+          <AccordionContent className="px-1 text-base text-foreground leading-relaxed">
             {item.answer.map((paragraph, i) => (
               <p key={i}>{paragraph}</p>
             ))}

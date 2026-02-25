@@ -54,3 +54,4 @@ export { ContactView } from './ui/contact-view';
 export { MyPageFooter } from './ui/my-page-footer';
 export { PlaceholderPageView } from './ui/placeholder-page-view';
 export { PrivacyPageView } from './ui/privacy-page-view';
+export { MySubPageShell } from './ui/my-sub-page-shell';

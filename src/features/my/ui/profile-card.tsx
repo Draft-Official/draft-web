@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Edit, LogIn } from 'lucide-react';
+import { Edit, LogIn, User } from 'lucide-react';
 import { Card } from '@/shared/ui/shadcn/card';
 import { Button } from '@/shared/ui/shadcn/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/shadcn/avatar';
@@ -11,6 +11,7 @@ interface ProfileCardProps {
   profile: MyProfileFormDTO | null;
   userName: string;
   userInitials: string;
+  avatarUrl?: string | null;
   teamName?: string;
   isAuthenticated: boolean;
   onEditClick: () => void;
@@ -20,6 +21,7 @@ export function ProfileCard({
   profile,
   userName,
   userInitials,
+  avatarUrl,
   teamName,
   isAuthenticated,
   onEditClick,
@@ -57,9 +59,9 @@ export function ProfileCard({
         {/* User Header */}
         <div className="flex items-center gap-4">
           <Avatar className="h-20 w-20 border-2 border-white shadow-sm">
-            <AvatarImage src="https://github.com/shadcn.png" />
-            <AvatarFallback className="bg-slate-200 text-slate-700 text-lg font-bold">
-              {userInitials}
+            <AvatarImage src={avatarUrl ?? undefined} />
+            <AvatarFallback className="bg-slate-200 text-slate-500">
+              <User className="w-1/2 h-1/2" />
             </AvatarFallback>
           </Avatar>
           <div>
@@ -97,9 +99,9 @@ export function ProfileCard({
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <Avatar className="h-16 w-16 border-2 border-white shadow-sm">
-            <AvatarImage src="https://github.com/shadcn.png" />
-            <AvatarFallback className="bg-slate-200 text-slate-700 text-lg font-bold">
-              {userInitials}
+            <AvatarImage src={avatarUrl ?? undefined} />
+            <AvatarFallback className="bg-slate-200 text-slate-500">
+              <User className="w-1/2 h-1/2" />
             </AvatarFallback>
           </Avatar>
           <h1 className="text-xl font-bold text-foreground">{userName}</h1>
@@ -142,7 +144,7 @@ export function ProfileCard({
         </div>
         <div className="flex justify-between items-center py-2">
           <span className="text-sm text-slate-500">팀</span>
-          <span className="text-sm font-bold text-slate-900">{teamName ? `팀 ${teamName}` : '-'}</span>
+          <span className="text-sm font-bold text-slate-900">{teamName ?? '-'}</span>
         </div>
       </div>
     </Card>

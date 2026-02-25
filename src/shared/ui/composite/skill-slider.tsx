@@ -74,7 +74,7 @@ export function SkillSlider({ value, onChange }: SkillSliderProps) {
       </div>
 
       {/* Description Card */}
-      <div className="rounded-lg border border-border bg-muted/40 p-4">
+      <div className="rounded-lg border border-slate-100 bg-white p-4">
         <div className="flex items-start gap-2">
           <div>
             <div className="font-semibold text-foreground">{selectedSkill.name}</div>

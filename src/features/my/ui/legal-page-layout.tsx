@@ -1,20 +1,15 @@
 'use client';
 
-import { SubPageHeader } from './sub-page-header';
-
 interface LegalPageLayoutProps {
-  title: string;
+  title?: string;
   children: React.ReactNode;
 }
 
-export function LegalPageLayout({ title, children }: LegalPageLayoutProps) {
+export function LegalPageLayout({ children }: LegalPageLayoutProps) {
   return (
-    <div className="min-h-screen bg-background">
-      <SubPageHeader title={title} />
-      <article className="px-4 py-6 text-sm text-slate-700 leading-relaxed space-y-6">
-        {children}
-      </article>
-    </div>
+    <article className="px-4 py-6 text-sm text-slate-700 leading-relaxed space-y-6">
+      {children}
+    </article>
   );
 }
 

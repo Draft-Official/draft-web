@@ -86,7 +86,7 @@ export function NoticesList() {
       {notices.map((notice) => (
         <Card key={notice.id} className="p-4">
           <div className="space-y-2">
-            <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">
+            <p className="text-base text-slate-700 whitespace-pre-wrap leading-relaxed">
               {notice.message}
             </p>
             <p className="text-xs text-muted-foreground">

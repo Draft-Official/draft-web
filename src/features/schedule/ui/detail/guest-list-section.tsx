@@ -1,6 +1,6 @@
 'use client';
 
-import { Users } from 'lucide-react';
+import { Users, User } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { Badge } from '@/shared/ui/shadcn/badge';
 import { Button } from '@/shared/ui/shadcn/button';
@@ -131,10 +131,12 @@ function GuestListItem({
     >
       <div className="flex items-center gap-3">
         {/* Avatar */}
-        <div className="w-12 h-12 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0">
-          <span className="text-slate-600 font-bold text-lg">
-            {(guest.realName || guest.name).charAt(0)}
-          </span>
+        <div className="w-12 h-12 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0 overflow-hidden">
+          {guest.avatar ? (
+            <img src={guest.avatar} alt={(guest.realName || guest.name)} className="w-full h-full object-cover" />
+          ) : (
+            <User className="w-6 h-6 text-slate-500" />
+          )}
         </div>
 
         {/* Info */}

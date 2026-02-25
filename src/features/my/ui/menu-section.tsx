@@ -3,10 +3,12 @@ import { ChevronRight } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Card } from '@/shared/ui/shadcn/card';
 
-interface MenuItem {
+export interface MenuItem {
   label: string;
-  href: string;
   icon: LucideIcon;
+  href?: string;
+  onClick?: () => void;
+  variant?: 'default' | 'destructive';
 }
 
 interface MenuSectionProps {
@@ -19,20 +21,44 @@ export function MenuSection({ title, items }: MenuSectionProps) {
     <div className="space-y-3">
       <h2 className="font-bold text-lg text-foreground">{title}</h2>
       <Card className="p-0 overflow-hidden border-border">
-        <div className="divide-y divide-border">
-          {items.map(({ label, href, icon: Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors"
-            >
+        <div>
+          {items.map(({ label, href, onClick, icon: Icon, variant = 'default' }, index) => {
+            const isDestructive = variant === 'destructive';
+            const textClass = isDestructive ? 'text-destructive' : 'text-foreground';
+            const iconClass = isDestructive ? 'text-destructive' : 'text-muted-foreground';
+            const key = href ?? label;
+
+            const inner = (
               <div className="flex items-center gap-3">
-                <Icon className="h-5 w-5 text-muted-foreground" />
-                <span className="text-sm font-medium text-foreground">{label}</span>
+                <Icon className={`h-5 w-5 ${iconClass}`} />
+                <span className={`text-sm font-medium ${textClass}`}>{label}</span>
               </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            </Link>
-          ))}
+            );
+
+            return (
+              <div key={key}>
+                {index > 0 && <div className="mx-4 border-t border-border" />}
+                {href ? (
+                  <Link
+                    href={href}
+                    className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors"
+                  >
+                    {inner}
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  </Link>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={onClick}
+                    className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors text-left"
+                  >
+                    {inner}
+                    <ChevronRight className={`h-4 w-4 ${iconClass}`} />
+                  </button>
+                )}
+              </div>
+            );
+          })}
         </div>
       </Card>
     </div>
