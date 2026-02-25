@@ -70,6 +70,7 @@ export function AccountSection() {
       await deleteAccount.mutateAsync();
       localStorage.removeItem('profileSkipped');
       localStorage.removeItem('draft-query-cache');
+      localStorage.removeItem('hideMatchCreateTip');
       try { await signOut(); } catch { /* ignore */ }
       setWithdrawOpen(false);
       toast.success('탈퇴가 완료되었습니다.');
