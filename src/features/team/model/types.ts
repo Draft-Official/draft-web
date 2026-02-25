@@ -204,6 +204,8 @@ export interface TeamMemberUser {
   nickname: string | null;
   avatarUrl: string | null;
   positions: string[] | null;
+  height: number | null;
+  weight: number | null;
 }
 
 /**

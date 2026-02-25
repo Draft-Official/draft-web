@@ -14,7 +14,22 @@ import { teamMemberKeys } from '../keys';
 import { toTeamMembershipDTO } from '../../lib';
 import type { TeamMemberListItemDTO, TeamMembershipDTO } from '../../model/types';
 
+type UserMetadataInput = {
+  height?: unknown;
+  weight?: unknown;
+} | null;
+
+function toNullableNumber(value: unknown): number | null {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string') {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+}
+
 function mapTeamMemberWithUserRow(row: TeamMemberWithUserRow): TeamMemberListItemDTO {
+  const metadata = (row.users?.metadata ?? null) as UserMetadataInput;
   const member = teamMemberRowToEntity(row);
   const user = row.users
     ? {
@@ -22,6 +37,8 @@ function mapTeamMemberWithUserRow(row: TeamMemberWithUserRow): TeamMemberListIte
         nickname: row.users.nickname,
         avatarUrl: row.users.avatar_url,
         positions: row.users.positions,
+        height: toNullableNumber(metadata?.height),
+        weight: toNullableNumber(metadata?.weight),
       }
     : undefined;
 

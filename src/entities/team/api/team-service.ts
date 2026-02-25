@@ -39,6 +39,7 @@ export type TeamMemberWithUserRow = TeamMember & {
     nickname: string | null;
     avatar_url: string | null;
     positions: string[] | null;
+    metadata: Database['public']['Tables']['users']['Row']['metadata'];
   } | null;
 };
 
@@ -289,7 +290,7 @@ export class TeamService {
   async getTeamMembers(teamId: string): Promise<TeamMemberWithUserRow[]> {
     const { data, error } = await this.supabase
       .from('team_members')
-      .select('*, users(id, nickname, avatar_url, positions)')
+      .select('*, users(id, nickname, avatar_url, positions, metadata)')
       .eq('team_id', teamId)
       .eq('status', 'ACCEPTED')
       .order('joined_at', { ascending: true });
@@ -304,7 +305,7 @@ export class TeamService {
   async getPendingMembers(teamId: string): Promise<TeamMemberWithUserRow[]> {
     const { data, error } = await this.supabase
       .from('team_members')
-      .select('*, users(id, nickname, avatar_url, positions)')
+      .select('*, users(id, nickname, avatar_url, positions, metadata)')
       .eq('team_id', teamId)
       .eq('status', 'PENDING')
       .order('id', { ascending: true });

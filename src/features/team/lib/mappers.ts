@@ -31,6 +31,8 @@ type TeamMemberUserInput = {
   nickname: string | null;
   avatarUrl: string | null;
   positions: string[] | null;
+  height: number | null;
+  weight: number | null;
 };
 type TeamVoteUserInput = Pick<UserEntity, 'nickname' | 'avatarUrl'>;
 
@@ -132,6 +134,8 @@ export function toTeamMembershipDTO(
           nickname: user.nickname,
           avatarUrl: user.avatarUrl,
           positions: user.positions,
+          height: user.height,
+          weight: user.weight,
         }
       : undefined,
   };

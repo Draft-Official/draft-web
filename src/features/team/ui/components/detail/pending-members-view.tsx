@@ -1,14 +1,30 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import { ArrowLeft } from 'lucide-react';
 import { useSafeBack } from '@/shared/lib/hooks';
 import { useTeamByCode } from '@/features/team/api/team-info/queries';
-import { usePendingMembers, useMyMembership } from '@/features/team/api/membership/queries';
-import { useApproveJoinRequest, useRejectJoinRequest } from '@/features/team/api/membership/mutations';
+import { usePendingMembers, useMyMembership, useTeamMembers } from '@/features/team/api/membership/queries';
+import { useApproveJoinRequest, useRejectJoinRequest, useRemoveMember } from '@/features/team/api/membership/mutations';
 import { useAuth } from '@/shared/session';
 import { Button } from '@/shared/ui/shadcn/button';
-import type { TeamMember } from '@/features/team/model/types';
+import { Badge } from '@/shared/ui/shadcn/badge';
+import { toast } from '@/shared/ui/shadcn/sonner';
+import type { TeamMemberListItemDTO } from '@/features/team/model/types';
+import { TEAM_ROLE_LABELS, TEAM_ROLE_STYLES } from '@/shared/config/team-constants';
+import { getPositionLabel } from '@/shared/config/match-constants';
+import { cn } from '@/shared/lib/utils';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/shared/ui/shadcn/alert-dialog';
 import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 interface PendingMembersViewProps {
@@ -18,17 +34,42 @@ interface PendingMembersViewProps {
 export function PendingMembersView({ code }: PendingMembersViewProps) {
   const { user } = useAuth();
   const handleBack = useSafeBack(`/team/${code}`);
+  const [selectedMember, setSelectedMember] = useState<TeamMemberListItemDTO | null>(null);
 
   const { data: team, isLoading: isLoadingTeam } = useTeamByCode(code);
   const { data: membership } = useMyMembership(team?.id, user?.id);
+  const { data: members = [], isLoading: isLoadingMembers } = useTeamMembers(team?.id);
   const { data: pendingMembers = [], isLoading } = usePendingMembers(team?.id);
 
   const approveMutation = useApproveJoinRequest(team?.id || '');
   const rejectMutation = useRejectJoinRequest(team?.id || '');
+  const removeMutation = useRemoveMember();
 
   const isLeaderOrManager = membership?.role === 'LEADER' || membership?.role === 'MANAGER';
+  const canExpelMember = membership?.role === 'LEADER';
 
-  if (isLoadingTeam || isLoading) {
+  const handleRemoveMember = () => {
+    if (!team?.id || !selectedMember) return;
+
+    removeMutation.mutate(
+      {
+        membershipId: selectedMember.id,
+        teamId: team.id,
+        userId: selectedMember.userId,
+      },
+      {
+        onSuccess: () => {
+          toast.success('멤버를 추방했습니다.');
+          setSelectedMember(null);
+        },
+        onError: (error: Error) => {
+          toast.error(`추방 실패: ${error.message}`);
+        },
+      }
+    );
+  };
+
+  if (isLoadingTeam || isLoading || isLoadingMembers) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <Spinner className="h-8 w-8 text-muted-foreground" />
@@ -49,25 +90,77 @@ export function PendingMembersView({ code }: PendingMembersViewProps) {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header onBack={handleBack} title="가입 신청 관리" />
+      <Header onBack={handleBack} title="멤버 관리" />
 
-      {pendingMembers.length === 0 ? (
-        <div className="flex flex-col items-center justify-center min-h-[60vh] px-5">
-          <p className="text-slate-500">가입 신청이 없습니다</p>
-        </div>
-      ) : (
-        <div className="divide-y divide-slate-100">
-          {pendingMembers.map((member) => (
-            <PendingMemberItem
-              key={member.id}
-              member={member}
-              onApprove={() => approveMutation.mutate(member.id)}
-              onReject={() => rejectMutation.mutate(member.id)}
-              isLoading={approveMutation.isPending || rejectMutation.isPending}
-            />
-          ))}
-        </div>
-      )}
+      <section className="px-5 py-4 border-b border-slate-100">
+        <h2 className="text-sm font-medium text-slate-500 mb-3">
+          가입 신청 ({pendingMembers.length}명)
+        </h2>
+
+        {pendingMembers.length === 0 ? (
+          <div className="py-8 text-center">
+            <p className="text-sm text-slate-500">가입 신청이 없습니다</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-slate-100">
+            {pendingMembers.map((member) => (
+              <PendingMemberItem
+                key={member.id}
+                member={member}
+                onApprove={() => approveMutation.mutate(member.id)}
+                onReject={() => rejectMutation.mutate(member.id)}
+                isLoading={approveMutation.isPending || rejectMutation.isPending}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="px-5 py-4">
+        <h2 className="text-sm font-medium text-slate-500 mb-3">
+          현재 멤버 ({members.length}명)
+        </h2>
+
+        {members.length === 0 ? (
+          <div className="py-8 text-center">
+            <p className="text-sm text-slate-500">등록된 멤버가 없습니다</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-slate-100">
+            {members.map((member) => (
+              <ActiveMemberItem
+                key={member.id}
+                member={member}
+                canExpel={canExpelMember && member.userId !== user?.id && member.role !== 'LEADER'}
+                onExpel={() => setSelectedMember(member)}
+                isLoading={removeMutation.isPending}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+
+      <AlertDialog open={!!selectedMember} onOpenChange={(open) => !open && setSelectedMember(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>멤버를 추방하시겠습니까?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {selectedMember?.user?.nickname || '해당 멤버'}님을 팀에서 추방합니다.
+              추방 후 다시 가입하려면 팀 승인 절차가 필요합니다.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={removeMutation.isPending}>취소</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleRemoveMember}
+              className="bg-red-500 hover:bg-red-600"
+              disabled={removeMutation.isPending}
+            >
+              {removeMutation.isPending ? '추방 중...' : '추방'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
@@ -84,7 +177,7 @@ function Header({ onBack, title }: { onBack: () => void; title?: string }) {
 }
 
 interface PendingMemberItemProps {
-  member: TeamMember;
+  member: TeamMemberListItemDTO;
   onApprove: () => void;
   onReject: () => void;
   isLoading: boolean;
@@ -94,9 +187,15 @@ function PendingMemberItem({ member, onApprove, onReject, isLoading }: PendingMe
   const avatarChar = member.user?.nickname?.charAt(0) || '?';
 
   return (
-      <div className="flex items-center gap-3 px-5 py-4">
+    <div className="flex items-center gap-3 py-4">
       {member.user?.avatarUrl ? (
-        <Image src={member.user.avatarUrl} alt="" width={48} height={48} className="w-12 h-12 rounded-full object-cover" />
+        <Image
+          src={member.user.avatarUrl}
+          alt=""
+          width={48}
+          height={48}
+          className="w-12 h-12 rounded-full object-cover"
+        />
       ) : (
         <div className="w-12 h-12 rounded-full bg-slate-200 flex items-center justify-center text-muted-foreground font-bold">
           {avatarChar}
@@ -129,6 +228,67 @@ function PendingMemberItem({ member, onApprove, onReject, isLoading }: PendingMe
           수락
         </Button>
       </div>
+    </div>
+  );
+}
+
+interface ActiveMemberItemProps {
+  member: TeamMemberListItemDTO;
+  canExpel: boolean;
+  onExpel: () => void;
+  isLoading: boolean;
+}
+
+function ActiveMemberItem({ member, canExpel, onExpel, isLoading }: ActiveMemberItemProps) {
+  const avatarChar = member.user?.nickname?.charAt(0) || '?';
+  const roleStyle = TEAM_ROLE_STYLES[member.role];
+  const heightText = member.user?.height ? `${member.user.height}cm` : '-';
+  const weightText = member.user?.weight ? `${member.user.weight}kg` : '-';
+  const positionText = member.user?.positions?.length
+    ? member.user.positions.map((position) => getPositionLabel(position, 'short')).join(', ')
+    : '-';
+  const profileSummary = `키 ${heightText} · 몸무게 ${weightText} · 포지션 ${positionText}`;
+
+  return (
+    <div className="flex items-center gap-3 py-4">
+      {member.user?.avatarUrl ? (
+        <Image
+          src={member.user.avatarUrl}
+          alt=""
+          width={48}
+          height={48}
+          className="w-12 h-12 rounded-full object-cover"
+        />
+      ) : (
+        <div className="w-12 h-12 rounded-full bg-slate-200 flex items-center justify-center text-muted-foreground font-bold">
+          {avatarChar}
+        </div>
+      )}
+
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <p className="font-medium text-slate-900 truncate">{member.user?.nickname || '알 수 없음'}</p>
+          <Badge
+            variant="outline"
+            className={cn('text-xs font-medium border', roleStyle.color, roleStyle.bgColor)}
+          >
+            {TEAM_ROLE_LABELS[member.role]}
+          </Badge>
+        </div>
+        <p className="text-sm text-slate-500">{profileSummary}</p>
+      </div>
+
+      {canExpel && (
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={onExpel}
+          disabled={isLoading}
+          className="text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600"
+        >
+          추방
+        </Button>
+      )}
     </div>
   );
 }
