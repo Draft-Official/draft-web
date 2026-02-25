@@ -28,7 +28,7 @@ export interface Team {
   regionDepth1: string | null;
   regionDepth2: string | null;
   homeGymId: string | null;
-  regularDay: RegularDayValue | null;
+  regularDays: RegularDayValue[];
   regularStartTime: string | null;
   regularEndTime: string | null;
   teamGender: string | null;
@@ -52,7 +52,7 @@ export interface CreateTeamInput {
   regionDepth1?: string;
   regionDepth2?: string;
   homeGymId?: string;
-  regularDay?: RegularDayValue;
+  regularDays?: RegularDayValue[];
   regularStartTime?: string;
   regularEndTime?: string;
   teamGender?: string;
@@ -73,7 +73,7 @@ export interface UpdateTeamInput {
   regionDepth1?: string | null;
   regionDepth2?: string | null;
   homeGymId?: string | null;
-  regularDay?: RegularDayValue | null;
+  regularDays?: RegularDayValue[] | null;
   regularStartTime?: string | null;
   regularEndTime?: string | null;
   teamGender?: string | null;

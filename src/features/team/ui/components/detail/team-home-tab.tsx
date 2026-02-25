@@ -29,7 +29,7 @@ export function TeamHomeTab({ team, homeGymName, memberCount }: TeamHomeTabProps
 
   // 정기운동 스케줄
   const scheduleText = formatTeamRegularSchedule(
-    team.regularDay,
+    team.regularDays,
     team.regularStartTime,
     team.regularEndTime
   );

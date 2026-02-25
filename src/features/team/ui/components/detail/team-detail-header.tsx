@@ -61,7 +61,7 @@ export function TeamDetailHeader({ team, membership, homeGymName, isLoggedIn, cu
 
   // 정기운동 스케줄 포맷
   const scheduleText = formatTeamRegularSchedule(
-    team.regularDay,
+    team.regularDays,
     team.regularStartTime,
     team.regularEndTime
   );

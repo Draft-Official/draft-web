@@ -6,7 +6,7 @@ export interface TeamProfileEditFormData {
   shortIntro: string;
   description: string;
   logoId: string;
-  regularDay: RegularDayValue | '';
+  regularDays: RegularDayValue[];
   regularTime: string;
   duration: string;
   gender: GenderValue;

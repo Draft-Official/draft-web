@@ -73,11 +73,11 @@ export function toTeamInfoDTO(
     homeGymId: team.homeGymId,
     homeGymName: extras?.homeGymName ?? null,
     homeGymAddress: extras?.homeGymAddress ?? null,
-    regularDay: team.regularDay,
+    regularDays: team.regularDays,
     regularStartTime: team.regularStartTime,
     regularEndTime: team.regularEndTime,
     regularScheduleDisplay: formatTeamRegularSchedule(
-      team.regularDay,
+      team.regularDays,
       team.regularStartTime,
       team.regularEndTime
     ),
@@ -104,10 +104,10 @@ export function toMyTeamListItemDTO(
     name: team.name,
     logoUrl: team.logoUrl,
     role,
-    regularDay: team.regularDay,
+    regularDays: team.regularDays,
     regularTime: team.regularStartTime?.slice(0, 5) ?? null,
     regularScheduleDisplay: formatTeamRegularSchedule(
-      team.regularDay,
+      team.regularDays,
       team.regularStartTime,
       team.regularEndTime
     ),

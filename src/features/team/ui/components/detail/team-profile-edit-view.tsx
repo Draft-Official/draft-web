@@ -3,10 +3,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, LogOut } from 'lucide-react';
 import { toast } from '@/shared/ui/shadcn/sonner';
 import { useSafeBack } from '@/shared/lib/hooks';
+import { useLeaveGuard } from '@/shared/lib/hooks/use-leave-guard';
 import { Button } from '@/shared/ui/shadcn/button';
+import { ConfirmDialog } from '@/shared/ui/composite/confirm-dialog';
 import { useTeamByCode } from '@/features/team/api/team-info/queries';
 import { useUpdateTeam } from '@/features/team/api/team-info/mutations';
 import { useMyMembership } from '@/features/team/api/membership/queries';
@@ -55,14 +57,16 @@ export function TeamProfileEditView({ code }: TeamProfileEditViewProps) {
   const [locationData, setLocationData] = useState<LocationData | null>(null);
   const gymInitializedRef = useRef(false);
 
-  const { register, handleSubmit, watch, setValue, reset, control } =
+  const [isLocationDirty, setIsLocationDirty] = useState(false);
+
+  const { register, handleSubmit, watch, setValue, reset, control, formState } =
     useForm<TeamProfileEditFormData>({
       defaultValues: {
         name: '',
         shortIntro: '',
         description: '',
         logoId: '/logos/preset/logo-01.webp',
-        regularDay: '',
+        regularDays: [],
         regularTime: '20:00',
         duration: '2',
         gender: 'MALE',
@@ -80,7 +84,7 @@ export function TeamProfileEditView({ code }: TeamProfileEditViewProps) {
       shortIntro: sanitizeShortIntro(team.shortIntro ?? ''),
       description: team.description ?? '',
       logoId: team.logoUrl ?? '/logos/preset/logo-01.webp',
-      regularDay: team.regularDay ?? '',
+      regularDays: team.regularDays ?? [],
       regularTime: normalizeTimeValue(team.regularStartTime, '20:00'),
       duration: calcDurationFromTimes(team.regularStartTime, team.regularEndTime),
       gender: (team.teamGender as TeamProfileEditFormData['gender']) ?? 'MALE',
@@ -109,12 +113,16 @@ export function TeamProfileEditView({ code }: TeamProfileEditViewProps) {
   const handleLocationResolvedChange = useCallback(
     (next: LocationSearchResolvedValue) => {
       setLocationData(next.locationData);
+      setIsLocationDirty(true);
     },
     []
   );
 
+  const isDirty = formState.isDirty || isLocationDirty;
+  const leaveGuard = useLeaveGuard(isDirty);
+
   const selectedAges = watch('selectedAges');
-  const regularDay = watch('regularDay');
+  const regularDays = watch('regularDays');
   const gender = watch('gender');
   const levelMin = watch('levelMin');
   const levelMax = watch('levelMax');
@@ -152,7 +160,7 @@ export function TeamProfileEditView({ code }: TeamProfileEditViewProps) {
       toast.error(validationError);
       return;
     }
-    if (!data.regularDay) {
+    if (data.regularDays.length === 0) {
       toast.error('정기 운동 요일을 선택해주세요');
       return;
     }
@@ -206,7 +214,7 @@ export function TeamProfileEditView({ code }: TeamProfileEditViewProps) {
           regionDepth1: region.depth1 ?? null,
           regionDepth2: region.depth2 ?? null,
           homeGymId,
-          regularDay: data.regularDay,
+          regularDays: data.regularDays,
           regularStartTime,
           regularEndTime,
           teamGender: data.gender,
@@ -217,7 +225,7 @@ export function TeamProfileEditView({ code }: TeamProfileEditViewProps) {
       {
         onSuccess: () => {
           toast.success('팀 정보가 수정되었습니다');
-          handleBack();
+          leaveGuard.bypassNavigation(() => handleBack());
         },
         onError: () => {
           toast.error('수정에 실패했습니다');
@@ -247,7 +255,7 @@ export function TeamProfileEditView({ code }: TeamProfileEditViewProps) {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header onBack={handleBack} title="팀 프로필 수정" />
+      <Header onBack={leaveGuard.requestLeave} title="팀 프로필 수정" />
 
       <form onSubmit={handleSubmit(onSubmit)} className="px-5 py-6 space-y-8">
         <TeamProfileEditBasicInfoSection
@@ -261,7 +269,7 @@ export function TeamProfileEditView({ code }: TeamProfileEditViewProps) {
         <div className="border-t border-slate-100" />
 
         <TeamProfileEditScheduleSection
-          regularDay={regularDay}
+          regularDays={regularDays}
           control={control}
           setValue={setValue}
           locationData={locationData}
@@ -289,6 +297,18 @@ export function TeamProfileEditView({ code }: TeamProfileEditViewProps) {
           </Button>
         </div>
       </form>
+
+      <ConfirmDialog
+        open={leaveGuard.showDialog}
+        onOpenChange={leaveGuard.cancelLeave}
+        icon={LogOut}
+        title="정말 나가시겠습니까?"
+        description="수정한 내용이 저장되지 않습니다."
+        variant="destructive"
+        confirmLabel="나가기"
+        cancelLabel="계속 작성"
+        onConfirm={leaveGuard.confirmLeave}
+      />
     </div>
   );
 }

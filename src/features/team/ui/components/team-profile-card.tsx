@@ -7,6 +7,7 @@ import { Card } from '@/shared/ui/shadcn/card';
 import { cn } from '@/shared/lib/utils';
 import {
   REGULAR_DAY_LABELS,
+  REGULAR_DAY_SHORT_LABELS,
   type TeamRoleValue,
   type RegularDayValue,
 } from '@/shared/config/team-constants';
@@ -23,7 +24,7 @@ interface TeamProfileCardProps {
   name: string;
   logoUrl: string | null;
   role: TeamRoleValue;
-  regularDay: RegularDayValue | null;
+  regularDays: RegularDayValue[];
   regularTime: string | null;
   homeGymName: string | null;
   className?: string;
@@ -39,7 +40,7 @@ export function TeamProfileCard({
   name,
   logoUrl,
   role,
-  regularDay,
+  regularDays,
   regularTime,
   homeGymName,
   className,
@@ -63,12 +64,14 @@ export function TeamProfileCard({
   const logoBgColor = logoColors[logoColorIndex];
 
   // 정기운동 정보 포맷
-  const scheduleText =
-    regularDay && regularTime
-      ? `${REGULAR_DAY_LABELS[regularDay]} ${regularTime}`
-      : regularDay
-        ? REGULAR_DAY_LABELS[regularDay]
-        : null;
+  const dayStr = regularDays.length > 0
+    ? regularDays.length === 2
+      ? regularDays.map((d) => REGULAR_DAY_SHORT_LABELS[d]).join(', ')
+      : regularDays.map((d) => REGULAR_DAY_LABELS[d]).join(', ')
+    : null;
+  const scheduleText = dayStr && regularTime
+    ? `${dayStr} ${regularTime}`
+    : dayStr;
 
   return (
     <Card

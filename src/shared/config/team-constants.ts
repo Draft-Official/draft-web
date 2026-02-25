@@ -110,6 +110,23 @@ export function normalizeRegularDay(value: string | null | undefined): RegularDa
     : null;
 }
 
+/**
+ * text[] 배열을 RegularDayValue[] 로 정규화
+ */
+export function normalizeRegularDays(value: string[] | string | null | undefined): RegularDayValue[] {
+  if (!value) return [];
+
+  // 단일 문자열 하위 호환
+  if (typeof value === 'string') {
+    const normalized = normalizeRegularDay(value);
+    return normalized ? [normalized] : [];
+  }
+
+  return value
+    .map((v) => normalizeRegularDay(v))
+    .filter((v): v is RegularDayValue => v !== null);
+}
+
 // ============================================
 // Team Code Validation
 // ============================================

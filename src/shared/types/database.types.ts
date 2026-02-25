@@ -485,7 +485,7 @@ export type Database = {
           operation_info: Json | null
           region_depth1: string | null
           region_depth2: string | null
-          regular_day: string | null
+          regular_day: string[] | null
           regular_end_time: string | null
           regular_start_time: string | null
           short_intro: string | null
@@ -506,7 +506,7 @@ export type Database = {
           operation_info?: Json | null
           region_depth1?: string | null
           region_depth2?: string | null
-          regular_day?: string | null
+          regular_day?: string[] | null
           regular_end_time?: string | null
           regular_start_time?: string | null
           short_intro?: string | null
@@ -527,7 +527,7 @@ export type Database = {
           operation_info?: Json | null
           region_depth1?: string | null
           region_depth2?: string | null
-          regular_day?: string | null
+          regular_day?: string[] | null
           regular_end_time?: string | null
           regular_start_time?: string | null
           short_intro?: string | null

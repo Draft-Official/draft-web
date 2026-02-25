@@ -31,8 +31,8 @@ import {
   TEAM_NAME_ERROR_MESSAGE,
   TEAM_NAME_CHARACTER_ERROR_MESSAGE,
   isValidTeamName,
-  type RegularDayValue,
 } from '@/shared/config/team-constants';
+import type { RegularDayValue } from '@/shared/config/team-constants';
 import type { LocationData } from '@/shared/types/location.types';
 import type { GenderValue } from '@/shared/config/match-constants';
 import type { CreateTeamInput } from '@/features/team/model/types';
@@ -48,7 +48,7 @@ interface TeamCreateFormData {
   logoId: string;
 
   // Step 2: 운동 정보
-  regularDay: RegularDayValue | '';
+  regularDays: RegularDayValue[];
   regularTime: string;
   duration: string;
 
@@ -73,7 +73,7 @@ export function TeamCreateForm() {
       shortIntro: '',
       code: '',
       logoId: '/logos/preset/logo-01.webp',
-      regularDay: '',
+      regularDays: [],
       regularTime: '20:00',
       duration: '2',
       gender: 'MALE',
@@ -101,7 +101,7 @@ export function TeamCreateForm() {
   const shortIntro = watch('shortIntro');
   const code = watch('code');
   const logoId = watch('logoId');
-  const regularDay = watch('regularDay');
+  const regularDays = watch('regularDays');
   const gender = watch('gender');
   const selectedAges = watch('selectedAges');
   const levelMin = watch('levelMin');
@@ -120,7 +120,7 @@ export function TeamCreateForm() {
     code &&
     codeStatus === 'available'
   );
-  const isStep2Valid = Boolean(regularDay && locationData);
+  const isStep2Valid = Boolean(regularDays.length > 0 && locationData);
 
   const isNextDisabled =
     (currentStep === 1 && !isStep1Valid) ||
@@ -207,7 +207,7 @@ export function TeamCreateForm() {
         return isValid;
       }
       case 2: {
-        if (!regularDay) {
+        if (regularDays.length === 0) {
           toast.error('정기 운동 요일을 선택해주세요');
           return false;
         }
@@ -306,7 +306,7 @@ export function TeamCreateForm() {
       logoUrl: data.logoId,
       regionDepth1: region.depth1 || undefined,
       regionDepth2: region.depth2 || undefined,
-      regularDay: data.regularDay || undefined,
+      regularDays: data.regularDays.length > 0 ? data.regularDays : undefined,
       regularStartTime: data.regularTime || undefined,
       regularEndTime,
       teamGender: data.gender,
@@ -366,7 +366,7 @@ export function TeamCreateForm() {
             {/* Step 2: 운동 정보 */}
             {currentStep === 2 && (
               <TeamCreateStepSchedule
-                regularDay={regularDay}
+                regularDays={regularDays}
                 locationData={locationData}
                 onLocationResolvedChange={handleLocationResolvedChange}
               />

@@ -62,7 +62,7 @@ export interface TeamInfoDTO {
   homeGymId: string | null;
   homeGymName: string | null;
   homeGymAddress: string | null;
-  regularDay: RegularDayValue | null;
+  regularDays: RegularDayValue[];
   regularStartTime: string | null;
   regularEndTime: string | null;
   regularScheduleDisplay: string | null;
@@ -87,7 +87,7 @@ export interface MyTeamListItemDTO {
   name: string;
   logoUrl: string | null;
   role: TeamRoleValue;
-  regularDay: RegularDayValue | null;
+  regularDays: RegularDayValue[];
   regularTime: string | null;
   regularScheduleDisplay: string | null;
   homeGymName: string | null;
