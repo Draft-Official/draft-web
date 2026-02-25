@@ -25,6 +25,12 @@ import { handleSupabaseError, ValidationError } from '@/shared/lib/errors';
 import type { TeamRoleValue, TeamVoteStatusValue } from '@/shared/config/team-constants';
 import type { PositionValue } from '@/shared/config/match-constants';
 import { toKSTDateTimeISO } from '@/shared/lib/datetime';
+import {
+  countTeamVoteParticipants,
+  normalizeTeamVotePosition,
+  parseTeamVoteParticipants,
+  TEAM_VOTE_STATUS_TO_APPLICATION_STATUS,
+} from '@/shared/lib/team-vote';
 import type {
   CreateTeamInput,
   UpdateTeamInput,
@@ -62,7 +68,6 @@ type TeamVoteWithUserRow = Application & {
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const HAS_TIMEZONE_PATTERN = /(Z|[+-]\d{2}:\d{2})$/i;
 const LOCAL_DATETIME_PATTERN = /^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})(?::\d{2})?$/;
-const TEAM_VOTE_POSITION_SET = new Set<PositionValue>(['G', 'F', 'C', 'B']);
 
 function normalizeMatchDateTimeInput(value: string): string {
   if (HAS_TIMEZONE_PATTERN.test(value)) return value;
@@ -71,37 +76,6 @@ function normalizeMatchDateTimeInput(value: string): string {
   if (!match) return value;
 
   return toKSTDateTimeISO(match[1], match[2]);
-}
-
-function normalizeTeamVotePosition(position: string | null | undefined): PositionValue {
-  if (!position) return 'G';
-  const upper = position.toUpperCase() as PositionValue;
-  return TEAM_VOTE_POSITION_SET.has(upper) ? upper : 'G';
-}
-
-function parseTeamVoteParticipants(
-  participantsInfo: Application['participants_info'] | null | undefined
-): ParticipantInfo[] {
-  if (!participantsInfo || !Array.isArray(participantsInfo)) return [];
-
-  return (participantsInfo as ParticipantInfo[]).filter(
-    (participant) =>
-      participant &&
-      (participant.type === 'MAIN' || participant.type === 'GUEST') &&
-      typeof participant.position === 'string'
-  );
-}
-
-function countTeamVoteParticipants(
-  participantsInfo: Application['participants_info'] | null | undefined
-): number {
-  const participants = parseTeamVoteParticipants(participantsInfo);
-  if (participants.length === 0) return 1;
-
-  const hasMainParticipant = participants.some((participant) => participant.type === 'MAIN');
-  if (!hasMainParticipant) return participants.length + 1;
-
-  return participants.length;
 }
 
 export class TeamService {
@@ -903,21 +877,13 @@ export class TeamService {
       throw new Error('투표가 마감되었습니다');
     }
 
-    const statusMap: Record<TeamVoteStatusValue, string> = {
-      PENDING: 'PENDING',
-      CONFIRMED: 'CONFIRMED',
-      LATE: 'LATE',
-      NOT_ATTENDING: 'NOT_ATTENDING',
-      MAYBE: 'MAYBE',
-    };
-
-    const applicationStatus = statusMap[input.status];
+    const applicationStatus = TEAM_VOTE_STATUS_TO_APPLICATION_STATUS[input.status];
 
     if (existing) {
       const { data, error } = await this.supabase
         .from('applications')
         .update({
-          status: applicationStatus as Application['status'],
+          status: applicationStatus,
           description: input.description || null,
           updated_at: new Date().toISOString(),
         })
@@ -934,7 +900,7 @@ export class TeamService {
           match_id: input.matchId,
           user_id: userId,
           source: 'TEAM_VOTE',
-          status: applicationStatus as Application['status'],
+          status: applicationStatus,
           description: input.description || null,
         })
         .select()
@@ -1156,20 +1122,12 @@ export class TeamService {
     status: TeamVoteStatusValue,
     description?: string
   ): Promise<Application> {
-    const statusMap: Record<TeamVoteStatusValue, string> = {
-      PENDING: 'PENDING',
-      CONFIRMED: 'CONFIRMED',
-      LATE: 'LATE',
-      NOT_ATTENDING: 'NOT_ATTENDING',
-      MAYBE: 'MAYBE',
-    };
-
-    const applicationStatus = statusMap[status];
+    const applicationStatus = TEAM_VOTE_STATUS_TO_APPLICATION_STATUS[status];
 
     const { data, error } = await this.supabase
       .from('applications')
       .update({
-        status: applicationStatus as Application['status'],
+        status: applicationStatus,
         description: description || null,
         updated_at: new Date().toISOString(),
       })

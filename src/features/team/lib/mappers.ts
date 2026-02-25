@@ -3,12 +3,15 @@ import type { Match as MatchEntity } from '@/entities/match';
 import type { Gym as GymEntity } from '@/entities/gym';
 import type { User as UserEntity } from '@/entities/user';
 import type { Application as ApplicationEntity } from '@/entities/application';
-import type { PositionValue } from '@/shared/config/match-constants';
+import {
+  extractTeamVoteGuestParticipants,
+  toTeamVoteStatus,
+} from '@/entities/application';
 import {
   MATCH_STATUS_LABELS,
   type MatchStatusValue,
 } from '@/shared/config/match-constants';
-import type { TeamRoleValue, TeamVoteStatusValue } from '@/shared/config/team-constants';
+import type { TeamRoleValue } from '@/shared/config/team-constants';
 import type {
   MyPendingTeamVoteMatchDTO,
   MyTeamListItemDTO,
@@ -36,19 +39,6 @@ type TeamMemberUserInput = {
   weight: number | null;
 };
 type TeamVoteUserInput = Pick<UserEntity, 'nickname' | 'avatarUrl' | 'positions'>;
-
-function toTeamVoteStatus(status: string | null): TeamVoteStatusValue {
-  switch (status) {
-    case 'CONFIRMED':
-    case 'LATE':
-    case 'NOT_ATTENDING':
-    case 'MAYBE':
-      return status;
-    case 'PENDING':
-    default:
-      return 'PENDING';
-  }
-}
 
 function toMatchStatusLabel(status: MatchStatusValue | null): string {
   if (!status) return '상태 미정';
@@ -173,12 +163,7 @@ export function toTeamVoteDTO(
   application: ApplicationEntity,
   user?: TeamVoteUserInput | null
 ): TeamVoteDTO {
-  const guestParticipants = (application.participantsInfo ?? [])
-    .filter((participant) => participant.type === 'GUEST')
-    .map((participant) => ({
-      name: participant.name,
-      position: participant.position as PositionValue,
-    }));
+  const guestParticipants = extractTeamVoteGuestParticipants(application.participantsInfo);
 
   return {
     id: application.id,
