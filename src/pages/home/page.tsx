@@ -56,7 +56,13 @@ export default function GuestMatchListPage() {
   } = useMatch(isSplitMode && selectedMatchPublicId ? selectedMatchPublicId : '');
 
   useEffect(() => {
-    if (!isDesktop && selectedMatchPublicId) {
+    if (!selectedMatchPublicId || typeof window === 'undefined') {
+      return;
+    }
+
+    const isDesktopViewport = window.matchMedia('(min-width: 1024px)').matches;
+
+    if (!isDesktopViewport) {
       router.replace(`/matches/${selectedMatchPublicId}`);
     }
   }, [isDesktop, selectedMatchPublicId, router]);
@@ -293,7 +299,7 @@ export default function GuestMatchListPage() {
             <section className="h-full overflow-y-auto bg-white animate-in slide-in-from-left-2 duration-300">
               {listContent}
             </section>
-            <section className="h-full overflow-hidden bg-slate-50 px-2 animate-in slide-in-from-right-4 duration-300">
+            <section className="h-full overflow-hidden bg-slate-50 px-1 animate-in slide-in-from-right-4 duration-300">
               <div className="my-3 h-[calc(100%-1.5rem)] overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-[0_6px_24px_rgba(15,23,42,0.06)]">
                 {detailContent}
               </div>
