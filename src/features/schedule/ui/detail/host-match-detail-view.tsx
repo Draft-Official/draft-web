@@ -259,21 +259,7 @@ export function HostMatchDetailView() {
               {!isEnded && (
                 <DropdownMenuItem
                   className="text-red-600"
-                  onClick={() => {
-                    const settlementTargetCount = guests.filter(
-                      (g) => g.status === 'confirmed' || g.status === 'payment_waiting'
-                    ).length;
-                    if (settlementTargetCount === 0) {
-                      if (confirm('경기를 취소하시겠습니까?')) {
-                        statusMutation.mutate(
-                          { matchId: internalMatchId, status: 'CANCELED' },
-                          { onSuccess: () => router.back() }
-                        );
-                      }
-                    } else {
-                      setIsMatchCancelOpen(true);
-                    }
-                  }}
+                  onClick={() => setIsMatchCancelOpen(true)}
                 >
                   경기 취소
                 </DropdownMenuItem>
@@ -421,10 +407,20 @@ export function HostMatchDetailView() {
         )}
         onConfirm={(message) => {
           if (!internalMatchId) return;
-          cancelMatchFlowMutation.mutate(
-            { matchId: internalMatchId, message },
-            { onSuccess: () => router.back() }
+          const hasSettlementTarget = guests.some(
+            (g) => g.status === 'confirmed' || g.status === 'payment_waiting'
           );
+          if (hasSettlementTarget) {
+            cancelMatchFlowMutation.mutate(
+              { matchId: internalMatchId, message },
+              { onSuccess: () => router.back() }
+            );
+          } else {
+            statusMutation.mutate(
+              { matchId: internalMatchId, status: 'CANCELED' },
+              { onSuccess: () => router.back() }
+            );
+          }
         }}
       />
 

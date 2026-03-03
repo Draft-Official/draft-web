@@ -93,7 +93,7 @@ export function StartTimeFilterModal({
           <Button
             variant="outline"
             onClick={handleReset}
-            className="flex-1 h-12 rounded-xl font-bold"
+            className="w-24 h-12 rounded-xl font-bold"
           >
             초기화
           </Button>

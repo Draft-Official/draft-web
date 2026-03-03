@@ -69,11 +69,12 @@ export function ConfirmDialog({
           )}
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={loading}>
+          <AlertDialogCancel className="flex-1 h-12 rounded-xl font-bold" disabled={loading}>
             {cancelLabel}
           </AlertDialogCancel>
           <AlertDialogAction
             variant={isDestructive ? 'destructive' : 'default'}
+            className="flex-1 h-12 rounded-xl font-bold"
             onClick={(e) => {
               e.preventDefault();
               onConfirm();

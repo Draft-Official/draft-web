@@ -150,10 +150,11 @@ export function PendingMembersView({ code }: PendingMembersViewProps) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={removeMutation.isPending}>취소</AlertDialogCancel>
+            <AlertDialogCancel className="flex-1 h-12 rounded-xl font-bold" disabled={removeMutation.isPending}>취소</AlertDialogCancel>
             <AlertDialogAction
+              variant="destructive"
               onClick={handleRemoveMember}
-              className="bg-red-500 hover:bg-red-600"
+              className="flex-1 h-12 rounded-xl font-bold"
               disabled={removeMutation.isPending}
             >
               {removeMutation.isPending ? '추방 중...' : '추방'}

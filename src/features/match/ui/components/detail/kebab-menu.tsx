@@ -108,17 +108,17 @@ export function KebabMenu({
               취소한 경기는 복구할 수 없습니다.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex gap-3 mt-4">
+          <div className="flex gap-2 pt-2">
             <Button
               variant="outline"
-              className="flex-1"
+              className="flex-1 h-12 rounded-xl font-bold"
               onClick={() => setShowCancelDialog(false)}
             >
               아니오
             </Button>
             <Button
               variant="destructive"
-              className="flex-1"
+              className="flex-1 h-12 rounded-xl font-bold"
               onClick={handleConfirmCancel}
             >
               취소하기

@@ -10,6 +10,7 @@ import {
     DialogContent,
     DialogTitle,
 } from '@/shared/ui/shadcn/dialog';
+import { Button } from '@/shared/ui/shadcn/button';
 
 interface RegionFilterModalProps {
     open: boolean;
@@ -75,7 +76,7 @@ export function RegionFilterModal({ open, onOpenChange, onApply, selectedRegions
             <DialogContent
                 size="xl"
                 showCloseButton={false}
-                overlayClassName="z-[999] bg-black/80 backdrop-blur-[2px]"
+                overlayClassName="z-[999]"
                 className="z-[1000] w-[90%] rounded-2xl bg-white shadow-2xl duration-200 overflow-hidden flex flex-col h-[80vh] max-h-[600px] p-0 gap-0 ring-0"
             >
                 {/* Header */}
@@ -189,15 +190,13 @@ export function RegionFilterModal({ open, onOpenChange, onApply, selectedRegions
 
                         {/* Buttons */}
                         <div className="h-[80px] flex items-center px-4 gap-3 pb-safe">
-                            <button 
+                            <Button
+                                variant="outline"
                                 onClick={clearTempLocations}
-                                className="flex items-center gap-1.5 px-3 py-2 text-slate-500 font-medium text-sm hover:text-slate-800 transition-colors outline-none"
+                                className="w-24 h-12 rounded-xl font-bold"
                             >
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                </svg>
-                                <span>초기화</span>
-                            </button>
+                                초기화
+                            </Button>
                             <button 
                                 onClick={handleApply}
                                 className="flex-1 h-12 bg-primary hover:bg-primary/90 text-white rounded-xl text-base font-bold shadow-md shadow-draft-100 transition-transform active:scale-[0.98] outline-none flex items-center justify-center gap-1.5"
