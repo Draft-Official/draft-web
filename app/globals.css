@@ -11,6 +11,7 @@
 
 :root {
   --layout-content-max: 760px;
+  --layout-content-split-max: 1160px;
   --layout-mobile-max: 430px;
   --layout-sidebar-width: 240px;
   --layout-root-bg: var(--color-bg-app-root);
@@ -92,6 +93,10 @@
     max-width: var(--layout-content-max);
     margin-left: auto;
     margin-right: auto;
+  }
+
+  .app-content-container--split {
+    max-width: var(--layout-content-split-max);
   }
 
   .app-mobile-container {

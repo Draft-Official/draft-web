@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowLeft, Share2 } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Share2, X } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from '@/shared/ui/shadcn/sonner';
 import { HeroSection } from './components/detail/hero-section';
@@ -26,15 +26,25 @@ import { matchManagementKeys } from '@/features/schedule/api/keys';
 import { useCancelMatchFlow, useMatchApplicants, useUpdateMatchStatus } from '@/features/schedule';
 import { MatchCancelDialog } from '@/features/schedule/ui/detail/match-cancel-dialog';
 import { getKSTDateParts, parseKSTDateISO, parseKSTDateTime } from '@/shared/lib/datetime';
+import { cn } from '@/shared/lib/utils';
 
 interface MatchDetailViewProps {
   match: GuestMatchDetailDTO;
+  layoutMode?: 'page' | 'split';
+  onClose?: () => void;
+  onOpenFullPage?: () => void;
 }
 
-export function MatchDetailView({ match }: MatchDetailViewProps) {
+export function MatchDetailView({
+  match,
+  layoutMode = 'page',
+  onClose,
+  onOpenFullPage,
+}: MatchDetailViewProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
+  const isSplitLayout = layoutMode === 'split';
   const { user } = useAuth();
   const { requireAuth, modalProps } = useRequireAuth({
     redirectTo: `/matches/${match.publicId}`,
@@ -49,6 +59,10 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
   const isFromCreate = searchParams?.get('from') === 'create';
 
   const navigateBack = () => {
+    if (isSplitLayout) {
+      onClose?.();
+      return;
+    }
     if (isFromCreate) {
       router.replace('/');
       return;
@@ -205,7 +219,12 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
   };
 
   return (
-    <div className="min-h-screen bg-background relative pb-[100px] app-content-container">
+    <div
+      className={cn(
+        "bg-background relative",
+        isSplitLayout ? "min-h-full" : "min-h-screen pb-[100px] app-content-container"
+      )}
+    >
       
       {/* 1. Header (Sticky) */}
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-100 h-[52px] flex items-center justify-between px-2">
@@ -213,9 +232,18 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
           onClick={navigateBack}
           className="p-2.5 text-slate-900 hover:bg-slate-50 rounded-full transition-colors"
         >
-          <ArrowLeft className="w-6 h-6" />
+          {isSplitLayout ? <X className="w-6 h-6" /> : <ArrowLeft className="w-6 h-6" />}
         </button>
         <div className="flex items-center gap-1">
+          {isSplitLayout ? (
+            <button
+              onClick={onOpenFullPage}
+              className="p-2.5 text-slate-900 hover:bg-slate-50 rounded-full transition-colors"
+              aria-label="전체 페이지로 열기"
+            >
+              <ExternalLink className="w-5 h-5" />
+            </button>
+          ) : null}
           <button
             onClick={() => setIsShareModalOpen(true)}
             className="p-2.5 text-slate-900 hover:bg-slate-50 rounded-full transition-colors"
@@ -267,20 +295,21 @@ export function MatchDetailView({ match }: MatchDetailViewProps) {
         <PolicySection />
       </main>
 
-      {/* 3. Bottom Bar */}
-      <MatchDetailBottomBar
-        match={match}
-        onApply={handleApplyClick}
-        hasApplied={hasApplied}
-        canCancel={canCancel ?? undefined}
-        onCancel={handleCancelClick}
-        isLoading={isLoadingApplication && isFromSchedule}
-        isCanceling={cancelMutation.isPending}
-        statusText={getStatusText()}
-        isMatchEnded={isMatchEnded}
-        isHost={isHost}
-        onManage={() => router.push(`/matches/${match.publicId}/manage`)}
-      />
+      {!isSplitLayout ? (
+        <MatchDetailBottomBar
+          match={match}
+          onApply={handleApplyClick}
+          hasApplied={hasApplied}
+          canCancel={canCancel ?? undefined}
+          onCancel={handleCancelClick}
+          isLoading={isLoadingApplication && isFromSchedule}
+          isCanceling={cancelMutation.isPending}
+          statusText={getStatusText()}
+          isMatchEnded={isMatchEnded}
+          isHost={isHost}
+          onManage={() => router.push(`/matches/${match.publicId}/manage`)}
+        />
+      ) : null}
 
       {/* 4. Apply Modal */}
       <ApplyModal
