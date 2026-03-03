@@ -226,7 +226,7 @@ export function useUpdateRecruitmentSetup() {
 
 /**
  * 경기 취소 일괄 처리
- * 1. 모든 활성 신청(PENDING, CONFIRMED)을 CANCELED로 변경
+ * 1. 모든 활성 신청(PENDING, PAYMENT_PENDING, CONFIRMED)을 CANCELED로 변경
  * 2. 경기 상태를 CANCELED로 변경
  * 3. 취소 공지 발송 (실패해도 취소는 유지)
  */
@@ -245,7 +245,7 @@ export function useCancelMatchFlow() {
       const supabase = getSupabaseBrowserClient();
       const now = new Date().toISOString();
 
-      // 1. 모든 활성 신청(PENDING, CONFIRMED)을 CANCELED로 변경
+      // 1. 모든 활성 신청(PENDING, PAYMENT_PENDING, CONFIRMED)을 CANCELED로 변경
       const { error: cancelAppsError } = await supabase
         .from('applications')
         .update({
@@ -254,7 +254,7 @@ export function useCancelMatchFlow() {
           updated_at: now,
         })
         .eq('match_id', matchId)
-        .in('status', ['PENDING', 'CONFIRMED']);
+        .in('status', ['PENDING', 'PAYMENT_PENDING', 'CONFIRMED']);
 
       if (cancelAppsError) throw cancelAppsError;
 

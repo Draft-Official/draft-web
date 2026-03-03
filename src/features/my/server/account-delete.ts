@@ -57,7 +57,7 @@ async function cancelActiveMatchesAndApplications(userId: string): Promise<void>
       updated_at: new Date().toISOString(),
     })
     .in('match_id', matchIds)
-    .in('status', ['PENDING', 'CONFIRMED']);
+    .in('status', ['PENDING', 'PAYMENT_PENDING', 'CONFIRMED']);
 
   await adminClient
     .from('matches')

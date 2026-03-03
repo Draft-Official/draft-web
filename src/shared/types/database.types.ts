@@ -67,6 +67,7 @@ export type Database = {
           id: string
           match_id: string
           participants_info: Json | null
+          payment_notified_at: string | null
           payment_verified_at: string | null
           refund_completed_at: string | null
           source: string | null
@@ -86,6 +87,7 @@ export type Database = {
           id?: string
           match_id: string
           participants_info?: Json | null
+          payment_notified_at?: string | null
           payment_verified_at?: string | null
           refund_completed_at?: string | null
           source?: string | null
@@ -105,6 +107,7 @@ export type Database = {
           id?: string
           match_id?: string
           participants_info?: Json | null
+          payment_notified_at?: string | null
           payment_verified_at?: string | null
           refund_completed_at?: string | null
           source?: string | null
@@ -630,7 +633,13 @@ export type Database = {
     }
     Functions: {
       cancel_application_with_count: {
-        Args: { p_application_id: string; p_positions?: string[] }
+        Args: {
+          p_application_id: string
+          p_positions?: string[]
+          p_cancel_type?: string
+          p_canceled_by?: string
+          p_cancel_reason?: string
+        }
         Returns: {
           application_id: string
           new_status: string
@@ -656,6 +665,10 @@ export type Database = {
         Returns: Json
       }
       is_recruitment_full: { Args: { p_setup: Json }; Returns: boolean }
+      notify_guest_payment_confirmed: {
+        Args: { p_application_id: string }
+        Returns: boolean
+      }
       should_notify: {
         Args: { p_setting: string; p_user_id: string }
         Returns: boolean

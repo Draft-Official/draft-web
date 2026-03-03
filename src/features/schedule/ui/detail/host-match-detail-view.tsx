@@ -402,11 +402,15 @@ export function HostMatchDetailView() {
       <MatchCancelDialog
         open={isMatchCancelOpen}
         onOpenChange={setIsMatchCancelOpen}
-        confirmedGuests={guests.filter((g) => g.status === 'confirmed')}
+        settlementGuests={guests.filter(
+          (g) => g.status === 'confirmed' || g.status === 'payment_waiting'
+        )}
         onConfirm={(message) => {
           if (!internalMatchId) return;
-          const hasConfirmed = guests.some((g) => g.status === 'confirmed');
-          if (hasConfirmed) {
+          const hasSettlementTarget = guests.some(
+            (g) => g.status === 'confirmed' || g.status === 'payment_waiting'
+          );
+          if (hasSettlementTarget) {
             cancelMatchFlowMutation.mutate(
               { matchId: internalMatchId, message },
               { onSuccess: () => router.back() }

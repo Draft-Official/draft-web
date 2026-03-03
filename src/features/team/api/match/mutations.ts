@@ -126,6 +126,41 @@ export function useAddTeamVoteGuest() {
 }
 
 /**
+ * 팀 투표 참여자에서 게스트 제외 (관리자)
+ */
+export function useRemoveTeamVoteGuest() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      matchId,
+      ownerUserId,
+      guestIndex,
+    }: {
+      matchId: string;
+      ownerUserId: string;
+      guestIndex: number;
+    }): Promise<TeamVoteDTO> => {
+      const supabase = getSupabaseBrowserClient();
+      const service = createTeamService(supabase);
+      const row = await service.removeGuestFromTeamVote(matchId, ownerUserId, guestIndex);
+      return toTeamVoteDTO(applicationRowToEntity(row));
+    },
+    onSuccess: (_, { matchId, ownerUserId }) => {
+      queryClient.invalidateQueries({
+        queryKey: teamMatchKeys.votingStatus(matchId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: teamMatchKeys.myVote(matchId, ownerUserId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: teamMatchKeys.myPendingVotes(ownerUserId),
+      });
+    },
+  });
+}
+
+/**
  * 투표 마감
  */
 export function useCloseVoting() {

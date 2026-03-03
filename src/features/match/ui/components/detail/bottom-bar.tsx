@@ -18,6 +18,30 @@ interface BottomBarProps {
   isMatchEnded?: boolean;
   isHost?: boolean;
   onManage?: () => void;
+  layoutMode?: 'page' | 'split';
+}
+
+interface BottomBarContainerProps {
+  layoutMode: 'page' | 'split';
+  children: React.ReactNode;
+}
+
+function BottomBarContainer({ layoutMode, children }: BottomBarContainerProps) {
+  if (layoutMode === 'split') {
+    return (
+      <div className="sticky bottom-0 z-30 border-t border-slate-100 bg-white/95 px-5 pt-3 pb-4 shadow-[0_-8px_16px_-12px_rgba(15,23,42,0.35)] backdrop-blur">
+        {children}
+      </div>
+    );
+  }
+
+  return (
+    <div className="app-overlay-shell app-overlay-shell--with-sidebar">
+      <div className="app-overlay-content bg-white border-t border-slate-100 px-5 pt-4 pb-8 pointer-events-auto shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+        {children}
+      </div>
+    </div>
+  );
 }
 
 export function MatchDetailBottomBar({
@@ -32,71 +56,64 @@ export function MatchDetailBottomBar({
   isMatchEnded = false,
   isHost = false,
   onManage,
+  layoutMode = 'page',
 }: BottomBarProps) {
   const isClosed = match.isClosed || match.positions.all?.status === 'closed';
 
   // 호스트인 경우 - 경기 관리하기
   if (isHost) {
     return (
-      <div className="app-overlay-shell app-overlay-shell--with-sidebar">
-        <div className="app-overlay-content bg-white border-t border-slate-100 px-5 pt-4 pb-8 pointer-events-auto shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-          <Button
-            size="lg"
-            className="w-full text-lg font-bold h-12 rounded-xl bg-primary hover:bg-primary/90 text-white"
-            onClick={onManage}
-          >
-            경기 관리하기
-          </Button>
-        </div>
-      </div>
+      <BottomBarContainer layoutMode={layoutMode}>
+        <Button
+          size="lg"
+          className="w-full text-lg font-bold h-12 rounded-xl bg-primary hover:bg-primary/90 text-white"
+          onClick={onManage}
+        >
+          경기 관리하기
+        </Button>
+      </BottomBarContainer>
     );
   }
 
   // 로딩 중
   if (isLoading) {
     return (
-      <div className="app-overlay-shell app-overlay-shell--with-sidebar">
-        <div className="app-overlay-content bg-white border-t border-slate-100 px-5 pt-4 pb-8 pointer-events-auto shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-          <Button disabled className="w-full text-lg font-bold h-12 rounded-xl">
-            <Spinner className="w-5 h-5 " />
-          </Button>
-        </div>
-      </div>
+      <BottomBarContainer layoutMode={layoutMode}>
+        <Button disabled className="w-full text-lg font-bold h-12 rounded-xl">
+          <Spinner className="w-5 h-5 " />
+        </Button>
+      </BottomBarContainer>
     );
   }
 
   // 종료된 경기
   if (isMatchEnded) {
     return (
-      <div className="app-overlay-shell app-overlay-shell--with-sidebar">
-        <div className="app-overlay-content bg-white border-t border-slate-100 px-5 pt-4 pb-8 pointer-events-auto shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-          <Button
-            size="lg"
-            className="w-full text-lg font-bold h-12 rounded-xl bg-slate-200 text-slate-500"
-            disabled
-          >
-            종료된 경기입니다
-          </Button>
-        </div>
-      </div>
+      <BottomBarContainer layoutMode={layoutMode}>
+        <Button
+          size="lg"
+          className="w-full text-lg font-bold h-12 rounded-xl bg-slate-200 text-slate-500"
+          disabled
+        >
+          종료된 경기입니다
+        </Button>
+      </BottomBarContainer>
     );
   }
 
   // 이미 신청한 경우 - 취소하기 버튼
   if (hasApplied && canCancel) {
     return (
-      <div className="app-overlay-shell app-overlay-shell--with-sidebar">
-        <div className="app-overlay-content bg-white border-t border-slate-100 px-5 pt-4 pb-8 pointer-events-auto shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-          <Button
-            size="lg"
-            className="w-full text-lg font-bold h-12 rounded-xl bg-red-100 hover:bg-red-200 text-red-600 border border-red-200"
-            onClick={onCancel}
-            disabled={isCanceling}
-          >
-            {isCanceling ? <Spinner className="w-5 h-5 " /> : '신청 취소하기'}
-          </Button>
-        </div>
-      </div>
+      <BottomBarContainer layoutMode={layoutMode}>
+        <Button
+          size="lg"
+          className="w-full text-lg font-bold h-12 rounded-xl bg-red-100 hover:bg-red-200 text-red-600 border border-red-200"
+          onClick={onCancel}
+          disabled={isCanceling}
+        >
+          {isCanceling ? <Spinner className="w-5 h-5 " /> : '신청 취소하기'}
+        </Button>
+      </BottomBarContainer>
     );
   }
 
@@ -104,41 +121,37 @@ export function MatchDetailBottomBar({
   if (hasApplied && !canCancel) {
     const isConfirmed = statusText === '확정된 경기입니다';
     return (
-      <div className="app-overlay-shell app-overlay-shell--with-sidebar">
-        <div className="app-overlay-content bg-white border-t border-slate-100 px-5 pt-4 pb-8 pointer-events-auto shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-          <Button
-            size="lg"
-            className={cn(
-              "w-full text-lg font-bold h-12 rounded-xl",
-              isConfirmed
-                ? "bg-green-100 text-green-700 border border-green-200"
-                : "bg-slate-200 text-slate-500"
-            )}
-            disabled
-          >
-            {statusText || '신청 완료'}
-          </Button>
-        </div>
-      </div>
+      <BottomBarContainer layoutMode={layoutMode}>
+        <Button
+          size="lg"
+          className={cn(
+            "w-full text-lg font-bold h-12 rounded-xl",
+            isConfirmed
+              ? "bg-green-100 text-green-700 border border-green-200"
+              : "bg-slate-200 text-slate-500"
+          )}
+          disabled
+        >
+          {statusText || '신청 완료'}
+        </Button>
+      </BottomBarContainer>
     );
   }
 
   // 기본: 신청하기 버튼
   return (
-    <div className="app-overlay-shell app-overlay-shell--with-sidebar">
-      <div className="app-overlay-content bg-white border-t border-slate-100 px-5 pt-4 pb-8 pointer-events-auto shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-        <Button
-          size="lg"
-          className={cn(
-            "w-full text-lg font-bold h-12 rounded-xl",
-            isClosed ? "bg-slate-200 text-slate-500 hover:bg-slate-200" : "bg-primary hover:bg-primary/90 text-white"
-          )}
-          disabled={isClosed}
-          onClick={onApply}
-        >
-          {isClosed ? "모집 마감" : "경기 신청하기"}
-        </Button>
-      </div>
-    </div>
+    <BottomBarContainer layoutMode={layoutMode}>
+      <Button
+        size="lg"
+        className={cn(
+          "w-full text-lg font-bold h-12 rounded-xl",
+          isClosed ? "bg-slate-200 text-slate-500 hover:bg-slate-200" : "bg-primary hover:bg-primary/90 text-white"
+        )}
+        disabled={isClosed}
+        onClick={onApply}
+      >
+        {isClosed ? "모집 마감" : "경기 신청하기"}
+      </Button>
+    </BottomBarContainer>
   );
 }

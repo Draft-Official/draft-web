@@ -12,6 +12,7 @@ interface NotificationSetting {
 }
 
 const NOTIFICATION_SETTINGS: NotificationSetting[] = [
+  { field: 'notifyAnnouncement', label: '공지 알림' },
   { field: 'notifyApplication', label: '신청 알림' },
   { field: 'notifyMatch', label: '경기 알림' },
   { field: 'notifyPayment', label: '결제 알림' },

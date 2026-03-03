@@ -162,7 +162,7 @@ export class TeamService {
       region_depth1: input.regionDepth1,
       region_depth2: input.regionDepth2,
       home_gym_id: input.homeGymId,
-      regular_day: input.regularDays ?? [],
+      regular_day: input.regularDays && input.regularDays.length > 0 ? input.regularDays : null,
       regular_start_time: input.regularStartTime,
       regular_end_time: input.regularEndTime,
       team_gender: input.teamGender,
@@ -197,7 +197,9 @@ export class TeamService {
     if (input.regionDepth2 !== undefined) teamUpdate.region_depth2 = input.regionDepth2;
     if (input.homeGymId !== undefined) teamUpdate.home_gym_id = input.homeGymId;
     if (input.regularDays !== undefined) {
-      teamUpdate.regular_day = input.regularDays ?? [];
+      teamUpdate.regular_day = input.regularDays && input.regularDays.length > 0
+        ? input.regularDays
+        : null;
     }
     if (input.regularStartTime !== undefined) {
       (teamUpdate as Record<string, unknown>).regular_start_time = input.regularStartTime;
@@ -987,6 +989,82 @@ export class TeamService {
       .single();
 
     if (updateError) handleSupabaseError(updateError, '게스트 추가');
+    return updatedVote!;
+  }
+
+  /**
+   * 팀 투표 참여자에서 게스트 제외
+   * - guestIndex: owner 투표의 게스트 목록 순서(0-based)
+   */
+  async removeGuestFromTeamVote(
+    matchId: string,
+    ownerUserId: string,
+    guestIndex: number
+  ): Promise<Application> {
+    if (!Number.isInteger(guestIndex) || guestIndex < 0) {
+      throw new ValidationError('유효하지 않은 게스트 인덱스입니다');
+    }
+
+    const { data: match, error: matchError } = await this.supabase
+      .from('matches')
+      .select('status')
+      .eq('id', matchId)
+      .single();
+
+    if (matchError) handleSupabaseError(matchError, '경기 상태 조회');
+
+    if (match?.status === 'CLOSED') {
+      throw new ValidationError('투표가 마감된 경기에서는 게스트를 제외할 수 없습니다');
+    }
+
+    const { data: voteRow, error: voteError } = await this.supabase
+      .from('applications')
+      .select('id, participants_info')
+      .eq('match_id', matchId)
+      .eq('user_id', ownerUserId)
+      .eq('source', 'TEAM_VOTE')
+      .single();
+
+    if (voteError) {
+      if (voteError.code === 'PGRST116') {
+        throw new ValidationError('대상 투표를 찾을 수 없습니다');
+      }
+      handleSupabaseError(voteError, '게스트 제외 대상 조회');
+    }
+
+    const participants = Array.isArray(voteRow?.participants_info)
+      ? (voteRow.participants_info as ParticipantInfo[])
+      : [];
+
+    let guestCursor = -1;
+    let removed = false;
+
+    const nextParticipants = participants.filter((participant) => {
+      if (!participant || typeof participant !== 'object') return true;
+      if (participant.type !== 'GUEST') return true;
+
+      guestCursor += 1;
+      if (guestCursor !== guestIndex) return true;
+
+      removed = true;
+      return false;
+    });
+
+    if (!removed) {
+      throw new ValidationError('제외할 게스트를 찾을 수 없습니다');
+    }
+
+    const { data: updatedVote, error: updateError } = await this.supabase
+      .from('applications')
+      .update({
+        participants_info: nextParticipants as unknown as Application['participants_info'],
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', voteRow.id)
+      .select()
+      .single();
+
+    if (updateError) handleSupabaseError(updateError, '게스트 제외');
     return updatedVote!;
   }
 

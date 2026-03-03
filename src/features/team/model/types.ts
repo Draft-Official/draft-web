@@ -169,6 +169,7 @@ export interface TeamScheduleMatchItemDTO {
  * 팀 매치 상세 화면에서 사용
  */
 export interface TeamMatchDetailDTO extends TeamScheduleMatchItemDTO {
+  hostId: string;
   matchType: MatchTypeValue;
   matchFormat: MatchFormatValue;
   genderRule: GenderValue;

@@ -23,7 +23,8 @@ interface KebabMenuProps {
   matchPublicId: string;
   isHost: boolean;
   hasConfirmedGuests: boolean;
-  isCheckingConfirmedGuests?: boolean;
+  hasGuestsRequiringSettlement: boolean;
+  isCheckingSettlementGuests?: boolean;
   onCancelMatch?: () => void;
 }
 
@@ -31,7 +32,8 @@ export function KebabMenu({
   matchPublicId,
   isHost,
   hasConfirmedGuests,
-  isCheckingConfirmedGuests = false,
+  hasGuestsRequiringSettlement,
+  isCheckingSettlementGuests = false,
   onCancelMatch,
 }: KebabMenuProps) {
   const router = useRouter();
@@ -50,12 +52,12 @@ export function KebabMenu({
   };
 
   const handleCancelClick = () => {
-    if (isCheckingConfirmedGuests) {
+    if (isCheckingSettlementGuests) {
       toast.info('신청자 정보를 확인 중입니다. 잠시 후 다시 시도해주세요.');
       return;
     }
 
-    if (hasConfirmedGuests) {
+    if (hasGuestsRequiringSettlement) {
       onCancelMatch?.();
       return;
     }

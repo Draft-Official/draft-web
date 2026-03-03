@@ -192,6 +192,7 @@ export function toTeamMatchDetailDTO(
 
   return {
     ...listItem,
+    hostId: match.hostId,
     matchType: match.matchType,
     matchFormat: match.matchFormat,
     genderRule: match.genderRule,

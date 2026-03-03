@@ -17,10 +17,6 @@ export async function GET(request: Request) {
   // if "next" is in param, use it as the redirect URL
   const next = searchParams.get('next') ?? '/'
 
-  console.log('[Auth Callback] Full URL:', request.url)
-  console.log('[Auth Callback] All params:', Object.fromEntries(searchParams.entries()))
-  console.log('[Auth Callback] code:', code ? 'exists' : 'missing')
-
   if (code) {
     const cookieStore = await cookies()
     const supabase = createServerClient(
@@ -45,17 +41,11 @@ export async function GET(request: Request) {
         cookieEncoding: 'raw',
       }
     )
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
-    console.log('[Auth Callback] exchangeCodeForSession result:', {
-      hasSession: !!data?.session,
-      hasUser: !!data?.user,
-      error: error?.message
-    })
+    const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
-      console.log('[Auth Callback] Success! Redirecting to:', `${origin}${next}`)
       return NextResponse.redirect(`${origin}${next}`)
     }
-    console.error('[Auth Callback] Error:', error)
+    console.error('[Auth Callback] exchangeCodeForSession failed:', error.message)
   }
 
   // return the user to an error page with instructions

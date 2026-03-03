@@ -200,6 +200,19 @@ export function TeamMatchCreateForm({ team, onClose }: TeamMatchCreateFormProps)
     // 저장은 KST 오프셋이 포함된 ISO 문자열로 통일
     const startDateTime = toKSTDateTimeISO(selectedDate, normalizeTime(startTime));
     const endDateTime = toKSTDateTimeISO(selectedDate, normalizeTime(endTime));
+    const trimmedNotice = notice.trim();
+    const operationInfo = team.operationInfo || trimmedNotice
+      ? {
+          type: team.operationInfo?.type ?? 'PHONE',
+          ...(team.operationInfo?.phone ? { phone: team.operationInfo.phone } : {}),
+          ...(team.operationInfo?.url ? { url: team.operationInfo.url } : {}),
+          ...(trimmedNotice
+            ? { notice: trimmedNotice }
+            : team.operationInfo?.notice
+              ? { notice: team.operationInfo.notice }
+              : {}),
+        }
+      : undefined;
 
     createMatch(
       {
@@ -209,6 +222,7 @@ export function TeamMatchCreateForm({ team, onClose }: TeamMatchCreateFormProps)
           startTime: startDateTime,
           endTime: endDateTime,
           gymId: team.homeGymId,
+          operationInfo,
         },
       },
       {
