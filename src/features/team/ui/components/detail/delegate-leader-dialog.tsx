@@ -129,12 +129,12 @@ export function DelegateLeaderDialog({
             )}
           </div>
 
-          <div className="flex gap-3">
-            <Button variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>
+          <div className="flex gap-2 pt-2">
+            <Button variant="outline" className="flex-1 h-12 rounded-xl font-bold" onClick={() => onOpenChange(false)}>
               취소
             </Button>
             <Button
-              className="flex-1 bg-primary hover:bg-primary/90"
+              className="flex-1 h-12 rounded-xl font-bold"
               disabled={!selectedMemberId}
               onClick={() => setShowConfirm(true)}
             >
@@ -154,10 +154,10 @@ export function DelegateLeaderDialog({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogCancel className="flex-1 h-12 rounded-xl font-bold">취소</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirm}
-              className="bg-primary hover:bg-primary/90"
+              className="flex-1 h-12 rounded-xl font-bold"
               disabled={transferMutation.isPending}
             >
               {transferMutation.isPending ? '위임 중...' : '확인'}

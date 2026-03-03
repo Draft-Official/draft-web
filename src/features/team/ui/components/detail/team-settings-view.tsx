@@ -242,10 +242,11 @@ export function TeamSettingsView({ code }: TeamSettingsViewProps) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogCancel className="flex-1 h-12 rounded-xl font-bold">취소</AlertDialogCancel>
             <AlertDialogAction
+              variant="destructive"
               onClick={() => deleteMutation.mutate()}
-              className="bg-red-500 hover:bg-red-600"
+              className="flex-1 h-12 rounded-xl font-bold"
               disabled={deleteMutation.isPending}
             >
               {deleteMutation.isPending ? '삭제 중...' : '삭제'}
@@ -265,10 +266,11 @@ export function TeamSettingsView({ code }: TeamSettingsViewProps) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogCancel className="flex-1 h-12 rounded-xl font-bold">취소</AlertDialogCancel>
             <AlertDialogAction
+              variant="destructive"
               onClick={() => leaveMutation.mutate()}
-              className="bg-red-500 hover:bg-red-600"
+              className="flex-1 h-12 rounded-xl font-bold"
               disabled={leaveMutation.isPending}
             >
               {leaveMutation.isPending ? '탈퇴 중...' : '탈퇴'}

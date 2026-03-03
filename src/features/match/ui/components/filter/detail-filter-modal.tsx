@@ -248,7 +248,7 @@ export function DetailedFilterModal({
           </div>
         </ScrollArea>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={handleReset} className="h-12 w-24 rounded-xl font-bold border-slate-200 text-slate-600">
+          <Button variant="outline" onClick={handleReset} className="w-24 h-12 rounded-xl font-bold">
             초기화
           </Button>
           <Button
