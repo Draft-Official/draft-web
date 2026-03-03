@@ -14,6 +14,7 @@
   --layout-content-split-max: 1160px;
   --layout-mobile-max: 430px;
   --layout-sidebar-width: 240px;
+  --layout-sidebar-width-compact: 88px;
   --layout-root-bg: var(--color-bg-app-root);
 }
 

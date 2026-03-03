@@ -15,6 +15,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
     pathname === '/login' ||
     pathname.startsWith('/auth');
   const isHomeSplitOpen = pathname === '/' && Boolean(searchParams?.get('match'));
+  const isSidebarCompact = isHomeSplitOpen;
 
   if (isBareLayout) {
     return (
@@ -30,26 +31,30 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
     <SignupVerifyGuard>
       <div
         className={cn(
-          "flex justify-center min-h-screen bg-(--layout-root-bg)",
-          !isHomeSplitOpen && "lg:pl-(--layout-sidebar-width)"
+          "flex justify-center min-h-screen bg-(--layout-root-bg) transition-[padding] duration-300 ease-in-out",
+          isSidebarCompact
+            ? "lg:pl-(--layout-sidebar-width-compact)"
+            : "lg:pl-(--layout-sidebar-width)"
         )}
       >
         {/* Desktop Sidebar (Left) */}
         <aside
           className={cn(
-            "hidden lg:flex fixed left-0 top-0 h-full w-(--layout-sidebar-width) bg-(--layout-root-bg) z-30 justify-center",
-            isHomeSplitOpen && "lg:hidden"
+            "hidden lg:flex fixed left-0 top-0 h-full bg-(--layout-root-bg) z-30 justify-center transition-[width] duration-300 ease-in-out",
+            isSidebarCompact
+              ? "w-(--layout-sidebar-width-compact)"
+              : "w-(--layout-sidebar-width)"
           )}
         >
           <div className="w-full h-full">
-            <Sidebar />
+            <Sidebar compact={isSidebarCompact} />
           </div>
         </aside>
 
         {/* Main Content Area (Center) */}
         <main
           className={cn(
-            "app-content-container min-h-screen bg-(--layout-root-bg) relative pb-20 lg:pb-0 border-x border-slate-50",
+            "app-content-container min-h-screen bg-(--layout-root-bg) relative pb-20 lg:pb-0 border-x border-slate-50 transition-[max-width] duration-300 ease-in-out",
             isHomeSplitOpen && "app-content-container--split"
           )}
         >

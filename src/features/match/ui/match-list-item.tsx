@@ -55,7 +55,7 @@ export const MatchListItem = React.memo(function MatchListItem({
       onClick={handleClick}
       className={cn(
         "group relative border-b border-slate-100 bg-white transition-all cursor-pointer flex flex-col px-4 py-3",
-        isActive && "bg-slate-50 ring-1 ring-draft-200 z-10",
+        isActive && "bg-slate-50 ring-2 ring-draft-300 z-10",
         match.isClosed
           ? "bg-slate-50/50"
           : "hover:bg-slate-50"
@@ -74,13 +74,8 @@ export const MatchListItem = React.memo(function MatchListItem({
           <span
             className={cn(
               "flex items-center gap-0.5 text-sm truncate",
-              match.isClosed ? "text-slate-300" : "text-slate-700 active:text-primary"
+              match.isClosed ? "text-slate-300" : "text-slate-700"
             )}
-            onClick={(e) => {
-              e.stopPropagation();
-              const url = `https://map.kakao.com/link/search/${encodeURIComponent(match.gymAddress)}`;
-              window.open(url, '_blank', 'noopener,noreferrer');
-            }}
           >
             <MapPin className={cn(
               "w-3 h-3 shrink-0",

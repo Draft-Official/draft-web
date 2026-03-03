@@ -267,7 +267,7 @@ export function MatchDetailView({
       </header>
 
       {/* 2. Content Sections */}
-      <main>
+      <main className={cn(isSplitLayout && "pb-24")}>
         <HeroSection match={match} />
 
         {/* Announcement Section */}
@@ -299,21 +299,20 @@ export function MatchDetailView({
         <PolicySection />
       </main>
 
-      {!isSplitLayout ? (
-        <MatchDetailBottomBar
-          match={match}
-          onApply={handleApplyClick}
-          hasApplied={hasApplied}
-          canCancel={canCancel ?? undefined}
-          onCancel={handleCancelClick}
-          isLoading={isLoadingApplication && isFromSchedule}
-          isCanceling={cancelMutation.isPending}
-          statusText={getStatusText()}
-          isMatchEnded={isMatchEnded}
-          isHost={isHost}
-          onManage={() => router.push(`/matches/${match.publicId}/manage`)}
-        />
-      ) : null}
+      <MatchDetailBottomBar
+        match={match}
+        onApply={handleApplyClick}
+        hasApplied={hasApplied}
+        canCancel={canCancel ?? undefined}
+        onCancel={handleCancelClick}
+        isLoading={isLoadingApplication && isFromSchedule}
+        isCanceling={cancelMutation.isPending}
+        statusText={getStatusText()}
+        isMatchEnded={isMatchEnded}
+        isHost={isHost}
+        onManage={() => router.push(`/matches/${match.publicId}/manage`)}
+        layoutMode={layoutMode}
+      />
 
       {/* 4. Apply Modal */}
       <ApplyModal

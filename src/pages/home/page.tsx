@@ -17,11 +17,6 @@ import { useUserApplications } from '@/features/application';
 import type { ApplicationStatusValue } from '@/shared/config/application-constants';
 import { Spinner } from '@/shared/ui/shadcn/spinner';
 import { cn } from '@/shared/lib/utils';
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from '@/shared/ui/shadcn/resizable';
 
 const HOME_MATCH_QUERY_KEY = 'match';
 
@@ -154,7 +149,7 @@ export default function GuestMatchListPage() {
   }, [filteredMatches]);
 
   const listContent = (
-    <div className="min-h-screen bg-background relative">
+    <div className={cn("bg-background relative", isSplitMode ? "min-h-full" : "min-h-screen")}>
       <FilterBar
         selectedDateISO={selectedDateISO}
         onDateSelect={setSelectedDateISO}
@@ -294,21 +289,16 @@ export default function GuestMatchListPage() {
     <>
       <div className="min-h-screen bg-background font-sans">
         {isSplitMode ? (
-          <ResizablePanelGroup direction="horizontal" className="h-[100dvh] min-h-screen w-full">
-            <ResizablePanel defaultSize={36} minSize={30} maxSize={48}>
-              <div className="h-[100dvh] overflow-y-auto border-r border-slate-100">
-                {listContent}
-              </div>
-            </ResizablePanel>
-
-            <ResizableHandle withHandle />
-
-            <ResizablePanel minSize={40}>
-              <div className="h-[100dvh] overflow-y-auto bg-white">
+          <div className="grid h-[100dvh] min-h-screen w-full grid-cols-2 gap-6 bg-background animate-in fade-in duration-300">
+            <section className="h-full overflow-y-auto bg-white animate-in slide-in-from-left-2 duration-300">
+              {listContent}
+            </section>
+            <section className="h-full overflow-hidden bg-slate-50 px-2 animate-in slide-in-from-right-4 duration-300">
+              <div className="my-3 h-[calc(100%-1.5rem)] overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-[0_6px_24px_rgba(15,23,42,0.06)]">
                 {detailContent}
               </div>
-            </ResizablePanel>
-          </ResizablePanelGroup>
+            </section>
+          </div>
         ) : (
           listContent
         )}
