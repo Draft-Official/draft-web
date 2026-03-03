@@ -106,6 +106,7 @@ export function AccountEditDialog({
               }}
               placeholder="계좌번호 입력 (숫자만)"
               inputMode="numeric"
+              className="h-12"
             />
           </div>
 
@@ -117,16 +118,17 @@ export function AccountEditDialog({
                 setHolder(sanitizeAccountHolderInput(e.target.value));
               }}
               placeholder="예금주 입력 (한글 2-10자)"
+              className="h-12"
             />
           </div>
         </div>
 
-        <div className="flex gap-3">
-          <Button variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>
+        <div className="flex gap-2 pt-2">
+          <Button variant="outline" className="flex-1 h-12 rounded-xl font-bold" onClick={() => onOpenChange(false)}>
             취소
           </Button>
           <Button
-            className="flex-1 bg-primary hover:bg-primary/90"
+            className="flex-1 h-12 rounded-xl font-bold"
             onClick={() => mutation.mutate()}
             disabled={mutation.isPending}
           >
