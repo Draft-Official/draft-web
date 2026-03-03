@@ -525,3 +525,38 @@ DRAFT는 **카카오 OAuth + 전화번호 인증 기반**으로,
 - UX/기능 갭 섹션
 3. 문서와 코드가 충돌하면 문서를 수정한다.
 
+---
+
+## 12. 2026-03-03 적용 기록 (P0 진행분)
+
+### 12.1 DB/RLS/RPC 하드닝 적용
+
+- `supabase/migrations/20260303_p0_security_hardening.sql` 적용.
+- `notifications` INSERT 정책을 `service_role`/DB owner 경로로 제한.
+- `matches` UPDATE를 host-only 정책(`matches_update_secure`)으로 고정.
+- `applications` 정책을 게스트 신청/TEAM_VOTE 흐름으로 분리.
+- `confirm_application_with_count`에 호출자=호스트 검증, TEAM_VOTE 차단, 상태 전이 검증 추가.
+- `cancel_application_with_count`에 호출자(호스트/신청자) 검증, cancel 메타데이터 인자 반영 추가.
+- `notify_guest_payment_confirmed` RPC 신설(게스트 본인 + `PAYMENT_PENDING`에서만 허용).
+
+### 12.2 앱 코드 정합성 수정
+
+- 게스트 송금완료는 클라이언트 직접 `notifications` insert를 제거하고 RPC 호출로 전환.
+- 취소 RPC 호출 시 `cancel_type`, `canceled_by`, `cancel_reason`를 전달하도록 정리.
+- 경기 취소 일괄 처리/계정 탈퇴 정리에서 대상 상태에 `PAYMENT_PENDING`을 포함.
+- 매치 상세 타입 분기 필드를 `type`에서 `matchType` 기준으로 수정.
+- 팀 운동 생성 시 공지(`operationInfo.notice`)가 실제 payload에 포함되도록 수정.
+- 팀 매치 상세에서 경기 관리 메뉴 노출을 host 기준으로 제한(팀 투표 관리 권한과 분리).
+- `database.types.ts`에 누락된 `payment_notified_at`/RPC 시그니처 반영.
+
+### 12.3 원격 검증 결과
+
+- 원격 스키마 덤프 기준으로 하드닝 정책/함수 본문 반영 확인.
+- 추가로 발견된 잔존 권한 이슈를 운영 SQL로 정리:
+  - `All Public Applications*`, `All Public Matches*` 정책 제거.
+  - 민감 RPC(`confirm/cancel/notify_guest_payment_confirmed`)의 `anon` execute 제거.
+
+### 12.4 남은 결정 사항
+
+- 현재 코드 기준 경기 취소 일괄 처리에는 `PAYMENT_PENDING`이 포함된다.
+- 제품 정책이 "입금대기 인원 존재 시 경기 취소 금지"라면, 관리 UI + 서버 가드에서 명시적으로 차단 규칙을 추가해야 한다.

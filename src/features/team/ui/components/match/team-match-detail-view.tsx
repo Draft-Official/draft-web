@@ -60,7 +60,8 @@ export function TeamMatchDetailView({
   // 권한 체크
   const isLeader = membership.role === 'LEADER';
   const isManager = membership.role === 'MANAGER';
-  const canManage = isLeader || isManager;
+  const isTeamAdmin = isLeader || isManager;
+  const canManageMatch = userId === match.hostId;
   const isVotingClosed = match.isVotingClosed;
 
   // 투표하기
@@ -130,7 +131,7 @@ export function TeamMatchDetailView({
         </button>
         <div className="flex items-center gap-1">
           {/* Admin Menu */}
-          {canManage && (
+          {canManageMatch && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="p-2.5 text-slate-900 hover:bg-slate-50 rounded-full transition-colors">
@@ -182,7 +183,7 @@ export function TeamMatchDetailView({
         <TeamVotingSection
           votes={votes}
           votingSummary={votingSummary ?? undefined}
-          isAdmin={canManage}
+          isAdmin={isTeamAdmin}
           matchId={match.matchId}
           isVotingClosed={isVotingClosed}
           isLoading={isVotesLoading}

@@ -228,6 +228,24 @@ export class ApplicationService {
   }
 
   /**
+   * 게스트 송금 완료 알림 (1회성)
+   * - 신청자 본인만 호출 가능 (RPC 내부 검증)
+   * - PAYMENT_PENDING 상태에서만 허용
+   * - 이미 전송된 경우 false 반환
+   */
+  async notifyGuestPaymentConfirmed(applicationId: string): Promise<boolean> {
+    const { data, error } = await (this.supabase.rpc as CallableFunction)(
+      'notify_guest_payment_confirmed',
+      {
+        p_application_id: applicationId,
+      }
+    );
+
+    if (error) handleSupabaseError(error, '송금 완료 알림');
+    return Boolean(data);
+  }
+
+  /**
    * 신청 확정 (with recruitment count update)
    * RPC 함수를 통해 트랜잭션으로 처리
    */
@@ -274,26 +292,15 @@ export class ApplicationService {
     const application = await this.getApplicationById(applicationId);
     const positions = extractPositionsFromParticipants(application.participants_info);
 
-    // cancel 메타데이터를 RPC 호출 전에 먼저 설정
-    // (RPC가 status를 CANCELED로 변경할 때 트리거가 canceled_by를 참조하므로)
-    if (options?.cancelType || options?.canceledBy || options?.cancelReason) {
-      await this.supabase
-        .from('applications')
-        .update({
-          ...(options.cancelType && { cancel_type: options.cancelType }),
-          ...(options.canceledBy && { canceled_by: options.canceledBy }),
-          ...(options.cancelReason && { cancel_reason: options.cancelReason }),
-        })
-        .eq('id', applicationId);
-    }
-
-    // RPC 함수 호출 (신청 취소 + count 감소)
-    // 이 시점에 canceled_by가 이미 설정되어 있으므로 트리거가 올바른 알림 생성
+    // RPC 함수 호출 (신청 취소 + count 감소 + cancel 메타데이터 저장)
     const { error } = await (this.supabase.rpc as CallableFunction)(
       'cancel_application_with_count',
       {
         p_application_id: applicationId,
         p_positions: positions.length > 0 ? positions : null,
+        p_cancel_type: options?.cancelType ?? null,
+        p_canceled_by: options?.canceledBy ?? null,
+        p_cancel_reason: options?.cancelReason ?? null,
       }
     );
 

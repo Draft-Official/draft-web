@@ -67,52 +67,24 @@ export function useConfirmPaymentByGuest() {
   return useMutation({
     mutationFn: async ({
       applicationId,
-      matchId,
     }: {
       applicationId: string;
       matchId: string;
     }) => {
       const supabase = getSupabaseBrowserClient();
+      const applicationService = createApplicationService(supabase);
 
-      // 신청자(게스트) ID 조회
-      const { data: app, error: appError } = await supabase
-        .from('applications')
-        .select('user_id, match:matches!match_id(host_id)')
-        .eq('id', applicationId)
-        .single();
-
-      if (appError) throw appError;
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const hostId = (app.match as any)?.host_id;
-      if (!hostId) throw new Error('호스트 정보를 찾을 수 없습니다.');
-
-      // 호스트에게 알림만 전송 (상태 변경 X)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error: notifError } = await (supabase as any)
-        .from('notifications')
-        .insert({
-          user_id: hostId,
-          type: 'GUEST_PAYMENT_CONFIRMED',
-          reference_id: applicationId,
-          reference_type: 'APPLICATION',
-          match_id: matchId,
-          actor_id: app.user_id,
-        });
-
-      if (notifError) throw notifError;
-
-      // 중복 전송 방지용 타임스탬프 기록
-      await supabase
-        .from('applications')
-        .update({ payment_notified_at: new Date().toISOString() } as never)
-        .eq('id', applicationId);
+      return applicationService.notifyGuestPaymentConfirmed(applicationId);
     },
-    onSuccess: () => {
+    onSuccess: (notified) => {
       queryClient.invalidateQueries({
         queryKey: matchManagementKeys.all,
       });
-      toast.success('호스트에게 송금 완료 알림을 보냈습니다.');
+      if (notified) {
+        toast.success('호스트에게 송금 완료 알림을 보냈습니다.');
+      } else {
+        toast.success('이미 송금 완료 알림을 보냈습니다.');
+      }
     },
     onError: (error: Error) => {
       console.error('Notify payment sent error:', error);
