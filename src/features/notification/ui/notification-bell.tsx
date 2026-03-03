@@ -3,11 +3,12 @@
 import Link from 'next/link';
 import { Bell } from 'lucide-react';
 import { useAuth } from '@/shared/session';
-import { useUnreadNotificationCount } from '../api/queries';
+import { useUnreadNotifications } from '../api/queries';
 
 export function NotificationBell() {
   const { user } = useAuth();
-  const { data: unreadCount } = useUnreadNotificationCount(user?.id);
+  const { data: unreadNotifications } = useUnreadNotifications(user?.id);
+  const unreadCount = unreadNotifications?.length ?? 0;
 
   return (
     <Link

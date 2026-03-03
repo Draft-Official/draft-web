@@ -2,11 +2,16 @@
  * Match Management Query Hooks
  * 경기 관리 데이터 조회용 React Query hooks
  */
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
+
+const PAGE_SIZE = 20;
+
+type SchedulePage = { matches: ScheduleMatchListItemDTO[]; nextCursor: number | undefined };
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { createMatchService } from '@/entities/match';
 import {
   createApplicationService,
+  countTeamVoteParticipants,
   extractTeamVoteGuestNames,
   toTeamVoteStatus,
 } from '@/entities/application';
@@ -41,16 +46,17 @@ import type {
 export function useHostedMatches() {
   const { user } = useAuth();
 
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: matchManagementKeys.hostedMatches(user?.id ?? ''),
-    queryFn: async (): Promise<ScheduleMatchListItemDTO[]> => {
-      if (!user?.id) return [];
+    initialPageParam: 0,
+    getNextPageParam: (lastPage: SchedulePage) => lastPage.nextCursor,
+    queryFn: async ({ pageParam }): Promise<SchedulePage> => {
+      if (!user?.id) return { matches: [], nextCursor: undefined };
 
       const supabase = getSupabaseBrowserClient();
       const matchService = createMatchService(supabase);
 
-      // 모든 호스트 경기 조회 (limit 없음)
-      const rows = await matchService.getMyHostedMatches(user.id, 100);
+      const { matches: rows, nextCursor } = await matchService.getMyHostedMatches(user.id, PAGE_SIZE, pageParam);
 
       // 게스트 모집 경기의 신청자 수 조회 (PENDING + PAYMENT_PENDING)
       const guestMatchIds = rows
@@ -78,30 +84,52 @@ export function useHostedMatches() {
       const myVoteMap = new Map<string, { vote: TeamVoteStatusValue; reason?: string }>();
 
       if (teamRows.length > 0) {
-        const teamService = createTeamService(supabase);
-        await Promise.all(
-          teamRows.map(async (row) => {
-            const [summary, myVoteRow] = await Promise.all([
-              teamService.getVotingSummary(row.id),
-              teamService.getMyVote(row.id, user.id),
-            ]);
-            votingSummaryMap.set(row.id, {
-              attending: summary.attending + summary.late,
-              notAttending: summary.notAttending,
-              pending: summary.pending,
-            });
-            if (myVoteRow) {
-              myVoteMap.set(row.id, {
-                vote: toTeamVoteStatus(myVoteRow.status),
-                reason: myVoteRow.description || undefined,
-              });
-            }
-          })
-        );
+        const teamMatchIds = teamRows.map((r) => r.id);
+        const [{ data: allVotes }, { data: myVotes }] = await Promise.all([
+          supabase
+            .from('applications')
+            .select('match_id, status, participants_info')
+            .in('match_id', teamMatchIds)
+            .eq('source', 'TEAM_VOTE'),
+          supabase
+            .from('applications')
+            .select('match_id, status, description')
+            .in('match_id', teamMatchIds)
+            .eq('user_id', user.id)
+            .eq('source', 'TEAM_VOTE'),
+        ]);
+
+        for (const matchId of teamMatchIds) {
+          votingSummaryMap.set(matchId, { attending: 0, notAttending: 0, pending: 0 });
+        }
+
+        for (const vote of allVotes ?? []) {
+          const count = countTeamVoteParticipants(vote.participants_info);
+          const entry = votingSummaryMap.get(vote.match_id)!;
+          switch (vote.status) {
+            case 'CONFIRMED':
+            case 'LATE':
+              entry.attending += count;
+              break;
+            case 'NOT_ATTENDING':
+              entry.notAttending += count;
+              break;
+            case 'PENDING':
+              entry.pending += count;
+              break;
+          }
+        }
+
+        for (const vote of myVotes ?? []) {
+          myVoteMap.set(vote.match_id, {
+            vote: toTeamVoteStatus(vote.status),
+            reason: vote.description || undefined,
+          });
+        }
       }
 
       // DB Row -> ScheduleMatchListItemDTO 변환
-      return rows.map((row) => {
+      const matches = rows.map((row) => {
         const dto = toScheduleMatchListItemDTO(row, 'host');
         const myVoteData = myVoteMap.get(row.id);
         return {
@@ -117,6 +145,8 @@ export function useHostedMatches() {
           teamCode: (row.team as { name: string; code?: string | null })?.code || undefined,
         };
       });
+
+      return { matches, nextCursor };
     },
     enabled: !!user?.id,
   });
@@ -129,10 +159,12 @@ export function useHostedMatches() {
 export function useParticipatingMatches() {
   const { user } = useAuth();
 
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: matchManagementKeys.participatingMatches(user?.id ?? ''),
-    queryFn: async (): Promise<ScheduleMatchListItemDTO[]> => {
-      if (!user?.id) return [];
+    initialPageParam: 0,
+    getNextPageParam: (lastPage: SchedulePage) => lastPage.nextCursor,
+    queryFn: async ({ pageParam }): Promise<SchedulePage> => {
+      if (!user?.id) return { matches: [], nextCursor: undefined };
 
       const supabase = getSupabaseBrowserClient();
 
@@ -158,10 +190,13 @@ export function useParticipatingMatches() {
           )
         `)
         .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .range(pageParam, pageParam + PAGE_SIZE - 1);
 
       if (error) throw error;
-      if (!applications) return [];
+      if (!applications) return { matches: [], nextCursor: undefined };
+
+      const nextCursor = applications.length === PAGE_SIZE ? pageParam + PAGE_SIZE : undefined;
 
       // match가 있는 것만 필터
       const validApps = applications.filter((app) => app.match);
@@ -173,21 +208,36 @@ export function useParticipatingMatches() {
 
       const votingSummaryMap = new Map<string, { attending: number; notAttending: number; pending: number }>();
       if (teamMatchIds.length > 0) {
-        const teamService = createTeamService(supabase);
-        await Promise.all(
-          teamMatchIds.map(async (matchId) => {
-            const summary = await teamService.getVotingSummary(matchId);
-            votingSummaryMap.set(matchId, {
-              attending: summary.attending + summary.late,
-              notAttending: summary.notAttending,
-              pending: summary.pending,
-            });
-          })
-        );
+        const { data: allVotes } = await supabase
+          .from('applications')
+          .select('match_id, status, participants_info')
+          .in('match_id', teamMatchIds)
+          .eq('source', 'TEAM_VOTE');
+
+        for (const matchId of teamMatchIds) {
+          votingSummaryMap.set(matchId, { attending: 0, notAttending: 0, pending: 0 });
+        }
+
+        for (const vote of allVotes ?? []) {
+          const count = countTeamVoteParticipants(vote.participants_info);
+          const entry = votingSummaryMap.get(vote.match_id)!;
+          switch (vote.status) {
+            case 'CONFIRMED':
+            case 'LATE':
+              entry.attending += count;
+              break;
+            case 'NOT_ATTENDING':
+              entry.notAttending += count;
+              break;
+            case 'PENDING':
+              entry.pending += count;
+              break;
+          }
+        }
       }
 
       // DB Application → ScheduleMatchListItemDTO 변환
-      return validApps.map((app) => {
+      const matches = validApps.map((app) => {
           const match = app.match as ParticipatingMatchRow;
 
           // 경기 시간 기반 종료 판정
@@ -284,6 +334,8 @@ export function useParticipatingMatches() {
             teamCode: match.team?.code || undefined,
           } as ScheduleMatchListItemDTO;
         });
+
+      return { matches, nextCursor };
     },
     enabled: !!user?.id,
   });

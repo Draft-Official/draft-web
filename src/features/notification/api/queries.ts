@@ -115,19 +115,3 @@ export function useUnreadNotifications(userId: string | undefined) {
   });
 }
 
-/**
- * 읽지 않은 알림 개수 조회 (polling)
- */
-export function useUnreadNotificationCount(userId: string | undefined) {
-  return useQuery({
-    queryKey: notificationKeys.unreadCount(userId ?? ''),
-    queryFn: async () => {
-      const supabase = getSupabaseBrowserClient();
-      const service = createNotificationService(supabase);
-      return service.getUnreadCount(userId!);
-    },
-    enabled: !!userId,
-    refetchInterval: 30_000,
-    refetchIntervalInBackground: false,
-  });
-}

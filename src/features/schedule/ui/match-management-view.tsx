@@ -51,9 +51,24 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
   const [selectedMatch, setSelectedMatch] = useState<ScheduleMatchListItemDTO | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
-  // Fetch data from Supabase
-  const { data: hostedMatches = [], isLoading: isLoadingHosted } = useHostedMatches();
-  const { data: participatingMatches = [], isLoading: isLoadingParticipating } = useParticipatingMatches();
+  // Fetch data from Supabase (infinite query)
+  const {
+    data: hostedData,
+    isLoading: isLoadingHosted,
+    fetchNextPage: fetchNextHosted,
+    hasNextPage: hasNextHosted,
+    isFetchingNextPage: isFetchingNextHosted,
+  } = useHostedMatches();
+  const {
+    data: participatingData,
+    isLoading: isLoadingParticipating,
+    fetchNextPage: fetchNextParticipating,
+    hasNextPage: hasNextParticipating,
+    isFetchingNextPage: isFetchingNextParticipating,
+  } = useParticipatingMatches();
+
+  const hostedMatches = useMemo(() => hostedData?.pages.flatMap((page) => page.matches) ?? [], [hostedData]);
+  const participatingMatches = useMemo(() => participatingData?.pages.flatMap((page) => page.matches) ?? [], [participatingData]);
 
   // Fetch unread notifications & group by matchId
   const { data: unreadNotifications = [] } = useUnreadNotifications(user?.id);
@@ -393,17 +408,33 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
             </p>
           </div>
         ) : (
-          filteredMatches.map((match) => (
-            <MatchCard
-              key={match.id}
-              match={match}
-              notifications={notificationsByMatchId.get(match.id)}
-              onClick={handleCardClick}
-              onConfirmPayment={handleConfirmPayment}
-              onVote={handleVote}
-              isVoting={voteMutation.isPending}
-            />
-          ))
+          <>
+            {filteredMatches.map((match) => (
+              <MatchCard
+                key={match.id}
+                match={match}
+                notifications={notificationsByMatchId.get(match.id)}
+                onClick={handleCardClick}
+                onConfirmPayment={handleConfirmPayment}
+                onVote={handleVote}
+                isVoting={voteMutation.isPending}
+              />
+            ))}
+            {(viewMode === "host" ? hasNextHosted : hasNextParticipating) && (
+              <div className="flex justify-center py-2">
+                <button
+                  onClick={() => viewMode === "host" ? fetchNextHosted() : fetchNextParticipating()}
+                  disabled={viewMode === "host" ? isFetchingNextHosted : isFetchingNextParticipating}
+                  className="flex items-center gap-2 px-5 py-2.5 border border-slate-200 rounded-lg text-sm font-medium text-slate-500 hover:bg-slate-50 transition-colors disabled:opacity-50"
+                >
+                  {(viewMode === "host" ? isFetchingNextHosted : isFetchingNextParticipating) && (
+                    <Spinner className="w-3.5 h-3.5" />
+                  )}
+                  더 보기
+                </button>
+              </div>
+            )}
+          </>
         )}
       </section>
 
