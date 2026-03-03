@@ -150,6 +150,6 @@ export function useRecruitingMatchesInfinite() {
     },
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     initialPageParam: 0,
-    refetchInterval: 5 * 60 * 1000,
+    refetchInterval: 60 * 1000,
   });
 }

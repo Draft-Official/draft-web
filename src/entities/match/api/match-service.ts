@@ -234,9 +234,10 @@ export class MatchService {
    * Get matches hosted by user
    * @param userId User ID
    * @param limit Maximum number of matches (default 5)
+   * @param offset Pagination offset (default 0)
    */
-  async getMyHostedMatches(userId: string, limit: number = 5) {
-    logRequest(this.SERVICE_NAME, 'getMyHostedMatches', { userId, limit });
+  async getMyHostedMatches(userId: string, limit: number = 5, offset: number = 0) {
+    logRequest(this.SERVICE_NAME, 'getMyHostedMatches', { userId, limit, offset });
 
     const { data, error } = await this.supabase
       .from('matches')
@@ -247,15 +248,18 @@ export class MatchService {
       `)
       .eq('host_id', userId)
       .order('created_at', { ascending: false })
-      .limit(limit);
+      .range(offset, offset + limit - 1);
 
     if (error) {
       logResponse(this.SERVICE_NAME, 'getMyHostedMatches', undefined, error);
       throw error;
     }
 
-    logResponse(this.SERVICE_NAME, 'getMyHostedMatches', { count: data?.length ?? 0 });
-    return data;
+    const matches = data ?? [];
+    const nextCursor = matches.length === limit ? offset + limit : undefined;
+
+    logResponse(this.SERVICE_NAME, 'getMyHostedMatches', { count: matches.length, nextCursor });
+    return { matches, nextCursor };
   }
 }
 
