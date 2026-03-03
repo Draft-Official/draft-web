@@ -350,7 +350,7 @@ DRAFT는 **카카오 OAuth + 전화번호 인증 기반**으로,
 
 | 테이블 | 정책 요약 | 평가 |
 |---|---|---|
-| `users` | select `USING (true)`, update/insert self | 보통 |
+| `users` | select(활성 프로필 + 본인), insert/update self-only | 양호 |
 | `gyms` | select 공개, insert `WITH CHECK (true)` | 완화됨 |
 | `matches` | select 공개, insert `WITH CHECK (true)`, update host | 완화됨 |
 | `applications` | select (본인/호스트), insert `WITH CHECK (true)`, update `USING (true)` | 위험 |
@@ -380,6 +380,9 @@ DRAFT는 **카카오 OAuth + 전화번호 인증 기반**으로,
 4. `SECURITY DEFINER` RPC 호출자 검증 부재 [해결]
 - `confirm_application_with_count`, `cancel_application_with_count`가 내부에서 호출자 권한을 검증하지 않는다.
 - execute 권한 하드닝 스크립트도 리포지토리 내에서 확인되지 않는다.
+
+5. `users` 공개 insert/update 정책 잔존 [해결]
+- `All Public Users Insert/Update`로 인해 anon/authenticated에서 프로필 변조 위험이 존재.
 
 #### P1
 
@@ -561,3 +564,11 @@ DRAFT는 **카카오 OAuth + 전화번호 인증 기반**으로,
   - TEAM_VOTE 업데이트는 알림 제외
   - `should_notify` 기반 사용자 알림 설정 반영
   - `payment_notified_at IS NOT NULL`일 때만 `GUEST_PAYMENT_CONFIRMED` 발송
+
+### 12.6 P0 권한 백스톱 추가
+
+- `supabase/migrations/20260303_p0_permissions_backstop.sql` 추가.
+- 원격 검증에서 확인된 잔존 권한 리스크 정리:
+  - `users`의 공개 insert/update 정책 제거, self-only 정책으로 고정
+  - 내부 helper/trigger 함수의 `anon`/`authenticated` EXECUTE 제거
+  - `ALTER DEFAULT PRIVILEGES`에서 `anon`/`authenticated` 기본 `ALL` 제거
