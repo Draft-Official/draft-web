@@ -362,20 +362,22 @@ DRAFT는 **카카오 OAuth + 전화번호 인증 기반**으로,
 | `announcements` | 작성자/확정신청자 select, host insert(match), 작성자 update | 양호 |
 | `phone_verifications` | 본인만 ALL | 양호 |
 
-### 7.2 핵심 위험
+### 7.2 핵심 위험 (점검 기준 + 현재 상태)
+
+- 아래 항목은 초기 점검 시점 위험이며, 2026-03-03 적용 기록(12장) 기준으로 상태를 함께 표기한다.
 
 #### P0
 
-1. `applications` update가 `USING (true)`
+1. `applications` update가 `USING (true)` [해결]
 - 잘못된 클라이언트 또는 악의적 요청이 신청 상태를 임의 갱신할 여지가 큼.
 
-2. `notifications` insert가 `WITH CHECK (TRUE)`
+2. `notifications` insert가 `WITH CHECK (TRUE)` [해결]
 - 클라이언트에서 직접 notification insert를 수행하는 코드와 결합되어 알림 스푸핑 표면이 넓다.
 
-3. `matches`/`applications` insert 광범위 허용
+3. `matches`/`applications` insert 광범위 허용 [부분완화]
 - 인증 여부/소유권 조건이 약해 데이터 오염 가능성이 크다.
 
-4. `SECURITY DEFINER` RPC 호출자 검증 부재
+4. `SECURITY DEFINER` RPC 호출자 검증 부재 [해결]
 - `confirm_application_with_count`, `cancel_application_with_count`가 내부에서 호출자 권한을 검증하지 않는다.
 - execute 권한 하드닝 스크립트도 리포지토리 내에서 확인되지 않는다.
 
@@ -400,37 +402,37 @@ DRAFT는 **카카오 OAuth + 전화번호 인증 기반**으로,
 
 ## 8.1 P0/P1 결함
 
-1. 팀운동 생성 공지 미저장 (P0)
+1. 팀운동 생성 공지 미저장 (P0) [해결]
 - 현상: 생성폼의 `notice` 입력이 실제 생성 payload에 전달되지 않음.
 - 영향: 공지 작성 UX가 동작하지 않음(입력은 되지만 저장 안 됨).
 
-2. 팀운동 관리자 "투표 변경" 다이얼로그 비활성(dead path) (P1)
+2. 팀운동 관리자 "투표 변경" 다이얼로그 비활성(dead path) (P1) [잔여]
 - 현상: `selectedMember` 상태는 있으나 설정 경로가 없어 다이얼로그가 열리지 않음.
 - 영향: 관리자 대리 수정 기능이 UI상 사실상 불가.
 
-3. 마이페이지 알림 설정 `notifyAnnouncement` 토글 누락 (P1)
+3. 마이페이지 알림 설정 `notifyAnnouncement` 토글 누락 (P1) [해결]
 - 현상: DTO에는 필드가 있으나 UI field union/map에서 제외됨.
 - 영향: 공지 알림 ON/OFF 불가.
 
-4. 매치 상세 타입 분기 불일치 (P0)
+4. 매치 상세 타입 분기 불일치 (P0) [해결]
 - 현상: `/matches/[id]`에서 `matchData.type`을 참조하지만 실제 DTO 필드는 `matchType`.
 - 영향: 타입 분기가 기본값으로 고정될 가능성이 큼.
 
-5. 경기 취소 일괄 처리에서 `PAYMENT_PENDING` 누락 (P0)
+5. 경기 취소 일괄 처리에서 `PAYMENT_PENDING` 누락 (P0) [해결]
 - 위치:
   - `useCancelMatchFlow`
   - 계정탈퇴 서버 정리(`cancelActiveMatchesAndApplications`)
 - 영향: 취소 후에도 입금대기 신청이 잔존할 수 있음.
 
-6. 알림 트리거 재정의 드리프트 (P1)
+6. 알림 트리거 재정의 드리프트 (P1) [잔여]
 - 현상: TEAM_VOTE 제외 로직이 최신 재정의에서 누락.
 - 영향: 팀투표 상태변경이 게스트 알림으로 오발송될 수 있음.
 
-7. 게스트 송금완료 알림 클라이언트 직접 insert (P0)
+7. 게스트 송금완료 알림 클라이언트 직접 insert (P0) [해결]
 - 현상: `useConfirmPaymentByGuest`가 notifications insert를 직접 호출.
 - 영향: 완화된 RLS와 결합 시 오남용 위험 증가.
 
-8. 팀 `regular_day` 스키마 드리프트 (P1)
+8. 팀 `regular_day` 스키마 드리프트 (P1) [잔여]
 - migration은 단일 `VARCHAR(3)` 정규화, 타입은 `string[]` 유지.
 - 영향: 런타임/마이그레이션 환경에서 데이터 불일치 가능.
 
@@ -462,35 +464,26 @@ DRAFT는 **카카오 OAuth + 전화번호 인증 기반**으로,
 
 ## 9. 우선순위 백로그
 
-## 9.1 P0 (즉시)
+## 9.1 P0 (즉시) - 완료
 
-1. `applications`, `matches`, `notifications` RLS 최소권한 재설계
-- 소유권/역할 기반 조건으로 insert/update 제한.
+1. `applications`, `matches`, `notifications` RLS 최소권한 재설계 [완료]
+2. RPC 하드닝 [완료]
+3. 핵심 결함 수정 [완료]
 
-2. RPC 하드닝
-- `confirm_application_with_count`, `cancel_application_with_count` 내부 호출자 검증 추가.
-- `REVOKE EXECUTE FROM PUBLIC` + 필요한 role만 `GRANT`.
-
-3. 핵심 결함 수정
-- 팀운동 공지 미저장
-- 매치 상세 타입 분기 불일치
-- 경기 취소 일괄 처리에서 `PAYMENT_PENDING` 누락
+- 정책 메모: 정산 확인 강제는 현재 UI 확인만 채택(서버 강제는 보류).
 
 ## 9.2 P1 (단기)
 
 1. 알림 트리거 함수 단일화 및 마이그레이션 정리
 - TEAM_VOTE 제외 + payment_notified_at 조건 포함한 최종 버전으로 고정.
 
-2. 알림설정 완성
-- `notifyAnnouncement` 토글 UI/타입/매퍼 연결.
-
-3. 관리자 투표 변경 UX 복구
+2. 관리자 투표 변경 UX 복구
 - `VotingAccordion`에서 멤버 선택 진입점 연결.
 
-4. 플레이스홀더/목업 최소화
+3. 플레이스홀더/목업 최소화
 - 최소한 비노출 처리 또는 명확한 준비중 라벨/플래그 분리.
 
-5. 테스트 최소 도입
+4. 테스트 최소 도입
 - 신청 승인/확정/취소, 팀가입/투표, 알림 트리거 회귀 테스트 우선.
 
 ## 9.3 P2 (중기)
@@ -509,9 +502,7 @@ DRAFT는 **카카오 OAuth + 전화번호 인증 기반**으로,
 ## 10. 결론
 
 - 핵심 사용자 플로우(경기 모집/신청/관리, 팀 운영, 알림, 마이페이지)는 실제 동작한다.
-- 그러나 현재 상태는 **보안 정책 완화 구간(RLS + SECURITY DEFINER + client direct insert)** 과
-  **핵심 UX 결함(팀 공지 미저장, 타입 분기 오류, 취소 상태 누락)** 이 공존한다.
-- 따라서 제품 안정화의 최우선 과제는 신규 기능 추가보다 **P0 보안/정합성 수선**이다.
+- P0 보안/정합성 수선은 2026-03-03 기준 반영되었고, 현재 우선순위는 P1 잔여 과제(알림 트리거 정리, 관리자 투표 UX, 테스트 보강)다.
 
 ---
 
@@ -547,6 +538,7 @@ DRAFT는 **카카오 OAuth + 전화번호 인증 기반**으로,
 - 호스트 경기 취소 UI에서 정산 확인 대상을 `CONFIRMED` + `PAYMENT_PENDING`으로 확장.
   - 기존: 확정자 있을 때만 정산 확인 다이얼로그 노출
   - 변경: 입금 대기 인원만 있어도 정산 확인 다이얼로그 노출
+- 마이페이지 알림 설정에 `notifyAnnouncement` 토글을 UI/타입/매퍼까지 연결.
 - 매치 상세 타입 분기 필드를 `type`에서 `matchType` 기준으로 수정.
 - 팀 운동 생성 시 공지(`operationInfo.notice`)가 실제 payload에 포함되도록 수정.
 - 팀 매치 상세에서 경기 관리 메뉴 노출을 host 기준으로 제한(팀 투표 관리 권한과 분리).

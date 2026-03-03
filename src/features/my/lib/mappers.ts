@@ -114,6 +114,7 @@ export function userSettingsToMyNotificationSettingsDTO(
 }
 
 const NOTIFICATION_FIELD_MAP: Record<MyNotificationSettingField, keyof UserSettingsUpdate> = {
+  notifyAnnouncement: 'notify_announcement',
   notifyApplication: 'notify_application',
   notifyMatch: 'notify_match',
   notifyPayment: 'notify_payment',

@@ -39,6 +39,7 @@ export interface MyNotificationSettingsDTO {
 }
 
 export type MyNotificationSettingField =
+  | 'notifyAnnouncement'
   | 'notifyApplication'
   | 'notifyMatch'
   | 'notifyPayment';
