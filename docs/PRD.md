@@ -410,9 +410,11 @@ DRAFT는 **카카오 OAuth + 전화번호 인증 기반**으로,
 - 현상: 생성폼의 `notice` 입력이 실제 생성 payload에 전달되지 않음.
 - 영향: 공지 작성 UX가 동작하지 않음(입력은 되지만 저장 안 됨).
 
-2. 팀운동 관리자 "투표 변경" 다이얼로그 비활성(dead path) (P1) [잔여]
-- 현상: `selectedMember` 상태는 있으나 설정 경로가 없어 다이얼로그가 열리지 않음.
-- 영향: 관리자 대리 수정 기능이 UI상 사실상 불가.
+2. 팀운동 관리자 투표 관리 정책 재정의(X 액션 기반) (P1) [해결]
+- 정책: 관리자 대리 "임의 상태 변경" 다이얼로그는 제거하고, 관리 화면의 `X` 액션만 허용.
+  - 팀원 `X`: 해당 팀원 투표를 `NOT_ATTENDING`으로 변경
+  - 게스트 `X`: 해당 게스트만 참여자 목록에서 제외
+- 영향: 과도한 상태 변경 UI를 제거하면서 필요한 운영 제어(불참 전환/게스트 제외)만 유지.
 
 3. 마이페이지 알림 설정 `notifyAnnouncement` 토글 누락 (P1) [해결]
 - 현상: DTO에는 필드가 있으나 UI field union/map에서 제외됨.
@@ -478,8 +480,8 @@ DRAFT는 **카카오 OAuth + 전화번호 인증 기반**으로,
 
 ## 9.2 P1 (단기)
 
-1. 관리자 투표 변경 UX 복구
-- `VotingAccordion`에서 멤버 선택 진입점 연결.
+1. 관리자 투표 X 액션 유지보수
+- `VotingAccordion`에서 팀원 `불참`/게스트 `제외` 동작 회귀를 우선 보장.
 
 2. 플레이스홀더/목업 최소화
 - 최소한 비노출 처리 또는 명확한 준비중 라벨/플래그 분리.
@@ -584,3 +586,13 @@ DRAFT는 **카카오 OAuth + 전화번호 인증 기반**으로,
   - 단일 문자열/공백/중복 레거시 값을 정규화하고 CHECK/트리거를 array 기준으로 재정의.
 - `app/api/search-places/route.ts`에서 로그인 사용자만 호출 가능하도록 인증 검증 추가.
 - `src/entities/team/api/team-service.ts`에서 빈 요일 배열 저장값을 `null`로 정규화.
+
+### 12.8 P1 팀운동 투표 관리 UX 재정의
+
+- 관리자 대리 "투표 변경 다이얼로그" 경로를 제거하고 `X` 액션 기반으로 단순화.
+  - 팀원 `X`: `NOT_ATTENDING`으로 변경
+  - 게스트 `X`: `participants_info`에서 해당 게스트만 제외
+- 적용 위치:
+  - `src/features/team/ui/components/match/voting-accordion.tsx`
+  - `src/features/team/api/match/mutations.ts`
+  - `src/entities/team/api/team-service.ts`

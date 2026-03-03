@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ChevronDown, Check, Clock, X, HelpCircle, User } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { getPositionLabel } from '@/shared/config/match-constants';
+import { toast } from '@/shared/ui/shadcn/sonner';
 import {
   Accordion,
   AccordionContent,
@@ -11,7 +12,7 @@ import {
   AccordionTrigger,
 } from '@/shared/ui/shadcn/accordion';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/shadcn/avatar';
-import { VoteChangeDialog } from './vote-change-dialog';
+import { useRemoveTeamVoteGuest, useUpdateMemberVote } from '@/features/team/api/match/mutations';
 import type { TeamVoteDTO, VotingSummary } from '@/features/team/model/types';
 
 interface VotingAccordionProps {
@@ -31,7 +32,52 @@ export function VotingAccordion({
 }: VotingAccordionProps) {
   void votingSummary;
   const canManageVotes = isAdmin && !isVotingClosed;
-  const [selectedMember, setSelectedMember] = useState<TeamVoteDTO | null>(null);
+  const { mutate: updateMemberVote, isPending: isUpdatingMemberVote } = useUpdateMemberVote();
+  const { mutate: removeTeamVoteGuest, isPending: isRemovingGuest } = useRemoveTeamVoteGuest();
+  const isActionPending = isUpdatingMemberVote || isRemovingGuest;
+
+  const handleMarkNotAttending = (voter: TeamVoteDTO) => {
+    if (voter.status === 'NOT_ATTENDING') return;
+    if (!window.confirm(`${voter.userNickname || '해당 팀원'}님을 불참으로 변경할까요?`)) return;
+
+    updateMemberVote(
+      {
+        matchId,
+        memberId: voter.userId,
+        status: 'NOT_ATTENDING',
+      },
+      {
+        onSuccess: () => {
+          toast.success(`${voter.userNickname || '팀원'}님의 상태를 불참으로 변경했습니다.`);
+        },
+        onError: (error) => {
+          toast.error(`불참 변경 실패: ${error.message}`);
+        },
+      }
+    );
+  };
+
+  const handleRemoveGuest = (voter: TeamVoteDTO, guestIndex: number) => {
+    const guest = voter.guestParticipants[guestIndex];
+    const guestLabel = guest?.name || '게스트';
+    if (!window.confirm(`${guestLabel}님을 제외할까요?`)) return;
+
+    removeTeamVoteGuest(
+      {
+        matchId,
+        ownerUserId: voter.userId,
+        guestIndex,
+      },
+      {
+        onSuccess: () => {
+          toast.success(`${guestLabel}님을 제외했습니다.`);
+        },
+        onError: (error) => {
+          toast.error(`게스트 제외 실패: ${error.message}`);
+        },
+      }
+    );
+  };
 
   // 참석 (CONFIRMED + LATE)
   const attendingVoters = votes.filter(
@@ -74,6 +120,11 @@ export function VotingAccordion({
                     voter={voter}
                     showLateTag={voter.status === 'LATE'}
                     showReason={!!voter.description}
+                    canManageVotes={canManageVotes}
+                    canMarkNotAttending={voter.status !== 'NOT_ATTENDING'}
+                    actionsDisabled={isActionPending}
+                    onMarkNotAttending={() => handleMarkNotAttending(voter)}
+                    onRemoveGuest={(guestIndex) => handleRemoveGuest(voter, guestIndex)}
                   />
                 ))
               )}
@@ -107,6 +158,10 @@ export function VotingAccordion({
                       key={voter.id}
                       voter={voter}
                       showReason={!!voter.description}
+                      canManageVotes={canManageVotes}
+                      canMarkNotAttending={false}
+                      actionsDisabled={isActionPending}
+                      onRemoveGuest={(guestIndex) => handleRemoveGuest(voter, guestIndex)}
                     />
                   ))
               )}
@@ -138,6 +193,11 @@ export function VotingAccordion({
                     voter={voter}
                     showMaybeTag={true}
                     showReason={!!voter.description}
+                    canManageVotes={canManageVotes}
+                    canMarkNotAttending={voter.status !== 'NOT_ATTENDING'}
+                    actionsDisabled={isActionPending}
+                    onMarkNotAttending={() => handleMarkNotAttending(voter)}
+                    onRemoveGuest={(guestIndex) => handleRemoveGuest(voter, guestIndex)}
                   />
                 ))
               )}
@@ -167,6 +227,11 @@ export function VotingAccordion({
                   <VoterItem
                     key={voter.id}
                     voter={voter}
+                    canManageVotes={canManageVotes}
+                    canMarkNotAttending={voter.status !== 'NOT_ATTENDING'}
+                    actionsDisabled={isActionPending}
+                    onMarkNotAttending={() => handleMarkNotAttending(voter)}
+                    onRemoveGuest={(guestIndex) => handleRemoveGuest(voter, guestIndex)}
                   />
                 ))
               )}
@@ -174,18 +239,6 @@ export function VotingAccordion({
           </AccordionContent>
         </AccordionItem>
       </Accordion>
-
-      {/* 관리자 투표 변경 다이얼로그 */}
-      {canManageVotes && selectedMember && (
-        <VoteChangeDialog
-          open={!!selectedMember}
-          onOpenChange={(open) => !open && setSelectedMember(null)}
-          matchId={matchId}
-          memberId={selectedMember.userId}
-          memberName={selectedMember.userNickname || '알 수 없음'}
-          currentVote={selectedMember.status}
-        />
-      )}
     </div>
   );
 }
@@ -195,6 +248,11 @@ interface VoterItemProps {
   showLateTag?: boolean;
   showMaybeTag?: boolean;
   showReason?: boolean;
+  canManageVotes?: boolean;
+  canMarkNotAttending?: boolean;
+  actionsDisabled?: boolean;
+  onMarkNotAttending?: () => void;
+  onRemoveGuest?: (guestIndex: number) => void;
 }
 
 function VoterItem({
@@ -202,6 +260,11 @@ function VoterItem({
   showLateTag,
   showMaybeTag,
   showReason,
+  canManageVotes = false,
+  canMarkNotAttending = false,
+  actionsDisabled = false,
+  onMarkNotAttending,
+  onRemoveGuest,
 }: VoterItemProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showFullReason, setShowFullReason] = useState(false);
@@ -246,10 +309,10 @@ function VoterItem({
         </Avatar>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-slate-900 truncate">
-              {nickname}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-slate-900 truncate">
+                {nickname}
+              </span>
             {primaryPosition && (
               <span className="text-xs text-slate-500">
                 {getPositionLabel(primaryPosition, 'combined')}
@@ -282,15 +345,48 @@ function VoterItem({
                 {voter.guestParticipants.map((guest, index) => (
                   <span
                     key={`${voter.id}-guest-${index}-${guest.name}`}
-                    className="inline-block w-fit max-w-[9rem] whitespace-normal break-words rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium leading-snug text-slate-700"
+                    className="inline-flex items-center gap-1 w-fit max-w-[11rem] whitespace-normal break-words rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium leading-snug text-slate-700"
                   >
-                    {guest.name || '게스트'} {getPositionLabel(guest.position, 'combined')}
+                    <span>
+                      {guest.name || '게스트'} {getPositionLabel(guest.position, 'combined')}
+                    </span>
+                    {canManageVotes && onRemoveGuest && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onRemoveGuest(index);
+                        }}
+                        disabled={actionsDisabled}
+                        className="rounded-full p-0.5 hover:bg-red-100 disabled:opacity-40"
+                        aria-label="게스트 제외"
+                        title="게스트 제외"
+                      >
+                        <X className="w-3 h-3 text-red-500" />
+                      </button>
+                    )}
                   </span>
                 ))}
               </div>
             </div>
           )}
         </div>
+
+        {canManageVotes && canMarkNotAttending && onMarkNotAttending && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onMarkNotAttending();
+            }}
+            disabled={actionsDisabled}
+            className="rounded-lg p-1.5 hover:bg-red-50 disabled:opacity-40"
+            aria-label="불참 처리"
+            title="불참 처리"
+          >
+            <X className="w-4 h-4 text-red-600" />
+          </button>
+        )}
 
         {hasReason && (
           <ChevronDown
