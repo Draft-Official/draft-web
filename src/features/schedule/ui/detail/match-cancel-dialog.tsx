@@ -16,14 +16,14 @@ const MAX_LENGTH = 1000;
 interface MatchCancelDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  confirmedGuests: MatchApplicantDTO[];
+  settlementGuests: MatchApplicantDTO[];
   onConfirm: (message: string) => void;
 }
 
 export function MatchCancelDialog({
   open,
   onOpenChange,
-  confirmedGuests,
+  settlementGuests,
   onConfirm,
 }: MatchCancelDialogProps) {
   const [message, setMessage] = useState('');
@@ -50,22 +50,27 @@ export function MatchCancelDialog({
         {/* 경고 배너 */}
         <div className="rounded-lg bg-red-50 border border-red-200 p-4 space-y-2">
           <p className="text-sm text-red-700 font-bold">
-            현재 입금 완료된 확정자 {confirmedGuests.length}명이 있습니다.
+            현재 정산 확인이 필요한 신청자 {settlementGuests.length}명이 있습니다.
           </p>
           <p className="text-xs text-red-600 leading-relaxed">
-            모든 확정자에게 참가비를 환불해야 할 책임이 호스트에게 있습니다.
-            환불 없는 경기 취소 시 제재를 받을 수 있습니다.
+            확정자와 입금 대기 신청자에 대한 환불/정산 확인 책임이 호스트에게 있습니다.
+            정산 확인 없는 경기 취소 시 제재를 받을 수 있습니다.
           </p>
         </div>
 
-        {/* 확정자 계좌 목록 */}
-        {confirmedGuests.length > 0 && (
+        {/* 정산 대상 계좌 목록 */}
+        {settlementGuests.length > 0 && (
           <div className="max-h-[200px] overflow-y-auto rounded-lg border border-slate-200 divide-y divide-slate-100">
-            {confirmedGuests.map((guest) => {
+            {settlementGuests.map((guest) => {
               const hasAccount = guest.accountInfo?.bank && guest.accountInfo?.number;
               return (
                 <div key={guest.id} className="px-3 py-2.5 text-sm">
-                  <p className="font-medium text-slate-900">{guest.name}</p>
+                  <p className="font-medium text-slate-900">
+                    {guest.name}
+                    <span className="ml-1 text-xs font-normal text-slate-500">
+                      ({guest.status === 'payment_waiting' ? '입금 대기' : '확정'})
+                    </span>
+                  </p>
                   {hasAccount ? (
                     <p className="text-xs text-slate-500 mt-0.5">
                       {guest.accountInfo!.bank} {guest.accountInfo!.number}
@@ -89,7 +94,7 @@ export function MatchCancelDialog({
             className="w-4 h-4 mt-0.5 rounded border-slate-300 accent-primary flex-shrink-0"
           />
           <span className="text-sm text-slate-700 font-medium leading-snug">
-            모든 확정자에 대한 참가비 정산을 완료했습니다.
+            모든 확정자/입금 대기 신청자에 대한 환불 또는 정산 확인을 완료했습니다.
           </span>
         </label>
 

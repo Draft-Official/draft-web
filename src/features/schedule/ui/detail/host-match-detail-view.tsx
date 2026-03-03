@@ -260,8 +260,10 @@ export function HostMatchDetailView() {
                 <DropdownMenuItem
                   className="text-red-600"
                   onClick={() => {
-                    const confirmedCount = guests.filter((g) => g.status === 'confirmed').length;
-                    if (confirmedCount === 0) {
+                    const settlementTargetCount = guests.filter(
+                      (g) => g.status === 'confirmed' || g.status === 'payment_waiting'
+                    ).length;
+                    if (settlementTargetCount === 0) {
                       if (confirm('경기를 취소하시겠습니까?')) {
                         statusMutation.mutate(
                           { matchId: internalMatchId, status: 'CANCELED' },
@@ -414,7 +416,9 @@ export function HostMatchDetailView() {
       <MatchCancelDialog
         open={isMatchCancelOpen}
         onOpenChange={setIsMatchCancelOpen}
-        confirmedGuests={guests.filter((g) => g.status === 'confirmed')}
+        settlementGuests={guests.filter(
+          (g) => g.status === 'confirmed' || g.status === 'payment_waiting'
+        )}
         onConfirm={(message) => {
           if (!internalMatchId) return;
           cancelMatchFlowMutation.mutate(

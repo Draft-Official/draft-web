@@ -139,7 +139,10 @@ export function MatchDetailView({
     data: guests = [],
     isLoading: isLoadingGuests,
   } = useMatchApplicants(isHost ? match.id : '');
-  const confirmedGuests = guests.filter((g) => g.status === 'confirmed');
+  const settlementGuests = guests.filter(
+    (g) => g.status === 'confirmed' || g.status === 'payment_waiting'
+  );
+  const hasGuestsRequiringSettlement = settlementGuests.length > 0;
 
   const statusMutation = useUpdateMatchStatus();
   const cancelMatchFlowMutation = useCancelMatchFlow();
@@ -207,7 +210,7 @@ export function MatchDetailView({
   const handleHostCancelMatch = () => {
     if (!match.id) return;
 
-    if (hasConfirmedGuests) {
+    if (hasGuestsRequiringSettlement) {
       setIsMatchCancelOpen(true);
       return;
     }
@@ -254,8 +257,9 @@ export function MatchDetailView({
             matchPublicId={match.publicId}
             isHost={isHost}
             hasConfirmedGuests={hasConfirmedGuests}
-            isCheckingConfirmedGuests={
-              isHost && (isLoadingConfirmedCount || (hasConfirmedGuests && isLoadingGuests))
+            hasGuestsRequiringSettlement={hasGuestsRequiringSettlement}
+            isCheckingSettlementGuests={
+              isHost && (isLoadingConfirmedCount || isLoadingGuests)
             }
             onCancelMatch={handleHostCancelMatch}
           />
@@ -339,7 +343,7 @@ export function MatchDetailView({
       <MatchCancelDialog
         open={isMatchCancelOpen}
         onOpenChange={setIsMatchCancelOpen}
-        confirmedGuests={confirmedGuests}
+        settlementGuests={settlementGuests}
         onConfirm={(message) => {
           cancelMatchFlowMutation.mutate(
             { matchId: match.id, message },
