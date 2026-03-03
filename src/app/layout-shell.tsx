@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { usePathname, useSearchParams } from "next/navigation";
 import { Sidebar } from "@/shared/ui/layout/sidebar";
 import { BottomNav } from "@/shared/ui/layout/bottom-nav";
@@ -8,6 +9,14 @@ import { SignupVerifyGuard } from "@/features/auth/ui/signup-verify-guard";
 import { cn } from "@/shared/lib/utils";
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense fallback={<>{children}</>}>
+      <LayoutShellContent>{children}</LayoutShellContent>
+    </Suspense>
+  );
+}
+
+function LayoutShellContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() ?? '';
   const searchParams = useSearchParams();
   const isBareLayout =
