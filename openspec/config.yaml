@@ -1,7 +1,7 @@
 schema: spec-driven
 
 references:
-  - openspec/changes/draft-prd-v1/proposal.md  # PRD v1.0 - 제품 요구사항 문서
+  - docs/PRD.md  # PRD v1.2 - 코드 기준 제품 요구사항 문서
 
 context: |
   ## Project: DRAFT (농구 용병 모집 플랫폼)
@@ -9,7 +9,7 @@ context: |
   Mobile-first adaptive web app (max-width: 430px).
 
   ## PRD Reference
-  전체 제품 요구사항은 openspec/changes/draft-prd-v1/proposal.md 참조.
+  전체 제품 요구사항은 docs/PRD.md 참조.
   - Phase 1 (MVP): 게스트 모집 시스템 ✅ 완료
   - Phase 2: 팀 시스템 🚧 개발 중
   - Phase 3+: 결제, 평점, 체육관 제휴 등
