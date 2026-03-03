@@ -11,7 +11,7 @@
 
 :root {
   --layout-content-max: 760px;
-  --layout-content-split-max: 1440px;
+  --layout-content-split-max: 1400px;
   --layout-mobile-max: 430px;
   --layout-sidebar-width: 240px;
   --layout-sidebar-width-compact: 88px;
