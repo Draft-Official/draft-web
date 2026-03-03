@@ -596,3 +596,6 @@ DRAFT는 **카카오 OAuth + 전화번호 인증 기반**으로,
   - `src/features/team/ui/components/match/voting-accordion.tsx`
   - `src/features/team/api/match/mutations.ts`
   - `src/entities/team/api/team-service.ts`
+- 후속 정합성 수정:
+  - 불참 그룹에서 "사유 있는 항목만 렌더" 필터를 제거하여, 사유 없는 불참자도 아코디언 내부에 정상 노출되도록 수정.
+  - 인증 콜백에서 URL/파라미터/세션 결과 상세 로그를 제거하고 실패 로그만 최소화.

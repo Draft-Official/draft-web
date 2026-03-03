@@ -150,9 +150,7 @@ export function VotingAccordion({
               {notAttendingVoters.length === 0 ? (
                 <p className="text-sm text-slate-400 py-2">불참 인원이 없습니다</p>
               ) : (
-                // 사유가 있는 사람만 표시
                 notAttendingVoters
-                  .filter((voter) => !!voter.description)
                   .map((voter) => (
                     <VoterItem
                       key={voter.id}
