@@ -56,7 +56,13 @@ export default function GuestMatchListPage() {
   } = useMatch(isSplitMode && selectedMatchPublicId ? selectedMatchPublicId : '');
 
   useEffect(() => {
-    if (!isDesktop && selectedMatchPublicId) {
+    if (!selectedMatchPublicId || typeof window === 'undefined') {
+      return;
+    }
+
+    const isDesktopViewport = window.matchMedia('(min-width: 1024px)').matches;
+
+    if (!isDesktopViewport) {
       router.replace(`/matches/${selectedMatchPublicId}`);
     }
   }, [isDesktop, selectedMatchPublicId, router]);
