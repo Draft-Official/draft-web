@@ -162,7 +162,7 @@ export class TeamService {
       region_depth1: input.regionDepth1,
       region_depth2: input.regionDepth2,
       home_gym_id: input.homeGymId,
-      regular_day: input.regularDays ?? [],
+      regular_day: input.regularDays && input.regularDays.length > 0 ? input.regularDays : null,
       regular_start_time: input.regularStartTime,
       regular_end_time: input.regularEndTime,
       team_gender: input.teamGender,
@@ -197,7 +197,9 @@ export class TeamService {
     if (input.regionDepth2 !== undefined) teamUpdate.region_depth2 = input.regionDepth2;
     if (input.homeGymId !== undefined) teamUpdate.home_gym_id = input.homeGymId;
     if (input.regularDays !== undefined) {
-      teamUpdate.regular_day = input.regularDays ?? [];
+      teamUpdate.regular_day = input.regularDays && input.regularDays.length > 0
+        ? input.regularDays
+        : null;
     }
     if (input.regularStartTime !== undefined) {
       (teamUpdate as Record<string, unknown>).regular_start_time = input.regularStartTime;

@@ -389,8 +389,9 @@ DRAFT는 **카카오 OAuth + 전화번호 인증 기반**으로,
 1. Auth callback 라우트의 상세 로그 출력
 - URL/파라미터/세션 결과를 콘솔로 노출.
 
-2. `/api/search-places` 무인증 + 레이트리밋 부재
-- 외부 호출 남용 가능성.
+2. `/api/search-places` 레이트리밋 부재 [부분완화]
+- 2026-03-03 기준 로그인 사용자만 호출 가능하도록 제한됨.
+- 인증 사용자 기준 과도 호출(봇/자동화) 방지는 별도 레이트리밋이 필요.
 
 ### 7.3 트리거 드리프트 리스크
 
@@ -435,9 +436,9 @@ DRAFT는 **카카오 OAuth + 전화번호 인증 기반**으로,
 - 현상: `useConfirmPaymentByGuest`가 notifications insert를 직접 호출.
 - 영향: 완화된 RLS와 결합 시 오남용 위험 증가.
 
-8. 팀 `regular_day` 스키마 드리프트 (P1) [잔여]
-- migration은 단일 `VARCHAR(3)` 정규화, 타입은 `string[]` 유지.
-- 영향: 런타임/마이그레이션 환경에서 데이터 불일치 가능.
+8. 팀 `regular_day` 스키마 드리프트 (P1) [해결]
+- `20260303203000_p1_regular_day_multi_day_alignment.sql`로 `teams.regular_day`를 `text[]`로 정렬.
+- 단일값 레거시 데이터는 배열로 승격하고, 트리거에서 공백/중복 제거 + MON~SUN 검증을 강제.
 
 ## 8.2 UX/제품 완성도 갭
 
@@ -485,6 +486,9 @@ DRAFT는 **카카오 OAuth + 전화번호 인증 기반**으로,
 
 3. 테스트 최소 도입
 - 신청 승인/확정/취소, 팀가입/투표, 알림 트리거 회귀 테스트 우선.
+
+4. `/api/search-places` 레이트리밋 추가
+- 로그인 사용자만 허용된 상태에서 IP/사용자 단위 호출 제한을 적용.
 
 ## 9.3 P2 (중기)
 
@@ -572,3 +576,11 @@ DRAFT는 **카카오 OAuth + 전화번호 인증 기반**으로,
   - `users`의 공개 insert/update 정책 제거, self-only 정책으로 고정
   - 내부 helper/trigger 함수의 `anon`/`authenticated` EXECUTE 제거
   - `ALTER DEFAULT PRIVILEGES`에서 `anon`/`authenticated` 기본 `ALL` 제거
+
+### 12.7 P1 다중요일 정합 + 장소검색 인증 제한
+
+- `supabase/migrations/20260303203000_p1_regular_day_multi_day_alignment.sql` 추가.
+  - `teams.regular_day`를 다중요일 `text[]` 기준으로 정렬.
+  - 단일 문자열/공백/중복 레거시 값을 정규화하고 CHECK/트리거를 array 기준으로 재정의.
+- `app/api/search-places/route.ts`에서 로그인 사용자만 호출 가능하도록 인증 검증 추가.
+- `src/entities/team/api/team-service.ts`에서 빈 요일 배열 저장값을 `null`로 정규화.
