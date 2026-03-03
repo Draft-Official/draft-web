@@ -522,7 +522,7 @@ DRAFT는 **카카오 OAuth + 전화번호 인증 기반**으로,
 
 ### 12.1 DB/RLS/RPC 하드닝 적용
 
-- `supabase/migrations/20260303_p0_security_hardening.sql` 적용.
+- `supabase/migrations/20260303170000_p0_security_hardening.sql` 적용.
 - `notifications` INSERT 정책을 `service_role`/DB owner 경로로 제한.
 - `matches` UPDATE를 host-only 정책(`matches_update_secure`)으로 고정.
 - `applications` 정책을 게스트 신청/TEAM_VOTE 흐름으로 분리.
@@ -559,7 +559,7 @@ DRAFT는 **카카오 OAuth + 전화번호 인증 기반**으로,
 
 ### 12.5 P1 알림 트리거 단일화
 
-- `supabase/migrations/20260303_p1_unify_application_notification_trigger.sql` 추가.
+- `supabase/migrations/20260303173000_p1_unify_application_notification_trigger.sql` 추가.
 - `notify_on_application_change` 최종본을 단일화:
   - TEAM_VOTE 업데이트는 알림 제외
   - `should_notify` 기반 사용자 알림 설정 반영
@@ -567,7 +567,7 @@ DRAFT는 **카카오 OAuth + 전화번호 인증 기반**으로,
 
 ### 12.6 P0 권한 백스톱 추가
 
-- `supabase/migrations/20260303_p0_permissions_backstop.sql` 추가.
+- `supabase/migrations/20260303180000_p0_permissions_backstop.sql` 추가.
 - 원격 검증에서 확인된 잔존 권한 리스크 정리:
   - `users`의 공개 insert/update 정책 제거, self-only 정책으로 고정
   - 내부 helper/trigger 함수의 `anon`/`authenticated` EXECUTE 제거
