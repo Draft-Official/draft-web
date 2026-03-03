@@ -15,7 +15,6 @@ export { notificationKeys } from './api/keys';
 export {
   useNotifications,
   useUnreadNotifications,
-  useUnreadNotificationCount,
 } from './api/queries';
 export {
   useMarkNotificationAsRead,
