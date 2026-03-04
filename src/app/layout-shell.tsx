@@ -6,6 +6,7 @@ import { Sidebar } from "@/shared/ui/layout/sidebar";
 import { BottomNav } from "@/shared/ui/layout/bottom-nav";
 import { Header as LayoutHeader } from "@/shared/ui/layout/header";
 import { DesktopTopHeader } from "@/shared/ui/layout/desktop-top-header";
+import { CreateMenuButton } from "@/features/create";
 import { NotificationBell } from "@/features/notification/ui/notification-bell";
 import { SignupVerifyGuard } from "@/features/auth/ui/signup-verify-guard";
 import { cn } from "@/shared/lib/utils";
@@ -87,7 +88,14 @@ function LayoutShellContent({ children }: { children: React.ReactNode }) {
           )}
         >
           <div className="lg:hidden">
-            <LayoutHeader rightSlot={<NotificationBell mode="panel" />} />
+            <LayoutHeader
+              rightSlot={(
+                <div className="flex items-center gap-1.5">
+                  <CreateMenuButton />
+                  <NotificationBell mode="panel" />
+                </div>
+              )}
+            />
           </div>
           {children}
         </main>

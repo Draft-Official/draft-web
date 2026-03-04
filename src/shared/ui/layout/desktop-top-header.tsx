@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { CreateMenuButton } from '@/features/create';
 import { NotificationBell } from '@/features/notification/ui/notification-bell';
 import { cn } from '@/shared/lib/utils';
 
@@ -36,7 +37,10 @@ export function DesktopTopHeader({
               isSplitMode && 'app-content-container--split'
             )}
           >
-            <NotificationBell mode="panel" />
+            <div className="flex items-center gap-2">
+              <CreateMenuButton />
+              <NotificationBell mode="panel" />
+            </div>
           </div>
         </div>
       </div>
