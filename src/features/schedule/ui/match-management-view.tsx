@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useMemo, useState } from "react";
 import { Calendar, RotateCcw } from "lucide-react";
 import { useLocalStorage } from "@/shared/lib/hooks/use-local-storage";
-import { useMediaQuery } from '@/shared/lib/hooks/use-media-query';
+import { useDesktopDetailRoute } from '@/shared/lib/hooks';
 import { useAuth } from "@/shared/session";
 import { useUnreadNotifications, useMarkNotificationsAsReadByMatch } from "@/features/notification";
 import type { UnreadMatchNotificationDTO } from "@/features/notification";
@@ -27,7 +26,6 @@ import {
 } from "../config/constants";
 import { cn } from "@/shared/lib/utils";
 import { Spinner } from '@/shared/ui/shadcn/spinner';
-import { DESKTOP_DETAIL_QUERY_KEY, decodeDesktopDetailRoute, encodeDesktopDetailRoute } from '@/shared/lib/desktop-detail-route';
 import { DesktopSplitView } from '@/shared/ui/layout';
 import { ScheduleRouteDetailPanel } from './detail/schedule-route-detail-panel';
 
@@ -42,10 +40,14 @@ interface MatchManagementViewProps {
 }
 
 export function MatchManagementView({ notificationSlot }: MatchManagementViewProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const isDesktop = useMediaQuery('(min-width: 1024px)');
   const { user } = useAuth();
+  const {
+    isDesktop,
+    isSplitMode,
+    selectedDetailPath,
+    navigateToDetail,
+    closeDetail,
+  } = useDesktopDetailRoute({ basePath: '/schedule' });
   const [viewMode, setViewMode] = useLocalStorage<ViewMode>("schedule_view_mode", "guest");
   const [guestTypeFilter, setGuestTypeFilter] = useLocalStorage<GuestTypeFilterValue[]>("schedule_guest_type_filter", []);
   const [hostTypeFilter, setHostTypeFilter] = useLocalStorage<HostTypeFilterValue[]>("schedule_host_type_filter", []);
@@ -56,45 +58,9 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
   // Bottom sheet state for guest application info
   const [selectedMatch, setSelectedMatch] = useState<ScheduleMatchListItemDTO | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const selectedDetailPath = decodeDesktopDetailRoute(
-    searchParams?.get(DESKTOP_DETAIL_QUERY_KEY) ?? null
-  );
-  const isSplitMode = isDesktop && !!selectedDetailPath;
-
-  useEffect(() => {
-    if (!selectedDetailPath || typeof window === 'undefined') {
-      return;
-    }
-
-    const isDesktopViewport = window.matchMedia('(min-width: 1024px)').matches;
-
-    if (!isDesktopViewport) {
-      router.replace(selectedDetailPath);
-    }
-  }, [selectedDetailPath, router]);
-
-  const updateDetailQuery = (detailPath: string | null, useReplace = false) => {
-    const nextParams = new URLSearchParams(searchParams?.toString() ?? '');
-
-    if (detailPath) {
-      nextParams.set(DESKTOP_DETAIL_QUERY_KEY, encodeDesktopDetailRoute(detailPath));
-    } else {
-      nextParams.delete(DESKTOP_DETAIL_QUERY_KEY);
-    }
-
-    const queryString = nextParams.toString();
-    const nextUrl = queryString.length > 0 ? `/schedule?${queryString}` : '/schedule';
-
-    if (useReplace) {
-      router.replace(nextUrl, { scroll: false });
-      return;
-    }
-
-    router.push(nextUrl, { scroll: false });
-  };
 
   const handleSplitClose = () => {
-    updateDetailQuery(null, true);
+    closeDetail();
   };
 
   // Fetch data from Supabase (infinite query)
@@ -249,13 +215,7 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
     }
 
     const detailPath = getMatchDetailPath(match);
-
-    if (isDesktop) {
-      updateDetailQuery(detailPath);
-      return;
-    }
-
-    router.push(detailPath);
+    navigateToDetail(detailPath);
   };
 
   const getMatchDetailPath = (match: ScheduleMatchListItemDTO) => {
@@ -524,14 +484,10 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
           }
 
           const detailPath = getMatchDetailPath(match);
-
+          navigateToDetail(detailPath);
           if (isDesktop) {
-            updateDetailQuery(detailPath);
             setIsSheetOpen(false);
-            return;
           }
-
-          router.push(detailPath);
         }}
         onConfirmPayment={handleConfirmPayment}
         onCancelApplication={handleCancelApplication}

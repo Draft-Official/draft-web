@@ -1,18 +1,16 @@
 'use client';
 
-import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/ui/shadcn/tabs';
 import { cn } from '@/shared/lib/utils';
-import { DESKTOP_DETAIL_QUERY_KEY, decodeDesktopDetailRoute, encodeDesktopDetailRoute } from '@/shared/lib/desktop-detail-route';
-import { useMediaQuery } from '@/shared/lib/hooks/use-media-query';
+import { DESKTOP_DETAIL_QUERY_KEY } from '@/shared/lib/desktop-detail-route';
 import { useTeamByCode } from '../api/team-info/queries';
 import { useTeamMembers, usePendingMembers, useMyMembership, useTeamMemberCount } from '../api/membership/queries';
 import { useTeamMatches } from '../api/match/queries';
 import { useAuth } from '@/shared/session';
-import { useSafeBack } from '@/shared/lib/hooks';
+import { useDesktopDetailRoute, useSafeBack } from '@/shared/lib/hooks';
 import { TeamRouteDetailPanel } from './components/match/team-route-detail-panel';
 import {
   TeamDetailHeader,
@@ -35,17 +33,19 @@ interface TeamDetailViewProps {
 export function TeamDetailView({ code }: TeamDetailViewProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const isDesktop = useMediaQuery('(min-width: 1024px)');
   const { user } = useAuth();
   const handleBack = useSafeBack('/team');
+  const {
+    isSplitMode,
+    selectedDetailPath,
+    navigateToDetail,
+    closeDetail,
+  } = useDesktopDetailRoute({ basePath: `/team/${code}` });
 
   // URL에서 탭 상태 읽기 (home, schedule, members)
   const viewParam = searchParams?.get('view');
   const currentView = viewParam === 'schedule' || viewParam === 'members' ? viewParam : 'home';
-  const selectedDetailPath = decodeDesktopDetailRoute(
-    searchParams?.get(DESKTOP_DETAIL_QUERY_KEY) ?? null
-  );
-  const isScheduleSplitMode = currentView === 'schedule' && isDesktop && !!selectedDetailPath;
+  const isScheduleSplitMode = currentView === 'schedule' && isSplitMode;
 
   // 팀 정보 조회
   const { data: team, isLoading: isLoadingTeam } = useTeamByCode(code);
@@ -58,38 +58,6 @@ export function TeamDetailView({ code }: TeamDetailViewProps) {
 
   // 활성 멤버인지 확인 (ACCEPTED 상태만)
   const isMember = membership?.status === 'ACCEPTED';
-
-  useEffect(() => {
-    if (!selectedDetailPath || typeof window === 'undefined') {
-      return;
-    }
-
-    const isDesktopViewport = window.matchMedia('(min-width: 1024px)').matches;
-
-    if (!isDesktopViewport) {
-      router.replace(selectedDetailPath);
-    }
-  }, [selectedDetailPath, router]);
-
-  const updateDetailQuery = (detailPath: string | null, useReplace = false) => {
-    const nextParams = new URLSearchParams(searchParams?.toString() ?? '');
-
-    if (detailPath) {
-      nextParams.set(DESKTOP_DETAIL_QUERY_KEY, encodeDesktopDetailRoute(detailPath));
-    } else {
-      nextParams.delete(DESKTOP_DETAIL_QUERY_KEY);
-    }
-
-    const queryString = nextParams.toString();
-    const nextUrl = queryString.length > 0 ? `/team/${code}?${queryString}` : `/team/${code}`;
-
-    if (useReplace) {
-      router.replace(nextUrl, { scroll: false });
-      return;
-    }
-
-    router.push(nextUrl, { scroll: false });
-  };
 
   // 탭 변경 핸들러 (URL query param 업데이트)
   const handleTabChange = (newView: string) => {
@@ -118,16 +86,11 @@ export function TeamDetailView({ code }: TeamDetailViewProps) {
   };
 
   const handleScheduleMatchSelect = (detailPath: string) => {
-    if (isDesktop) {
-      updateDetailQuery(detailPath);
-      return;
-    }
-
-    router.push(detailPath);
+    navigateToDetail(detailPath);
   };
 
   const handleScheduleSplitClose = () => {
-    updateDetailQuery(null, true);
+    closeDetail();
   };
 
   // 멤버 목록 조회 (멤버만)
