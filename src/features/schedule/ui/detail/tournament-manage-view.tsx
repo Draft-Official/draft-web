@@ -35,8 +35,23 @@ import { toast } from '@/shared/ui/shadcn/sonner';
 import type { TournamentManageDetailDTO, Participant } from '../../model/types';
 import { MOCK_TOURNAMENT_MANAGE } from '../../model/mock-data';
 
-export function TournamentManageView() {
+interface TournamentManageViewProps {
+  onBack?: () => void;
+  layoutMode?: 'page' | 'split';
+}
+
+export function TournamentManageView({
+  onBack,
+  layoutMode = 'page',
+}: TournamentManageViewProps = {}) {
   const router = useRouter();
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+      return;
+    }
+    router.back();
+  };
 
   const [tournament] = useState<TournamentManageDetailDTO>(MOCK_TOURNAMENT_MANAGE);
   const [description, setDescription] = useState(tournament.description);
@@ -58,12 +73,12 @@ export function TournamentManageView() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-32">
+    <div className={layoutMode === 'split' ? 'min-h-full bg-slate-50 pb-24' : 'min-h-screen bg-slate-50 pb-32'}>
       {/* Header */}
       <header className="bg-white border-b border-slate-200 px-5 py-4 flex items-center justify-between sticky top-0 z-10">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => router.back()}
+            onClick={handleBack}
             className="p-1 hover:bg-slate-100 rounded-lg transition-colors"
           >
             <ChevronLeft className="w-6 h-6 text-slate-700" />
@@ -86,7 +101,7 @@ export function TournamentManageView() {
               onClick={() => {
                 if (confirm('대회 참여를 취소하시겠습니까?')) {
                   toast.error('대회 참여가 취소되었습니다.');
-                  router.back();
+                  handleBack();
                 }
               }}
             >
@@ -222,8 +237,11 @@ export function TournamentManageView() {
       </div>
 
       {/* Fixed Bottom Button */}
-      <div className="app-overlay-shell app-overlay-shell--with-sidebar bg-white border-t border-slate-100 p-4 z-50">
-        <div className="app-overlay-content">
+      <div className={layoutMode === 'split'
+        ? 'sticky bottom-0 z-30 border-t border-slate-100 bg-white/95 p-4 shadow-[0_-8px_16px_-12px_rgba(15,23,42,0.35)] backdrop-blur'
+        : 'app-overlay-shell app-overlay-shell--with-sidebar bg-white border-t border-slate-100 p-4 z-50'}
+      >
+        <div className={layoutMode === 'split' ? '' : 'app-overlay-content'}>
           <Button
             onClick={handleSave}
             className="w-full bg-primary hover:bg-primary/90 text-white h-14 rounded-xl font-bold"
@@ -254,7 +272,7 @@ export function TournamentManageView() {
               onClick={() => {
                 setIsCancelConfirmOpen(false);
                 toast.success('대회 참여가 취소되었습니다.');
-                router.back();
+                handleBack();
               }}
               className="flex-1 bg-red-500 hover:bg-red-600 text-white h-12 rounded-xl font-bold"
             >

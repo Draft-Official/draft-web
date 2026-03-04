@@ -1,5 +1,6 @@
 'use client';
 
+import { Bell } from 'lucide-react';
 import { useAuth } from '@/shared/session';
 import { useNotifications } from '../api/queries';
 import { useMarkAllNotificationsAsRead } from '../api/mutations';
@@ -29,9 +30,16 @@ export function NotificationList() {
 
   if (!notifications || notifications.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
-        <p className="text-lg font-medium">알림이 없습니다</p>
-        <p className="text-sm mt-1">새로운 소식이 생기면 알려드릴게요</p>
+      <div className="flex flex-col items-center justify-center px-6 py-24 text-center text-slate-500">
+        <div className="w-24 h-24 rounded-full bg-slate-100 flex items-center justify-center mb-8">
+          <Bell className="w-12 h-12 text-slate-400" />
+        </div>
+        <p className="text-2xl font-semibold text-slate-700">여기에 알림이 표시됩니다.</p>
+        <p className="text-base mt-4 leading-relaxed">
+          새로운 모집/신청 소식이 생기면
+          <br />
+          바로 알려드릴게요.
+        </p>
       </div>
     );
   }

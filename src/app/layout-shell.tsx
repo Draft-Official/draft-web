@@ -5,7 +5,11 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { Sidebar } from "@/shared/ui/layout/sidebar";
 import { BottomNav } from "@/shared/ui/layout/bottom-nav";
 import { Header as LayoutHeader } from "@/shared/ui/layout/header";
+import { DesktopTopHeader } from "@/shared/ui/layout/desktop-top-header";
+import { CreateMenuButton } from "@/features/create";
+import { NotificationBell } from "@/features/notification/ui/notification-bell";
 import { SignupVerifyGuard } from "@/features/auth/ui/signup-verify-guard";
+import { useMediaQuery } from '@/shared/lib/hooks/use-media-query';
 import { cn } from "@/shared/lib/utils";
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
@@ -19,12 +23,18 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
 function LayoutShellContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() ?? '';
   const searchParams = useSearchParams();
+  const isDesktop = useMediaQuery('(min-width: 1024px)');
   const isBareLayout =
     pathname.startsWith('/signup/verify') ||
     pathname === '/login' ||
     pathname.startsWith('/auth');
   const isHomeSplitOpen = pathname === '/' && Boolean(searchParams?.get('match'));
-  const isSidebarCompact = isHomeSplitOpen;
+  const isScheduleSplitOpen = pathname === '/schedule' && Boolean(searchParams?.get('detail'));
+  const isTeamSplitOpen =
+    (pathname === '/team' || pathname.startsWith('/team/')) &&
+    Boolean(searchParams?.get('detail'));
+  const isDesktopSplitOpen = isHomeSplitOpen || isScheduleSplitOpen || isTeamSplitOpen;
+  const isSidebarCompact = isDesktopSplitOpen;
 
   if (isBareLayout) {
     return (
@@ -38,6 +48,9 @@ function LayoutShellContent({ children }: { children: React.ReactNode }) {
 
   return (
     <SignupVerifyGuard>
+      {isDesktop && (
+        <DesktopTopHeader compact={isSidebarCompact} isSplitMode={isDesktopSplitOpen} />
+      )}
       <div
         className={cn(
           "flex justify-center min-h-screen bg-(--layout-root-bg) transition-[padding] duration-300 ease-in-out",
@@ -49,7 +62,7 @@ function LayoutShellContent({ children }: { children: React.ReactNode }) {
         {/* Desktop Sidebar (Left) */}
         <aside
           className={cn(
-            "hidden lg:flex fixed left-0 top-0 h-full bg-(--layout-root-bg) z-30 justify-center transition-[width] duration-300 ease-in-out",
+            "hidden lg:flex fixed left-0 top-14 h-[calc(100vh-56px)] bg-(--layout-root-bg) z-30 justify-center transition-[width] duration-300 ease-in-out",
             isSidebarCompact
               ? "w-(--layout-sidebar-width-compact)"
               : "w-(--layout-sidebar-width)"
@@ -63,13 +76,20 @@ function LayoutShellContent({ children }: { children: React.ReactNode }) {
         {/* Main Content Area (Center) */}
         <main
           className={cn(
-            "app-content-container min-h-screen bg-(--layout-root-bg) relative pb-20 lg:pb-0 border-x border-slate-50 transition-[max-width] duration-300 ease-in-out",
-            isHomeSplitOpen && "app-content-container--split"
+            "app-content-container min-h-screen lg:min-h-[calc(100vh-56px)] bg-(--layout-root-bg) relative pb-20 lg:pb-0 lg:mt-14 transition-[max-width] duration-300 ease-in-out",
+            isDesktopSplitOpen && "app-content-container--split"
           )}
         >
-          <div className="lg:hidden">
-            <LayoutHeader />
-          </div>
+          {!isDesktop && (
+            <LayoutHeader
+              rightSlot={(
+                <div className="flex items-center gap-1.5">
+                  <CreateMenuButton />
+                  <NotificationBell mode="panel" />
+                </div>
+              )}
+            />
+          )}
           {children}
         </main>
 

@@ -1,9 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { Calendar, RotateCcw } from "lucide-react";
 import { useLocalStorage } from "@/shared/lib/hooks/use-local-storage";
+import { useDesktopDetailRoute } from '@/shared/lib/hooks';
 import { useAuth } from "@/shared/session";
 import { useUnreadNotifications, useMarkNotificationsAsReadByMatch } from "@/features/notification";
 import type { UnreadMatchNotificationDTO } from "@/features/notification";
@@ -26,6 +26,8 @@ import {
 } from "../config/constants";
 import { cn } from "@/shared/lib/utils";
 import { Spinner } from '@/shared/ui/shadcn/spinner';
+import { DesktopSplitView } from '@/shared/ui/layout';
+import { ScheduleRouteDetailPanel } from './detail/schedule-route-detail-panel';
 
 type ViewMode = "guest" | "host";
 type GuestTypeFilterValue = Exclude<MatchType, "host">;
@@ -38,8 +40,14 @@ interface MatchManagementViewProps {
 }
 
 export function MatchManagementView({ notificationSlot }: MatchManagementViewProps) {
-  const router = useRouter();
   const { user } = useAuth();
+  const {
+    isDesktop,
+    isSplitMode,
+    selectedDetailPath,
+    navigateToDetail,
+    closeDetail,
+  } = useDesktopDetailRoute({ basePath: '/schedule' });
   const [viewMode, setViewMode] = useLocalStorage<ViewMode>("schedule_view_mode", "guest");
   const [guestTypeFilter, setGuestTypeFilter] = useLocalStorage<GuestTypeFilterValue[]>("schedule_guest_type_filter", []);
   const [hostTypeFilter, setHostTypeFilter] = useLocalStorage<HostTypeFilterValue[]>("schedule_host_type_filter", []);
@@ -50,6 +58,10 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
   // Bottom sheet state for guest application info
   const [selectedMatch, setSelectedMatch] = useState<ScheduleMatchListItemDTO | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+
+  const handleSplitClose = () => {
+    closeDetail();
+  };
 
   // Fetch data from Supabase (infinite query)
   const {
@@ -196,38 +208,40 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
     if (!match) return;
 
     // 참여 탭에서 게스트 모집 타입 클릭 시 바텀시트 표시
-    if (viewMode === "guest" && match.managementType === "guest_recruitment") {
+    if (viewMode === "guest" && match.managementType === "guest_recruitment" && !isDesktop) {
       setSelectedMatch(match);
       setIsSheetOpen(true);
       return;
     }
 
-    // Navigate based on match type and view mode
-    navigateToMatchDetail(match);
+    const detailPath = getMatchDetailPath(match);
+    navigateToDetail(detailPath);
   };
 
-  const navigateToMatchDetail = (match: ScheduleMatchListItemDTO) => {
+  const getMatchDetailPath = (match: ScheduleMatchListItemDTO) => {
     if (match.managementType === "tournament") {
       // 대회는 별도 라우트
       if (viewMode === "host") {
-        router.push(`/tournaments/${match.id}/manage`);
-      } else {
-        router.push(`/tournaments/${match.id}`);
+        return `/tournaments/${match.id}/manage`;
       }
-    } else if (match.managementType === "team_exercise" && match.teamCode) {
-      if (viewMode === "host") {
-        router.push(`/team/${match.teamCode}/matches/${match.publicId}/manage`);
-      } else {
-        router.push(`/team/${match.teamCode}/matches/${match.publicId}`);
-      }
-    } else {
-      // 게스트 모집은 matches 라우트 사용
-      if (viewMode === "host") {
-        router.push(`/matches/${match.publicId}/manage`);
-      } else {
-        router.push(`/matches/${match.publicId}?from=schedule`);
-      }
+
+      return `/tournaments/${match.id}`;
     }
+
+    if (match.managementType === "team_exercise" && match.teamCode) {
+      if (viewMode === "host") {
+        return `/team/${match.teamCode}/matches/${match.publicId}/manage`;
+      }
+
+      return `/team/${match.teamCode}/matches/${match.publicId}`;
+    }
+
+    // 게스트 모집은 matches 라우트 사용
+    if (viewMode === "host") {
+      return `/matches/${match.publicId}/manage`;
+    }
+
+    return `/matches/${match.publicId}?from=schedule`;
   };
 
   const getGuestTypeFilterDisplayLabel = (value: GuestTypeFilterValue[]) => {
@@ -276,7 +290,7 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
     setShowPastMatches("hide");
   };
 
-  return (
+  const listContent = (
     <div className="min-h-screen bg-background pb-(--dimension-spacing-y-screen-bottom)">
       {/* Header */}
       <header className="bg-white border-b border-slate-100">
@@ -409,17 +423,21 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
           </div>
         ) : (
           <>
-            {filteredMatches.map((match) => (
-              <MatchCard
-                key={match.id}
-                match={match}
-                notifications={notificationsByMatchId.get(match.id)}
-                onClick={handleCardClick}
-                onConfirmPayment={handleConfirmPayment}
-                onVote={handleVote}
-                isVoting={voteMutation.isPending}
-              />
-            ))}
+            {filteredMatches.map((match) => {
+              const detailPath = getMatchDetailPath(match);
+              return (
+                <MatchCard
+                  key={match.id}
+                  match={match}
+                  notifications={notificationsByMatchId.get(match.id)}
+                  onClick={handleCardClick}
+                  onConfirmPayment={handleConfirmPayment}
+                  onVote={handleVote}
+                  isVoting={voteMutation.isPending}
+                  isActive={isSplitMode && selectedDetailPath === detailPath}
+                />
+              );
+            })}
             {(viewMode === "host" ? hasNextHosted : hasNextParticipating) && (
               <div className="flex justify-center py-2">
                 <button
@@ -437,6 +455,22 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
           </>
         )}
       </section>
+    </div>
+  );
+
+  return (
+    <>
+      <DesktopSplitView
+        enabled={isSplitMode}
+        listContent={listContent}
+        detailContent={
+          <ScheduleRouteDetailPanel
+            routePath={selectedDetailPath}
+            onClose={handleSplitClose}
+            emptyMessage="왼쪽 목록에서 경기를 선택해 주세요."
+          />
+        }
+      />
 
       {/* Guest Application Info Dialog */}
       <ApplicationInfoDialog
@@ -445,11 +479,19 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
         onOpenChange={setIsSheetOpen}
         onViewDetail={(matchId) => {
           const match = allMatches.find((m) => m.id === matchId);
-          if (match) navigateToMatchDetail(match);
+          if (!match) {
+            return;
+          }
+
+          const detailPath = getMatchDetailPath(match);
+          navigateToDetail(detailPath);
+          if (isDesktop) {
+            setIsSheetOpen(false);
+          }
         }}
         onConfirmPayment={handleConfirmPayment}
         onCancelApplication={handleCancelApplication}
       />
-    </div>
+    </>
   );
 }

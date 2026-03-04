@@ -6,6 +6,7 @@ import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/shared/ui/shadcn/button';
 import { MatchCardLayout } from '@/shared/ui/composite/match-card-layout';
 import { cn } from '@/shared/lib/utils';
+import { DESKTOP_SPLIT_ACTIVE_CARD_CLASS } from '@/shared/ui/layout';
 import type { TeamScheduleMatchItemDTO } from '@/features/team/model/types';
 import { Spinner } from '@/shared/ui/shadcn/spinner';
 
@@ -13,6 +14,8 @@ interface TeamScheduleTabProps {
   teamCode: string;
   matches: TeamScheduleMatchItemDTO[];
   isLoading?: boolean;
+  onMatchSelect?: (detailPath: string) => void;
+  activeMatchPath?: string | null;
 }
 
 const PAGE_SIZE = 10;
@@ -20,7 +23,13 @@ const PAGE_SIZE = 10;
 /**
  * 팀 일정 탭 - 매치 리스트 (페이지네이션)
  */
-export function TeamScheduleTab({ teamCode, matches, isLoading }: TeamScheduleTabProps) {
+export function TeamScheduleTab({
+  teamCode,
+  matches,
+  isLoading,
+  onMatchSelect,
+  activeMatchPath,
+}: TeamScheduleTabProps) {
   const router = useRouter();
   const [page, setPage] = useState(1);
 
@@ -31,7 +40,14 @@ export function TeamScheduleTab({ teamCode, matches, isLoading }: TeamScheduleTa
   const currentMatches = matches.slice(startIndex, endIndex);
 
   const handleMatchClick = (publicId: string) => {
-    router.push(`/team/${teamCode}/matches/${publicId}`);
+    const detailPath = `/team/${teamCode}/matches/${publicId}`;
+
+    if (onMatchSelect) {
+      onMatchSelect(detailPath);
+      return;
+    }
+
+    router.push(detailPath);
   };
 
   if (isLoading) {
@@ -66,6 +82,10 @@ export function TeamScheduleTab({ teamCode, matches, isLoading }: TeamScheduleTa
             teamName={match.teamName}
             showTeamName={false}
             isPast={match.isPast}
+            className={cn(
+              activeMatchPath === `/team/${teamCode}/matches/${match.publicId}` &&
+                DESKTOP_SPLIT_ACTIVE_CARD_CLASS
+            )}
             onClick={() => handleMatchClick(match.publicId)}
           />
         ))}

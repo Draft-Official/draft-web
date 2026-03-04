@@ -4,6 +4,7 @@ import { Trophy } from 'lucide-react';
 import { Badge } from '@/shared/ui/shadcn/badge';
 import { MatchCardLayout } from '@/shared/ui/composite/match-card-layout';
 import { cn } from '@/shared/lib/utils';
+import { DESKTOP_SPLIT_ACTIVE_CARD_CLASS } from '@/shared/ui/layout';
 import type { ScheduleMatchListItemDTO } from '../../model/types';
 import type { UnreadMatchNotificationDTO } from '@/features/notification';
 import type { TeamVoteStatusValue } from '@/shared/config/application-constants';
@@ -24,12 +25,14 @@ interface MatchCardProps {
   onConfirmPayment?: (applicationId: string, matchId: string) => void;
   onVote?: (matchId: string, vote: TeamVoteStatusValue, reason: string) => void;
   isVoting?: boolean;
+  isActive?: boolean;
 }
 
 function TournamentCard({
   match,
   onClick,
-}: Pick<MatchCardProps, 'match' | 'onClick'>) {
+  isActive = false,
+}: Pick<MatchCardProps, 'match' | 'onClick' | 'isActive'>) {
   const isPastMatch = PAST_MATCH_STATUSES.includes(match.status);
 
   return (
@@ -44,6 +47,9 @@ function TournamentCard({
         if (match.locationUrl) window.open(match.locationUrl, '_blank');
       }}
       isPast={isPastMatch}
+      className={cn(
+        isActive && DESKTOP_SPLIT_ACTIVE_CARD_CLASS
+      )}
       topSlot={
         <>
           <Badge
@@ -85,6 +91,7 @@ export function MatchCard({
   onConfirmPayment,
   onVote,
   isVoting = false,
+  isActive = false,
 }: MatchCardProps) {
   if (match.managementType === 'guest_recruitment') {
     return (
@@ -93,6 +100,7 @@ export function MatchCard({
         notifications={notifications}
         onClick={onClick}
         onConfirmPayment={onConfirmPayment}
+        isActive={isActive}
       />
     );
   }
@@ -105,9 +113,10 @@ export function MatchCard({
         onClick={onClick}
         onVote={onVote}
         isVoting={isVoting}
+        isActive={isActive}
       />
     );
   }
 
-  return <TournamentCard match={match} onClick={onClick} />;
+  return <TournamentCard match={match} onClick={onClick} isActive={isActive} />;
 }

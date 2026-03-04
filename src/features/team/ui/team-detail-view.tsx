@@ -5,11 +5,13 @@ import { ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/ui/shadcn/tabs';
 import { cn } from '@/shared/lib/utils';
+import { DESKTOP_DETAIL_QUERY_KEY } from '@/shared/lib/desktop-detail-route';
 import { useTeamByCode } from '../api/team-info/queries';
 import { useTeamMembers, usePendingMembers, useMyMembership, useTeamMemberCount } from '../api/membership/queries';
 import { useTeamMatches } from '../api/match/queries';
 import { useAuth } from '@/shared/session';
-import { useSafeBack } from '@/shared/lib/hooks';
+import { useDesktopDetailRoute, useSafeBack } from '@/shared/lib/hooks';
+import { TeamRouteDetailPanel } from './components/match/team-route-detail-panel';
 import {
   TeamDetailHeader,
   TeamHomeTab,
@@ -17,6 +19,7 @@ import {
   TeamMembersTab,
   TeamFab,
 } from './components/detail';
+import { DesktopSplitView } from '@/shared/ui/layout';
 import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 interface TeamDetailViewProps {
@@ -32,10 +35,17 @@ export function TeamDetailView({ code }: TeamDetailViewProps) {
   const searchParams = useSearchParams();
   const { user } = useAuth();
   const handleBack = useSafeBack('/team');
+  const {
+    isSplitMode,
+    selectedDetailPath,
+    navigateToDetail,
+    closeDetail,
+  } = useDesktopDetailRoute({ basePath: `/team/${code}` });
 
   // URL에서 탭 상태 읽기 (home, schedule, members)
   const viewParam = searchParams?.get('view');
   const currentView = viewParam === 'schedule' || viewParam === 'members' ? viewParam : 'home';
+  const isScheduleSplitMode = currentView === 'schedule' && isSplitMode;
 
   // 팀 정보 조회
   const { data: team, isLoading: isLoadingTeam } = useTeamByCode(code);
@@ -56,12 +66,31 @@ export function TeamDetailView({ code }: TeamDetailViewProps) {
       return;
     }
 
-    const url = newView === 'home'
-      ? `/team/${code}`
-      : `/team/${code}?view=${newView}`;
+    const nextParams = new URLSearchParams(searchParams?.toString() ?? '');
+
+    if (newView === 'home') {
+      nextParams.delete('view');
+    } else {
+      nextParams.set('view', newView);
+    }
+
+    if (newView !== 'schedule') {
+      nextParams.delete(DESKTOP_DETAIL_QUERY_KEY);
+    }
+
+    const queryString = nextParams.toString();
+    const url = queryString.length > 0 ? `/team/${code}?${queryString}` : `/team/${code}`;
 
     // replace를 사용하여 히스토리 오염 방지
     router.replace(url);
+  };
+
+  const handleScheduleMatchSelect = (detailPath: string) => {
+    navigateToDetail(detailPath);
+  };
+
+  const handleScheduleSplitClose = () => {
+    closeDetail();
   };
 
   // 멤버 목록 조회 (멤버만)
@@ -208,10 +237,24 @@ export function TeamDetailView({ code }: TeamDetailViewProps) {
         {isMember && (
           <>
             <TabsContent value="schedule" className="mt-0">
-              <TeamScheduleTab
-                teamCode={code}
-                matches={matches}
-                isLoading={isLoadingMatches}
+              <DesktopSplitView
+                enabled={isScheduleSplitMode}
+                listContent={
+                  <TeamScheduleTab
+                    teamCode={code}
+                    matches={matches}
+                    isLoading={isLoadingMatches}
+                    onMatchSelect={handleScheduleMatchSelect}
+                    activeMatchPath={isScheduleSplitMode ? selectedDetailPath : null}
+                  />
+                }
+                detailContent={
+                  <TeamRouteDetailPanel
+                    routePath={selectedDetailPath}
+                    onClose={handleScheduleSplitClose}
+                    emptyMessage="왼쪽 목록에서 경기를 선택해 주세요."
+                  />
+                }
               />
             </TabsContent>
 

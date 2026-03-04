@@ -52,7 +52,10 @@ export function useTeamByCode(code: string | null | undefined) {
 /**
  * 현재 사용자가 속한 팀 목록 조회
  */
-export function useMyTeams(userId: string | null | undefined) {
+export function useMyTeams(
+  userId: string | null | undefined,
+  options?: { enabled?: boolean }
+) {
   return useQuery({
     queryKey: teamKeys.myTeams(userId || ''),
     queryFn: async (): Promise<MyTeamListItemDTO[]> => {
@@ -66,7 +69,7 @@ export function useMyTeams(userId: string | null | undefined) {
         })
       );
     },
-    enabled: !!userId,
+    enabled: !!userId && (options?.enabled ?? true),
   });
 }
 

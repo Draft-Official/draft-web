@@ -10,6 +10,7 @@ interface MatchActionButtonProps {
   isMatchCanceled: boolean;
   isPending: boolean;
   onCloseRecruiting: () => void;
+  layoutMode?: 'page' | 'split';
 }
 
 export function MatchActionButton({
@@ -19,10 +20,19 @@ export function MatchActionButton({
   isMatchCanceled,
   isPending,
   onCloseRecruiting,
+  layoutMode = 'page',
 }: MatchActionButtonProps) {
+  const containerClassName = layoutMode === 'split'
+    ? 'sticky bottom-0 z-30 border-t border-slate-100 bg-white/95 px-5 pt-3 pb-4 shadow-[0_-8px_16px_-12px_rgba(15,23,42,0.35)] backdrop-blur'
+    : 'app-overlay-shell app-overlay-shell--with-sidebar';
+
+  const contentClassName = layoutMode === 'split'
+    ? ''
+    : 'app-overlay-content bg-white border-t border-slate-100 px-5 pt-4 pb-8 pointer-events-auto shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]';
+
   return (
-    <div className="app-overlay-shell app-overlay-shell--with-sidebar">
-      <div className="app-overlay-content bg-white border-t border-slate-100 px-5 pt-4 pb-8 pointer-events-auto shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+    <div className={containerClassName}>
+      <div className={contentClassName}>
         {/* 모집 중: 모집 마감하기 */}
         {isRecruiting && (
           <Button

@@ -31,8 +31,23 @@ import { toast } from '@/shared/ui/shadcn/sonner';
 import type { Participant, TournamentDetailDTO } from '../../model/types';
 import { MOCK_TOURNAMENT_DETAIL } from '../../model/mock-data';
 
-export function TournamentDetailView() {
+interface TournamentDetailViewProps {
+  onBack?: () => void;
+  layoutMode?: 'page' | 'split';
+}
+
+export function TournamentDetailView({
+  onBack,
+  layoutMode = 'page',
+}: TournamentDetailViewProps = {}) {
   const router = useRouter();
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+      return;
+    }
+    router.back();
+  };
 
   const [tournament] = useState<TournamentDetailDTO>(MOCK_TOURNAMENT_DETAIL);
   const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
@@ -49,15 +64,15 @@ export function TournamentDetailView() {
   const handleCancelParticipation = () => {
     toast.error('대회 참여를 취소했습니다.');
     setIsCancelConfirmOpen(false);
-    router.back();
+    handleBack();
   };
 
   return (
-    <div className="bg-slate-50 min-h-screen pb-40">
+    <div className={layoutMode === 'split' ? 'bg-slate-50 min-h-full pb-24' : 'bg-slate-50 min-h-screen pb-40'}>
       {/* Header */}
       <header className="sticky top-0 z-40 bg-white border-b border-slate-100 h-14 flex items-center justify-between px-4">
         <button
-          onClick={() => router.back()}
+          onClick={handleBack}
           className="p-2 -ml-2 hover:bg-slate-50 rounded-lg transition-colors"
         >
           <ChevronLeft className="w-6 h-6 text-slate-700" />
@@ -80,7 +95,7 @@ export function TournamentDetailView() {
               onClick={() => {
                 if (confirm('대회 참여를 취소하시겠습니까?')) {
                   toast.error('대회 참여가 취소되었습니다.');
-                  router.back();
+                  handleBack();
                 }
               }}
             >
@@ -254,8 +269,11 @@ export function TournamentDetailView() {
       </Dialog>
 
       {/* 하단 고정 버튼 */}
-      <div className="app-overlay-shell app-overlay-shell--with-sidebar bg-white border-t border-slate-100 p-4 z-50">
-        <div className="app-overlay-content">
+      <div className={layoutMode === 'split'
+        ? 'sticky bottom-0 z-30 border-t border-slate-100 bg-white/95 p-4 shadow-[0_-8px_16px_-12px_rgba(15,23,42,0.35)] backdrop-blur'
+        : 'app-overlay-shell app-overlay-shell--with-sidebar bg-white border-t border-slate-100 p-4 z-50'}
+      >
+        <div className={layoutMode === 'split' ? '' : 'app-overlay-content'}>
           <Button
             onClick={() => setIsCancelConfirmOpen(true)}
             className="w-full bg-red-100 hover:bg-red-200 text-red-600 border border-red-200 h-14 rounded-xl font-bold"

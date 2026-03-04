@@ -6,6 +6,7 @@ import { Button } from '@/shared/ui/shadcn/button';
 import { MatchCardLayout } from '@/shared/ui/composite/match-card-layout';
 import { VoteDialog } from '@/shared/ui/composite/vote-dialog';
 import { cn } from '@/shared/lib/utils';
+import { DESKTOP_SPLIT_ACTIVE_CARD_CLASS } from '@/shared/ui/layout';
 import type { ScheduleMatchListItemDTO } from '../../model/types';
 import type { UnreadMatchNotificationDTO } from '@/features/notification';
 import { NOTIFICATION_TYPE_DESCRIPTIONS } from '@/shared/config/match-constants';
@@ -29,6 +30,7 @@ interface TeamExerciseCardProps {
   onClick: (matchId: string) => void;
   onVote?: (matchId: string, vote: TeamVoteStatusValue, reason: string) => void;
   isVoting?: boolean;
+  isActive?: boolean;
 }
 
 export function TeamExerciseCard({
@@ -37,6 +39,7 @@ export function TeamExerciseCard({
   onClick,
   onVote,
   isVoting = false,
+  isActive = false,
 }: TeamExerciseCardProps) {
   const [isVoteDialogOpen, setIsVoteDialogOpen] = useState(false);
   const [isVoteStatusOpen, setIsVoteStatusOpen] = useState(false);
@@ -101,6 +104,9 @@ export function TeamExerciseCard({
         }}
         onLocationClick={handleLocationClick}
         isPast={isPastMatch}
+        className={cn(
+          isActive && DESKTOP_SPLIT_ACTIVE_CARD_CLASS
+        )}
         headerSlot={
           !isPastMatch && notifications && notifications.length > 0 ? (
             <div className="bg-brand-weak px-4 py-2 flex items-center gap-2">

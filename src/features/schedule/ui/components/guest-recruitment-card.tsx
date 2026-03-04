@@ -6,6 +6,7 @@ import { Badge } from '@/shared/ui/shadcn/badge';
 import { Button } from '@/shared/ui/shadcn/button';
 import { MatchCardLayout } from '@/shared/ui/composite/match-card-layout';
 import { cn } from '@/shared/lib/utils';
+import { DESKTOP_SPLIT_ACTIVE_CARD_CLASS } from '@/shared/ui/layout';
 import type { ScheduleMatchListItemDTO } from '../../model/types';
 import type { UnreadMatchNotificationDTO } from '@/features/notification';
 import { NOTIFICATION_TYPE_DESCRIPTIONS } from '@/shared/config/match-constants';
@@ -23,6 +24,7 @@ interface GuestRecruitmentCardProps {
   notifications?: UnreadMatchNotificationDTO[];
   onClick: (matchId: string) => void;
   onConfirmPayment?: (applicationId: string, matchId: string) => void;
+  isActive?: boolean;
 }
 
 export function GuestRecruitmentCard({
@@ -30,6 +32,7 @@ export function GuestRecruitmentCard({
   notifications,
   onClick,
   onConfirmPayment,
+  isActive = false,
 }: GuestRecruitmentCardProps) {
   const [isPaymentConfirmOpen, setIsPaymentConfirmOpen] = useState(false);
   const dialogClosedAt = useRef(0);
@@ -60,6 +63,9 @@ export function GuestRecruitmentCard({
         }}
         onLocationClick={handleLocationClick}
         isPast={isPastMatch}
+        className={cn(
+          isActive && DESKTOP_SPLIT_ACTIVE_CARD_CLASS
+        )}
         headerSlot={
           !isPastMatch && notifications && notifications.length > 0 ? (
             <div className="bg-brand-weak px-4 py-2 flex items-center gap-2">
