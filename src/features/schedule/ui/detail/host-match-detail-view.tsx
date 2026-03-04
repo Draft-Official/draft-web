@@ -49,11 +49,22 @@ import { GuestListSection } from './guest-list-section';
 import { MatchActionButton } from './match-action-button';
 import { Spinner } from '@/shared/ui/shadcn/spinner';
 
-export function HostMatchDetailView() {
+interface HostMatchDetailViewProps {
+  matchIdentifier?: string;
+  onBack?: () => void;
+  layoutMode?: 'page' | 'split';
+}
+
+export function HostMatchDetailView({
+  matchIdentifier: matchIdentifierProp,
+  onBack,
+  layoutMode = 'page',
+}: HostMatchDetailViewProps = {}) {
   const router = useRouter();
   const params = useParams();
   const idParam = params?.id;
-  const matchIdentifier = Array.isArray(idParam) ? (idParam[0] ?? '') : (idParam ?? '');
+  const routeIdentifier = Array.isArray(idParam) ? (idParam[0] ?? '') : (idParam ?? '');
+  const matchIdentifier = matchIdentifierProp ?? routeIdentifier;
 
   // React Query hooks
   const { data: match, isLoading: isLoadingMatch } = useHostMatchDetail(matchIdentifier);
@@ -204,7 +215,10 @@ export function HostMatchDetailView() {
   // Loading state
   if (isLoading || !match) {
     return (
-      <div className="bg-slate-50 min-h-screen flex items-center justify-center">
+      <div className={layoutMode === 'split'
+        ? 'bg-slate-50 min-h-full flex items-center justify-center'
+        : 'bg-slate-50 min-h-screen flex items-center justify-center'}
+      >
         <div className="flex flex-col items-center gap-4">
           <Spinner className="w-8 h-8 text-muted-foreground " />
           <p className="text-slate-500">경기 정보를 불러오는 중...</p>
@@ -214,11 +228,17 @@ export function HostMatchDetailView() {
   }
 
   return (
-    <div className="bg-slate-50 min-h-screen pb-40">
+    <div className={layoutMode === 'split' ? 'bg-slate-50 min-h-full pb-24' : 'bg-slate-50 min-h-screen pb-40'}>
       {/* Header */}
       <header className="sticky top-0 z-40 bg-white border-b border-slate-100 h-14 flex items-center justify-between px-4">
         <button
-          onClick={() => router.back()}
+          onClick={() => {
+            if (onBack) {
+              onBack();
+              return;
+            }
+            router.back();
+          }}
           className="p-2 -ml-2 hover:bg-slate-50 rounded-lg transition-colors"
         >
           <ChevronLeft className="w-6 h-6 text-slate-700" />
@@ -469,6 +489,7 @@ export function HostMatchDetailView() {
         isMatchCanceled={isMatchCanceled}
         isPending={statusMutation.isPending}
         onCloseRecruiting={handleCloseRecruiting}
+        layoutMode={layoutMode}
       />
     </div>
   );

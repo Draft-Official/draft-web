@@ -3,10 +3,11 @@
 import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { TeamPageTabs } from '@/features/team';
+import { TeamRouteDetailPanel } from '@/features/team/ui/components/match/team-route-detail-panel';
 import { DESKTOP_DETAIL_QUERY_KEY, decodeDesktopDetailRoute, encodeDesktopDetailRoute } from '@/shared/lib/desktop-detail-route';
 import { useMediaQuery } from '@/shared/lib/hooks/use-media-query';
 import { useAuth } from '@/shared/session';
-import { DesktopRouteDetailPanel, DesktopSplitView } from '@/shared/ui/layout';
+import { DesktopSplitView } from '@/shared/ui/layout';
 import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 export default function TeamPage() {
@@ -88,7 +89,7 @@ export default function TeamPage() {
         />
       }
       detailContent={
-        <DesktopRouteDetailPanel
+        <TeamRouteDetailPanel
           routePath={selectedDetailPath}
           onClose={handleSplitClose}
           emptyMessage="왼쪽 목록에서 경기를 선택해 주세요."

@@ -3,25 +3,22 @@
 import { X } from 'lucide-react';
 import { isSafeDesktopDetailRoutePath } from '@/shared/lib/desktop-detail-route';
 
-interface DesktopRouteDetailPanelProps {
-  routePath: string | null;
+interface DesktopDetailPanelShellProps {
+  fullPageHref: string | null;
   onClose?: () => void;
   emptyMessage?: string;
+  showToolbar?: boolean;
+  children?: React.ReactNode;
 }
 
-function buildEmbeddedRoute(routePath: string) {
-  const [pathAndQuery, hash] = routePath.split('#', 2);
-  const separator = pathAndQuery.includes('?') ? '&' : '?';
-  const withEmbed = `${pathAndQuery}${separator}embed=1`;
-  return hash ? `${withEmbed}#${hash}` : withEmbed;
-}
-
-export function DesktopRouteDetailPanel({
-  routePath,
+export function DesktopDetailPanelShell({
+  fullPageHref,
   onClose,
-  emptyMessage = '왼쪽 리스트에서 항목을 선택해 주세요.',
-}: DesktopRouteDetailPanelProps) {
-  if (!routePath) {
+  emptyMessage = '왼쪽 목록에서 항목을 선택해 주세요.',
+  showToolbar = true,
+  children,
+}: DesktopDetailPanelShellProps) {
+  if (!fullPageHref || !children) {
     return (
       <div className="h-full flex items-center justify-center px-8 text-center text-slate-500">
         {emptyMessage}
@@ -29,7 +26,7 @@ export function DesktopRouteDetailPanel({
     );
   }
 
-  if (!isSafeDesktopDetailRoutePath(routePath)) {
+  if (!isSafeDesktopDetailRoutePath(fullPageHref)) {
     return (
       <div className="h-full flex items-center justify-center px-8 text-center text-slate-500">
         유효하지 않은 상세 경로입니다.
@@ -37,7 +34,13 @@ export function DesktopRouteDetailPanel({
     );
   }
 
-  const embeddedRoute = buildEmbeddedRoute(routePath);
+  if (!showToolbar) {
+    return (
+      <div className="h-full overflow-y-auto bg-white">
+        {children}
+      </div>
+    );
+  }
 
   return (
     <div className="h-full flex flex-col bg-white">
@@ -51,18 +54,15 @@ export function DesktopRouteDetailPanel({
           닫기
         </button>
         <a
-          href={routePath}
+          href={fullPageHref}
           className="rounded-md px-2 py-1 text-xs font-medium text-primary hover:bg-brand-weak"
         >
           전체 페이지 열기
         </a>
       </div>
-      <iframe
-        key={embeddedRoute}
-        src={embeddedRoute}
-        title="상세 페이지"
-        className="h-[calc(100%-2.75rem)] w-full border-0 bg-white"
-      />
+      <div className="h-[calc(100%-2.75rem)] overflow-y-auto">
+        {children}
+      </div>
     </div>
   );
 }

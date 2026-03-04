@@ -24,7 +24,6 @@ function LayoutShellContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() ?? '';
   const searchParams = useSearchParams();
   const isDesktop = useMediaQuery('(min-width: 1024px)');
-  const isEmbeddedLayout = searchParams?.get('embed') === '1';
   const isBareLayout =
     pathname.startsWith('/signup/verify') ||
     pathname === '/login' ||
@@ -36,16 +35,6 @@ function LayoutShellContent({ children }: { children: React.ReactNode }) {
     Boolean(searchParams?.get('detail'));
   const isDesktopSplitOpen = isHomeSplitOpen || isScheduleSplitOpen || isTeamSplitOpen;
   const isSidebarCompact = isDesktopSplitOpen;
-
-  if (isEmbeddedLayout) {
-    return (
-      <div className="min-h-screen bg-(--layout-root-bg)">
-        <main className="min-h-screen bg-(--layout-root-bg) relative">
-          {children}
-        </main>
-      </div>
-    );
-  }
 
   if (isBareLayout) {
     return (

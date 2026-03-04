@@ -28,7 +28,8 @@ import {
 import { cn } from "@/shared/lib/utils";
 import { Spinner } from '@/shared/ui/shadcn/spinner';
 import { DESKTOP_DETAIL_QUERY_KEY, decodeDesktopDetailRoute, encodeDesktopDetailRoute } from '@/shared/lib/desktop-detail-route';
-import { DesktopRouteDetailPanel, DesktopSplitView } from '@/shared/ui/layout';
+import { DesktopSplitView } from '@/shared/ui/layout';
+import { ScheduleRouteDetailPanel } from './detail/schedule-route-detail-panel';
 
 type ViewMode = "guest" | "host";
 type GuestTypeFilterValue = Exclude<MatchType, "host">;
@@ -503,7 +504,7 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
         enabled={isSplitMode}
         listContent={listContent}
         detailContent={
-          <DesktopRouteDetailPanel
+          <ScheduleRouteDetailPanel
             routePath={selectedDetailPath}
             onClose={handleSplitClose}
             emptyMessage="왼쪽 목록에서 경기를 선택해 주세요."

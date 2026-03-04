@@ -13,6 +13,7 @@ import { useTeamMembers, usePendingMembers, useMyMembership, useTeamMemberCount 
 import { useTeamMatches } from '../api/match/queries';
 import { useAuth } from '@/shared/session';
 import { useSafeBack } from '@/shared/lib/hooks';
+import { TeamRouteDetailPanel } from './components/match/team-route-detail-panel';
 import {
   TeamDetailHeader,
   TeamHomeTab,
@@ -20,7 +21,7 @@ import {
   TeamMembersTab,
   TeamFab,
 } from './components/detail';
-import { DesktopRouteDetailPanel, DesktopSplitView } from '@/shared/ui/layout';
+import { DesktopSplitView } from '@/shared/ui/layout';
 import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 interface TeamDetailViewProps {
@@ -285,7 +286,7 @@ export function TeamDetailView({ code }: TeamDetailViewProps) {
                   />
                 }
                 detailContent={
-                  <DesktopRouteDetailPanel
+                  <TeamRouteDetailPanel
                     routePath={selectedDetailPath}
                     onClose={handleScheduleSplitClose}
                     emptyMessage="왼쪽 목록에서 경기를 선택해 주세요."
