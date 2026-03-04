@@ -33,6 +33,8 @@ interface MatchDetailViewProps {
   layoutMode?: 'page' | 'split';
   onClose?: () => void;
   onOpenFullPage?: () => void;
+  fromSchedule?: boolean;
+  fromCreate?: boolean;
 }
 
 export function MatchDetailView({
@@ -40,6 +42,8 @@ export function MatchDetailView({
   layoutMode = 'page',
   onClose,
   onOpenFullPage,
+  fromSchedule,
+  fromCreate,
 }: MatchDetailViewProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -55,8 +59,8 @@ export function MatchDetailView({
   const [isMatchCancelOpen, setIsMatchCancelOpen] = useState(false);
 
   // 경기관리 > 참여에서 들어온 경우
-  const isFromSchedule = searchParams?.get('from') === 'schedule';
-  const isFromCreate = searchParams?.get('from') === 'create';
+  const isFromSchedule = fromSchedule ?? (searchParams?.get('from') === 'schedule');
+  const isFromCreate = fromCreate ?? (searchParams?.get('from') === 'create');
 
   const navigateBack = () => {
     if (isSplitLayout) {

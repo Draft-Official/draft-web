@@ -33,6 +33,31 @@ interface TeamMatchDetailViewProps {
   showVoteAction?: boolean;
   showExtraSections?: boolean;
   canQuickAddGuest?: boolean;
+  onBack?: () => void;
+  layoutMode?: 'page' | 'split';
+}
+
+interface TeamBottomBarContainerProps {
+  layoutMode: 'page' | 'split';
+  children: React.ReactNode;
+}
+
+function TeamBottomBarContainer({ layoutMode, children }: TeamBottomBarContainerProps) {
+  if (layoutMode === 'split') {
+    return (
+      <div className="sticky bottom-0 z-30 border-t border-slate-100 bg-white/95 px-5 pt-3 pb-4 shadow-[0_-8px_16px_-12px_rgba(15,23,42,0.35)] backdrop-blur">
+        {children}
+      </div>
+    );
+  }
+
+  return (
+    <div className="app-overlay-shell app-overlay-shell--with-sidebar">
+      <div className="app-overlay-content bg-white border-t border-slate-100 px-5 pt-4 pb-8 pointer-events-auto shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+        {children}
+      </div>
+    </div>
+  );
 }
 
 export function TeamMatchDetailView({
@@ -43,8 +68,11 @@ export function TeamMatchDetailView({
   showVoteAction = true,
   showExtraSections = true,
   canQuickAddGuest = false,
+  onBack,
+  layoutMode = 'page',
 }: TeamMatchDetailViewProps) {
-  const handleBack = useSafeBack(`/team/${team.code}`);
+  const safeBack = useSafeBack(`/team/${team.code}`);
+  const handleBack = onBack ?? safeBack;
   const [isVoteDialogOpen, setIsVoteDialogOpen] = useState(false);
 
   // 투표 현황 조회
@@ -119,7 +147,12 @@ export function TeamMatchDetailView({
   const hasVoted = myVoteStatus && myVoteStatus !== 'PENDING';
 
   return (
-    <div className="min-h-screen bg-background relative pb-[100px] app-content-container">
+    <div
+      className={cn(
+        'bg-background relative',
+        layoutMode === 'split' ? 'min-h-full pb-24' : 'min-h-screen pb-[100px] app-content-container'
+      )}
+    >
 
       {/* 1. Header (Sticky) */}
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-100 h-[52px] flex items-center justify-between px-2">
@@ -204,26 +237,24 @@ export function TeamMatchDetailView({
       </main>
 
       {showVoteAction && (
-        <div className="app-overlay-shell app-overlay-shell--with-sidebar">
-          <div className="app-overlay-content bg-white border-t border-slate-100 px-5 pt-4 pb-8 pointer-events-auto shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-            <button
-              onClick={() => setIsVoteDialogOpen(true)}
-              disabled={isVotingClosed}
-              className={cn(
-                'w-full h-12 rounded-xl font-bold text-lg transition-all',
-                isVotingClosed
-                  ? 'bg-slate-200 text-slate-500 cursor-not-allowed'
-                  : 'bg-primary text-white hover:bg-primary/90'
-              )}
-            >
-              {isVotingClosed
-                ? '투표가 마감되었습니다.'
-                : hasVoted
-                ? '투표 변경하기'
-                : '투표하기'}
-            </button>
-          </div>
-        </div>
+        <TeamBottomBarContainer layoutMode={layoutMode}>
+          <button
+            onClick={() => setIsVoteDialogOpen(true)}
+            disabled={isVotingClosed}
+            className={cn(
+              'w-full h-12 rounded-xl font-bold text-lg transition-all',
+              isVotingClosed
+                ? 'bg-slate-200 text-slate-500 cursor-not-allowed'
+                : 'bg-primary text-white hover:bg-primary/90'
+            )}
+          >
+            {isVotingClosed
+              ? '투표가 마감되었습니다.'
+              : hasVoted
+              ? '투표 변경하기'
+              : '투표하기'}
+          </button>
+        </TeamBottomBarContainer>
       )}
 
       {showVoteAction && (
