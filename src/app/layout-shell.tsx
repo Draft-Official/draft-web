@@ -21,12 +21,28 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
 function LayoutShellContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() ?? '';
   const searchParams = useSearchParams();
+  const isEmbeddedLayout = searchParams?.get('embed') === '1';
   const isBareLayout =
     pathname.startsWith('/signup/verify') ||
     pathname === '/login' ||
     pathname.startsWith('/auth');
   const isHomeSplitOpen = pathname === '/' && Boolean(searchParams?.get('match'));
-  const isSidebarCompact = isHomeSplitOpen;
+  const isScheduleSplitOpen = pathname === '/schedule' && Boolean(searchParams?.get('detail'));
+  const isTeamSplitOpen =
+    (pathname === '/team' || pathname.startsWith('/team/')) &&
+    Boolean(searchParams?.get('detail'));
+  const isDesktopSplitOpen = isHomeSplitOpen || isScheduleSplitOpen || isTeamSplitOpen;
+  const isSidebarCompact = isDesktopSplitOpen;
+
+  if (isEmbeddedLayout) {
+    return (
+      <div className="min-h-screen bg-(--layout-root-bg)">
+        <main className="min-h-screen bg-(--layout-root-bg) relative">
+          {children}
+        </main>
+      </div>
+    );
+  }
 
   if (isBareLayout) {
     return (
@@ -40,7 +56,7 @@ function LayoutShellContent({ children }: { children: React.ReactNode }) {
 
   return (
     <SignupVerifyGuard>
-      <DesktopTopHeader compact={isSidebarCompact} isSplitMode={isHomeSplitOpen} />
+      <DesktopTopHeader compact={isSidebarCompact} isSplitMode={isDesktopSplitOpen} />
       <div
         className={cn(
           "flex justify-center min-h-screen bg-(--layout-root-bg) transition-[padding] duration-300 ease-in-out",
@@ -67,7 +83,7 @@ function LayoutShellContent({ children }: { children: React.ReactNode }) {
         <main
           className={cn(
             "app-content-container min-h-screen lg:min-h-[calc(100vh-56px)] bg-(--layout-root-bg) relative pb-20 lg:pb-0 lg:mt-14 transition-[max-width] duration-300 ease-in-out",
-            isHomeSplitOpen && "app-content-container--split"
+            isDesktopSplitOpen && "app-content-container--split"
           )}
         >
           <div className="lg:hidden">

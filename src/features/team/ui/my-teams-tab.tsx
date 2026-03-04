@@ -20,7 +20,12 @@ import { isCurrentWeekMatch } from '../lib/is-current-week';
  * - 팀 정기운동 목록
  * - 팀 없음 Empty State
  */
-export function MyTeamsTab() {
+interface MyTeamsTabProps {
+  onTeamMatchSelect?: (detailPath: string) => void;
+  activeTeamMatchPath?: string | null;
+}
+
+export function MyTeamsTab({ onTeamMatchSelect, activeTeamMatchPath }: MyTeamsTabProps) {
   const { user } = useAuth();
   const { data: teams, isLoading } = useMyTeams(user?.id);
 
@@ -91,7 +96,12 @@ export function MyTeamsTab() {
       {/* 팀 정기운동 섹션 */}
       <section className="px-(--dimension-spacing-x-global-gutter)">
         <h2 className="font-bold text-slate-900 text-lg mb-(--dimension-spacing-y-component-default)">이번주 팀 정기운동</h2>
-        <PendingVoteMatches teamIds={teams.map((t) => t.id)} userId={user!.id} />
+        <PendingVoteMatches
+          teamIds={teams.map((t) => t.id)}
+          userId={user!.id}
+          onTeamMatchSelect={onTeamMatchSelect}
+          activeTeamMatchPath={activeTeamMatchPath}
+        />
       </section>
     </div>
   );
@@ -100,7 +110,17 @@ export function MyTeamsTab() {
 /**
  * 팀 정기운동 목록 컴포넌트
  */
-function PendingVoteMatches({ teamIds, userId }: { teamIds: string[]; userId: string }) {
+function PendingVoteMatches({
+  teamIds,
+  userId,
+  onTeamMatchSelect,
+  activeTeamMatchPath,
+}: {
+  teamIds: string[];
+  userId: string;
+  onTeamMatchSelect?: (detailPath: string) => void;
+  activeTeamMatchPath?: string | null;
+}) {
   const { data: matches, isLoading } = useMyPendingVoteMatches(teamIds, userId);
   const voteMutation = useVote();
   const currentWeekMatches = (matches ?? []).filter((match) => isCurrentWeekMatch(match.startTime));
@@ -135,6 +155,7 @@ function PendingVoteMatches({ teamIds, userId }: { teamIds: string[]; userId: st
   return (
     <div className="space-y-(--dimension-spacing-y-component-default)">
       {currentWeekMatches.map((item) => {
+        const detailPath = `/team/${item.teamCode}/matches/${item.publicId}`;
         return (
           <TeamMatchItem
             key={item.matchId}
@@ -153,6 +174,8 @@ function PendingVoteMatches({ teamIds, userId }: { teamIds: string[]; userId: st
             votingSummary={item.votingSummary}
             onVote={(vote, reason) => handleVote(item.matchId, vote, reason)}
             isVoting={voteMutation.isPending}
+            onMatchSelect={onTeamMatchSelect}
+            isActive={activeTeamMatchPath === detailPath}
           />
         );
       })}

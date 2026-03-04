@@ -29,6 +29,7 @@ interface TeamExerciseCardProps {
   onClick: (matchId: string) => void;
   onVote?: (matchId: string, vote: TeamVoteStatusValue, reason: string) => void;
   isVoting?: boolean;
+  isActive?: boolean;
 }
 
 export function TeamExerciseCard({
@@ -37,6 +38,7 @@ export function TeamExerciseCard({
   onClick,
   onVote,
   isVoting = false,
+  isActive = false,
 }: TeamExerciseCardProps) {
   const [isVoteDialogOpen, setIsVoteDialogOpen] = useState(false);
   const [isVoteStatusOpen, setIsVoteStatusOpen] = useState(false);
@@ -101,6 +103,9 @@ export function TeamExerciseCard({
         }}
         onLocationClick={handleLocationClick}
         isPast={isPastMatch}
+        className={cn(
+          isActive && 'ring-2 ring-primary/25 border-primary/40 shadow-md'
+        )}
         headerSlot={
           !isPastMatch && notifications && notifications.length > 0 ? (
             <div className="bg-brand-weak px-4 py-2 flex items-center gap-2">
