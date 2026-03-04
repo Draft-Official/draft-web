@@ -175,6 +175,37 @@ function prepareAnimalSymbolCanvas(image: HTMLImageElement) {
   };
 }
 
+function drawCenteredEmoji({
+  context,
+  emoji,
+}: {
+  context: CanvasRenderingContext2D;
+  emoji: string;
+}) {
+  const center = TEAM_AUTO_LOGO_CANVAS_SIZE / 2;
+
+  context.save();
+  context.textAlign = 'center';
+  context.font = `${TEAM_AUTO_LOGO_EMOJI_FONT_SIZE}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
+
+  const metrics = context.measureText(emoji);
+  const ascent = metrics.actualBoundingBoxAscent;
+  const descent = metrics.actualBoundingBoxDescent;
+  const hasBoundingMetrics = Number.isFinite(ascent) && Number.isFinite(descent) && (ascent > 0 || descent > 0);
+
+  if (hasBoundingMetrics) {
+    context.textBaseline = 'alphabetic';
+    const baselineY = center + (ascent - descent) / 2;
+    context.fillText(emoji, center, baselineY);
+  } else {
+    // Fallback for environments where emoji text metrics are unreliable.
+    context.textBaseline = 'middle';
+    context.fillText(emoji, center, center);
+  }
+
+  context.restore();
+}
+
 export async function createTeamAutoLogoFile({
   iconId,
   backgroundColor,
@@ -243,12 +274,7 @@ export async function createTeamAutoLogoFile({
     context.fillStyle = backgroundColor;
     context.fill();
 
-    context.save();
-    context.textAlign = 'center';
-    context.textBaseline = 'middle';
-    context.font = `${TEAM_AUTO_LOGO_EMOJI_FONT_SIZE}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
-    context.fillText(emoji, TEAM_AUTO_LOGO_CANVAS_SIZE / 2, TEAM_AUTO_LOGO_CANVAS_SIZE / 2 + 6);
-    context.restore();
+    drawCenteredEmoji({ context, emoji });
   }
 
   const pngBlob = await new Promise<Blob | null>((resolve) => {

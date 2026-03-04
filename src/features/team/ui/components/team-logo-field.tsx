@@ -29,6 +29,7 @@ export function TeamLogoField({
   logoUploadError,
   onLogoFileSelect,
 }: TeamLogoFieldProps) {
+  const isInitialState = !logoId;
   const logoInputId = useId();
   const [isMakerOpen, setIsMakerOpen] = useState(false);
   const [isCropOpen, setIsCropOpen] = useState(false);
@@ -110,17 +111,14 @@ export function TeamLogoField({
       <Label className="text-sm font-bold text-slate-700">팀 로고</Label>
 
       <div className="flex flex-col items-center gap-3">
-        <button
-          type="button"
-          disabled={!logoId || isUploadingLogo}
-          onClick={handleLogoPreviewClick}
-          className={cn(
-            'flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-white',
-            logoId ? 'cursor-pointer' : 'cursor-default'
-          )}
-          aria-label={logoId ? '로고 다시 편집하기' : '로고 미리보기'}
-        >
-          {logoId ? (
+        {logoId && (
+          <button
+            type="button"
+            disabled={isUploadingLogo}
+            onClick={handleLogoPreviewClick}
+            className="flex h-24 w-24 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-white"
+            aria-label="로고 다시 편집하기"
+          >
             <Image
               src={logoId}
               alt="선택한 팀 로고"
@@ -128,10 +126,8 @@ export function TeamLogoField({
               height={96}
               className="h-full w-full object-cover"
             />
-          ) : (
-            <div className="h-full w-full rounded-full bg-white" aria-hidden />
-          )}
-        </button>
+          </button>
+        )}
 
         <div className="flex w-full flex-col gap-2">
           <Button
@@ -168,7 +164,9 @@ export function TeamLogoField({
           </label>
         </div>
 
-        <p className="text-xs text-slate-500">JPG, PNG, WEBP / 최대 {TEAM_LOGO_MAX_FILE_SIZE_LABEL}</p>
+        {!isInitialState && (
+          <p className="text-xs text-slate-500">JPG, PNG, WEBP / 최대 {TEAM_LOGO_MAX_FILE_SIZE_LABEL}</p>
+        )}
       </div>
 
       {logoUploadError && <p className="text-xs text-red-500">{logoUploadError}</p>}
