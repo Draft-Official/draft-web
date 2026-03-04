@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { X, Building2, FileText, LogOut } from 'lucide-react';
+import { ArrowLeft, X, Building2, FileText, LogOut } from 'lucide-react';
 import { Button } from '@/shared/ui/shadcn/button';
 import { Label } from '@/shared/ui/shadcn/label';
 import { Textarea } from '@/shared/ui/shadcn/textarea';
@@ -245,8 +245,9 @@ export function TeamMatchCreateForm({ team, onClose }: TeamMatchCreateFormProps)
           type="button"
           onClick={() => (onClose ? onClose() : leaveGuard.requestLeave())}
           className="p-2 text-slate-900 hover:bg-slate-50 rounded-full transition-colors"
+          aria-label={onClose ? '닫기' : '뒤로가기'}
         >
-          <X className="w-6 h-6" />
+          {onClose ? <X className="w-6 h-6" /> : <ArrowLeft className="w-6 h-6" />}
         </button>
         <h1 className="text-lg font-bold text-slate-900">팀 운동 개설</h1>
         <div className="w-10" />
