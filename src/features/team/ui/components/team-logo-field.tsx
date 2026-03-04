@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, useState, type ChangeEvent } from 'react';
+import { useEffect, useId, useState, type ChangeEvent, type DragEvent } from 'react';
 import Image from 'next/image';
 import { Upload } from 'lucide-react';
 import { toast } from '@/shared/ui/shadcn/sonner';
@@ -29,10 +29,10 @@ export function TeamLogoField({
   logoUploadError,
   onLogoFileSelect,
 }: TeamLogoFieldProps) {
-  const isInitialState = !logoId;
   const logoInputId = useId();
   const [isMakerOpen, setIsMakerOpen] = useState(false);
   const [isCropOpen, setIsCropOpen] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
   const [cropSourceFile, setCropSourceFile] = useState<File | null>(null);
   const [latestLogoFile, setLatestLogoFile] = useState<File | null>(null);
 
@@ -43,6 +43,17 @@ export function TeamLogoField({
     }
   }, [logoId]);
 
+  const openCropDialogWithFile = (file: File) => {
+    const validationError = validateTeamLogoFile(file);
+    if (validationError) {
+      toast.error(validationError);
+      return;
+    }
+
+    setCropSourceFile(file);
+    setIsCropOpen(true);
+  };
+
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) {
@@ -50,16 +61,38 @@ export function TeamLogoField({
       return;
     }
 
-    const validationError = validateTeamLogoFile(file);
-    if (validationError) {
-      toast.error(validationError);
-      event.target.value = '';
-      return;
-    }
-
-    setCropSourceFile(file);
-    setIsCropOpen(true);
+    openCropDialogWithFile(file);
     event.target.value = '';
+  };
+
+  const handleDragEnter = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    if (isUploadingLogo) return;
+    setIsDragOver(true);
+  };
+
+  const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    if (isUploadingLogo) return;
+    event.dataTransfer.dropEffect = 'copy';
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    if (!(event.currentTarget as HTMLDivElement).contains(event.relatedTarget as Node | null)) {
+      setIsDragOver(false);
+    }
+  };
+
+  const handleDrop = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setIsDragOver(false);
+    if (isUploadingLogo) return;
+
+    const file = event.dataTransfer.files?.[0];
+    if (!file) return;
+    openCropDialogWithFile(file);
   };
 
   const handleLogoPreviewClick = async () => {
@@ -110,7 +143,16 @@ export function TeamLogoField({
     <div className="space-y-3">
       <Label className="text-sm font-bold text-slate-700">팀 로고</Label>
 
-      <div className="flex flex-col items-center gap-3">
+      <div
+        className={cn(
+          'flex flex-col items-center gap-3 rounded-xl border border-transparent p-2 transition-colors',
+          isDragOver && 'border-primary/40 bg-brand-weak'
+        )}
+        onDragEnter={handleDragEnter}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
         {logoId && (
           <button
             type="button"
@@ -164,9 +206,10 @@ export function TeamLogoField({
           </label>
         </div>
 
-        {!isInitialState && (
-          <p className="text-xs text-slate-500">JPG, PNG, WEBP / 최대 {TEAM_LOGO_MAX_FILE_SIZE_LABEL}</p>
-        )}
+        <p className="text-xs text-slate-500">
+          JPG, PNG, WEBP / 최대 {TEAM_LOGO_MAX_FILE_SIZE_LABEL}
+          {isDragOver ? ' / 여기에 드롭해서 업로드' : ''}
+        </p>
       </div>
 
       {logoUploadError && <p className="text-xs text-red-500">{logoUploadError}</p>}
