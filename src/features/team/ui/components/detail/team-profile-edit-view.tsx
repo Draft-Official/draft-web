@@ -267,7 +267,6 @@ export function TeamProfileEditView({ code }: TeamProfileEditViewProps) {
         try {
           const uploaded = await uploadTeamLogoFile({
             file: pendingLogoFile,
-            userId: user.id,
           });
           uploadedLogoPath = uploaded.path;
           logoUrl = uploaded.publicUrl;
@@ -303,7 +302,7 @@ export function TeamProfileEditView({ code }: TeamProfileEditViewProps) {
         toast.success('팀 정보가 수정되었습니다');
         leaveGuard.bypassNavigation(() => handleBack());
       } catch {
-        if (uploadedLogoPath) {
+        if (uploadedLogoPath?.startsWith('teams/')) {
           const supabase = getSupabaseBrowserClient();
           void supabase.storage.from(TEAM_LOGO_BUCKET).remove([uploadedLogoPath]);
         }

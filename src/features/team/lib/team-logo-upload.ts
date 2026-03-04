@@ -110,6 +110,31 @@ function getStorageFileExtension(fileType: string): string {
   return 'webp';
 }
 
+async function getFileSha256Hex(file: File): Promise<string> {
+  const bytes = await file.arrayBuffer();
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  return Array.from(new Uint8Array(digest))
+    .map((value) => value.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+function isDuplicateStorageObjectError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+
+  const maybeStatusCode = 'statusCode' in error
+    ? (error as { statusCode?: string | number }).statusCode
+    : undefined;
+  const maybeMessage = 'message' in error
+    ? (error as { message?: string }).message
+    : undefined;
+
+  return (
+    maybeStatusCode === 409 ||
+    maybeStatusCode === '409' ||
+    maybeMessage?.toLowerCase().includes('already exists') === true
+  );
+}
+
 export interface TeamLogoUploadResult {
   path: string;
   publicUrl: string;
@@ -117,10 +142,8 @@ export interface TeamLogoUploadResult {
 
 export async function uploadTeamLogoFile({
   file,
-  userId,
 }: {
   file: File;
-  userId: string;
 }): Promise<TeamLogoUploadResult> {
   const validationError = validateTeamLogoFile(file);
   if (validationError) {
@@ -134,7 +157,8 @@ export async function uploadTeamLogoFile({
 
   const supabase = getSupabaseBrowserClient();
   const ext = getStorageFileExtension(optimized.type);
-  const path = `teams/${userId}/logo-${Date.now()}-${crypto.randomUUID()}.${ext}`;
+  const contentHash = await getFileSha256Hex(optimized);
+  const path = `global/logo-${contentHash}.${ext}`;
 
   const { error } = await supabase.storage
     .from(TEAM_LOGO_BUCKET)
@@ -144,7 +168,7 @@ export async function uploadTeamLogoFile({
       upsert: false,
     });
 
-  if (error) {
+  if (error && !isDuplicateStorageObjectError(error)) {
     throw new Error(getReadableTeamLogoError(error));
   }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, useState, type ChangeEvent, type DragEvent } from 'react';
+import { useId, useState, type ChangeEvent, type DragEvent } from 'react';
 import Image from 'next/image';
 import { Upload } from 'lucide-react';
 import { toast } from '@/shared/ui/shadcn/sonner';
@@ -34,14 +34,7 @@ export function TeamLogoField({
   const [isCropOpen, setIsCropOpen] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const [cropSourceFile, setCropSourceFile] = useState<File | null>(null);
-  const [latestLogoFile, setLatestLogoFile] = useState<File | null>(null);
-
-  useEffect(() => {
-    // 서버에 저장된 기존 URL 상태로 돌아오면 이전 임시 파일 참조를 비운다.
-    if (!logoId || !logoId.startsWith('blob:')) {
-      setLatestLogoFile(null);
-    }
-  }, [logoId]);
+  const [originalLogoFile, setOriginalLogoFile] = useState<File | null>(null);
 
   const openCropDialogWithFile = (file: File) => {
     const validationError = validateTeamLogoFile(file);
@@ -50,6 +43,7 @@ export function TeamLogoField({
       return;
     }
 
+    setOriginalLogoFile(file);
     setCropSourceFile(file);
     setIsCropOpen(true);
   };
@@ -98,8 +92,8 @@ export function TeamLogoField({
   const handleLogoPreviewClick = async () => {
     if (isUploadingLogo || !logoId) return;
 
-    if (latestLogoFile) {
-      setCropSourceFile(latestLogoFile);
+    if (originalLogoFile) {
+      setCropSourceFile(originalLogoFile);
       setIsCropOpen(true);
       return;
     }
@@ -119,7 +113,7 @@ export function TeamLogoField({
         throw new Error(validationError);
       }
 
-      setLatestLogoFile(file);
+      setOriginalLogoFile(file);
       setCropSourceFile(file);
       setIsCropOpen(true);
     } catch {
@@ -134,8 +128,12 @@ export function TeamLogoField({
     }
   };
 
-  const handleLogoFileSelect = async (file: File) => {
-    setLatestLogoFile(file);
+  const handleCroppedLogoComplete = async (file: File) => {
+    await onLogoFileSelect(file);
+  };
+
+  const handleMakerLogoSelect = async (file: File) => {
+    setOriginalLogoFile(file);
     await onLogoFileSelect(file);
   };
 
@@ -219,14 +217,14 @@ export function TeamLogoField({
         sourceFile={cropSourceFile}
         isUploadingLogo={isUploadingLogo}
         onOpenChange={handleCropOpenChange}
-        onComplete={handleLogoFileSelect}
+        onComplete={handleCroppedLogoComplete}
       />
 
       <TeamLogoMakerDialog
         open={isMakerOpen}
         onOpenChange={setIsMakerOpen}
         isUploadingLogo={isUploadingLogo}
-        onLogoFileSelect={handleLogoFileSelect}
+        onLogoFileSelect={handleMakerLogoSelect}
       />
     </div>
   );

@@ -353,7 +353,6 @@ export function TeamCreateForm() {
         try {
           const uploaded = await uploadTeamLogoFile({
             file: pendingLogoFile,
-            userId: user.id,
           });
           uploadedLogoPath = uploaded.path;
           logoUrl = uploaded.publicUrl;
@@ -389,7 +388,7 @@ export function TeamCreateForm() {
         toast.success('팀이 생성되었습니다!');
         router.push(`/team/${createdTeam.code || createdTeam.id}`);
       } catch (error) {
-        if (uploadedLogoPath) {
+        if (uploadedLogoPath?.startsWith('teams/')) {
           const supabase = getSupabaseBrowserClient();
           void supabase.storage.from(TEAM_LOGO_BUCKET).remove([uploadedLogoPath]);
         }
