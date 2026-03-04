@@ -17,7 +17,12 @@ import { TeamCreateTab } from './team-create-tab';
  * - 나의 팀: 소속 팀 카드 + 미투표 경기
  * - 팀 생성하기+: 기능 소개 + 팀 생성 버튼
  */
-export function TeamPageTabs() {
+interface TeamPageTabsProps {
+  onTeamMatchSelect?: (detailPath: string) => void;
+  activeTeamMatchPath?: string | null;
+}
+
+export function TeamPageTabs({ onTeamMatchSelect, activeTeamMatchPath }: TeamPageTabsProps) {
   const [activeTab, setActiveTab] = useState('my-teams');
 
   return (
@@ -52,7 +57,10 @@ export function TeamPageTabs() {
 
         {/* 탭 콘텐츠 */}
         <TabsContent value="my-teams" className="mt-(--dimension-spacing-y-component-default)">
-          <MyTeamsTab />
+          <MyTeamsTab
+            onTeamMatchSelect={onTeamMatchSelect}
+            activeTeamMatchPath={activeTeamMatchPath}
+          />
         </TabsContent>
 
         <TabsContent value="create-team" className="mt-(--dimension-spacing-y-component-default)">

@@ -36,6 +36,8 @@ interface TeamMatchItemProps {
   };
   onVote?: (vote: TeamVoteStatusValue, reason: string) => void;
   isVoting?: boolean;
+  onMatchSelect?: (detailPath: string) => void;
+  isActive?: boolean;
   className?: string;
 }
 
@@ -59,6 +61,8 @@ export function TeamMatchItem({
   votingSummary,
   onVote,
   isVoting = false,
+  onMatchSelect,
+  isActive = false,
   className,
 }: TeamMatchItemProps) {
   const router = useRouter();
@@ -68,7 +72,14 @@ export function TeamMatchItem({
 
   const handleClick = () => {
     if (Date.now() - dialogClosedAt.current < 300) return;
-    router.push(`/team/${teamCode}/matches/${publicId}`);
+    const detailPath = `/team/${teamCode}/matches/${publicId}`;
+
+    if (onMatchSelect) {
+      onMatchSelect(detailPath);
+      return;
+    }
+
+    router.push(detailPath);
   };
 
   const handleVoteDialogChange = (open: boolean) => {
@@ -129,7 +140,10 @@ export function TeamMatchItem({
         gymAddress={gymAddress}
         teamName={teamName}
         onClick={handleClick}
-        className={className}
+        className={cn(
+          className,
+          isActive && 'ring-2 ring-primary/25 border-primary/40 shadow-md'
+        )}
         topSlot={
           <>
             <Badge

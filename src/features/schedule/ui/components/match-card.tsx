@@ -24,12 +24,14 @@ interface MatchCardProps {
   onConfirmPayment?: (applicationId: string, matchId: string) => void;
   onVote?: (matchId: string, vote: TeamVoteStatusValue, reason: string) => void;
   isVoting?: boolean;
+  isActive?: boolean;
 }
 
 function TournamentCard({
   match,
   onClick,
-}: Pick<MatchCardProps, 'match' | 'onClick'>) {
+  isActive = false,
+}: Pick<MatchCardProps, 'match' | 'onClick' | 'isActive'>) {
   const isPastMatch = PAST_MATCH_STATUSES.includes(match.status);
 
   return (
@@ -44,6 +46,9 @@ function TournamentCard({
         if (match.locationUrl) window.open(match.locationUrl, '_blank');
       }}
       isPast={isPastMatch}
+      className={cn(
+        isActive && 'ring-2 ring-primary/25 border-primary/40 shadow-md'
+      )}
       topSlot={
         <>
           <Badge
@@ -85,6 +90,7 @@ export function MatchCard({
   onConfirmPayment,
   onVote,
   isVoting = false,
+  isActive = false,
 }: MatchCardProps) {
   if (match.managementType === 'guest_recruitment') {
     return (
@@ -93,6 +99,7 @@ export function MatchCard({
         notifications={notifications}
         onClick={onClick}
         onConfirmPayment={onConfirmPayment}
+        isActive={isActive}
       />
     );
   }
@@ -105,9 +112,10 @@ export function MatchCard({
         onClick={onClick}
         onVote={onVote}
         isVoting={isVoting}
+        isActive={isActive}
       />
     );
   }
 
-  return <TournamentCard match={match} onClick={onClick} />;
+  return <TournamentCard match={match} onClick={onClick} isActive={isActive} />;
 }
