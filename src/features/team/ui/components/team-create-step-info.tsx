@@ -2,41 +2,27 @@
 
 import { useFormContext } from 'react-hook-form';
 import { Flag, Check } from 'lucide-react';
-import Image from 'next/image';
 import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 import { Input } from '@/shared/ui/shadcn/input';
 import { Label } from '@/shared/ui/shadcn/label';
-import { cn } from '@/shared/lib/utils';
-import { sanitizeShortIntro, sanitizeTeamName } from '@/features/team/lib';
+import { sanitizeTeamName } from '@/features/team/lib';
 
 import { StepHeader } from './step-header';
+import { TeamLogoField } from './team-logo-field';
 import {
   TEAM_CODE_ERROR_MESSAGE,
   TEAM_NAME_MAX_LENGTH,
 } from '@/shared/config/team-constants';
-
-// 프리셋 로고 옵션 (8개: 2개 로고 x 4 반복)
-const PRESET_LOGOS = [
-  { id: '01', url: '/logos/preset/logo-01.webp' },
-  { id: '02', url: '/logos/preset/logo-02.webp' },
-] as const;
-
-const TEAM_LOGO_OPTIONS = [
-  ...PRESET_LOGOS,
-  ...PRESET_LOGOS,
-  ...PRESET_LOGOS,
-  ...PRESET_LOGOS,
-].map((logo, index) => ({
-  id: `logo-${String(index + 1).padStart(2, '0')}`,
-  url: logo.url,
-}));
 
 interface TeamCreateStepInfoProps {
   logoId: string;
   codeStatus: 'idle' | 'available' | 'taken' | 'invalid';
   isCheckingCode: boolean;
   onCodeChange: (value: string) => void;
+  onLogoFileSelect: (file: File) => Promise<void>;
+  isUploadingLogo: boolean;
+  logoUploadError: string | null;
 }
 
 export function TeamCreateStepInfo({
@@ -44,6 +30,9 @@ export function TeamCreateStepInfo({
   codeStatus,
   isCheckingCode,
   onCodeChange,
+  onLogoFileSelect,
+  isUploadingLogo,
+  logoUploadError,
 }: TeamCreateStepInfoProps) {
   const { register, watch, setValue } = useFormContext();
   const teamName = watch('name') ?? '';
@@ -69,26 +58,6 @@ export function TeamCreateStepInfo({
         />
         <p className="text-xs text-muted-foreground text-right">
           {teamName.length}/{TEAM_NAME_MAX_LENGTH}
-        </p>
-      </div>
-
-      {/* 한줄 소개 */}
-      <div className="space-y-2">
-        <Label className="text-sm font-bold text-slate-700">
-          한줄 소개 <span className="text-red-500">*</span>
-        </Label>
-        <Input
-          {...register('shortIntro', { required: true, maxLength: 15 })}
-          placeholder="예: 매주 수요일에 봐요"
-          className="h-12"
-          maxLength={15}
-          onChange={(e) => {
-            const value = sanitizeShortIntro(e.target.value);
-            setValue('shortIntro', value);
-          }}
-        />
-        <p className="text-xs text-muted-foreground text-right">
-          {watch('shortIntro')?.length || 0}/15
         </p>
       </div>
 
@@ -133,32 +102,12 @@ export function TeamCreateStepInfo({
       </div>
 
       {/* 팀 로고 */}
-      <div className="space-y-3">
-        <Label className="text-sm font-bold text-slate-700">팀 로고</Label>
-        <div className="grid grid-cols-4 gap-2">
-          {TEAM_LOGO_OPTIONS.map((logo) => (
-            <button
-              key={logo.id}
-              type="button"
-              onClick={() => setValue('logoId', logo.url)}
-              className={cn(
-                'aspect-square rounded-xl flex items-center justify-center overflow-hidden transition-all border-2',
-                logoId === logo.url
-                  ? 'border-primary bg-brand-weak'
-                  : 'border-slate-200 bg-white hover:border-slate-300'
-              )}
-            >
-              <Image
-                src={logo.url}
-                alt={`로고 ${logo.id}`}
-                width={60}
-                height={60}
-                className="object-cover w-3/4 h-3/4"
-              />
-            </button>
-          ))}
-        </div>
-      </div>
+      <TeamLogoField
+        logoId={logoId}
+        onLogoFileSelect={onLogoFileSelect}
+        isUploadingLogo={isUploadingLogo}
+        logoUploadError={logoUploadError}
+      />
     </div>
   );
 }

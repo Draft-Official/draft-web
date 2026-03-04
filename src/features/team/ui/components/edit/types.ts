@@ -3,8 +3,6 @@ import type { RegularDayValue } from '@/shared/config/team-constants';
 
 export interface TeamProfileEditFormData {
   name: string;
-  shortIntro: string;
-  description: string;
   logoId: string;
   regularDays: RegularDayValue[];
   regularTime: string;
