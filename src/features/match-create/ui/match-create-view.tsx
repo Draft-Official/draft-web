@@ -1,7 +1,7 @@
 'use client';
 
 import { FormProvider } from 'react-hook-form';
-import { RefreshCw, Zap, X, LogOut } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Zap, X, LogOut } from 'lucide-react';
 import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 import { Button } from '@/shared/ui/shadcn/button';
@@ -114,8 +114,9 @@ export function MatchCreateView() {
             type="button"
             onClick={leaveGuard.requestLeave}
             className="p-2 text-slate-900 hover:bg-slate-50 rounded-full transition-colors"
+            aria-label="뒤로가기"
           >
-            <X className="w-6 h-6" />
+            <ArrowLeft className="w-6 h-6" />
           </button>
           <h1 className="text-lg font-bold text-slate-900">
             {isEditMode ? '경기 수정' : '경기 개설'}
