@@ -1,6 +1,7 @@
 'use client';
 
 import { X } from 'lucide-react';
+import { isSafeDesktopDetailRoutePath } from '@/shared/lib/desktop-detail-route';
 
 interface DesktopRouteDetailPanelProps {
   routePath: string | null;
@@ -24,6 +25,14 @@ export function DesktopRouteDetailPanel({
     return (
       <div className="h-full flex items-center justify-center px-8 text-center text-slate-500">
         {emptyMessage}
+      </div>
+    );
+  }
+
+  if (!isSafeDesktopDetailRoutePath(routePath)) {
+    return (
+      <div className="h-full flex items-center justify-center px-8 text-center text-slate-500">
+        유효하지 않은 상세 경로입니다.
       </div>
     );
   }

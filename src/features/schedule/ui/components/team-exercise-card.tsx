@@ -6,6 +6,7 @@ import { Button } from '@/shared/ui/shadcn/button';
 import { MatchCardLayout } from '@/shared/ui/composite/match-card-layout';
 import { VoteDialog } from '@/shared/ui/composite/vote-dialog';
 import { cn } from '@/shared/lib/utils';
+import { DESKTOP_SPLIT_ACTIVE_CARD_CLASS } from '@/shared/ui/layout';
 import type { ScheduleMatchListItemDTO } from '../../model/types';
 import type { UnreadMatchNotificationDTO } from '@/features/notification';
 import { NOTIFICATION_TYPE_DESCRIPTIONS } from '@/shared/config/match-constants';
@@ -104,7 +105,7 @@ export function TeamExerciseCard({
         onLocationClick={handleLocationClick}
         isPast={isPastMatch}
         className={cn(
-          isActive && 'ring-2 ring-primary/25 border-primary/40 shadow-md'
+          isActive && DESKTOP_SPLIT_ACTIVE_CARD_CLASS
         )}
         headerSlot={
           !isPastMatch && notifications && notifications.length > 0 ? (

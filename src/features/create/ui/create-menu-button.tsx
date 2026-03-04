@@ -29,16 +29,22 @@ interface CreateMenuButtonProps {
 export function CreateMenuButton({ className }: CreateMenuButtonProps) {
   const router = useRouter();
   const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
-  const { data: myTeams } = useMyTeams(user?.id);
 
   const [isOpen, setIsOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isTeamSelectModalOpen, setIsTeamSelectModalOpen] = useState(false);
+  const [isResolvingTeamCreate, setIsResolvingTeamCreate] = useState(false);
   const [loginRedirectPath, setLoginRedirectPath] = useState('/');
 
-  const manageableTeams = (myTeams ?? []).filter(
+  const shouldLoadTeams = isAuthenticated && isOpen;
+  const { data: myTeams, refetch: refetchMyTeams } = useMyTeams(user?.id, {
+    enabled: shouldLoadTeams,
+  });
+
+  const filterManageableTeams = (teams: typeof myTeams) => (teams ?? []).filter(
     (team) => (team.role === 'LEADER' || team.role === 'MANAGER') && team.code
   );
+  const manageableTeams = filterManageableTeams(myTeams);
 
   const requireAuth = (redirectPath: string) => {
     if (isAuthLoading) return false;
@@ -64,21 +70,30 @@ export function CreateMenuButton({ className }: CreateMenuButtonProps) {
     navigateIfAllowed('/team/create');
   };
 
-  const handleTeamRegularMatchCreate = () => {
+  const handleTeamRegularMatchCreate = async () => {
     setIsOpen(false);
     if (!requireAuth('/team')) return;
 
-    if (manageableTeams.length === 0) {
-      router.push('/team');
-      return;
-    }
+    setIsResolvingTeamCreate(true);
 
-    if (manageableTeams.length === 1) {
-      router.push(`/team/${manageableTeams[0].code}/match/create`);
-      return;
-    }
+    try {
+      const teams = myTeams ?? (await refetchMyTeams()).data;
+      const nextManageableTeams = filterManageableTeams(teams);
 
-    setIsTeamSelectModalOpen(true);
+      if (nextManageableTeams.length === 0) {
+        router.push('/team');
+        return;
+      }
+
+      if (nextManageableTeams.length === 1) {
+        router.push(`/team/${nextManageableTeams[0].code}/match/create`);
+        return;
+      }
+
+      setIsTeamSelectModalOpen(true);
+    } finally {
+      setIsResolvingTeamCreate(false);
+    }
   };
 
   const handleTeamSelect = (teamCode: string) => {
@@ -124,10 +139,11 @@ export function CreateMenuButton({ className }: CreateMenuButtonProps) {
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={handleTeamRegularMatchCreate}
+            disabled={isResolvingTeamCreate}
             className="h-12 gap-3 rounded-xl bg-white px-3 text-base text-slate-900 focus:bg-slate-100 focus:text-slate-900"
           >
             <Clock className="h-5 w-5 text-slate-500" />
-            팀 정기운동 생성
+            {isResolvingTeamCreate ? '팀 목록 확인 중...' : '팀 정기운동 생성'}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

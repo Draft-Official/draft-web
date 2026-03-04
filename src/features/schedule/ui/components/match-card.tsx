@@ -4,6 +4,7 @@ import { Trophy } from 'lucide-react';
 import { Badge } from '@/shared/ui/shadcn/badge';
 import { MatchCardLayout } from '@/shared/ui/composite/match-card-layout';
 import { cn } from '@/shared/lib/utils';
+import { DESKTOP_SPLIT_ACTIVE_CARD_CLASS } from '@/shared/ui/layout';
 import type { ScheduleMatchListItemDTO } from '../../model/types';
 import type { UnreadMatchNotificationDTO } from '@/features/notification';
 import type { TeamVoteStatusValue } from '@/shared/config/application-constants';
@@ -47,7 +48,7 @@ function TournamentCard({
       }}
       isPast={isPastMatch}
       className={cn(
-        isActive && 'ring-2 ring-primary/25 border-primary/40 shadow-md'
+        isActive && DESKTOP_SPLIT_ACTIVE_CARD_CLASS
       )}
       topSlot={
         <>

@@ -9,6 +9,7 @@ import { DesktopTopHeader } from "@/shared/ui/layout/desktop-top-header";
 import { CreateMenuButton } from "@/features/create";
 import { NotificationBell } from "@/features/notification/ui/notification-bell";
 import { SignupVerifyGuard } from "@/features/auth/ui/signup-verify-guard";
+import { useMediaQuery } from '@/shared/lib/hooks/use-media-query';
 import { cn } from "@/shared/lib/utils";
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
@@ -22,6 +23,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
 function LayoutShellContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() ?? '';
   const searchParams = useSearchParams();
+  const isDesktop = useMediaQuery('(min-width: 1024px)');
   const isEmbeddedLayout = searchParams?.get('embed') === '1';
   const isBareLayout =
     pathname.startsWith('/signup/verify') ||
@@ -57,7 +59,9 @@ function LayoutShellContent({ children }: { children: React.ReactNode }) {
 
   return (
     <SignupVerifyGuard>
-      <DesktopTopHeader compact={isSidebarCompact} isSplitMode={isDesktopSplitOpen} />
+      {isDesktop && (
+        <DesktopTopHeader compact={isSidebarCompact} isSplitMode={isDesktopSplitOpen} />
+      )}
       <div
         className={cn(
           "flex justify-center min-h-screen bg-(--layout-root-bg) transition-[padding] duration-300 ease-in-out",
@@ -87,7 +91,7 @@ function LayoutShellContent({ children }: { children: React.ReactNode }) {
             isDesktopSplitOpen && "app-content-container--split"
           )}
         >
-          <div className="lg:hidden">
+          {!isDesktop && (
             <LayoutHeader
               rightSlot={(
                 <div className="flex items-center gap-1.5">
@@ -96,7 +100,7 @@ function LayoutShellContent({ children }: { children: React.ReactNode }) {
                 </div>
               )}
             />
-          </div>
+          )}
           {children}
         </main>
 

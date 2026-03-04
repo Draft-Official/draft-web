@@ -1,5 +1,21 @@
 export const DESKTOP_DETAIL_QUERY_KEY = 'detail';
 
+export function isSafeDesktopDetailRoutePath(routePath: string): boolean {
+  if (!routePath.startsWith('/')) {
+    return false;
+  }
+
+  if (routePath.startsWith('//')) {
+    return false;
+  }
+
+  if (routePath.includes('\\')) {
+    return false;
+  }
+
+  return !routePath.includes('\r') && !routePath.includes('\n');
+}
+
 export function decodeDesktopDetailRoute(value: string | null): string | null {
   if (!value) {
     return null;
@@ -7,7 +23,7 @@ export function decodeDesktopDetailRoute(value: string | null): string | null {
 
   try {
     const decoded = decodeURIComponent(value);
-    return decoded.startsWith('/') ? decoded : null;
+    return isSafeDesktopDetailRoutePath(decoded) ? decoded : null;
   } catch {
     return null;
   }

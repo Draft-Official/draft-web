@@ -6,6 +6,7 @@ import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/shared/ui/shadcn/button';
 import { MatchCardLayout } from '@/shared/ui/composite/match-card-layout';
 import { cn } from '@/shared/lib/utils';
+import { DESKTOP_SPLIT_ACTIVE_CARD_CLASS } from '@/shared/ui/layout';
 import type { TeamScheduleMatchItemDTO } from '@/features/team/model/types';
 import { Spinner } from '@/shared/ui/shadcn/spinner';
 
@@ -83,7 +84,7 @@ export function TeamScheduleTab({
             isPast={match.isPast}
             className={cn(
               activeMatchPath === `/team/${teamCode}/matches/${match.publicId}` &&
-                'ring-2 ring-primary/25 border-primary/40 shadow-md'
+                DESKTOP_SPLIT_ACTIVE_CARD_CLASS
             )}
             onClick={() => handleMatchClick(match.publicId)}
           />
