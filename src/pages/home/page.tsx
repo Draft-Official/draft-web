@@ -10,7 +10,6 @@ import { useMatch, useRecruitingMatchesInfinite } from '@/features/match/api/que
 import { filterMatches, groupMatchesByDate } from '@/features/match/lib/utils';
 import { useLocalStorage } from '@/shared/lib/hooks/use-local-storage';
 import { useMediaQuery } from '@/shared/lib/hooks/use-media-query';
-import { NotificationBell } from '@/features/notification/ui/notification-bell';
 import { useAuth, useRequireAuth } from '@/shared/session';
 import { LoginRequiredModal } from '@/features/auth';
 import { useUserApplications } from '@/features/application';
@@ -177,7 +176,6 @@ export default function GuestMatchListPage() {
         onGameFormatsChange={setSelectedGameFormats}
         hideClosed={hideClosed}
         onHideClosedChange={setHideClosed}
-        notificationSlot={<NotificationBell />}
       />
 
       <div className={cn('min-h-[50vh] w-full', isSplitMode ? 'pb-6' : 'pb-24')}>

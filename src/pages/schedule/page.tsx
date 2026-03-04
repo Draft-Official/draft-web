@@ -3,7 +3,6 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { MatchManagementView } from '@/features/schedule/ui/match-management-view';
-import { NotificationBell } from '@/features/notification/ui/notification-bell';
 import { useAuth } from '@/shared/session';
 import { Spinner } from '@/shared/ui/shadcn/spinner';
 
@@ -25,5 +24,5 @@ export default function SchedulePage() {
     );
   }
 
-  return <MatchManagementView notificationSlot={<NotificationBell />} />;
+  return <MatchManagementView />;
 }

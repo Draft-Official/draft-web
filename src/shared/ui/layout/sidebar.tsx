@@ -7,14 +7,12 @@ import { Button } from '@/shared/ui/shadcn/button';
 import { cn } from '@/shared/lib/utils';
 import { useAuth, useRequireAuth } from '@/shared/session';
 import { LoginRequiredModal } from '@/features/auth';
-import type { ReactNode } from 'react';
 
 interface SidebarProps {
-  notificationSlot?: ReactNode;
   compact?: boolean;
 }
 
-export function Sidebar({ notificationSlot, compact = false }: SidebarProps) {
+export function Sidebar({ compact = false }: SidebarProps) {
   const pathname = usePathname() ?? '';
   const router = useRouter();
   const { isAuthenticated } = useAuth();
@@ -39,13 +37,7 @@ export function Sidebar({ notificationSlot, compact = false }: SidebarProps) {
   if (compact) {
     return (
       <>
-        <div className="flex h-full flex-col">
-          <div className="h-14 flex items-center justify-center pt-4 mb-4">
-            <Link href="/" className="text-lg font-black italic tracking-tighter text-slate-900">
-              D.
-            </Link>
-          </div>
-
+        <div className="flex h-full flex-col pt-3">
           <nav className="flex-1 flex flex-col items-center gap-1 px-2">
             {NAV_ITEMS.map((item) => {
               const isProtectedTab = item.href === '/team' || item.href === '/schedule';
@@ -83,15 +75,7 @@ export function Sidebar({ notificationSlot, compact = false }: SidebarProps) {
 
   return (
     <>
-      <div className="flex flex-col h-full">
-        {/* Logo + Notification */}
-        <div className="h-14 flex items-center justify-between px-6 pt-6 mb-6">
-          <Link href="/" className="text-2xl font-black italic tracking-tighter text-slate-900">
-            DRAFT.
-          </Link>
-          {notificationSlot}
-        </div>
-
+      <div className="flex flex-col h-full pt-6">
         {/* Menu */}
         <nav className="flex-1 space-y-1">
           {NAV_ITEMS.map((item) => {

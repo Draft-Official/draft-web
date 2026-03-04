@@ -5,6 +5,8 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { Sidebar } from "@/shared/ui/layout/sidebar";
 import { BottomNav } from "@/shared/ui/layout/bottom-nav";
 import { Header as LayoutHeader } from "@/shared/ui/layout/header";
+import { DesktopTopHeader } from "@/shared/ui/layout/desktop-top-header";
+import { NotificationBell } from "@/features/notification/ui/notification-bell";
 import { SignupVerifyGuard } from "@/features/auth/ui/signup-verify-guard";
 import { cn } from "@/shared/lib/utils";
 
@@ -38,6 +40,7 @@ function LayoutShellContent({ children }: { children: React.ReactNode }) {
 
   return (
     <SignupVerifyGuard>
+      <DesktopTopHeader compact={isSidebarCompact} isSplitMode={isHomeSplitOpen} />
       <div
         className={cn(
           "flex justify-center min-h-screen bg-(--layout-root-bg) transition-[padding] duration-300 ease-in-out",
@@ -49,7 +52,7 @@ function LayoutShellContent({ children }: { children: React.ReactNode }) {
         {/* Desktop Sidebar (Left) */}
         <aside
           className={cn(
-            "hidden lg:flex fixed left-0 top-0 h-full bg-(--layout-root-bg) z-30 justify-center transition-[width] duration-300 ease-in-out",
+            "hidden lg:flex fixed left-0 top-14 h-[calc(100vh-56px)] bg-(--layout-root-bg) z-30 justify-center transition-[width] duration-300 ease-in-out",
             isSidebarCompact
               ? "w-(--layout-sidebar-width-compact)"
               : "w-(--layout-sidebar-width)"
@@ -63,12 +66,12 @@ function LayoutShellContent({ children }: { children: React.ReactNode }) {
         {/* Main Content Area (Center) */}
         <main
           className={cn(
-            "app-content-container min-h-screen bg-(--layout-root-bg) relative pb-20 lg:pb-0 border-x border-slate-50 transition-[max-width] duration-300 ease-in-out",
+            "app-content-container min-h-screen lg:min-h-[calc(100vh-56px)] bg-(--layout-root-bg) relative pb-20 lg:pb-0 lg:mt-14 transition-[max-width] duration-300 ease-in-out",
             isHomeSplitOpen && "app-content-container--split"
           )}
         >
           <div className="lg:hidden">
-            <LayoutHeader />
+            <LayoutHeader rightSlot={<NotificationBell mode="panel" />} />
           </div>
           {children}
         </main>
