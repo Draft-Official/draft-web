@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Users, Calendar, User } from 'lucide-react';
+import { Home, Users, Calendar, MessageCircle, User } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { useAuth } from '@/shared/session';
 
@@ -13,11 +13,16 @@ interface SidebarProps {
 export function Sidebar({ compact = false }: SidebarProps) {
   const pathname = usePathname() ?? '';
   const { isAuthenticated } = useAuth();
+  const isActivePath = (href: string) => {
+    if (href === '/') return pathname === '/';
+    return pathname === href || pathname.startsWith(`${href}/`);
+  };
 
   const NAV_ITEMS = [
     { label: '홈', href: '/', icon: Home },
     { label: '팀', href: '/team', icon: Users },
     { label: '경기관리', href: '/schedule', icon: Calendar },
+    { label: '채팅', href: '/chat', icon: MessageCircle },
     { label: '마이', href: '/my', icon: User },
   ];
 
@@ -26,12 +31,13 @@ export function Sidebar({ compact = false }: SidebarProps) {
       <div className="flex h-full flex-col pt-3">
         <nav className="flex-1 flex flex-col items-center gap-1 px-2">
           {NAV_ITEMS.map((item) => {
-            const isProtectedTab = item.href === '/team' || item.href === '/schedule';
+            const isProtectedTab =
+              item.href === '/team' || item.href === '/schedule' || item.href === '/chat';
             const href =
               isProtectedTab && !isAuthenticated
                 ? `/auth/login?redirect=${encodeURIComponent(item.href)}`
                 : item.href;
-            const isActive = pathname === item.href;
+            const isActive = isActivePath(item.href);
 
             return (
               <Link
@@ -62,12 +68,13 @@ export function Sidebar({ compact = false }: SidebarProps) {
       {/* Menu */}
       <nav className="flex-1 space-y-1">
         {NAV_ITEMS.map((item) => {
-          const isProtectedTab = item.href === '/team' || item.href === '/schedule';
+          const isProtectedTab =
+            item.href === '/team' || item.href === '/schedule' || item.href === '/chat';
           const href =
             isProtectedTab && !isAuthenticated
               ? `/auth/login?redirect=${encodeURIComponent(item.href)}`
               : item.href;
-          const isActive = pathname === item.href;
+          const isActive = isActivePath(item.href);
           return (
             <Link
               key={item.href}

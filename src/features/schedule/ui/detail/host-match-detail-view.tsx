@@ -10,6 +10,8 @@ import {
   Clock,
   Shield,
   Megaphone,
+  MessageCircle,
+  ChevronRight,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -48,6 +50,8 @@ import { RecruitmentStatusSection } from './recruitment-status-section';
 import { GuestListSection } from './guest-list-section';
 import { MatchActionButton } from './match-action-button';
 import { Spinner } from '@/shared/ui/shadcn/spinner';
+import { useHostMatchChatRooms } from '@/features/chat';
+import { formatRelativeTime } from '@/features/notification/lib/format-time';
 
 interface HostMatchDetailViewProps {
   matchIdentifier?: string;
@@ -70,6 +74,7 @@ export function HostMatchDetailView({
   const { data: match, isLoading: isLoadingMatch } = useHostMatchDetail(matchIdentifier);
   const internalMatchId = match?.id ?? '';
   const { data: guests = [], isLoading: isLoadingGuests } = useMatchApplicants(internalMatchId);
+  const { data: chatRooms = [], isLoading: isLoadingChatRooms } = useHostMatchChatRooms(internalMatchId);
 
   // Mutations
   const approveMutation = useApproveApplication();
@@ -212,6 +217,10 @@ export function HostMatchDetailView({
     statusMutation.mutate({ matchId: internalMatchId, status: 'RECRUITING' });
   };
 
+  const openChatRoom = (roomId: string) => {
+    router.push(`/chat/rooms/${roomId}`);
+  };
+
   // Loading state
   if (isLoading || !match) {
     return (
@@ -313,6 +322,64 @@ export function HostMatchDetailView({
             <Shield className="w-5 h-5 text-muted-foreground" />
             <span className="font-medium">{match.teamName}</span>
           </div>
+        </section>
+
+        <section className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
+          <div className="mb-3 flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-bold text-slate-900">문의 채팅</h2>
+              <p className="mt-0.5 text-xs text-slate-500">이 경기에 대한 문의 채팅을 빠르게 확인하세요.</p>
+            </div>
+            <div className="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600">
+              {chatRooms.length}개
+            </div>
+          </div>
+
+          {isLoadingChatRooms ? (
+            <div className="flex items-center justify-center py-6">
+              <Spinner className="h-5 w-5 text-muted-foreground" />
+            </div>
+          ) : null}
+
+          {!isLoadingChatRooms && chatRooms.length === 0 ? (
+            <div className="rounded-xl border border-slate-100 bg-slate-50 px-4 py-5 text-center">
+              <MessageCircle className="mx-auto mb-2 h-5 w-5 text-slate-400" />
+              <p className="text-sm text-slate-500">아직 문의 채팅이 없습니다.</p>
+            </div>
+          ) : null}
+
+          {!isLoadingChatRooms && chatRooms.length > 0 ? (
+            <div className="space-y-2.5">
+              {chatRooms.map((room) => (
+                <button
+                  key={room.roomId}
+                  type="button"
+                  onClick={() => openChatRoom(room.roomId)}
+                  className="w-full rounded-xl border border-slate-100 bg-white px-3.5 py-3 text-left transition-colors hover:bg-slate-50"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold text-slate-900">{room.otherUserName}</p>
+                      <p className="mt-0.5 truncate text-xs text-slate-500">
+                        {room.lastMessagePreview || '대화를 시작해 보세요.'}
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <span className="text-[11px] text-slate-400">
+                        {room.lastMessageAt ? formatRelativeTime(room.lastMessageAt) : ''}
+                      </span>
+                      {room.unreadCount > 0 ? (
+                        <span className="inline-flex min-w-5 justify-center rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-white">
+                          {room.unreadCount > 99 ? '99+' : room.unreadCount}
+                        </span>
+                      ) : null}
+                      <ChevronRight className="h-4 w-4 text-slate-300" />
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          ) : null}
         </section>
 
         {/* 모집 현황 */}

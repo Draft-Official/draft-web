@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, usePathname } from 'next/navigation';
-import { Home, Users, Calendar, User } from 'lucide-react';
+import { Home, Users, Calendar, MessageCircle, User } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { useAuth } from '@/shared/session';
 
@@ -17,12 +17,13 @@ export function BottomNav() {
     { label: '홈', href: '/', icon: Home },
     { label: '팀', href: '/team', icon: Users },
     { label: '경기관리', href: '/schedule', icon: Calendar },
+    { label: '채팅', href: '/chat', icon: MessageCircle },
     { label: '마이', href: '/my', icon: User },
   ];
 
   // Smart navigation handler
   const handleNavClick = (href: string) => {
-    if ((href === '/team' || href === '/schedule') && !isAuthenticated) {
+    if ((href === '/team' || href === '/schedule' || href === '/chat') && !isAuthenticated) {
       router.push(`/auth/login?redirect=${encodeURIComponent(href)}`);
       return;
     }
@@ -37,7 +38,7 @@ export function BottomNav() {
   };
 
   // Pages where bottom nav should be visible
-  const showNavOnPages = ['/', '/team', '/schedule', '/my', '/notifications'];
+  const showNavOnPages = ['/', '/team', '/schedule', '/chat', '/my', '/notifications'];
   const shouldShowNav = showNavOnPages.includes(pathname);
 
   if (!shouldShowNav) return null;

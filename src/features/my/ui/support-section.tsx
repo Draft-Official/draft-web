@@ -5,7 +5,7 @@ import { MenuSection } from './menu-section';
 
 const SUPPORT_MENUS = [
   { label: 'FAQ', href: '/my/faq', icon: HelpCircle },
-  { label: '문의하기', href: '/my/contact', icon: MessageSquare },
+  { label: '채팅 문의', href: '/chat', icon: MessageSquare },
   { label: '공지사항', href: '/my/notices', icon: Megaphone },
 ] as const;
 

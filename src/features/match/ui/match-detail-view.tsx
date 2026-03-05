@@ -20,6 +20,7 @@ import { GuestMatchDetailDTO } from '@/features/match/model/types';
 import { ApplyModal } from '@/features/application/ui/apply-modal';
 import { useAuth, useRequireAuth } from '@/shared/session';
 import { LoginRequiredModal } from '@/features/auth';
+import { useCreateOrGetMatchChatRoom } from '@/features/chat';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { createApplicationService } from '@/entities/application';
 import { matchManagementKeys } from '@/features/schedule/api/keys';
@@ -150,6 +151,7 @@ export function MatchDetailView({
 
   const statusMutation = useUpdateMatchStatus();
   const cancelMatchFlowMutation = useCancelMatchFlow();
+  const createOrGetChatRoomMutation = useCreateOrGetMatchChatRoom();
 
   // 신청 취소 mutation
   const cancelMutation = useMutation({
@@ -209,6 +211,37 @@ export function MatchDetailView({
       return;
     }
     cancelMutation.mutate();
+  };
+
+  const handleStartChat = () => {
+    if (!requireAuth()) return;
+
+    if (!user?.id) {
+      toast.error('로그인이 필요합니다.');
+      return;
+    }
+
+    if (isHost) {
+      router.push(`/chat?mode=host&matchId=${match.id}`);
+      return;
+    }
+
+    createOrGetChatRoomMutation.mutate(
+      {
+        matchId: match.id,
+        hostId: match.hostId,
+        guestId: user.id,
+      },
+      {
+        onSuccess: (roomId) => {
+          router.push(`/chat/rooms/${roomId}`);
+        },
+        onError: (error) => {
+          const message = error instanceof Error ? error.message : '알 수 없는 오류';
+          toast.error(`채팅 시작 실패: ${message}`);
+        },
+      }
+    );
   };
 
   const handleHostCancelMatch = () => {
@@ -292,7 +325,11 @@ export function MatchDetailView({
 
         <div className="h-px bg-slate-100 mx-5" />
 
-        <HostSection match={match} />
+        <HostSection
+          match={match}
+          isHost={isHost}
+          onStartChat={handleStartChat}
+        />
 
         <div className="h-px bg-slate-100 mx-5" />
 

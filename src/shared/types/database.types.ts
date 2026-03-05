@@ -276,6 +276,106 @@ export type Database = {
           },
         ]
       }
+      match_chat_messages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          room_id: string
+          sender_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          room_id: string
+          sender_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          room_id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_chat_messages_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "match_chat_rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_chat_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      match_chat_rooms: {
+        Row: {
+          created_at: string
+          guest_id: string
+          guest_last_read_at: string
+          host_id: string
+          host_last_read_at: string
+          id: string
+          last_message_at: string | null
+          last_message_preview: string | null
+          match_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          guest_id: string
+          guest_last_read_at?: string
+          host_id: string
+          host_last_read_at?: string
+          id?: string
+          last_message_at?: string | null
+          last_message_preview?: string | null
+          match_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          guest_id?: string
+          guest_last_read_at?: string
+          host_id?: string
+          host_last_read_at?: string
+          id?: string
+          last_message_at?: string | null
+          last_message_preview?: string | null
+          match_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_chat_rooms_guest_id_fkey"
+            columns: ["guest_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_chat_rooms_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_chat_rooms_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           actor_id: string | null
@@ -860,6 +960,8 @@ export type Team = Database['public']['Tables']['teams']['Row'];
 export type Gym = Database['public']['Tables']['gyms']['Row'];
 export type Match = Database['public']['Tables']['matches']['Row'];
 export type Application = Database['public']['Tables']['applications']['Row'];
+export type MatchChatRoom = Database['public']['Tables']['match_chat_rooms']['Row'];
+export type MatchChatMessage = Database['public']['Tables']['match_chat_messages']['Row'];
 export type Notification = Database['public']['Tables']['notifications']['Row'];
 export type TeamMember = Database['public']['Tables']['team_members']['Row'];
 export type UserSettings = Database['public']['Tables']['user_settings']['Row'];
@@ -871,6 +973,8 @@ export type TeamInsert = Database['public']['Tables']['teams']['Insert'];
 export type GymInsert = Database['public']['Tables']['gyms']['Insert'];
 export type MatchInsert = Database['public']['Tables']['matches']['Insert'];
 export type ApplicationInsert = Database['public']['Tables']['applications']['Insert'];
+export type MatchChatRoomInsert = Database['public']['Tables']['match_chat_rooms']['Insert'];
+export type MatchChatMessageInsert = Database['public']['Tables']['match_chat_messages']['Insert'];
 export type TeamFeeInsert = Database['public']['Tables']['team_fees']['Insert'];
 
 // Update types
@@ -878,6 +982,8 @@ export type UserUpdate = Database['public']['Tables']['users']['Update'];
 export type TeamUpdate = Database['public']['Tables']['teams']['Update'];
 export type MatchUpdate = Database['public']['Tables']['matches']['Update'];
 export type ApplicationUpdate = Database['public']['Tables']['applications']['Update'];
+export type MatchChatRoomUpdate = Database['public']['Tables']['match_chat_rooms']['Update'];
+export type MatchChatMessageUpdate = Database['public']['Tables']['match_chat_messages']['Update'];
 export type UserSettingsUpdate = Database['public']['Tables']['user_settings']['Update'];
 export type TeamFeeUpdate = Database['public']['Tables']['team_fees']['Update'];
 
