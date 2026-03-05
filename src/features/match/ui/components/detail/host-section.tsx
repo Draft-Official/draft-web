@@ -1,12 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
 import { GuestMatchDetailDTO } from '@/features/match/model/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/shadcn/avatar';
 import { Button } from '@/shared/ui/shadcn/button';
 import { MessageCircle, Users, Info } from 'lucide-react';
-import { ContactModal } from './contact-modal';
-import { toast } from '@/shared/ui/shadcn/sonner';
 import { Alert, AlertDescription } from '@/shared/ui/shadcn/alert';
 
 // 기본 팀 로고 (팀이 없을 때 사용)
@@ -14,11 +11,11 @@ const DEFAULT_TEAM_LOGO = '/logos/preset/logo-01.webp';
 
 interface HostSectionProps {
   match: GuestMatchDetailDTO;
+  isHost: boolean;
+  onStartChat: () => void;
 }
 
-export function HostSection({ match }: HostSectionProps) {
-  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
-
+export function HostSection({ match, isHost, onStartChat }: HostSectionProps) {
   // 팀명: teamId가 있으면 teamName, 없으면 manualTeamName
   const displayTeamName = match.teamId ? match.teamName : (match.manualTeamName || match.teamName || '팀');
 
@@ -27,14 +24,6 @@ export function HostSection({ match }: HostSectionProps) {
 
   // 팀 이니셜 (Fallback)
   const teamInitial = displayTeamName?.substring(0, 2) || 'TM';
-
-  const handleContactClick = () => {
-    if (!match.contactInfo) {
-      toast.error('연락처 정보가 없습니다.');
-      return;
-    }
-    setIsContactModalOpen(true);
-  };
 
   return (
     <section className="px-5 py-6">
@@ -56,9 +45,9 @@ export function HostSection({ match }: HostSectionProps) {
           variant="outline"
           size="sm"
           className="h-8 text-xs rounded-lg border-slate-200 hover:bg-slate-50 text-slate-600"
-          onClick={handleContactClick}
+          onClick={onStartChat}
         >
-          문의하기
+          {isHost ? '채팅 관리' : '채팅 문의'}
         </Button>
       </div>
 
@@ -81,16 +70,6 @@ export function HostSection({ match }: HostSectionProps) {
           </AlertDescription>
         </Alert>
       </div>
-
-      {/* Contact Modal */}
-      {match.contactInfo && (
-        <ContactModal
-          open={isContactModalOpen}
-          onOpenChange={setIsContactModalOpen}
-          contactType={match.contactInfo.type}
-          contactValue={match.contactInfo.value}
-        />
-      )}
     </section>
   );
 }

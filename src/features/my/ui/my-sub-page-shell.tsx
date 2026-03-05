@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 import { SubPageHeader } from './sub-page-header';
 
 const TITLE_MAP: Record<string, string> = {
-  '/my/contact': '문의하기',
+  '/my/contact': '채팅 문의',
   '/my/faq': 'FAQ',
   '/my/notices': '공지사항',
   '/my/account/phone': '전화번호 인증',

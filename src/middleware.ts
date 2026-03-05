@@ -9,6 +9,7 @@ import { updateSession } from '@/shared/api/supabase/middleware';
 const PROTECTED_ROUTES = [
   '/matches/create',
   '/schedule',
+  '/chat',
   '/my',
   '/team',
   '/signup/verify',

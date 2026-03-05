@@ -50,7 +50,6 @@ export { SkillSlider } from '@/shared/ui/composite/skill-slider';
 export { LegalPageLayout } from './ui/legal-page-layout';
 export { NotificationSettingsSection } from './ui/notification-settings-section';
 export { MenuSection } from './ui/menu-section';
-export { ContactView } from './ui/contact-view';
 export { MyPageFooter } from './ui/my-page-footer';
 export { PlaceholderPageView } from './ui/placeholder-page-view';
 export { PrivacyPageView } from './ui/privacy-page-view';

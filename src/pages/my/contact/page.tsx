@@ -1,7 +1,14 @@
 'use client';
 
-import { ContactView } from '@/features/my';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
-export default function ContactPage() {
-  return <ContactView />;
+export default function LegacyContactPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    router.replace('/chat');
+  }, [router]);
+
+  return null;
 }

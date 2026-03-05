@@ -30,7 +30,7 @@ function resolveTargetPath(
   const teamCode = matchRouteInfo?.teamCode;
 
   if (notification.type === 'APPLICATION_CANCELED_FRAUDULENT_PAYMENT') {
-    return '/my/contact';
+    return '/chat';
   }
 
   if (HOST_NOTIFICATION_TYPES.has(notification.type)) {
