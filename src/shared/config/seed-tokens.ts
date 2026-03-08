@@ -30,3 +30,37 @@ export const semanticColors = {
   primary: 'var(--color-fg-brand)',
   primaryForeground: 'var(--color-fg-neutral-inverted)',
 } as const;
+
+export const typographyTokens = {
+  fontSize: {
+    caption: 'var(--font-size-caption)',
+    bodySm: 'var(--font-size-body-sm)',
+    bodyMd: 'var(--font-size-body-md)',
+    titleSm: 'var(--font-size-title-sm)',
+    titleMd: 'var(--font-size-title-md)',
+    titleLg: 'var(--font-size-title-lg)',
+  },
+  lineHeight: {
+    caption: 'var(--line-height-caption)',
+    bodySm: 'var(--line-height-body-sm)',
+    bodyMd: 'var(--line-height-body-md)',
+    titleSm: 'var(--line-height-title-sm)',
+    titleMd: 'var(--line-height-title-md)',
+    titleLg: 'var(--line-height-title-lg)',
+  },
+  weight: {
+    regular: 'var(--typo-weight-regular)',
+    medium: 'var(--typo-weight-medium)',
+    semibold: 'var(--typo-weight-semibold)',
+    bold: 'var(--typo-weight-bold)',
+    extrabold: 'var(--typo-weight-extrabold)',
+  },
+} as const;
+
+export const iconSizeTokens = {
+  xs: 'var(--icon-size-xs)',
+  sm: 'var(--icon-size-sm)',
+  md: 'var(--icon-size-md)',
+  lg: 'var(--icon-size-lg)',
+  xl: 'var(--icon-size-xl)',
+} as const;

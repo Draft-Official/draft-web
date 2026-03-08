@@ -55,7 +55,7 @@ export function BankLogo({ bankName, className }: BankLogoProps) {
     <span
       aria-hidden="true"
       className={cn(
-        'inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold',
+        'inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-semibold leading-none',
         badgeClass,
         className
       )}

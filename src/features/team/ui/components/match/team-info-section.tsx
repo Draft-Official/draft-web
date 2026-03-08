@@ -23,7 +23,7 @@ export function TeamInfoSection({ team }: TeamInfoSectionProps) {
             </AvatarFallback>
           </Avatar>
           <div>
-            <div className="text-[13px] font-bold text-slate-900">{team.name}</div>
+            <div className="text-sm font-bold text-slate-900">{team.name}</div>
           </div>
         </div>
       </div>

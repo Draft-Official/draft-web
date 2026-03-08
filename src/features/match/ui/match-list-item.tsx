@@ -65,7 +65,7 @@ export const MatchListItem = React.memo(function MatchListItem({
       <div className="flex justify-between items-start mb-0.5">
         <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
           <h3 className={cn(
-            "font-bold truncate leading-tight text-[17px]",
+            "font-bold truncate leading-tight text-lg",
             match.isClosed ? "text-slate-400" : "text-slate-900"
           )}>
             {match.gymName}
@@ -86,7 +86,7 @@ export const MatchListItem = React.memo(function MatchListItem({
           
           {/* NEW Badge (마감 경기에는 미표시) */}
           {match.isNew && !match.isClosed && (
-            <Badge variant="destructive" className="text-[10px] px-1.5 py-0 h-[18px]">
+            <Badge variant="destructive" className="text-xs px-1.5 py-0 h-[18px]">
               NEW
             </Badge>
           )}
@@ -105,14 +105,14 @@ export const MatchListItem = React.memo(function MatchListItem({
         <div className="flex items-center gap-2 mb-0.5">
           {/* Date */}
           <span className={cn(
-            "text-[16px] font-bold tracking-tight text-slate-900",
+            "text-base font-bold tracking-tight text-slate-900",
             match.isClosed && "text-slate-400"
           )}>
             {getDayLabel(match.dateISO)}
           </span>
           {/* Time */}
           <span className={cn(
-            "text-[16px] font-bold tracking-tight text-slate-900",
+            "text-base font-bold tracking-tight text-slate-900",
             match.isClosed && "text-slate-400"
           )}>
             {match.startTime}
@@ -173,7 +173,7 @@ export const MatchListItem = React.memo(function MatchListItem({
               )}
             </>
           ) : (
-            <span className="inline-flex items-center px-2 py-0.5 rounded-[6px] border border-slate-300 text-[11px] h-[22px] font-medium text-slate-900 whitespace-nowrap">
+            <span className="inline-flex items-center px-2 py-0.5 rounded-[6px] border border-slate-300 text-xs h-[22px] font-medium text-slate-900 whitespace-nowrap">
               {match.positionsDisplay}
             </span>
           )}

@@ -52,11 +52,11 @@ export function NotificationBell({
     !!unreadCount &&
     unreadCount > 0 &&
     (variant === 'sidebar' && !compact ? (
-      <span className="ml-auto inline-flex min-w-[20px] h-5 items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-bold leading-none text-white">
+      <span className="ml-auto inline-flex min-w-[20px] h-5 shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-primary px-1.5 text-xs font-bold leading-none text-white">
         {unreadCount > 99 ? '99+' : unreadCount}
       </span>
     ) : (
-      <span className="absolute top-1 right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[11px] font-bold text-white bg-primary rounded-full leading-none">
+      <span className="absolute top-1 right-1 flex min-w-[18px] shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-primary px-1 text-xs font-bold leading-none text-white h-[18px]">
         {unreadCount > 99 ? '99+' : unreadCount}
       </span>
     ));

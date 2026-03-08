@@ -94,7 +94,7 @@ export function AccountRegisterModal({
             />
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-[180px_1fr]">
             <div className="space-y-2">
               <Label>은행</Label>
               <BankCombobox

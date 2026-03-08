@@ -77,7 +77,7 @@ export function GuestRecruitmentCard({
         headerSlot={
           !isPastMatch && notifications && notifications.length > 0 ? (
             <div className="bg-brand-weak px-4 py-2 flex items-center gap-2">
-              <span className="inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold text-white bg-primary rounded leading-none shrink-0">
+              <span className="inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold text-white bg-primary rounded leading-none shrink-0">
                 new
               </span>
               <span className="text-xs font-medium text-slate-600 truncate">

@@ -64,7 +64,7 @@ export function Sidebar({ compact = false, actionSlot }: SidebarProps) {
                       : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                   )}
                 >
-                  <item.icon className="w-6 h-6" strokeWidth={isActive ? 2.5 : 1.8} />
+                  <item.icon className="i-lg" strokeWidth={isActive ? 2.5 : 1.8} />
                   <span className="sr-only">{item.label}</span>
                 </Link>
               </Fragment>
@@ -109,7 +109,7 @@ export function Sidebar({ compact = false, actionSlot }: SidebarProps) {
                   isActive ? "font-bold text-slate-900" : "text-slate-600"
                 )}
               >
-                <item.icon className="w-7 h-7" strokeWidth={isActive ? 2.5 : 1.5} />
+                  <item.icon className="i-xl" strokeWidth={isActive ? 2.5 : 1.5} />
                 <span>{item.label}</span>
               </Link>
             </Fragment>

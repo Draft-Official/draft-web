@@ -90,7 +90,7 @@ function MessageBubble({ message }: { message: MatchChatMessageDTO }) {
         >
           {message.body}
         </div>
-        <p className={cn('mt-1 text-[11px] text-slate-400', message.isMine ? 'text-right' : 'text-left')}>
+        <p className={cn('mt-1 text-xs text-slate-400', message.isMine ? 'text-right' : 'text-left')}>
           {formatKSTTime(message.createdAt)}
         </p>
       </div>
@@ -387,7 +387,7 @@ export function ChatRoomView({ roomId, layoutMode = 'page' }: ChatRoomViewProps)
           </div>
 
           {room.isMuted ? (
-            <span className="ml-2 inline-flex rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold text-slate-500">
+            <span className="ml-2 inline-flex shrink-0 whitespace-nowrap rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-semibold leading-none text-slate-500">
               알림 꺼짐
             </span>
           ) : null}
@@ -464,7 +464,7 @@ export function ChatRoomView({ roomId, layoutMode = 'page' }: ChatRoomViewProps)
             {groupedMessages.map((section) => (
               <section key={section.dayKey}>
                 <div className="mb-3 flex justify-center">
-                  <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-medium text-slate-500">
+                  <span className="inline-flex items-center whitespace-nowrap rounded-full bg-slate-100 px-3 py-1 text-xs font-medium leading-none text-slate-500">
                     {section.dateLabel}
                   </span>
                 </div>

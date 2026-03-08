@@ -56,11 +56,11 @@ export function MatchCreateFacilities({
             <div className="flex items-center gap-2">
                 <Label className="text-sm font-bold text-slate-600">시설 정보</Label>
                 {isExistingGym ? (
-                    <span className="text-[11px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                    <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
                         정보가 다르다면 수정해 주세요
                     </span>
                 ) : (
-                    <span className="text-[11px] font-bold text-primary bg-brand-weak px-2 py-0.5 rounded-full">
+                    <span className="text-xs font-bold text-primary bg-brand-weak px-2 py-0.5 rounded-full">
                         작성시 문의가 80% 감소해요!
                     </span>
                 )}

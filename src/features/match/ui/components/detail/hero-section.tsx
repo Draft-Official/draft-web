@@ -37,7 +37,7 @@ export function HeroSection({ match }: HeroSectionProps) {
     <div className="bg-white px-5 pt-6 pb-6 relative">
 
       {/* 0. Main Title (Team Name) */}
-      <h1 className="text-[26px] font-extrabold text-slate-900 mb-4 tracking-tight leading-tight">
+      <h1 className="text-2xl font-extrabold text-slate-900 mb-4 tracking-tight leading-tight">
         {match.teamName}에서 게스트 모집합니다!
       </h1>
 
@@ -71,12 +71,12 @@ export function HeroSection({ match }: HeroSectionProps) {
                 onClick={() => {
                   document.getElementById('facility-section')?.scrollIntoView({ behavior: 'smooth' });
                 }}
-                className="text-[11px] font-medium text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded hover:bg-slate-200 transition-colors"
+                className="text-xs font-medium text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded hover:bg-slate-200 transition-colors"
               >
                 편의시설 정보
               </button>
             </div>
-            <div className="flex items-center flex-wrap gap-x-2 text-[13px]">
+            <div className="flex items-center flex-wrap gap-x-2 text-sm">
               <span className="text-slate-500">{match.address}</span>
               <span className="text-slate-300">|</span>
               <button
@@ -102,7 +102,7 @@ export function HeroSection({ match }: HeroSectionProps) {
             {/* Speech Bubble Badge - 음료 제공 시에만 표시 */}
             {Boolean(match.facilities?.providesBeverage) && (
               <div className="absolute -top-6 left-0 px-2 py-0.5 bg-primary rounded-full shadow-sm whitespace-nowrap z-10">
-                <span className="text-[10px] font-bold text-white tracking-wide block">
+                <span className="text-xs font-bold text-white tracking-wide block">
                   물/음료 제공
                 </span>
                 {/* Tail */}

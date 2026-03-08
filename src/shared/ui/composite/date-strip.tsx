@@ -97,8 +97,8 @@ export function DateStrip({
                   : 'bg-background border-border text-foreground/80 hover:bg-muted/60'
               )}
             >
-              <span className="text-[11px] font-medium">전체</span>
-              <span className="text-[13px] font-bold">보기</span>
+              <span className="text-xs font-medium">전체</span>
+              <span className="text-sm font-bold">보기</span>
             </button>
           )}
 
@@ -117,7 +117,7 @@ export function DateStrip({
             >
               <span
                 className={cn(
-                  'text-[11px] font-medium',
+                  'text-xs font-medium',
                   selectedDate === d.dateISO ? 'text-background/80' : 'text-muted-foreground'
                 )}
               >

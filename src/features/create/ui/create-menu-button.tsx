@@ -126,7 +126,7 @@ export function CreateMenuButton({
     <>
       <button
         type="button"
-        aria-label="만들기 메뉴 열기"
+        aria-label="게스트 모집하기 메뉴 열기"
         onClick={() => setIsCreateDialogOpen(true)}
         className={cn(
           variant === 'pill' &&

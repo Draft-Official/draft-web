@@ -74,7 +74,7 @@ function ChatRoomListItem({
                 {showRoleBadge ? (
                   <span
                     className={cn(
-                      'inline-flex shrink-0 rounded-full border px-1.5 py-0.5 text-[10px] font-semibold leading-none',
+                      'inline-flex shrink-0 whitespace-nowrap rounded-full border px-1.5 py-0.5 text-xs font-semibold leading-none',
                       ROLE_BADGE_STYLES[room.myRole]
                     )}
                   >
@@ -87,11 +87,11 @@ function ChatRoomListItem({
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-2">
-              <span className="text-[11px] text-slate-400">
+              <span className="text-xs text-slate-400">
                 {room.lastMessageAt ? formatRelativeTime(room.lastMessageAt) : ''}
               </span>
               {room.unreadCount > 0 && (
-                <span className="inline-flex min-w-5 justify-center rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-white">
+                <span className="inline-flex min-w-5 shrink-0 justify-center whitespace-nowrap rounded-full bg-primary px-1.5 py-0.5 text-xs font-bold leading-none text-white">
                   {room.unreadCount > 99 ? '99+' : room.unreadCount}
                 </span>
               )}
@@ -197,14 +197,14 @@ export function ChatInboxView({
         <p className="mt-1 text-sm text-slate-500">문의/응답을 채팅으로 빠르게 처리하세요.</p>
       </section>
 
-      <section className="mb-4 flex items-center gap-2 overflow-x-auto">
+      <section className="mb-4 flex items-center gap-2 overflow-x-auto no-scrollbar">
         {CHAT_MODE_TABS.map((tab) => (
           <button
             key={tab.mode}
             type="button"
             onClick={() => setMode(tab.mode)}
             className={cn(
-              'rounded-full border px-4 py-1.5 text-sm font-semibold transition-colors',
+              'shrink-0 whitespace-nowrap rounded-full border px-4 py-1.5 text-sm font-semibold leading-none transition-colors',
               mode === tab.mode
                 ? 'border-primary bg-brand-weak text-primary'
                 : 'border-slate-200 bg-white text-slate-500 hover:text-slate-700'
@@ -216,16 +216,16 @@ export function ChatInboxView({
       </section>
 
       {mode === 'all' ? (
-        <section className="mb-3 flex items-center gap-2 text-xs text-slate-500">
-          <span className={cn('rounded-full border px-1.5 py-0.5 font-semibold', ROLE_BADGE_STYLES.host)}>
+        <section className="mb-3 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+          <span className={cn('shrink-0 whitespace-nowrap rounded-full border px-1.5 py-0.5 font-semibold leading-none', ROLE_BADGE_STYLES.host)}>
             호스트
           </span>
-          <span>내가 모집한 경기 채팅</span>
-          <span className="text-slate-300">|</span>
-          <span className={cn('rounded-full border px-1.5 py-0.5 font-semibold', ROLE_BADGE_STYLES.guest)}>
+          <span className="whitespace-nowrap">내가 모집한 경기 채팅</span>
+          <span className="shrink-0 text-slate-300">|</span>
+          <span className={cn('shrink-0 whitespace-nowrap rounded-full border px-1.5 py-0.5 font-semibold leading-none', ROLE_BADGE_STYLES.guest)}>
             게스트
           </span>
-          <span>내가 문의한 경기 채팅</span>
+          <span className="whitespace-nowrap">내가 문의한 경기 채팅</span>
         </section>
       ) : null}
 

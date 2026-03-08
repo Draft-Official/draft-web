@@ -330,7 +330,7 @@ export function HostMatchDetailView({
               <h2 className="text-base font-bold text-slate-900">문의 채팅</h2>
               <p className="mt-0.5 text-xs text-slate-500">이 경기에 대한 문의 채팅을 빠르게 확인하세요.</p>
             </div>
-            <div className="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600">
+            <div className="shrink-0 whitespace-nowrap rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold leading-none text-slate-600">
               {chatRooms.length}개
             </div>
           </div>
@@ -365,11 +365,11 @@ export function HostMatchDetailView({
                       </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
-                      <span className="text-[11px] text-slate-400">
+                      <span className="text-xs text-slate-400">
                         {room.lastMessageAt ? formatRelativeTime(room.lastMessageAt) : ''}
                       </span>
                       {room.unreadCount > 0 ? (
-                        <span className="inline-flex min-w-5 justify-center rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-white">
+                        <span className="inline-flex min-w-5 shrink-0 justify-center whitespace-nowrap rounded-full bg-primary px-1.5 py-0.5 text-xs font-bold leading-none text-white">
                           {room.unreadCount > 99 ? '99+' : room.unreadCount}
                         </span>
                       ) : null}

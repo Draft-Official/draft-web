@@ -12,6 +12,6 @@ test('CREATE_ACTION_OPTIONS exposes exactly three create actions in order', () =
 test('CREATE_ACTION_OPTIONS has user-facing labels for each action', () => {
   assert.deepEqual(
     CREATE_ACTION_OPTIONS.map((option) => option.label),
-    ['게스트 경기 개설', '팀 생성', '팀 정기운동 생성']
+    ['게스트 경기 생성', '팀 생성', '팀 정기운동 생성']
   );
 });

@@ -104,7 +104,7 @@ function LayoutShellContent({ children }: { children: React.ReactNode }) {
             <LayoutHeader
               rightSlot={(
                 <div className="flex items-center gap-1.5">
-                  <CreateMenuButton />
+                  <CreateMenuButton className="border border-slate-900 bg-slate-50 text-slate-900 hover:bg-slate-100 active:bg-slate-200" />
                   <NotificationBell mode="panel" />
                 </div>
               )}

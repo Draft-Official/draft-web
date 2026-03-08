@@ -135,7 +135,7 @@ export function TeamExerciseVoteStatusDialog({
                       {group.names.map((name, index) => (
                         <span
                           key={`${group.key}-${name}-${index}`}
-                          className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-800"
+                          className="inline-flex items-center whitespace-nowrap rounded-full bg-slate-100 px-3 py-1 text-xs font-medium leading-none text-slate-800"
                         >
                           {name}
                         </span>
