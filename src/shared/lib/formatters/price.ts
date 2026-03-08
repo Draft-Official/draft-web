@@ -11,8 +11,15 @@ import type { CostTypeValue } from '@/shared/config/match-constants';
  * @example formatPrice('MONEY', 10000) => "10,000원"
  * @example formatPrice('BEVERAGE', 2) => "음료수 2병"
  */
-export function formatPrice(costType: CostTypeValue, amount: number | null): string {
+export function formatPrice(
+  costType: CostTypeValue | null | undefined,
+  amount: number | null | undefined
+): string {
+  const safeAmount = amount ?? 0;
+
   if (costType === 'FREE') return '무료';
-  if (costType === 'BEVERAGE') return `음료수 ${amount ?? 0}병`;
-  return `${(amount ?? 0).toLocaleString()}원`;
+  if (costType === 'BEVERAGE') return `음료수 ${safeAmount}병`;
+  if (!costType && safeAmount === 0) return '무료';
+
+  return `${safeAmount.toLocaleString()}원`;
 }
