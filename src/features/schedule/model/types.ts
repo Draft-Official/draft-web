@@ -3,6 +3,7 @@
  * Phase 2 확장성 가이드라인 준수
  */
 import type { TeamVoteStatusValue } from '@/shared/config/application-constants';
+import type { CostTypeValue } from '@/shared/config/match-constants';
 
 // ============================================
 // DTO Types (NEW)
@@ -74,6 +75,7 @@ export interface ScheduleMatchListItemDTO {
   applicationId?: string;
   approvalStatus?: string;
   paymentNotifiedAt?: string;
+  costType?: CostTypeValue;
   totalCost?: number;
   perCost?: number;
   companionCount?: number;
@@ -290,7 +292,7 @@ export interface ParticipatingMatchRow {
   manual_team_name: string;
   start_time: string;
   end_time: string;
-  cost_type: string;
+  cost_type: CostTypeValue;
   cost_amount: number;
   status: string;
   account_info: { bank?: string; number?: string; holder?: string } | null;

@@ -307,8 +307,9 @@ export function useParticipatingMatches() {
             applicationId: app.id,
             approvalStatus: approvalStatusText,
             paymentNotifiedAt: (app as unknown as { payment_notified_at?: string }).payment_notified_at || undefined,
-            totalCost: match.cost_amount ? match.cost_amount * totalCount : undefined,
-            perCost: companionCount > 0 ? match.cost_amount : undefined,
+            costType: match.cost_type,
+            totalCost: match.cost_amount != null ? match.cost_amount * totalCount : undefined,
+            perCost: companionCount > 0 && match.cost_amount != null ? match.cost_amount : undefined,
             companionCount: companionCount > 0 ? companionCount : undefined,
             bankInfo: match.account_info?.bank && match.account_info?.number && match.account_info?.holder
               ? {

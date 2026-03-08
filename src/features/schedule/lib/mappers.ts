@@ -155,15 +155,6 @@ export function toMatchApplicantDTO(
 // ============================================
 
 /**
- * DB match_type → UI MatchType 변환
- */
-function dbMatchTypeToMatchType(dbMatchType: string | null | undefined): MatchType {
-  if (dbMatchType === 'TEAM_MATCH') return 'team';
-  if (dbMatchType === 'TOURNAMENT') return 'tournament';
-  return 'guest'; // GUEST_RECRUIT, PICKUP, 기타 → guest
-}
-
-/**
  * DB Match → ScheduleMatchListItemDTO 변환
  */
 export function toScheduleMatchListItemDTO(
@@ -204,6 +195,7 @@ export function toScheduleMatchListItemDTO(
     vacancies: type === 'host' ? vacancies : undefined,
 
     // Guest specific
+    costType: type === 'guest' ? (match.cost_type as ScheduleMatchListItemDTO['costType']) : undefined,
     totalCost: type === 'guest' ? (match.cost_amount ?? undefined) : undefined,
   };
 }

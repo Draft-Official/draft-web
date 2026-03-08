@@ -13,6 +13,7 @@ import {
 import { Badge } from '@/shared/ui/shadcn/badge';
 import { cn } from '@/shared/lib/utils';
 import { formatMatchDate, formatMatchTime } from '@/shared/lib/datetime';
+import { formatPrice } from '@/shared/lib/formatters';
 import { toast } from '@/shared/ui/shadcn/sonner';
 import type { ScheduleMatchListItemDTO } from '../../model/types';
 import {
@@ -56,6 +57,12 @@ export function ApplicationInfoDialog({
   const isPaymentWaiting = match.status === 'payment_waiting';
   const isPending = match.status === 'waiting' || match.status === 'pending';
   const canCancel = isPending;
+  const totalCostText = match.totalCost != null
+    ? formatPrice(match.costType, match.totalCost)
+    : null;
+  const perCostText = match.perCost != null
+    ? formatPrice(match.costType, match.perCost)
+    : null;
 
   const handleCopyBankInfo = () => {
     if (!match.bankInfo) return;
@@ -157,10 +164,10 @@ export function ApplicationInfoDialog({
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-slate-500">참가비</span>
                     <span className="text-sm font-medium text-slate-900">
-                      {match.totalCost.toLocaleString()}원
-                      {match.perCost != null && match.companionCount != null && (
+                      {totalCostText}
+                      {match.companionCount != null && perCostText && (
                         <span className="text-slate-400 ml-1">
-                          (인당 {match.perCost.toLocaleString()}원)
+                          (인당 {perCostText})
                         </span>
                       )}
                     </span>

@@ -6,6 +6,7 @@ import { Badge } from '@/shared/ui/shadcn/badge';
 import { Button } from '@/shared/ui/shadcn/button';
 import { MatchCardLayout } from '@/shared/ui/composite/match-card-layout';
 import { cn } from '@/shared/lib/utils';
+import { formatPrice } from '@/shared/lib/formatters';
 import { DESKTOP_SPLIT_ACTIVE_CARD_CLASS } from '@/shared/ui/layout';
 import type { ScheduleMatchListItemDTO } from '../../model/types';
 import type { UnreadMatchNotificationDTO } from '@/features/notification';
@@ -48,6 +49,13 @@ export function GuestRecruitmentCard({
       window.open(match.locationUrl, '_blank');
     }
   };
+
+  const totalCostText = match.totalCost != null
+    ? formatPrice(match.costType, match.totalCost)
+    : '-';
+  const perCostText = match.perCost != null
+    ? formatPrice(match.costType, match.perCost)
+    : null;
 
   return (
     <>
@@ -120,11 +128,11 @@ export function GuestRecruitmentCard({
             <div className="flex items-center justify-between">
               <div className="flex items-baseline gap-1">
                 <span className="font-bold text-slate-900 text-base">
-                  {match.totalCost?.toLocaleString()}원
+                  {totalCostText}
                 </span>
-                {match.companionCount != null && match.perCost != null && (
+                {match.companionCount != null && perCostText && (
                   <span className="text-xs text-slate-400">
-                    (인당:{match.perCost.toLocaleString()}원)
+                    (인당:{perCostText})
                   </span>
                 )}
               </div>
