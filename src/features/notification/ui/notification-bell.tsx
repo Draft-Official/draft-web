@@ -90,6 +90,7 @@ export function NotificationBell({
             <SheetTitle>알림</SheetTitle>
           </SheetHeader>
           <NotificationPanel
+            mode="sheet"
             onCloseClick={() => {
               setOpen(false);
             }}
@@ -121,6 +122,7 @@ export function NotificationBell({
           className="w-[420px] max-w-[calc(100vw-24px)] rounded-2xl border border-slate-200 bg-white p-0 gap-0 shadow-2xl"
         >
           <NotificationPanel
+            mode="popover"
             onCloseClick={() => {
               setOpen(false);
             }}

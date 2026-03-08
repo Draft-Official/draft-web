@@ -74,7 +74,7 @@ export function MyTeamsTab({ onTeamMatchSelect, activeTeamMatchPath }: MyTeamsTa
       {/* 나의 팀 카드 섹션 */}
       <section className="pb-(--dimension-spacing-y-component-default)">
         <ScrollArea className="w-full">
-          <div className="flex gap-(--dimension-spacing-y-component-default) px-(--dimension-spacing-x-global-gutter) py-1">
+          <div className="flex gap-(--dimension-spacing-y-component-default) px-(--dimension-spacing-x-global-gutter) pt-1 pb-3">
             {teams.map((team) => (
               <TeamProfileCard
                 key={team.id}
