@@ -459,29 +459,31 @@ export function MatchCreateOperations({
                 <Label className="text-sm font-bold text-slate-600">계좌 정보</Label>
                 <span className="text-red-500 text-xs">*</span>
               </div>
-              <div className="flex gap-2">
+              <div className="space-y-2">
                 <Input
                   value={accountHolder}
                   placeholder="예금주"
-                  className="w-[90px] h-11 bg-white border-slate-200"
+                  className="h-11 bg-white border-slate-200"
                   onChange={(e) => {
                     setValue('accountHolder', sanitizeAccountHolderInput(e.target.value));
                   }}
                 />
-                <BankCombobox
-                  value={bankName}
-                  onValueChange={(value) => setValue('bankName', value)}
-                  className="w-[100px] h-11 bg-white border-slate-200"
-                />
-                <Input
-                  value={accountNumber}
-                  placeholder="계좌번호 (숫자만)"
-                  className="flex-1 h-11 bg-white border-slate-200"
-                  inputMode="numeric"
-                  onChange={(e) => {
-                    setValue('accountNumber', sanitizeAccountNumberInput(e.target.value));
-                  }}
-                />
+                <div className="grid gap-2 sm:grid-cols-[140px_1fr]">
+                  <BankCombobox
+                    value={bankName}
+                    onValueChange={(value) => setValue('bankName', value)}
+                    className="w-full h-11 bg-white border-slate-200"
+                  />
+                  <Input
+                    value={accountNumber}
+                    placeholder="계좌번호 (숫자만)"
+                    className="w-full h-11 bg-white border-slate-200"
+                    inputMode="numeric"
+                    onChange={(e) => {
+                      setValue('accountNumber', sanitizeAccountNumberInput(e.target.value));
+                    }}
+                  />
+                </div>
               </div>
               <p className="text-xs text-slate-400">
                 예금주: 한글 2-10자 / 계좌번호: 숫자만 10-16자리

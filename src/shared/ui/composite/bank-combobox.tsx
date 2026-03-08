@@ -15,6 +15,7 @@ import {
   CommandList,
 } from '@/shared/ui/shadcn/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/shadcn/popover';
+import { BankLogo } from '@/shared/ui/composite/bank-logo';
 
 interface BankComboboxProps {
   value: string;
@@ -42,11 +43,14 @@ export function BankCombobox({
           aria-expanded={open}
           className={cn('justify-between font-normal', !value && 'text-muted-foreground', className)}
         >
-          {selectedBank ? selectedBank.label : placeholder}
+          <span className="flex min-w-0 items-center gap-2">
+            {selectedBank && <BankLogo bankName={selectedBank.label} />}
+            <span className="truncate">{selectedBank ? selectedBank.label : placeholder}</span>
+          </span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0" align="start">
+      <PopoverContent className="w-[240px] p-0" align="start">
         <Command>
           <CommandInput placeholder="은행 검색..." />
           <CommandList>
@@ -56,13 +60,15 @@ export function BankCombobox({
                 <CommandItem
                   key={bank.value}
                   value={bank.value}
+                  className="gap-2"
                   onSelect={(currentValue) => {
                     onValueChange(currentValue === value ? '' : currentValue);
                     setOpen(false);
                   }}
                 >
-                  <Check className={cn('mr-2 h-4 w-4', value === bank.value ? 'opacity-100' : 'opacity-0')} />
-                  {bank.label}
+                  <Check className={cn('h-4 w-4', value === bank.value ? 'opacity-100' : 'opacity-0')} />
+                  <BankLogo bankName={bank.label} />
+                  <span>{bank.label}</span>
                 </CommandItem>
               ))}
             </CommandGroup>
@@ -71,13 +77,15 @@ export function BankCombobox({
                 <CommandItem
                   key={bank.value}
                   value={bank.value}
+                  className="gap-2"
                   onSelect={(currentValue) => {
                     onValueChange(currentValue === value ? '' : currentValue);
                     setOpen(false);
                   }}
                 >
-                  <Check className={cn('mr-2 h-4 w-4', value === bank.value ? 'opacity-100' : 'opacity-0')} />
-                  {bank.label}
+                  <Check className={cn('h-4 w-4', value === bank.value ? 'opacity-100' : 'opacity-0')} />
+                  <BankLogo bankName={bank.label} />
+                  <span>{bank.label}</span>
                 </CommandItem>
               ))}
             </CommandGroup>
