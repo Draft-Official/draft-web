@@ -21,6 +21,7 @@ import { Switch } from '@/shared/ui/shadcn/switch';
 import { Toggle } from '@/shared/ui/shadcn/toggle';
 import { Checkbox } from '@/shared/ui/shadcn/checkbox';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/shared/ui/shadcn/accordion';
+import { formatPrice } from '@/shared/lib/formatters';
 import { useAuth, useUpdateProfile } from '@/shared/session';
 import { useCreateApplication, useUserTeams } from '@/features/application';
 import type { ApplyCompanionDTO, ApplyFormDTO } from '../model/types';
@@ -31,6 +32,7 @@ import {
   sessionProfileToApplyModalViewDTO,
 } from '../lib';
 import { POSITION_OPTIONS } from '@/shared/config/match-constants';
+import type { CostTypeValue } from '@/shared/config/match-constants';
 import { SKILL_LEVELS } from '@/shared/config/skill-constants';
 
 const MAX_COMPANIONS = 9;
@@ -41,6 +43,7 @@ interface ApplyModalProps {
   matchId: string;
   matchTitle?: string;
   costAmount?: number;
+  costType?: CostTypeValue | null;
 }
 
 export function ApplyModal({
@@ -49,6 +52,7 @@ export function ApplyModal({
   matchId,
   matchTitle,
   costAmount,
+  costType,
 }: ApplyModalProps) {
   const { user, profile, refreshProfile } = useAuth();
   const createApplication = useCreateApplication();
@@ -65,6 +69,11 @@ export function ApplyModal({
   const [hasCompanions, setHasCompanions] = useState(false);
   const [companions, setCompanions] = useState<ApplyCompanionDTO[]>([]);
   const [isAgreed, setIsAgreed] = useState(false);
+  const participantCount = companions.length + 1;
+  const perPersonCostText = costAmount != null ? formatPrice(costType, costAmount) : null;
+  const totalCostText = costAmount != null
+    ? formatPrice(costType, costAmount * participantCount)
+    : null;
 
   useEffect(() => {
     if (profile) {
@@ -151,15 +160,15 @@ export function ApplyModal({
                 {hasCompanions && companions.length > 0 ? (
                   <div className="text-right">
                     <span className="text-xs text-slate-500 block">
-                      1인 {costAmount.toLocaleString()}원 × {companions.length + 1}명
+                      1인 {perPersonCostText} × {participantCount}명
                     </span>
                     <span className="text-lg font-bold text-primary">
-                      {(costAmount * (companions.length + 1)).toLocaleString()}원
+                      {totalCostText}
                     </span>
                   </div>
                 ) : (
                   <span className="text-lg font-bold text-primary">
-                    {costAmount.toLocaleString()}원
+                    {perPersonCostText}
                   </span>
                 )}
               </div>
