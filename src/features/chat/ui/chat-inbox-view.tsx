@@ -19,6 +19,11 @@ const CHAT_MODE_TABS: Array<{ mode: ChatMode; label: string }> = [
   { mode: 'guest', label: '게스트' },
 ];
 
+const ROLE_BADGE_STYLES: Record<'host' | 'guest', string> = {
+  host: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+  guest: 'border-blue-200 bg-blue-50 text-blue-700',
+};
+
 function formatMatchSummary(iso: string): string {
   const parts = getKSTDateParts(iso);
   if (!parts) {
@@ -31,11 +36,14 @@ function formatMatchSummary(iso: string): string {
 function ChatRoomListItem({
   room,
   onClick,
+  showRoleBadge = false,
 }: {
   room: MatchChatRoomListItemDTO;
   onClick: () => void;
+  showRoleBadge?: boolean;
 }) {
   const initial = room.otherUserName.substring(0, 1) || 'U';
+  const roleLabel = room.myRole === 'host' ? '호스트' : '게스트';
 
   return (
     <button
@@ -54,7 +62,19 @@ function ChatRoomListItem({
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <p className="truncate text-sm font-bold text-slate-900">{room.otherUserName}</p>
+              <div className="flex items-center gap-1.5">
+                <p className="truncate text-sm font-bold text-slate-900">{room.otherUserName}</p>
+                {showRoleBadge ? (
+                  <span
+                    className={cn(
+                      'inline-flex shrink-0 rounded-full border px-1.5 py-0.5 text-[10px] font-semibold leading-none',
+                      ROLE_BADGE_STYLES[room.myRole]
+                    )}
+                  >
+                    {roleLabel}
+                  </span>
+                ) : null}
+              </div>
               <p className="truncate text-xs text-slate-500">
                 {room.teamName} · {formatMatchSummary(room.matchStartTimeISO)}
               </p>
@@ -168,6 +188,20 @@ export function ChatInboxView() {
         ))}
       </section>
 
+      {mode === 'all' ? (
+        <section className="mb-3 flex items-center gap-2 text-xs text-slate-500">
+          <span className={cn('rounded-full border px-1.5 py-0.5 font-semibold', ROLE_BADGE_STYLES.host)}>
+            호스트
+          </span>
+          <span>내가 모집한 경기 채팅</span>
+          <span className="text-slate-300">|</span>
+          <span className={cn('rounded-full border px-1.5 py-0.5 font-semibold', ROLE_BADGE_STYLES.guest)}>
+            게스트
+          </span>
+          <span>내가 문의한 경기 채팅</span>
+        </section>
+      ) : null}
+
       {isLoading ? (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-100 bg-white py-14">
           <Spinner className="mb-3 h-7 w-7 text-muted-foreground" />
@@ -194,7 +228,12 @@ export function ChatInboxView() {
       {!isLoading && !isError && rooms.length > 0 && mode !== 'host' ? (
         <div className="space-y-2.5">
           {rooms.map((room) => (
-            <ChatRoomListItem key={room.roomId} room={room} onClick={() => openRoom(room.roomId)} />
+            <ChatRoomListItem
+              key={room.roomId}
+              room={room}
+              showRoleBadge={mode === 'all'}
+              onClick={() => openRoom(room.roomId)}
+            />
           ))}
         </div>
       ) : null}
