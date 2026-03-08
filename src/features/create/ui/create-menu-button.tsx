@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ComponentType } from 'react';
 import { useRouter } from 'next/navigation';
 import { Calendar, Clock, Plus, Users } from 'lucide-react';
 import { TEAM_ROLE_LABELS } from '@/shared/config/team-constants';
 import { LoginRequiredModal } from '@/features/auth';
+import { CREATE_ACTION_OPTIONS, type CreateActionOptionId } from '@/features/create/lib/create-action-options';
 import { useMyTeams } from '@/features/team/api/team-info/queries';
 import { useAuth } from '@/shared/session';
 import { cn } from '@/shared/lib/utils';
@@ -15,28 +16,28 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/shared/ui/shadcn/dialog';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/shared/ui/shadcn/dropdown-menu';
 
 interface CreateMenuButtonProps {
   className?: string;
+  compact?: boolean;
+  variant?: 'pill' | 'sidebar';
 }
 
-export function CreateMenuButton({ className }: CreateMenuButtonProps) {
+export function CreateMenuButton({
+  className,
+  compact = false,
+  variant = 'pill',
+}: CreateMenuButtonProps) {
   const router = useRouter();
   const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
 
-  const [isOpen, setIsOpen] = useState(false);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isTeamSelectModalOpen, setIsTeamSelectModalOpen] = useState(false);
   const [isResolvingTeamCreate, setIsResolvingTeamCreate] = useState(false);
   const [loginRedirectPath, setLoginRedirectPath] = useState('/');
 
-  const shouldLoadTeams = isAuthenticated && isOpen;
+  const shouldLoadTeams = isAuthenticated && isCreateDialogOpen;
   const { data: myTeams, refetch: refetchMyTeams } = useMyTeams(user?.id, {
     enabled: shouldLoadTeams,
   });
@@ -57,7 +58,7 @@ export function CreateMenuButton({ className }: CreateMenuButtonProps) {
   };
 
   const navigateIfAllowed = (path: string) => {
-    setIsOpen(false);
+    setIsCreateDialogOpen(false);
     if (!requireAuth(path)) return;
     router.push(path);
   };
@@ -71,7 +72,7 @@ export function CreateMenuButton({ className }: CreateMenuButtonProps) {
   };
 
   const handleTeamRegularMatchCreate = async () => {
-    setIsOpen(false);
+    setIsCreateDialogOpen(false);
     if (!requireAuth('/team')) return;
 
     setIsResolvingTeamCreate(true);
@@ -101,52 +102,99 @@ export function CreateMenuButton({ className }: CreateMenuButtonProps) {
     router.push(`/team/${teamCode}/match/create`);
   };
 
+  const ACTION_ICON_MAP: Record<CreateActionOptionId, ComponentType<{ className?: string }>> = {
+    'guest-match': Calendar,
+    'team-create': Users,
+    'team-regular': Clock,
+  };
+
+  const handleCreateActionSelect = (actionId: CreateActionOptionId) => {
+    if (actionId === 'guest-match') {
+      handleGuestMatchCreate();
+      return;
+    }
+
+    if (actionId === 'team-create') {
+      handleTeamCreate();
+      return;
+    }
+
+    void handleTeamRegularMatchCreate();
+  };
+
   return (
     <>
-      <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
-        <DropdownMenuTrigger asChild>
-          <button
-            type="button"
-            aria-label="만들기 메뉴 열기"
+      <button
+        type="button"
+        aria-label="만들기 메뉴 열기"
+        onClick={() => setIsCreateDialogOpen(true)}
+        className={cn(
+          variant === 'pill' &&
+            'inline-flex h-10 items-center rounded-full bg-primary text-white transition-colors hover:bg-primary/90',
+          variant === 'pill' && (compact ? 'w-10 justify-center p-0' : 'gap-2 px-4'),
+          variant === 'sidebar' &&
+            'flex w-full rounded-xl text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900',
+          variant === 'sidebar' &&
+            (compact
+              ? 'items-center justify-center px-2 py-3'
+              : 'items-center gap-4 px-4 py-3 text-lg font-medium'),
+          'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2',
+          className
+        )}
+      >
+        <Plus
+          className={cn(
+            variant === 'sidebar' ? (compact ? 'h-6 w-6' : 'h-7 w-7') : 'h-5 w-5'
+          )}
+          strokeWidth={2.5}
+        />
+        {compact ? (
+          <span className="sr-only">만들기</span>
+        ) : (
+          <span
             className={cn(
-              'inline-flex h-10 items-center gap-2 rounded-full bg-primary px-4 text-white transition-colors hover:bg-primary/90',
-              'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2',
-              className
+              variant === 'sidebar'
+                ? 'text-lg font-medium leading-none'
+                : 'text-base font-semibold leading-none'
             )}
           >
-            <Plus className="h-5 w-5" strokeWidth={2.5} />
-            <span className="text-base font-semibold leading-none">만들기</span>
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent
-          align="end"
-          sideOffset={10}
-          className="w-64 rounded-2xl border border-slate-200 bg-white p-2 text-slate-900 shadow-2xl"
-        >
-          <DropdownMenuItem
-            onClick={handleGuestMatchCreate}
-            className="h-12 gap-3 rounded-xl bg-white px-3 text-base text-slate-900 focus:bg-slate-100 focus:text-slate-900"
-          >
-            <Calendar className="h-5 w-5 text-slate-500" />
-            게스트 경기 개설
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={handleTeamCreate}
-            className="h-12 gap-3 rounded-xl bg-white px-3 text-base text-slate-900 focus:bg-slate-100 focus:text-slate-900"
-          >
-            <Users className="h-5 w-5 text-slate-500" />
-            팀 생성
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={handleTeamRegularMatchCreate}
-            disabled={isResolvingTeamCreate}
-            className="h-12 gap-3 rounded-xl bg-white px-3 text-base text-slate-900 focus:bg-slate-100 focus:text-slate-900"
-          >
-            <Clock className="h-5 w-5 text-slate-500" />
-            {isResolvingTeamCreate ? '팀 목록 확인 중...' : '팀 정기운동 생성'}
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+            만들기
+          </span>
+        )}
+      </button>
+
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent size="sm" className="rounded-2xl">
+          <DialogHeader className="gap-1">
+            <DialogTitle className="text-lg font-bold text-slate-900">만들기</DialogTitle>
+            <DialogDescription className="text-slate-500">
+              아래 항목 중 하나를 선택해 주세요.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="mt-1 space-y-2">
+            {CREATE_ACTION_OPTIONS.map((option) => {
+              const Icon = ACTION_ICON_MAP[option.id];
+              const isTeamRegular = option.id === 'team-regular';
+              const label =
+                isTeamRegular && isResolvingTeamCreate ? '팀 목록 확인 중...' : option.label;
+
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() => handleCreateActionSelect(option.id)}
+                  disabled={isTeamRegular && isResolvingTeamCreate}
+                  className="flex h-12 w-full items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 text-left text-base text-slate-900 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  <Icon className="h-5 w-5 text-slate-500" />
+                  <span>{label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <LoginRequiredModal
         open={isLoginModalOpen}
