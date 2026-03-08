@@ -18,6 +18,7 @@ import type { MatchChatMessageDTO } from '../model/types';
 
 interface ChatRoomViewProps {
   roomId: string;
+  layoutMode?: 'page' | 'split';
 }
 
 function formatRoomMeta(iso: string): string {
@@ -69,9 +70,10 @@ function MessageBubble({ message }: { message: MatchChatMessageDTO }) {
   );
 }
 
-export function ChatRoomView({ roomId }: ChatRoomViewProps) {
+export function ChatRoomView({ roomId, layoutMode = 'page' }: ChatRoomViewProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const isSplitLayout = layoutMode === 'split';
 
   const { data: room, isLoading: isLoadingRoom, isError: isRoomError } = useMatchChatRoom(roomId);
   const { data: messages = [], isLoading: isLoadingMessages, isError: isMessagesError } = useMatchChatMessages(roomId);
@@ -193,6 +195,10 @@ export function ChatRoomView({ roomId }: ChatRoomViewProps) {
   };
 
   const handleBack = () => {
+    if (isSplitLayout) {
+      return;
+    }
+
     if (window.history.length > 1) {
       router.back();
       return;
@@ -224,7 +230,10 @@ export function ChatRoomView({ roomId }: ChatRoomViewProps) {
 
   if (isLoadingRoom) {
     return (
-      <div className="flex min-h-[calc(100dvh-56px)] items-center justify-center bg-white">
+      <div className={cn(
+        'flex items-center justify-center bg-white',
+        isSplitLayout ? 'h-full min-h-0' : 'min-h-[calc(100dvh-56px)]'
+      )}>
         <Spinner className="h-8 w-8 text-muted-foreground" />
       </div>
     );
@@ -232,7 +241,10 @@ export function ChatRoomView({ roomId }: ChatRoomViewProps) {
 
   if (isRoomError || !room) {
     return (
-      <div className="flex min-h-[calc(100dvh-56px)] flex-col items-center justify-center gap-3 bg-white px-6 text-center">
+      <div className={cn(
+        'flex flex-col items-center justify-center gap-3 bg-white px-6 text-center',
+        isSplitLayout ? 'h-full min-h-0' : 'min-h-[calc(100dvh-56px)]'
+      )}>
         <p className="text-base font-bold text-slate-900">채팅방을 찾을 수 없습니다.</p>
         <p className="text-sm text-slate-500">권한이 없거나 삭제된 채팅방입니다.</p>
         <Button variant="outline" onClick={() => router.replace('/chat')}>채팅 목록으로</Button>
@@ -243,17 +255,25 @@ export function ChatRoomView({ roomId }: ChatRoomViewProps) {
   const otherInitial = room.otherUserName.substring(0, 1) || 'U';
 
   return (
-    <div className="flex min-h-[calc(100dvh-56px)] flex-col bg-white">
+    <div className={cn(
+      'flex flex-col bg-white',
+      isSplitLayout ? 'h-full min-h-0' : 'min-h-[calc(100dvh-56px)]'
+    )}>
       <header className="sticky top-0 z-30 border-b border-slate-100 bg-white/95 backdrop-blur">
-        <div className="app-content-container flex h-14 items-center px-3">
-          <button
-            type="button"
-            onClick={handleBack}
-            className="mr-2 rounded-full p-2 text-slate-700 transition-colors hover:bg-slate-100"
-            aria-label="뒤로가기"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </button>
+        <div className={cn(
+          'flex h-14 items-center px-3',
+          isSplitLayout ? 'w-full' : 'app-content-container'
+        )}>
+          {!isSplitLayout && (
+            <button
+              type="button"
+              onClick={handleBack}
+              className="mr-2 rounded-full p-2 text-slate-700 transition-colors hover:bg-slate-100"
+              aria-label="뒤로가기"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+          )}
 
           <Avatar className="mr-2.5 h-9 w-9 border border-slate-200">
             <AvatarImage src={room.otherUserAvatar || undefined} />
@@ -271,7 +291,13 @@ export function ChatRoomView({ roomId }: ChatRoomViewProps) {
         </div>
       </header>
 
-      <main ref={scrollRef} className="app-content-container flex-1 overflow-y-auto px-4 py-4">
+      <main
+        ref={scrollRef}
+        className={cn(
+          'flex-1 overflow-y-auto px-4 py-4',
+          isSplitLayout ? 'w-full' : 'app-content-container'
+        )}
+      >
         {isLoadingMessages ? (
           <div className="flex h-full items-center justify-center">
             <Spinner className="h-6 w-6 text-muted-foreground" />
@@ -312,7 +338,13 @@ export function ChatRoomView({ roomId }: ChatRoomViewProps) {
       </main>
 
       <footer className="sticky bottom-0 border-t border-slate-100 bg-white">
-        <form onSubmit={handleSubmit} className="app-content-container px-3 py-2.5">
+        <form
+          onSubmit={handleSubmit}
+          className={cn(
+            'px-3 py-2.5',
+            isSplitLayout ? 'w-full' : 'app-content-container'
+          )}
+        >
           <div className="flex items-end gap-2 rounded-2xl border border-slate-200 bg-white p-2">
             <textarea
               value={input}

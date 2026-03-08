@@ -37,10 +37,12 @@ function ChatRoomListItem({
   room,
   onClick,
   showRoleBadge = false,
+  isActive = false,
 }: {
   room: MatchChatRoomListItemDTO;
   onClick: () => void;
   showRoleBadge?: boolean;
+  isActive?: boolean;
 }) {
   const initial = room.otherUserName.substring(0, 1) || 'U';
   const roleLabel = room.myRole === 'host' ? '호스트' : '게스트';
@@ -49,7 +51,12 @@ function ChatRoomListItem({
     <button
       type="button"
       onClick={onClick}
-      className="w-full rounded-2xl border border-slate-100 bg-white px-4 py-3 text-left transition-colors hover:bg-slate-50"
+      className={cn(
+        'w-full rounded-2xl border bg-white px-4 py-3 text-left transition-colors',
+        isActive
+          ? 'border-primary/30 bg-brand-weak'
+          : 'border-slate-100 hover:bg-slate-50'
+      )}
     >
       <div className="flex items-start gap-3">
         <Avatar className="h-11 w-11 border border-slate-200">
@@ -127,7 +134,17 @@ function groupRoomsByMatch(rooms: MatchChatRoomListItemDTO[]) {
   });
 }
 
-export function ChatInboxView() {
+interface ChatInboxViewProps {
+  onRoomSelect?: (roomId: string) => void;
+  activeRoomId?: string | null;
+  isSplitLayout?: boolean;
+}
+
+export function ChatInboxView({
+  onRoomSelect,
+  activeRoomId = null,
+  isSplitLayout = false,
+}: ChatInboxViewProps = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -160,11 +177,21 @@ export function ChatInboxView() {
   }, [mode, rooms]);
 
   const openRoom = (roomId: string) => {
+    if (onRoomSelect) {
+      onRoomSelect(roomId);
+      return;
+    }
+
     router.push(`/chat/rooms/${roomId}`);
   };
 
   return (
-    <div className="min-h-full bg-background px-(--dimension-spacing-x-global-gutter) py-(--dimension-spacing-y-component-default) pb-(--dimension-spacing-y-screen-bottom)">
+    <div
+      className={cn(
+        'min-h-full bg-background px-(--dimension-spacing-x-global-gutter) py-(--dimension-spacing-y-component-default)',
+        isSplitLayout ? 'pb-6' : 'pb-(--dimension-spacing-y-screen-bottom)'
+      )}
+    >
       <section className="mb-4">
         <h1 className="text-xl font-extrabold tracking-tight text-slate-900">채팅</h1>
         <p className="mt-1 text-sm text-slate-500">문의/응답을 채팅으로 빠르게 처리하세요.</p>
@@ -232,6 +259,7 @@ export function ChatInboxView() {
               key={room.roomId}
               room={room}
               showRoleBadge={mode === 'all'}
+              isActive={activeRoomId === room.roomId}
               onClick={() => openRoom(room.roomId)}
             />
           ))}
@@ -257,6 +285,7 @@ export function ChatInboxView() {
                     <ChatRoomListItem
                       key={room.roomId}
                       room={room}
+                      isActive={activeRoomId === room.roomId}
                       onClick={() => openRoom(room.roomId)}
                     />
                   ))}
