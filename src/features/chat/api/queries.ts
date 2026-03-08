@@ -103,7 +103,7 @@ export function useMatchChatRoom(roomId: string) {
       }
 
       const chatService = createChatService(getSupabaseBrowserClient());
-      const room = await chatService.getRoom(roomId);
+      const room = await chatService.getRoom(roomId, user.id);
       const unreadCount = await chatService.countUnreadMessages(
         room.id,
         user.id,

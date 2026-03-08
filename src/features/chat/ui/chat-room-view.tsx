@@ -3,16 +3,37 @@
 import { FormEvent, KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Send } from 'lucide-react';
+import { ArrowLeft, Bell, BellOff, Flag, MoreHorizontal, Send } from 'lucide-react';
 import { toast } from '@/shared/ui/shadcn/sonner';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/shadcn/avatar';
 import { Button } from '@/shared/ui/shadcn/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/shared/ui/shadcn/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/shared/ui/shadcn/dropdown-menu';
 import { Spinner } from '@/shared/ui/shadcn/spinner';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { formatKSTTime, getKSTDateParts } from '@/shared/lib/datetime';
 import { cn } from '@/shared/lib/utils';
 import { useMatchChatMessages, useMatchChatRoom } from '../api/queries';
-import { useMarkMatchChatRead, useSendMatchChatMessage } from '../api/mutations';
+import {
+  useLeaveMatchChatRoom,
+  useMarkMatchChatRead,
+  useReportMatchChatRoom,
+  useSendMatchChatMessage,
+  useSetMatchChatMute,
+} from '../api/mutations';
 import { matchChatKeys } from '../api/keys';
 import type { MatchChatMessageDTO } from '../model/types';
 
@@ -20,6 +41,13 @@ interface ChatRoomViewProps {
   roomId: string;
   layoutMode?: 'page' | 'split';
 }
+
+const REPORT_REASONS = [
+  '스팸/광고',
+  '욕설/혐오 표현',
+  '사기/거래 위험',
+  '기타',
+] as const;
 
 function formatRoomMeta(iso: string): string {
   const parts = getKSTDateParts(iso);
@@ -80,8 +108,15 @@ export function ChatRoomView({ roomId, layoutMode = 'page' }: ChatRoomViewProps)
 
   const sendMessageMutation = useSendMatchChatMessage();
   const markReadMutation = useMarkMatchChatRead();
+  const muteRoomMutation = useSetMatchChatMute();
+  const leaveRoomMutation = useLeaveMatchChatRoom();
+  const reportRoomMutation = useReportMatchChatRoom();
 
   const [input, setInput] = useState('');
+  const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
+  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
+  const [reportReason, setReportReason] = useState<(typeof REPORT_REASONS)[number]>(REPORT_REASONS[0]);
+  const [reportDetails, setReportDetails] = useState('');
   const [lastMarkedIncomingMessageId, setLastMarkedIncomingMessageId] = useState<string | null>(null);
   const hasInitialReadSync = useRef(false);
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -90,6 +125,10 @@ export function ChatRoomView({ roomId, layoutMode = 'page' }: ChatRoomViewProps)
     hasInitialReadSync.current = false;
     setLastMarkedIncomingMessageId(null);
     setInput('');
+    setIsLeaveDialogOpen(false);
+    setIsReportDialogOpen(false);
+    setReportReason(REPORT_REASONS[0]);
+    setReportDetails('');
   }, [roomId]);
 
   const groupedMessages = useMemo(() => {
@@ -228,6 +267,64 @@ export function ChatRoomView({ roomId, layoutMode = 'page' }: ChatRoomViewProps)
     }
   };
 
+  const handleToggleMute = async () => {
+    if (!room) {
+      return;
+    }
+
+    try {
+      await muteRoomMutation.mutateAsync({
+        roomId: room.roomId,
+        role: room.myRole,
+        muted: !room.isMuted,
+      });
+      toast.success(room.isMuted ? '채팅 알림을 켰습니다.' : '채팅 알림을 껐습니다.');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '알림 설정을 변경하지 못했습니다.';
+      toast.error(message);
+    }
+  };
+
+  const handleLeaveRoom = async () => {
+    if (!room) {
+      return;
+    }
+
+    try {
+      await leaveRoomMutation.mutateAsync({
+        roomId: room.roomId,
+        role: room.myRole,
+      });
+      setIsLeaveDialogOpen(false);
+      toast.success('채팅방에서 나갔습니다.');
+      router.replace('/chat');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '채팅방 나가기에 실패했습니다.';
+      toast.error(message);
+    }
+  };
+
+  const handleSubmitReport = async () => {
+    if (!room) {
+      return;
+    }
+
+    try {
+      await reportRoomMutation.mutateAsync({
+        roomId: room.roomId,
+        reason: reportReason,
+        details: reportDetails.trim() || undefined,
+      });
+      setIsReportDialogOpen(false);
+      setReportReason(REPORT_REASONS[0]);
+      setReportDetails('');
+      toast.success('신고가 접수되었습니다. 빠르게 확인하겠습니다.');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '신고 접수에 실패했습니다.';
+      toast.error(message);
+    }
+  };
+
   if (isLoadingRoom) {
     return (
       <div className={cn(
@@ -288,6 +385,51 @@ export function ChatRoomView({ roomId, layoutMode = 'page' }: ChatRoomViewProps)
               {room.teamName} · {formatRoomMeta(room.matchStartTimeISO)}
             </p>
           </div>
+
+          {room.isMuted ? (
+            <span className="ml-2 inline-flex rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold text-slate-500">
+              알림 꺼짐
+            </span>
+          ) : null}
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                aria-label="채팅 옵션"
+                className="ml-auto inline-flex h-9 w-9 items-center justify-center rounded-full text-slate-600 transition-colors hover:bg-slate-100"
+              >
+                <MoreHorizontal className="h-5 w-5" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48 bg-white">
+              <DropdownMenuItem
+                onClick={() => {
+                  void handleToggleMute();
+                }}
+                className="cursor-pointer py-2.5"
+                disabled={muteRoomMutation.isPending}
+              >
+                {room.isMuted ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
+                <span>{room.isMuted ? '알림 켜기' : '알림 끄기'}</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setIsReportDialogOpen(true)}
+                className="cursor-pointer py-2.5"
+              >
+                <Flag className="h-4 w-4" />
+                <span>신고하기</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => setIsLeaveDialogOpen(true)}
+                variant="destructive"
+                className="cursor-pointer py-2.5"
+              >
+                <span>채팅방 나가기</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 
@@ -370,6 +512,89 @@ export function ChatRoomView({ roomId, layoutMode = 'page' }: ChatRoomViewProps)
           </div>
         </form>
       </footer>
+
+      <Dialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
+        <DialogContent size="sm" className="rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>채팅 신고하기</DialogTitle>
+            <DialogDescription>
+              신고 사유를 선택해 주세요. 접수된 신고는 운영팀에서 확인 후 처리합니다.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid grid-cols-2 gap-2">
+            {REPORT_REASONS.map((reason) => (
+              <button
+                key={reason}
+                type="button"
+                onClick={() => setReportReason(reason)}
+                className={cn(
+                  'rounded-lg border px-3 py-2 text-sm font-medium transition-colors',
+                  reportReason === reason
+                    ? 'border-primary bg-brand-weak text-primary'
+                    : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                )}
+              >
+                {reason}
+              </button>
+            ))}
+          </div>
+
+          <div>
+            <label htmlFor="chat-report-details" className="mb-1 block text-xs font-semibold text-slate-600">
+              상세 내용 (선택)
+            </label>
+            <textarea
+              id="chat-report-details"
+              value={reportDetails}
+              onChange={(event) => setReportDetails(event.target.value)}
+              maxLength={1000}
+              rows={4}
+              placeholder="상황을 구체적으로 작성하면 더 빠르게 검토할 수 있어요."
+              className="w-full resize-none rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-primary"
+            />
+          </div>
+
+          <DialogFooter className="bg-transparent -mx-0 -mb-0 rounded-none border-0 p-0 pt-2">
+            <Button variant="outline" onClick={() => setIsReportDialogOpen(false)}>
+              취소
+            </Button>
+            <Button
+              onClick={() => {
+                void handleSubmitReport();
+              }}
+              disabled={reportRoomMutation.isPending}
+            >
+              {reportRoomMutation.isPending ? '접수 중...' : '신고 접수'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isLeaveDialogOpen} onOpenChange={setIsLeaveDialogOpen}>
+        <DialogContent size="sm" className="rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>채팅방에서 나가시겠어요?</DialogTitle>
+            <DialogDescription>
+              나가면 목록에서 채팅방이 사라집니다. 같은 경기에서 다시 문의하면 대화를 재입장할 수 있습니다.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="bg-transparent -mx-0 -mb-0 rounded-none border-0 p-0 pt-2">
+            <Button variant="outline" onClick={() => setIsLeaveDialogOpen(false)}>
+              취소
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                void handleLeaveRoom();
+              }}
+              disabled={leaveRoomMutation.isPending}
+            >
+              {leaveRoomMutation.isPending ? '나가는 중...' : '나가기'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -17,6 +17,9 @@ export {
   useCreateOrGetMatchChatRoom,
   useSendMatchChatMessage,
   useMarkMatchChatRead,
+  useSetMatchChatMute,
+  useLeaveMatchChatRoom,
+  useReportMatchChatRoom,
 } from './api/mutations';
 
 export { parseDesktopChatRoomRoute } from './lib/desktop-chat-route';

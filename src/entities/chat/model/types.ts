@@ -41,3 +41,10 @@ export interface CreateOrGetMatchChatRoomInput {
   hostId: string;
   guestId: string;
 }
+
+export interface ReportMatchChatRoomInput {
+  roomId: string;
+  reporterId: string;
+  reason: string;
+  details?: string | null;
+}

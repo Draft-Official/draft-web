@@ -36,7 +36,9 @@ function LayoutShellContent({ children }: { children: React.ReactNode }) {
   const isTeamSplitOpen =
     (pathname === '/team' || pathname.startsWith('/team/')) &&
     Boolean(searchParams?.get('detail'));
-  const isDesktopSplitOpen = isHomeSplitOpen || isScheduleSplitOpen || isTeamSplitOpen;
+  const isChatSplitOpen = pathname === '/chat' && isDesktop;
+  const isDesktopSplitOpen =
+    isHomeSplitOpen || isScheduleSplitOpen || isTeamSplitOpen || isChatSplitOpen;
   const isSidebarCompact = Boolean(isDesktop && isCompactDesktopViewport);
 
   if (isBareLayout) {

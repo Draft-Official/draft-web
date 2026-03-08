@@ -9,4 +9,5 @@ export type {
   MatchChatRoomUserProfile,
   ListMyChatRoomsOptions,
   CreateOrGetMatchChatRoomInput,
+  ReportMatchChatRoomInput,
 } from './model/types';

@@ -22,6 +22,7 @@ export default function ChatPage() {
   return (
     <DesktopSplitView
       enabled={isDesktop}
+      className="grid-cols-[minmax(320px,1fr)_minmax(0,2fr)]"
       listContent={
         <ChatInboxView
           onRoomSelect={(roomId) => navigateToDetail(`/chat/rooms/${roomId}`)}
