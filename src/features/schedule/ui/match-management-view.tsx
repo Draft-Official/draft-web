@@ -54,6 +54,7 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
   const [guestStatusFilter, setGuestStatusFilter] = useLocalStorage<GuestStatusFilterValue[]>("schedule_guest_status_filter", []);
   const [hostStatusFilter, setHostStatusFilter] = useLocalStorage<HostStatusFilterValue[]>("schedule_host_status_filter", []);
   const [showPastMatches, setShowPastMatches] = useLocalStorage<"hide" | "show">("schedule_past_matches", "hide");
+  const includePastMatches = showPastMatches === "show";
 
   // Bottom sheet state for guest application info
   const [selectedMatch, setSelectedMatch] = useState<ScheduleMatchListItemDTO | null>(null);
@@ -70,14 +71,14 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
     fetchNextPage: fetchNextHosted,
     hasNextPage: hasNextHosted,
     isFetchingNextPage: isFetchingNextHosted,
-  } = useHostedMatches();
+  } = useHostedMatches({ includePast: includePastMatches });
   const {
     data: participatingData,
     isLoading: isLoadingParticipating,
     fetchNextPage: fetchNextParticipating,
     hasNextPage: hasNextParticipating,
     isFetchingNextPage: isFetchingNextParticipating,
-  } = useParticipatingMatches();
+  } = useParticipatingMatches({ includePast: includePastMatches });
 
   const hostedMatches = useMemo(() => hostedData?.pages.flatMap((page) => page.matches) ?? [], [hostedData]);
   const participatingMatches = useMemo(() => participatingData?.pages.flatMap((page) => page.matches) ?? [], [participatingData]);
