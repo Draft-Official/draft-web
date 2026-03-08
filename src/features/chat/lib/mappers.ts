@@ -19,6 +19,10 @@ function resolveTeamName(room: MatchChatRoomWithRelations): string {
   return room.match?.team?.name || room.match?.manual_team_name || FALLBACK_TEAM_NAME;
 }
 
+function resolveMutedState(room: MatchChatRoomWithRelations, role: 'host' | 'guest'): boolean {
+  return role === 'host' ? !!room.host_muted_at : !!room.guest_muted_at;
+}
+
 export function toMatchChatRoomListItemDTO(
   room: MatchChatRoomWithRelations,
   viewerUserId: string,
@@ -39,6 +43,7 @@ export function toMatchChatRoomListItemDTO(
     lastMessageAt: room.last_message_at,
     createdAt: room.created_at,
     unreadCount,
+    isMuted: resolveMutedState(room, myRole),
     myRole,
     otherUserId: otherUser?.id || (myRole === 'host' ? room.guest_id : room.host_id),
     otherUserName: otherUser?.nickname || FALLBACK_USER_NAME,

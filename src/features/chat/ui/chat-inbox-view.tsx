@@ -19,6 +19,11 @@ const CHAT_MODE_TABS: Array<{ mode: ChatMode; label: string }> = [
   { mode: 'guest', label: '게스트' },
 ];
 
+const ROLE_BADGE_STYLES: Record<'host' | 'guest', string> = {
+  host: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+  guest: 'border-blue-200 bg-blue-50 text-blue-700',
+};
+
 function formatMatchSummary(iso: string): string {
   const parts = getKSTDateParts(iso);
   if (!parts) {
@@ -31,17 +36,27 @@ function formatMatchSummary(iso: string): string {
 function ChatRoomListItem({
   room,
   onClick,
+  showRoleBadge = false,
+  isActive = false,
 }: {
   room: MatchChatRoomListItemDTO;
   onClick: () => void;
+  showRoleBadge?: boolean;
+  isActive?: boolean;
 }) {
   const initial = room.otherUserName.substring(0, 1) || 'U';
+  const roleLabel = room.myRole === 'host' ? '호스트' : '게스트';
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className="w-full rounded-2xl border border-slate-100 bg-white px-4 py-3 text-left transition-colors hover:bg-slate-50"
+      className={cn(
+        'w-full rounded-2xl border bg-white px-4 py-3 text-left transition-colors',
+        isActive
+          ? 'border-primary/30 bg-brand-weak'
+          : 'border-slate-100 hover:bg-slate-50'
+      )}
     >
       <div className="flex items-start gap-3">
         <Avatar className="h-11 w-11 border border-slate-200">
@@ -54,17 +69,29 @@ function ChatRoomListItem({
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <p className="truncate text-sm font-bold text-slate-900">{room.otherUserName}</p>
+              <div className="flex items-center gap-1.5">
+                <p className="truncate text-sm font-bold text-slate-900">{room.otherUserName}</p>
+                {showRoleBadge ? (
+                  <span
+                    className={cn(
+                      'inline-flex shrink-0 whitespace-nowrap rounded-full border px-1.5 py-0.5 text-xs font-semibold leading-none',
+                      ROLE_BADGE_STYLES[room.myRole]
+                    )}
+                  >
+                    {roleLabel}
+                  </span>
+                ) : null}
+              </div>
               <p className="truncate text-xs text-slate-500">
                 {room.teamName} · {formatMatchSummary(room.matchStartTimeISO)}
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-2">
-              <span className="text-[11px] text-slate-400">
+              <span className="text-xs text-slate-400">
                 {room.lastMessageAt ? formatRelativeTime(room.lastMessageAt) : ''}
               </span>
               {room.unreadCount > 0 && (
-                <span className="inline-flex min-w-5 justify-center rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-white">
+                <span className="inline-flex min-w-5 shrink-0 justify-center whitespace-nowrap rounded-full bg-primary px-1.5 py-0.5 text-xs font-bold leading-none text-white">
                   {room.unreadCount > 99 ? '99+' : room.unreadCount}
                 </span>
               )}
@@ -107,7 +134,17 @@ function groupRoomsByMatch(rooms: MatchChatRoomListItemDTO[]) {
   });
 }
 
-export function ChatInboxView() {
+interface ChatInboxViewProps {
+  onRoomSelect?: (roomId: string) => void;
+  activeRoomId?: string | null;
+  isSplitLayout?: boolean;
+}
+
+export function ChatInboxView({
+  onRoomSelect,
+  activeRoomId = null,
+  isSplitLayout = false,
+}: ChatInboxViewProps = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -140,24 +177,34 @@ export function ChatInboxView() {
   }, [mode, rooms]);
 
   const openRoom = (roomId: string) => {
+    if (onRoomSelect) {
+      onRoomSelect(roomId);
+      return;
+    }
+
     router.push(`/chat/rooms/${roomId}`);
   };
 
   return (
-    <div className="min-h-full bg-background px-(--dimension-spacing-x-global-gutter) py-(--dimension-spacing-y-component-default) pb-(--dimension-spacing-y-screen-bottom)">
+    <div
+      className={cn(
+        'min-h-full bg-background px-(--dimension-spacing-x-global-gutter) py-(--dimension-spacing-y-component-default)',
+        isSplitLayout ? 'pb-6' : 'pb-(--dimension-spacing-y-screen-bottom)'
+      )}
+    >
       <section className="mb-4">
         <h1 className="text-xl font-extrabold tracking-tight text-slate-900">채팅</h1>
         <p className="mt-1 text-sm text-slate-500">문의/응답을 채팅으로 빠르게 처리하세요.</p>
       </section>
 
-      <section className="mb-4 flex items-center gap-2 overflow-x-auto">
+      <section className="mb-4 flex items-center gap-2 overflow-x-auto no-scrollbar">
         {CHAT_MODE_TABS.map((tab) => (
           <button
             key={tab.mode}
             type="button"
             onClick={() => setMode(tab.mode)}
             className={cn(
-              'rounded-full border px-4 py-1.5 text-sm font-semibold transition-colors',
+              'shrink-0 whitespace-nowrap rounded-full border px-4 py-1.5 text-sm font-semibold leading-none transition-colors',
               mode === tab.mode
                 ? 'border-primary bg-brand-weak text-primary'
                 : 'border-slate-200 bg-white text-slate-500 hover:text-slate-700'
@@ -167,6 +214,20 @@ export function ChatInboxView() {
           </button>
         ))}
       </section>
+
+      {mode === 'all' ? (
+        <section className="mb-3 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+          <span className={cn('shrink-0 whitespace-nowrap rounded-full border px-1.5 py-0.5 font-semibold leading-none', ROLE_BADGE_STYLES.host)}>
+            호스트
+          </span>
+          <span className="whitespace-nowrap">내가 모집한 경기 채팅</span>
+          <span className="shrink-0 text-slate-300">|</span>
+          <span className={cn('shrink-0 whitespace-nowrap rounded-full border px-1.5 py-0.5 font-semibold leading-none', ROLE_BADGE_STYLES.guest)}>
+            게스트
+          </span>
+          <span className="whitespace-nowrap">내가 문의한 경기 채팅</span>
+        </section>
+      ) : null}
 
       {isLoading ? (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-100 bg-white py-14">
@@ -194,7 +255,13 @@ export function ChatInboxView() {
       {!isLoading && !isError && rooms.length > 0 && mode !== 'host' ? (
         <div className="space-y-2.5">
           {rooms.map((room) => (
-            <ChatRoomListItem key={room.roomId} room={room} onClick={() => openRoom(room.roomId)} />
+            <ChatRoomListItem
+              key={room.roomId}
+              room={room}
+              showRoleBadge={mode === 'all'}
+              isActive={activeRoomId === room.roomId}
+              onClick={() => openRoom(room.roomId)}
+            />
           ))}
         </div>
       ) : null}
@@ -218,6 +285,7 @@ export function ChatInboxView() {
                     <ChatRoomListItem
                       key={room.roomId}
                       room={room}
+                      isActive={activeRoomId === room.roomId}
                       onClick={() => openRoom(room.roomId)}
                     />
                   ))}

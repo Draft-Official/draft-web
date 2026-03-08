@@ -219,6 +219,7 @@ export function toGuestMatchDetailDTO(
     address: gym.address,
     price: listItem.priceDisplay,
     priceNum: match.costAmount ?? 0,
+    costType: match.costType,
     gender: match.genderRule,
     level: listItem.levelDisplay,
     levelMin: match.levelRange?.min ?? null,

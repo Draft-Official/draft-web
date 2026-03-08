@@ -118,7 +118,7 @@ export function TeamProfileCard({
 
       {/* 구분선 + 정기운동 */}
       <div className="border-t border-slate-100 pt-3 space-y-1.5">
-        <p className="text-[10px] text-slate-400 text-center">정기운동</p>
+        <p className="text-xs text-slate-400 text-center">정기운동</p>
 
         {homeGymName && (
           <div className="flex items-center justify-center gap-1 text-xs text-slate-600">

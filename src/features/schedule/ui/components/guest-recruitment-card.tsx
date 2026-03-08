@@ -6,6 +6,7 @@ import { Badge } from '@/shared/ui/shadcn/badge';
 import { Button } from '@/shared/ui/shadcn/button';
 import { MatchCardLayout } from '@/shared/ui/composite/match-card-layout';
 import { cn } from '@/shared/lib/utils';
+import { formatPrice } from '@/shared/lib/formatters';
 import { DESKTOP_SPLIT_ACTIVE_CARD_CLASS } from '@/shared/ui/layout';
 import type { ScheduleMatchListItemDTO } from '../../model/types';
 import type { UnreadMatchNotificationDTO } from '@/features/notification';
@@ -49,6 +50,13 @@ export function GuestRecruitmentCard({
     }
   };
 
+  const totalCostText = match.totalCost != null
+    ? formatPrice(match.costType, match.totalCost)
+    : '-';
+  const perCostText = match.perCost != null
+    ? formatPrice(match.costType, match.perCost)
+    : null;
+
   return (
     <>
       <MatchCardLayout
@@ -69,7 +77,7 @@ export function GuestRecruitmentCard({
         headerSlot={
           !isPastMatch && notifications && notifications.length > 0 ? (
             <div className="bg-brand-weak px-4 py-2 flex items-center gap-2">
-              <span className="inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold text-white bg-primary rounded leading-none shrink-0">
+              <span className="inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold text-white bg-primary rounded leading-none shrink-0">
                 new
               </span>
               <span className="text-xs font-medium text-slate-600 truncate">
@@ -120,11 +128,11 @@ export function GuestRecruitmentCard({
             <div className="flex items-center justify-between">
               <div className="flex items-baseline gap-1">
                 <span className="font-bold text-slate-900 text-base">
-                  {match.totalCost?.toLocaleString()}원
+                  {totalCostText}
                 </span>
-                {match.companionCount != null && match.perCost != null && (
+                {match.companionCount != null && perCostText && (
                   <span className="text-xs text-slate-400">
-                    (인당:{match.perCost.toLocaleString()}원)
+                    (인당:{perCostText})
                   </span>
                 )}
               </div>

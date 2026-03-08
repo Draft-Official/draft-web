@@ -94,24 +94,26 @@ export function AccountRegisterModal({
             />
           </div>
 
-          <div className="space-y-2">
-            <Label>은행</Label>
-            <BankCombobox
-              value={bank}
-              onValueChange={setBank}
-              className="w-full h-11"
-            />
-          </div>
+          <div className="grid gap-4 sm:grid-cols-[180px_1fr]">
+            <div className="space-y-2">
+              <Label>은행</Label>
+              <BankCombobox
+                value={bank}
+                onValueChange={setBank}
+                className="w-full h-11"
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label>계좌번호</Label>
-            <Input
-              value={number}
-              placeholder="계좌번호 입력 (숫자만)"
-              inputMode="numeric"
-              onChange={(e) => setNumber(sanitizeAccountNumberInput(e.target.value))}
-              className="h-11"
-            />
+            <div className="space-y-2">
+              <Label>계좌번호</Label>
+              <Input
+                value={number}
+                placeholder="계좌번호 입력 (숫자만)"
+                inputMode="numeric"
+                onChange={(e) => setNumber(sanitizeAccountNumberInput(e.target.value))}
+                className="h-11"
+              />
+            </div>
           </div>
         </div>
 

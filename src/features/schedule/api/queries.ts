@@ -21,6 +21,7 @@ import { formatMatchDate, formatMatchTime } from '@/shared/lib/datetime';
 import { getPositionLabel } from '@/shared/config/match-constants';
 import type { TeamVoteStatusValue } from '@/shared/config/application-constants';
 import { matchManagementKeys } from './keys';
+import { PAST_MATCH_STATUSES } from '../config/constants';
 import {
   toScheduleMatchListItemDTO,
   toMatchApplicantDTO,
@@ -39,15 +40,23 @@ import type {
   TeamExerciseVoteItemDTO,
 } from '../model/types';
 
+interface UseScheduleMatchesOptions {
+  includePast?: boolean;
+}
+
 /**
  * 내가 주최한 경기 목록 조회
  * @returns ScheduleMatchListItemDTO[] 형태로 변환된 호스트 경기 목록
  */
-export function useHostedMatches() {
+export function useHostedMatches(options: UseScheduleMatchesOptions = {}) {
   const { user } = useAuth();
+  const includePast = options.includePast ?? true;
 
   return useInfiniteQuery({
-    queryKey: matchManagementKeys.hostedMatches(user?.id ?? ''),
+    queryKey: [
+      ...matchManagementKeys.hostedMatches(user?.id ?? ''),
+      includePast ? 'with-past' : 'without-past',
+    ],
     initialPageParam: 0,
     getNextPageParam: (lastPage: SchedulePage) => lastPage.nextCursor,
     queryFn: async ({ pageParam }): Promise<SchedulePage> => {
@@ -55,8 +64,50 @@ export function useHostedMatches() {
 
       const supabase = getSupabaseBrowserClient();
       const matchService = createMatchService(supabase);
+      type HostedMatchRow = Awaited<ReturnType<typeof matchService.getMyHostedMatches>>['matches'][number];
+      const isPastMatch = (status: ScheduleMatchListItemDTO['status']) =>
+        PAST_MATCH_STATUSES.includes(status);
+      const hasVisibleRows = (rows: HostedMatchRow[]) =>
+        rows.some((row) => !isPastMatch(toScheduleMatchListItemDTO(row, 'host').status));
 
-      const { matches: rows, nextCursor } = await matchService.getMyHostedMatches(user.id, PAGE_SIZE, pageParam);
+      const findVisiblePage = async (startOffset: number) => {
+        let offset = startOffset;
+        while (true) {
+          const page = await matchService.getMyHostedMatches(user.id, PAGE_SIZE, offset);
+          if (page.matches.length === 0) return undefined;
+          if (hasVisibleRows(page.matches)) {
+            return { rows: page.matches, nextCursor: page.nextCursor };
+          }
+          if (page.nextCursor === undefined) return undefined;
+          offset = page.nextCursor;
+        }
+      };
+
+      const findNextVisibleCursor = async (startOffset: number | undefined) => {
+        if (startOffset === undefined) return undefined;
+        let offset = startOffset;
+        while (true) {
+          const page = await matchService.getMyHostedMatches(user.id, PAGE_SIZE, offset);
+          if (page.matches.length === 0) return undefined;
+          if (hasVisibleRows(page.matches)) return offset;
+          if (page.nextCursor === undefined) return undefined;
+          offset = page.nextCursor;
+        }
+      };
+
+      let rows: HostedMatchRow[] = [];
+      let nextCursor: number | undefined;
+
+      if (includePast) {
+        const page = await matchService.getMyHostedMatches(user.id, PAGE_SIZE, pageParam);
+        rows = page.matches;
+        nextCursor = page.nextCursor;
+      } else {
+        const page = await findVisiblePage(pageParam);
+        if (!page) return { matches: [], nextCursor: undefined };
+        rows = page.rows;
+        nextCursor = page.nextCursor;
+      }
 
       // 게스트 모집 경기의 신청자 수 조회 (PENDING + PAYMENT_PENDING)
       const guestMatchIds = rows
@@ -129,7 +180,7 @@ export function useHostedMatches() {
       }
 
       // DB Row -> ScheduleMatchListItemDTO 변환
-      const matches = rows.map((row) => {
+      const mappedMatches = rows.map((row) => {
         const dto = toScheduleMatchListItemDTO(row, 'host');
         const myVoteData = myVoteMap.get(row.id);
         return {
@@ -145,8 +196,14 @@ export function useHostedMatches() {
           teamCode: (row.team as { name: string; code?: string | null })?.code || undefined,
         };
       });
+      const matches = includePast
+        ? mappedMatches
+        : mappedMatches.filter((match) => !isPastMatch(match.status));
+      const resolvedNextCursor = includePast
+        ? nextCursor
+        : await findNextVisibleCursor(nextCursor);
 
-      return { matches, nextCursor };
+      return { matches, nextCursor: resolvedNextCursor };
     },
     enabled: !!user?.id,
   });
@@ -156,47 +213,105 @@ export function useHostedMatches() {
  * 내가 참여한 경기 목록 조회 (게스트로 신청한 경기)
  * @returns ScheduleMatchListItemDTO[] 형태로 변환된 참여 경기 목록
  */
-export function useParticipatingMatches() {
+export function useParticipatingMatches(options: UseScheduleMatchesOptions = {}) {
   const { user } = useAuth();
+  const includePast = options.includePast ?? true;
 
   return useInfiniteQuery({
-    queryKey: matchManagementKeys.participatingMatches(user?.id ?? ''),
+    queryKey: [
+      ...matchManagementKeys.participatingMatches(user?.id ?? ''),
+      includePast ? 'with-past' : 'without-past',
+    ],
     initialPageParam: 0,
     getNextPageParam: (lastPage: SchedulePage) => lastPage.nextCursor,
     queryFn: async ({ pageParam }): Promise<SchedulePage> => {
       if (!user?.id) return { matches: [], nextCursor: undefined };
 
       const supabase = getSupabaseBrowserClient();
+      const fetchApplicationPage = async (offset: number) => {
+        // 직접 쿼리하여 필요한 match 필드 가져오기
+        const { data: applications, error } = await supabase
+          .from('applications')
+          .select(`
+            *,
+            match:matches!match_id (
+              id,
+              short_id,
+              match_type,
+              team_id,
+              manual_team_name,
+              start_time,
+              end_time,
+              cost_type,
+              cost_amount,
+              status,
+              account_info,
+              gym:gyms!gym_id (name, address, kakao_place_id),
+              team:teams!team_id (name, code)
+            )
+          `)
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .range(offset, offset + PAGE_SIZE - 1);
 
-      // 직접 쿼리하여 필요한 match 필드 가져오기
-      const { data: applications, error } = await supabase
-        .from('applications')
-        .select(`
-          *,
-          match:matches!match_id (
-            id,
-            short_id,
-            match_type,
-            team_id,
-            manual_team_name,
-            start_time,
-            end_time,
-            cost_type,
-            cost_amount,
-            status,
-            account_info,
-            gym:gyms!gym_id (name, address, kakao_place_id),
-            team:teams!team_id (name, code)
-          )
-        `)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .range(pageParam, pageParam + PAGE_SIZE - 1);
+        if (error) throw error;
+        if (!applications) return { applications: [], nextCursor: undefined };
 
-      if (error) throw error;
-      if (!applications) return { matches: [], nextCursor: undefined };
+        return {
+          applications,
+          nextCursor: applications.length === PAGE_SIZE ? offset + PAGE_SIZE : undefined,
+        };
+      };
 
-      const nextCursor = applications.length === PAGE_SIZE ? pageParam + PAGE_SIZE : undefined;
+      const isPastApplication = (app: { match?: unknown; status?: string | null }) => {
+        if (!app.match) return true;
+        const match = app.match as ParticipatingMatchRow;
+        const baseStatus = resolveApplicationStatus(app.status ?? 'PENDING');
+        const matchEnded = Boolean(match.end_time && new Date() >= new Date(match.end_time));
+        return matchEnded || baseStatus === 'rejected' || baseStatus === 'canceled';
+      };
+
+      const hasVisibleApplications = (applications: { match?: unknown; status?: string | null }[]) =>
+        applications.some((app) => !isPastApplication(app));
+
+      const findVisiblePage = async (startOffset: number) => {
+        let offset = startOffset;
+        while (true) {
+          const page = await fetchApplicationPage(offset);
+          if (page.applications.length === 0) return undefined;
+          if (hasVisibleApplications(page.applications)) {
+            return { applications: page.applications, nextCursor: page.nextCursor };
+          }
+          if (page.nextCursor === undefined) return undefined;
+          offset = page.nextCursor;
+        }
+      };
+
+      const findNextVisibleCursor = async (startOffset: number | undefined) => {
+        if (startOffset === undefined) return undefined;
+        let offset = startOffset;
+        while (true) {
+          const page = await fetchApplicationPage(offset);
+          if (page.applications.length === 0) return undefined;
+          if (hasVisibleApplications(page.applications)) return offset;
+          if (page.nextCursor === undefined) return undefined;
+          offset = page.nextCursor;
+        }
+      };
+
+      let applications: Array<{ match?: unknown; status?: string | null; [key: string]: unknown }> = [];
+      let nextCursor: number | undefined;
+
+      if (includePast) {
+        const page = await fetchApplicationPage(pageParam);
+        applications = page.applications;
+        nextCursor = page.nextCursor;
+      } else {
+        const page = await findVisiblePage(pageParam);
+        if (!page) return { matches: [], nextCursor: undefined };
+        applications = page.applications;
+        nextCursor = page.nextCursor;
+      }
 
       // match가 있는 것만 필터
       const validApps = applications.filter((app) => app.match);
@@ -237,7 +352,7 @@ export function useParticipatingMatches() {
       }
 
       // DB Application → ScheduleMatchListItemDTO 변환
-      const matches = validApps.map((app) => {
+      const mappedMatches = validApps.map((app) => {
           const match = app.match as ParticipatingMatchRow;
 
           // 경기 시간 기반 종료 판정
@@ -307,8 +422,9 @@ export function useParticipatingMatches() {
             applicationId: app.id,
             approvalStatus: approvalStatusText,
             paymentNotifiedAt: (app as unknown as { payment_notified_at?: string }).payment_notified_at || undefined,
-            totalCost: match.cost_amount ? match.cost_amount * totalCount : undefined,
-            perCost: companionCount > 0 ? match.cost_amount : undefined,
+            costType: match.cost_type,
+            totalCost: match.cost_amount != null ? match.cost_amount * totalCount : undefined,
+            perCost: companionCount > 0 && match.cost_amount != null ? match.cost_amount : undefined,
             companionCount: companionCount > 0 ? companionCount : undefined,
             bankInfo: match.account_info?.bank && match.account_info?.number && match.account_info?.holder
               ? {
@@ -334,8 +450,14 @@ export function useParticipatingMatches() {
             teamCode: match.team?.code || undefined,
           } as ScheduleMatchListItemDTO;
         });
+      const matches = includePast
+        ? mappedMatches
+        : mappedMatches.filter((match) => !PAST_MATCH_STATUSES.includes(match.status));
+      const resolvedNextCursor = includePast
+        ? nextCursor
+        : await findNextVisibleCursor(nextCursor);
 
-      return { matches, nextCursor };
+      return { matches, nextCursor: resolvedNextCursor };
     },
     enabled: !!user?.id,
   });

@@ -85,29 +85,6 @@ export function BankAccountForm() {
 
       <div className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="bank">은행</Label>
-          <BankCombobox
-            value={bank}
-            onValueChange={setBank}
-            placeholder="은행 선택"
-            className="w-full h-12"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="accountNumber">계좌번호</Label>
-          <Input
-            id="accountNumber"
-            type="text"
-            inputMode="numeric"
-            placeholder="- 없이 숫자만 입력"
-            value={accountNumber}
-            onChange={(e) => setAccountNumber(e.target.value.replace(/[^0-9]/g, ''))}
-            className="h-12"
-          />
-        </div>
-
-        <div className="space-y-2">
           <Label htmlFor="accountHolder">예금주</Label>
           <Input
             id="accountHolder"
@@ -121,6 +98,31 @@ export function BankAccountForm() {
             }}
             className="h-12"
           />
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-[180px_1fr]">
+          <div className="space-y-2">
+            <Label htmlFor="bank">은행</Label>
+            <BankCombobox
+              value={bank}
+              onValueChange={setBank}
+              placeholder="은행 선택"
+              className="w-full h-12"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="accountNumber">계좌번호</Label>
+            <Input
+              id="accountNumber"
+              type="text"
+              inputMode="numeric"
+              placeholder="- 없이 숫자만 입력"
+              value={accountNumber}
+              onChange={(e) => setAccountNumber(e.target.value.replace(/[^0-9]/g, ''))}
+              className="h-12"
+            />
+          </div>
         </div>
       </div>
 

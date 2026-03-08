@@ -29,13 +29,13 @@ export function LocationCard({ location, isExistingGym, onClear }: LocationCardP
           <div className="flex items-center gap-2 mb-1">
             <h3 className="text-lg font-bold text-foreground truncate">{location.buildingName || location.address}</h3>
             {isExistingGym && (
-              <span className="shrink-0 px-1.5 py-0.5 text-[10px] font-bold text-primary bg-brand-weak-pressed rounded-md">
+              <span className="shrink-0 rounded-md bg-brand-weak-pressed px-1.5 py-0.5 text-xs font-bold leading-none text-primary">
                 등록된 체육관
               </span>
             )}
           </div>
 
-          <div className="mt-1 flex items-center gap-2 text-[13px] text-muted-foreground">
+          <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
             {location.buildingName && <span className="truncate">{location.address}</span>}
 
             {location.placeUrl && (

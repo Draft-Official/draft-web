@@ -3,22 +3,51 @@
 import { FormEvent, KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Send } from 'lucide-react';
+import { ArrowLeft, Bell, BellOff, Flag, MoreHorizontal, Send } from 'lucide-react';
 import { toast } from '@/shared/ui/shadcn/sonner';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/shadcn/avatar';
 import { Button } from '@/shared/ui/shadcn/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/shared/ui/shadcn/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/shared/ui/shadcn/dropdown-menu';
 import { Spinner } from '@/shared/ui/shadcn/spinner';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { formatKSTTime, getKSTDateParts } from '@/shared/lib/datetime';
 import { cn } from '@/shared/lib/utils';
 import { useMatchChatMessages, useMatchChatRoom } from '../api/queries';
-import { useMarkMatchChatRead, useSendMatchChatMessage } from '../api/mutations';
+import {
+  useLeaveMatchChatRoom,
+  useMarkMatchChatRead,
+  useReportMatchChatRoom,
+  useSendMatchChatMessage,
+  useSetMatchChatMute,
+} from '../api/mutations';
 import { matchChatKeys } from '../api/keys';
 import type { MatchChatMessageDTO } from '../model/types';
 
 interface ChatRoomViewProps {
   roomId: string;
+  layoutMode?: 'page' | 'split';
 }
+
+const REPORT_REASONS = [
+  '스팸/광고',
+  '욕설/혐오 표현',
+  '사기/거래 위험',
+  '기타',
+] as const;
 
 function formatRoomMeta(iso: string): string {
   const parts = getKSTDateParts(iso);
@@ -61,7 +90,7 @@ function MessageBubble({ message }: { message: MatchChatMessageDTO }) {
         >
           {message.body}
         </div>
-        <p className={cn('mt-1 text-[11px] text-slate-400', message.isMine ? 'text-right' : 'text-left')}>
+        <p className={cn('mt-1 text-xs text-slate-400', message.isMine ? 'text-right' : 'text-left')}>
           {formatKSTTime(message.createdAt)}
         </p>
       </div>
@@ -69,17 +98,25 @@ function MessageBubble({ message }: { message: MatchChatMessageDTO }) {
   );
 }
 
-export function ChatRoomView({ roomId }: ChatRoomViewProps) {
+export function ChatRoomView({ roomId, layoutMode = 'page' }: ChatRoomViewProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const isSplitLayout = layoutMode === 'split';
 
   const { data: room, isLoading: isLoadingRoom, isError: isRoomError } = useMatchChatRoom(roomId);
   const { data: messages = [], isLoading: isLoadingMessages, isError: isMessagesError } = useMatchChatMessages(roomId);
 
   const sendMessageMutation = useSendMatchChatMessage();
   const markReadMutation = useMarkMatchChatRead();
+  const muteRoomMutation = useSetMatchChatMute();
+  const leaveRoomMutation = useLeaveMatchChatRoom();
+  const reportRoomMutation = useReportMatchChatRoom();
 
   const [input, setInput] = useState('');
+  const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
+  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
+  const [reportReason, setReportReason] = useState<(typeof REPORT_REASONS)[number]>(REPORT_REASONS[0]);
+  const [reportDetails, setReportDetails] = useState('');
   const [lastMarkedIncomingMessageId, setLastMarkedIncomingMessageId] = useState<string | null>(null);
   const hasInitialReadSync = useRef(false);
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -88,6 +125,10 @@ export function ChatRoomView({ roomId }: ChatRoomViewProps) {
     hasInitialReadSync.current = false;
     setLastMarkedIncomingMessageId(null);
     setInput('');
+    setIsLeaveDialogOpen(false);
+    setIsReportDialogOpen(false);
+    setReportReason(REPORT_REASONS[0]);
+    setReportDetails('');
   }, [roomId]);
 
   const groupedMessages = useMemo(() => {
@@ -193,6 +234,10 @@ export function ChatRoomView({ roomId }: ChatRoomViewProps) {
   };
 
   const handleBack = () => {
+    if (isSplitLayout) {
+      return;
+    }
+
     if (window.history.length > 1) {
       router.back();
       return;
@@ -222,9 +267,70 @@ export function ChatRoomView({ roomId }: ChatRoomViewProps) {
     }
   };
 
+  const handleToggleMute = async () => {
+    if (!room) {
+      return;
+    }
+
+    try {
+      await muteRoomMutation.mutateAsync({
+        roomId: room.roomId,
+        role: room.myRole,
+        muted: !room.isMuted,
+      });
+      toast.success(room.isMuted ? '채팅 알림을 켰습니다.' : '채팅 알림을 껐습니다.');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '알림 설정을 변경하지 못했습니다.';
+      toast.error(message);
+    }
+  };
+
+  const handleLeaveRoom = async () => {
+    if (!room) {
+      return;
+    }
+
+    try {
+      await leaveRoomMutation.mutateAsync({
+        roomId: room.roomId,
+        role: room.myRole,
+      });
+      setIsLeaveDialogOpen(false);
+      toast.success('채팅방에서 나갔습니다.');
+      router.replace('/chat');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '채팅방 나가기에 실패했습니다.';
+      toast.error(message);
+    }
+  };
+
+  const handleSubmitReport = async () => {
+    if (!room) {
+      return;
+    }
+
+    try {
+      await reportRoomMutation.mutateAsync({
+        roomId: room.roomId,
+        reason: reportReason,
+        details: reportDetails.trim() || undefined,
+      });
+      setIsReportDialogOpen(false);
+      setReportReason(REPORT_REASONS[0]);
+      setReportDetails('');
+      toast.success('신고가 접수되었습니다. 빠르게 확인하겠습니다.');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '신고 접수에 실패했습니다.';
+      toast.error(message);
+    }
+  };
+
   if (isLoadingRoom) {
     return (
-      <div className="flex min-h-[calc(100dvh-56px)] items-center justify-center bg-white">
+      <div className={cn(
+        'flex items-center justify-center bg-white',
+        isSplitLayout ? 'h-full min-h-0' : 'min-h-[calc(100dvh-56px)]'
+      )}>
         <Spinner className="h-8 w-8 text-muted-foreground" />
       </div>
     );
@@ -232,7 +338,10 @@ export function ChatRoomView({ roomId }: ChatRoomViewProps) {
 
   if (isRoomError || !room) {
     return (
-      <div className="flex min-h-[calc(100dvh-56px)] flex-col items-center justify-center gap-3 bg-white px-6 text-center">
+      <div className={cn(
+        'flex flex-col items-center justify-center gap-3 bg-white px-6 text-center',
+        isSplitLayout ? 'h-full min-h-0' : 'min-h-[calc(100dvh-56px)]'
+      )}>
         <p className="text-base font-bold text-slate-900">채팅방을 찾을 수 없습니다.</p>
         <p className="text-sm text-slate-500">권한이 없거나 삭제된 채팅방입니다.</p>
         <Button variant="outline" onClick={() => router.replace('/chat')}>채팅 목록으로</Button>
@@ -243,17 +352,25 @@ export function ChatRoomView({ roomId }: ChatRoomViewProps) {
   const otherInitial = room.otherUserName.substring(0, 1) || 'U';
 
   return (
-    <div className="flex min-h-[calc(100dvh-56px)] flex-col bg-white">
+    <div className={cn(
+      'flex flex-col bg-white',
+      isSplitLayout ? 'h-full min-h-0' : 'min-h-[calc(100dvh-56px)]'
+    )}>
       <header className="sticky top-0 z-30 border-b border-slate-100 bg-white/95 backdrop-blur">
-        <div className="app-content-container flex h-14 items-center px-3">
-          <button
-            type="button"
-            onClick={handleBack}
-            className="mr-2 rounded-full p-2 text-slate-700 transition-colors hover:bg-slate-100"
-            aria-label="뒤로가기"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </button>
+        <div className={cn(
+          'flex h-14 items-center px-3',
+          isSplitLayout ? 'w-full' : 'app-content-container'
+        )}>
+          {!isSplitLayout && (
+            <button
+              type="button"
+              onClick={handleBack}
+              className="mr-2 rounded-full p-2 text-slate-700 transition-colors hover:bg-slate-100"
+              aria-label="뒤로가기"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+          )}
 
           <Avatar className="mr-2.5 h-9 w-9 border border-slate-200">
             <AvatarImage src={room.otherUserAvatar || undefined} />
@@ -268,10 +385,61 @@ export function ChatRoomView({ roomId }: ChatRoomViewProps) {
               {room.teamName} · {formatRoomMeta(room.matchStartTimeISO)}
             </p>
           </div>
+
+          {room.isMuted ? (
+            <span className="ml-2 inline-flex shrink-0 whitespace-nowrap rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-semibold leading-none text-slate-500">
+              알림 꺼짐
+            </span>
+          ) : null}
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                aria-label="채팅 옵션"
+                className="ml-auto inline-flex h-9 w-9 items-center justify-center rounded-full text-slate-600 transition-colors hover:bg-slate-100"
+              >
+                <MoreHorizontal className="h-5 w-5" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48 bg-white">
+              <DropdownMenuItem
+                onClick={() => {
+                  void handleToggleMute();
+                }}
+                className="cursor-pointer py-2.5"
+                disabled={muteRoomMutation.isPending}
+              >
+                {room.isMuted ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
+                <span>{room.isMuted ? '알림 켜기' : '알림 끄기'}</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setIsReportDialogOpen(true)}
+                className="cursor-pointer py-2.5"
+              >
+                <Flag className="h-4 w-4" />
+                <span>신고하기</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => setIsLeaveDialogOpen(true)}
+                variant="destructive"
+                className="cursor-pointer py-2.5"
+              >
+                <span>채팅방 나가기</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 
-      <main ref={scrollRef} className="app-content-container flex-1 overflow-y-auto px-4 py-4">
+      <main
+        ref={scrollRef}
+        className={cn(
+          'flex-1 overflow-y-auto px-4 py-4',
+          isSplitLayout ? 'w-full' : 'app-content-container'
+        )}
+      >
         {isLoadingMessages ? (
           <div className="flex h-full items-center justify-center">
             <Spinner className="h-6 w-6 text-muted-foreground" />
@@ -296,7 +464,7 @@ export function ChatRoomView({ roomId }: ChatRoomViewProps) {
             {groupedMessages.map((section) => (
               <section key={section.dayKey}>
                 <div className="mb-3 flex justify-center">
-                  <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-medium text-slate-500">
+                  <span className="inline-flex items-center whitespace-nowrap rounded-full bg-slate-100 px-3 py-1 text-xs font-medium leading-none text-slate-500">
                     {section.dateLabel}
                   </span>
                 </div>
@@ -312,7 +480,13 @@ export function ChatRoomView({ roomId }: ChatRoomViewProps) {
       </main>
 
       <footer className="sticky bottom-0 border-t border-slate-100 bg-white">
-        <form onSubmit={handleSubmit} className="app-content-container px-3 py-2.5">
+        <form
+          onSubmit={handleSubmit}
+          className={cn(
+            'px-3 py-2.5',
+            isSplitLayout ? 'w-full' : 'app-content-container'
+          )}
+        >
           <div className="flex items-end gap-2 rounded-2xl border border-slate-200 bg-white p-2">
             <textarea
               value={input}
@@ -338,6 +512,89 @@ export function ChatRoomView({ roomId }: ChatRoomViewProps) {
           </div>
         </form>
       </footer>
+
+      <Dialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
+        <DialogContent size="sm" className="rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>채팅 신고하기</DialogTitle>
+            <DialogDescription>
+              신고 사유를 선택해 주세요. 접수된 신고는 운영팀에서 확인 후 처리합니다.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid grid-cols-2 gap-2">
+            {REPORT_REASONS.map((reason) => (
+              <button
+                key={reason}
+                type="button"
+                onClick={() => setReportReason(reason)}
+                className={cn(
+                  'rounded-lg border px-3 py-2 text-sm font-medium transition-colors',
+                  reportReason === reason
+                    ? 'border-primary bg-brand-weak text-primary'
+                    : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                )}
+              >
+                {reason}
+              </button>
+            ))}
+          </div>
+
+          <div>
+            <label htmlFor="chat-report-details" className="mb-1 block text-xs font-semibold text-slate-600">
+              상세 내용 (선택)
+            </label>
+            <textarea
+              id="chat-report-details"
+              value={reportDetails}
+              onChange={(event) => setReportDetails(event.target.value)}
+              maxLength={1000}
+              rows={4}
+              placeholder="상황을 구체적으로 작성하면 더 빠르게 검토할 수 있어요."
+              className="w-full resize-none rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-primary"
+            />
+          </div>
+
+          <DialogFooter className="bg-transparent -mx-0 -mb-0 rounded-none border-0 p-0 pt-2">
+            <Button variant="outline" onClick={() => setIsReportDialogOpen(false)}>
+              취소
+            </Button>
+            <Button
+              onClick={() => {
+                void handleSubmitReport();
+              }}
+              disabled={reportRoomMutation.isPending}
+            >
+              {reportRoomMutation.isPending ? '접수 중...' : '신고 접수'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isLeaveDialogOpen} onOpenChange={setIsLeaveDialogOpen}>
+        <DialogContent size="sm" className="rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>채팅방에서 나가시겠어요?</DialogTitle>
+            <DialogDescription>
+              나가면 목록에서 채팅방이 사라집니다. 같은 경기에서 다시 문의하면 대화를 재입장할 수 있습니다.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="bg-transparent -mx-0 -mb-0 rounded-none border-0 p-0 pt-2">
+            <Button variant="outline" onClick={() => setIsLeaveDialogOpen(false)}>
+              취소
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                void handleLeaveRoom();
+              }}
+              disabled={leaveRoomMutation.isPending}
+            >
+              {leaveRoomMutation.isPending ? '나가는 중...' : '나가기'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

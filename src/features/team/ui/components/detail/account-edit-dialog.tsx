@@ -89,28 +89,6 @@ export function AccountEditDialog({
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label>은행</Label>
-            <BankCombobox
-              value={bank}
-              onValueChange={setBank}
-              className="w-full h-12"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>계좌번호</Label>
-            <Input
-              value={number}
-              onChange={(e) => {
-                setNumber(sanitizeAccountNumberInput(e.target.value));
-              }}
-              placeholder="계좌번호 입력 (숫자만)"
-              inputMode="numeric"
-              className="h-12"
-            />
-          </div>
-
-          <div className="space-y-2">
             <Label>예금주</Label>
             <Input
               value={holder}
@@ -120,6 +98,30 @@ export function AccountEditDialog({
               placeholder="예금주 입력 (한글 2-10자)"
               className="h-12"
             />
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-[180px_1fr]">
+            <div className="space-y-2">
+              <Label>은행</Label>
+              <BankCombobox
+                value={bank}
+                onValueChange={setBank}
+                className="w-full h-12"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>계좌번호</Label>
+              <Input
+                value={number}
+                onChange={(e) => {
+                  setNumber(sanitizeAccountNumberInput(e.target.value));
+                }}
+                placeholder="계좌번호 입력 (숫자만)"
+                inputMode="numeric"
+                className="h-12"
+              />
+            </div>
           </div>
         </div>
 

@@ -343,7 +343,7 @@ function VoterItem({
                 {voter.guestParticipants.map((guest, index) => (
                   <span
                     key={`${voter.id}-guest-${index}-${guest.name}`}
-                    className="inline-flex items-center gap-1 w-fit max-w-[11rem] whitespace-normal break-words rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium leading-snug text-slate-700"
+                    className="inline-flex items-center gap-1 w-fit max-w-[11rem] whitespace-normal break-words rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium leading-snug text-slate-700"
                   >
                     <span>
                       {guest.name || '게스트'} {getPositionLabel(guest.position, 'combined')}

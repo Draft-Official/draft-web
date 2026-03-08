@@ -137,7 +137,9 @@ export function MatchCreateBasicInfo({
                       </span>
                     );
                 })()}
-                <span className="text-slate-400 text-xs font-normal ml-auto">(2주 이내의 경기만 게시 가능)</span>
+                <span className="ml-auto hidden text-slate-400 text-xs font-normal lg:inline">
+                  (2주 이내의 경기만 게시 가능)
+                </span>
             </Label>
             <DateStrip
                 dates={calendarDates}

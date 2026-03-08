@@ -258,6 +258,32 @@
   --dimension-spacing-y-screen-bottom: var(--dimension-x14);
   --dimension-spacing-y-between-text: var(--dimension-x1_5);
 
+  /* Typography (mobile-first) */
+  --font-size-caption: 12px;
+  --line-height-caption: 16px;
+  --font-size-body-sm: 14px;
+  --line-height-body-sm: 20px;
+  --font-size-body-md: 15px;
+  --line-height-body-md: 22px;
+  --font-size-title-sm: 17px;
+  --line-height-title-sm: 24px;
+  --font-size-title-md: 20px;
+  --line-height-title-md: 28px;
+  --font-size-title-lg: 24px;
+  --line-height-title-lg: 32px;
+  --typo-weight-regular: 400;
+  --typo-weight-medium: 500;
+  --typo-weight-semibold: 600;
+  --typo-weight-bold: 700;
+  --typo-weight-extrabold: 800;
+
+  /* Icon size (mobile-first) */
+  --icon-size-xs: 14px;
+  --icon-size-sm: 16px;
+  --icon-size-md: 18px;
+  --icon-size-lg: 20px;
+  --icon-size-xl: 24px;
+
   /* Elevation */
   --elevation-s1: 0px 1px 4px 0px #00000014;
   --elevation-s2: 0px 2px 10px 0px #0000001a;
@@ -277,6 +303,28 @@
   /* Legacy compatibility */
   --seed-scale-color-draft-500: var(--color-palette-draft-500);
   --seed-semantic-color-primary: var(--color-fg-brand);
+}
+
+@media (min-width: 1024px) {
+  :root {
+    /* Typography (desktop override) */
+    --font-size-body-sm: 15px;
+    --line-height-body-sm: 22px;
+    --font-size-body-md: 16px;
+    --line-height-body-md: 24px;
+    --font-size-title-sm: 18px;
+    --line-height-title-sm: 28px;
+    --font-size-title-md: 22px;
+    --line-height-title-md: 30px;
+    --font-size-title-lg: 28px;
+    --line-height-title-lg: 36px;
+
+    /* Icon size (desktop override) */
+    --icon-size-sm: 18px;
+    --icon-size-md: 20px;
+    --icon-size-lg: 24px;
+    --icon-size-xl: 28px;
+  }
 }
 
 .dark {

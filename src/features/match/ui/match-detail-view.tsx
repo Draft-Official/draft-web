@@ -362,6 +362,7 @@ export function MatchDetailView({
         matchId={match.id}
         matchTitle={match.title}
         costAmount={match.priceNum}
+        costType={match.costType}
       />
 
       {/* 5. Share Modal */}

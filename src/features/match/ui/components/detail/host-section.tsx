@@ -38,7 +38,7 @@ export function HostSection({ match, isHost, onStartChat }: HostSectionProps) {
             </AvatarFallback>
           </Avatar>
           <div>
-            <div className="text-[13px] font-bold text-slate-900">{displayTeamName}</div>
+            <div className="text-sm font-bold text-slate-900">{displayTeamName}</div>
           </div>
         </div>
         <Button
@@ -53,7 +53,7 @@ export function HostSection({ match, isHost, onStartChat }: HostSectionProps) {
 
       {/* 호스트 메시지가 있을 때만 표시 */}
       {match.hostMessage && (
-        <div className="bg-slate-50 rounded-xl p-4 text-[13px] text-slate-600 leading-relaxed relative">
+        <div className="bg-slate-50 rounded-xl p-4 text-sm text-slate-600 leading-relaxed relative">
           <MessageCircle className="w-4 h-4 text-slate-300 absolute top-4 left-4" />
           <p className="pl-6 whitespace-pre-wrap">
             &quot;{match.hostMessage}&quot;

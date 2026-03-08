@@ -151,7 +151,7 @@ function GuestListItem({
             {guest.companions && guest.companions.length > 0 && (
               <Badge
                 variant="outline"
-                className="text-[10px] px-2 py-0.5 bg-blue-50 text-blue-700 border-blue-200"
+                className="text-xs px-2 py-0.5 bg-blue-50 text-blue-700 border-blue-200"
               >
                 +{guest.companions.length}명
               </Badge>
@@ -239,7 +239,7 @@ function GuestListItem({
           {guest.companions.map((companion, idx) => (
             <div key={idx} className="flex items-center gap-2 py-1">
               <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                <span className="text-blue-600 font-bold text-[10px]">
+                <span className="text-blue-600 font-bold text-xs">
                   {companion.name.charAt(0)}
                 </span>
               </div>

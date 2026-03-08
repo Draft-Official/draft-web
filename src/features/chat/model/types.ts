@@ -11,6 +11,7 @@ export interface MatchChatRoomListItemDTO {
   lastMessageAt: string | null;
   createdAt: string;
   unreadCount: number;
+  isMuted: boolean;
   myRole: MatchChatRole;
   otherUserId: string;
   otherUserName: string;

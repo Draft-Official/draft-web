@@ -121,9 +121,39 @@ const dimensionTokenReference = {
   },
 } as const;
 
+const typographyTokenReference = {
+  '$typography.font-size.caption': { cssVar: '--font-size-caption', value: '12px' },
+  '$typography.font-size.body-sm': { cssVar: '--font-size-body-sm' },
+  '$typography.font-size.body-md': { cssVar: '--font-size-body-md' },
+  '$typography.font-size.title-sm': { cssVar: '--font-size-title-sm' },
+  '$typography.font-size.title-md': { cssVar: '--font-size-title-md' },
+  '$typography.font-size.title-lg': { cssVar: '--font-size-title-lg' },
+  '$typography.line-height.caption': { cssVar: '--line-height-caption', value: '16px' },
+  '$typography.line-height.body-sm': { cssVar: '--line-height-body-sm' },
+  '$typography.line-height.body-md': { cssVar: '--line-height-body-md' },
+  '$typography.line-height.title-sm': { cssVar: '--line-height-title-sm' },
+  '$typography.line-height.title-md': { cssVar: '--line-height-title-md' },
+  '$typography.line-height.title-lg': { cssVar: '--line-height-title-lg' },
+  '$typography.weight.regular': { cssVar: '--typo-weight-regular', value: '400' },
+  '$typography.weight.medium': { cssVar: '--typo-weight-medium', value: '500' },
+  '$typography.weight.semibold': { cssVar: '--typo-weight-semibold', value: '600' },
+  '$typography.weight.bold': { cssVar: '--typo-weight-bold', value: '700' },
+  '$typography.weight.extrabold': { cssVar: '--typo-weight-extrabold', value: '800' },
+} as const;
+
+const iconTokenReference = {
+  '$icon.size.xs': { cssVar: '--icon-size-xs', value: '14px' },
+  '$icon.size.sm': { cssVar: '--icon-size-sm' },
+  '$icon.size.md': { cssVar: '--icon-size-md' },
+  '$icon.size.lg': { cssVar: '--icon-size-lg' },
+  '$icon.size.xl': { cssVar: '--icon-size-xl' },
+} as const;
+
 export const tokenReference = {
   ...colorTokenReference,
   ...dimensionTokenReference,
+  ...typographyTokenReference,
+  ...iconTokenReference,
 } as const;
 
 export type TokenReferenceKey = keyof typeof tokenReference;
@@ -150,6 +180,15 @@ export const tokenUsageReference: Partial<Record<TokenReferenceKey, string>> = {
   '$dimension.spacing-y.nav-to-title': 'Top Navigation과 Page Title 사이 간격',
   '$dimension.spacing-y.screen-bottom': '화면 하단 안전 여백',
   '$dimension.spacing-y.between-text': '텍스트 줄/라벨 사이 세로 간격',
+  '$typography.font-size.caption': '캡션/보조 텍스트 기본 폰트 크기',
+  '$typography.font-size.body-sm': '모바일 우선 본문 기본 폰트 크기',
+  '$typography.font-size.body-md': '강조 본문/폼 입력 기본 폰트 크기',
+  '$typography.font-size.title-sm': '카드/섹션 타이틀 크기',
+  '$typography.font-size.title-md': '페이지 서브 타이틀 크기',
+  '$typography.font-size.title-lg': '페이지 주요 타이틀 크기',
+  '$icon.size.sm': '일반 보조 아이콘 크기',
+  '$icon.size.md': '기본 아이콘 크기',
+  '$icon.size.lg': '강조 아이콘 크기',
 };
 
 export const resolveTokenUsage = (token: TokenReferenceKey): string => {
@@ -178,6 +217,10 @@ export const resolveTokenUsage = (token: TokenReferenceKey): string => {
   if (token.startsWith('$dimension.spacing-x.')) return '수평 간격 규칙에 사용';
   if (token.startsWith('$dimension.spacing-y.')) return '수직 간격 규칙에 사용';
   if (token.startsWith('$dimension.x')) return '기본 spacing scale 단위값';
+  if (token.startsWith('$typography.font-size.')) return '텍스트 크기 스케일에 사용';
+  if (token.startsWith('$typography.line-height.')) return '텍스트 줄간격 스케일에 사용';
+  if (token.startsWith('$typography.weight.')) return '텍스트 굵기 스케일에 사용';
+  if (token.startsWith('$icon.size.')) return '아이콘 크기 스케일에 사용';
 
   return '해당 의미의 semantic token으로 사용';
 };

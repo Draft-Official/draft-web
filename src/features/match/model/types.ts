@@ -15,6 +15,7 @@ import type {
   PlayStyleValue,
   RefereeTypeValue,
   ContactTypeValue,
+  CostTypeValue,
 } from '@/shared/config/match-constants';
 import type { MatchRule } from '@/shared/types/jsonb.types';
 
@@ -105,6 +106,7 @@ export interface GuestMatchDetailDTO extends GuestMatchListItemDTO {
   address: string;
   price: string;
   priceNum: number;
+  costType?: CostTypeValue | null;
   gender: GenderValue;
   level: string | null;
   levelMin: number | null;

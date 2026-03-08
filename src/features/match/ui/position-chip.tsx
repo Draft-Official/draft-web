@@ -25,7 +25,7 @@ export function PositionChip({ label, status, max, current, matchClosed = false 
   return (
     <div
       className={cn(
-        "inline-flex items-center justify-center px-[6px] py-1 rounded-[4px] border text-[11px] leading-tight font-medium transition-colors gap-1 whitespace-nowrap",
+        "inline-flex items-center justify-center px-[6px] py-1 rounded-[4px] border text-xs leading-tight font-medium transition-colors gap-1 whitespace-nowrap",
         isOpen
           ? "bg-slate-100 border-slate-200 text-slate-600"
           : "bg-slate-50 border-slate-100 text-slate-400"

@@ -90,6 +90,38 @@ Seed Design 스타일의 `$token.path`를 프로젝트 CSS 변수로 매핑한 �
 | `$dimension.spacing-y.screen-bottom` | `--dimension-spacing-y-screen-bottom` | `$dimension.x14` |
 | `$dimension.spacing-y.between-text` | `--dimension-spacing-y-between-text` | `$dimension.x1_5` |
 
+## Typography
+
+| Seed Token | CSS Variable |
+| --- | --- |
+| `$typography.font-size.caption` | `--font-size-caption` |
+| `$typography.font-size.body-sm` | `--font-size-body-sm` |
+| `$typography.font-size.body-md` | `--font-size-body-md` |
+| `$typography.font-size.title-sm` | `--font-size-title-sm` |
+| `$typography.font-size.title-md` | `--font-size-title-md` |
+| `$typography.font-size.title-lg` | `--font-size-title-lg` |
+| `$typography.line-height.caption` | `--line-height-caption` |
+| `$typography.line-height.body-sm` | `--line-height-body-sm` |
+| `$typography.line-height.body-md` | `--line-height-body-md` |
+| `$typography.line-height.title-sm` | `--line-height-title-sm` |
+| `$typography.line-height.title-md` | `--line-height-title-md` |
+| `$typography.line-height.title-lg` | `--line-height-title-lg` |
+| `$typography.weight.regular` | `--typo-weight-regular` |
+| `$typography.weight.medium` | `--typo-weight-medium` |
+| `$typography.weight.semibold` | `--typo-weight-semibold` |
+| `$typography.weight.bold` | `--typo-weight-bold` |
+| `$typography.weight.extrabold` | `--typo-weight-extrabold` |
+
+## Icon Size
+
+| Seed Token | CSS Variable |
+| --- | --- |
+| `$icon.size.xs` | `--icon-size-xs` |
+| `$icon.size.sm` | `--icon-size-sm` |
+| `$icon.size.md` | `--icon-size-md` |
+| `$icon.size.lg` | `--icon-size-lg` |
+| `$icon.size.xl` | `--icon-size-xl` |
+
 ## Usage
 
 ```tsx

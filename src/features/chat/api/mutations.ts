@@ -16,6 +16,23 @@ interface MarkMatchChatReadInput {
   role: MatchChatRole;
 }
 
+interface SetMatchChatMuteInput {
+  roomId: string;
+  role: MatchChatRole;
+  muted: boolean;
+}
+
+interface LeaveMatchChatRoomInput {
+  roomId: string;
+  role: MatchChatRole;
+}
+
+interface ReportMatchChatRoomInput {
+  roomId: string;
+  reason: string;
+  details?: string;
+}
+
 export function useCreateOrGetMatchChatRoom() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -71,6 +88,58 @@ export function useMarkMatchChatRead() {
     mutationFn: async ({ roomId, role }: MarkMatchChatReadInput) => {
       const chatService = createChatService(getSupabaseBrowserClient());
       await chatService.markRoomRead(roomId, role);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: matchChatKeys.all });
+    },
+  });
+}
+
+export function useSetMatchChatMute() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ roomId, role, muted }: SetMatchChatMuteInput) => {
+      const chatService = createChatService(getSupabaseBrowserClient());
+      await chatService.setRoomMuted(roomId, role, muted);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: matchChatKeys.all });
+    },
+  });
+}
+
+export function useLeaveMatchChatRoom() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ roomId, role }: LeaveMatchChatRoomInput) => {
+      const chatService = createChatService(getSupabaseBrowserClient());
+      await chatService.leaveRoom(roomId, role);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: matchChatKeys.all });
+    },
+  });
+}
+
+export function useReportMatchChatRoom() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ roomId, reason, details }: ReportMatchChatRoomInput) => {
+      if (!user?.id) {
+        throw new Error('로그인이 필요합니다.');
+      }
+
+      const chatService = createChatService(getSupabaseBrowserClient());
+      await chatService.reportRoom({
+        roomId,
+        reporterId: user.id,
+        reason,
+        details,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: matchChatKeys.all });

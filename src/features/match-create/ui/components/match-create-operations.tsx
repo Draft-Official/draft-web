@@ -409,7 +409,7 @@ export function MatchCreateOperations({
               선택한 주최자의 저장된 입금 계좌가 없습니다.
             </p>
             <p className="mt-1 text-xs text-amber-800">
-              계좌를 저장해두면 다음 경기 개설 시 자동으로 입력됩니다.
+              계좌를 저장해두면 다음 경기 생성 시 자동으로 입력됩니다.
             </p>
             <div className="mt-2 flex items-center gap-2">
               <Button
@@ -459,29 +459,40 @@ export function MatchCreateOperations({
                 <Label className="text-sm font-bold text-slate-600">계좌 정보</Label>
                 <span className="text-red-500 text-xs">*</span>
               </div>
-              <div className="flex gap-2">
-                <Input
-                  value={accountHolder}
-                  placeholder="예금주"
-                  className="w-[90px] h-11 bg-white border-slate-200"
-                  onChange={(e) => {
-                    setValue('accountHolder', sanitizeAccountHolderInput(e.target.value));
-                  }}
-                />
-                <BankCombobox
-                  value={bankName}
-                  onValueChange={(value) => setValue('bankName', value)}
-                  className="w-[100px] h-11 bg-white border-slate-200"
-                />
-                <Input
-                  value={accountNumber}
-                  placeholder="계좌번호 (숫자만)"
-                  className="flex-1 h-11 bg-white border-slate-200"
-                  inputMode="numeric"
-                  onChange={(e) => {
-                    setValue('accountNumber', sanitizeAccountNumberInput(e.target.value));
-                  }}
-                />
+              <div className="space-y-2">
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold text-slate-600">예금주</Label>
+                  <Input
+                    value={accountHolder}
+                    placeholder="예금주 입력 (한글 2-10자)"
+                    className="h-11 bg-white border-slate-200"
+                    onChange={(e) => {
+                      setValue('accountHolder', sanitizeAccountHolderInput(e.target.value));
+                    }}
+                  />
+                </div>
+                <div className="grid gap-2 sm:grid-cols-[180px_1fr]">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold text-slate-600">은행</Label>
+                    <BankCombobox
+                      value={bankName}
+                      onValueChange={(value) => setValue('bankName', value)}
+                      className="w-full h-11 bg-white border-slate-200"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold text-slate-600">계좌번호</Label>
+                    <Input
+                      value={accountNumber}
+                      placeholder="계좌번호 입력 (숫자만)"
+                      className="w-full h-11 bg-white border-slate-200"
+                      inputMode="numeric"
+                      onChange={(e) => {
+                        setValue('accountNumber', sanitizeAccountNumberInput(e.target.value));
+                      }}
+                    />
+                  </div>
+                </div>
               </div>
               <p className="text-xs text-slate-400">
                 예금주: 한글 2-10자 / 계좌번호: 숫자만 10-16자리

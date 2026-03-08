@@ -61,9 +61,9 @@ export function BottomNav() {
               isActive ? "text-slate-900" : "text-slate-400"
             )}
           >
-            <item.icon className="w-6 h-6" strokeWidth={isActive ? 2.5 : 1.5} />
+            <item.icon className="i-lg" strokeWidth={isActive ? 2.5 : 1.5} />
             {/* Optional: Label can be hidden for pure Instagram style, or kept small */}
-            {/* <span className="text-[10px] font-medium">{item.label}</span> */}
+            {/* <span className="text-xs font-medium">{item.label}</span> */}
           </button>
         );
       })}

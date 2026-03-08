@@ -55,7 +55,7 @@ export default function LoginPage() {
         <h1 className="text-5xl font-extrabold italic tracking-tighter text-slate-900">
           DRAFT.
         </h1>
-        <p className="text-center text-gray-500 text-[15px] leading-relaxed">
+        <p className="text-center text-gray-500 text-base leading-relaxed">
           간편하게 로그인하고
           <br />
           다양한 경기에 참여해보세요.
@@ -84,7 +84,7 @@ export default function LoginPage() {
               fill="#3C1E1E"
             />
           </svg>
-          <span className="text-kakao-foreground font-semibold text-[15px]">
+          <span className="text-kakao-foreground font-semibold text-base">
             카카오 로그인
           </span>
         </button>
