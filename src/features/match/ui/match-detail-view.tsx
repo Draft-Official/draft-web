@@ -26,7 +26,7 @@ import { createApplicationService } from '@/entities/application';
 import { matchManagementKeys } from '@/features/schedule/api/keys';
 import { useCancelMatchFlow, useMatchApplicants, useUpdateMatchStatus } from '@/features/schedule';
 import { MatchCancelDialog } from '@/features/schedule/ui/detail/match-cancel-dialog';
-import { getKSTDateParts, parseKSTDateISO, parseKSTDateTime } from '@/shared/lib/datetime';
+import { parseKSTDateTime } from '@/shared/lib/datetime';
 import { cn } from '@/shared/lib/utils';
 
 interface MatchDetailViewProps {
@@ -369,14 +369,7 @@ export function MatchDetailView({
       <ShareModal
         open={isShareModalOpen}
         onOpenChange={setIsShareModalOpen}
-        matchPublicId={match.publicId}
-        matchTitle={match.title}
-        matchDate={(() => {
-          const parts = getKSTDateParts(parseKSTDateISO(match.dateISO));
-          if (!parts) return match.startTime;
-          return `${parts.month}월 ${parts.day}일 (${parts.weekdayLabel}) ${match.startTime}`;
-        })()}
-        location={match.location}
+        match={match}
       />
 
       <LoginRequiredModal {...modalProps} />
