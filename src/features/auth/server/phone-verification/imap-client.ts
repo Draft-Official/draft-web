@@ -115,10 +115,11 @@ export async function checkVerificationEmail(
         const digits = localPart.replace(/[^0-9]/g, '');
         if (!PHONE_REGEX.test(digits)) continue;
 
+        const subject = msg.envelope?.subject || '';
         const source = msg.source?.toString() || '';
         const textTxt = extractTextTxtAttachment(source);
         const bodyText = extractBodyText(source);
-        const searchText = textTxt ? textTxt + '\n' + bodyText : bodyText;
+        const searchText = subject + '\n' + (textTxt ? textTxt + '\n' : '') + bodyText;
 
         if (!searchText.includes(code)) continue;
 
