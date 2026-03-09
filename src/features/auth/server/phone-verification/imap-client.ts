@@ -36,6 +36,47 @@ function extractBodyText(source: string): string {
   return parts.join('\n');
 }
 
+/**
+ * B방식: 한국 통신사 MMS→이메일 변환 시 코드가 text.txt 첨부파일에 들어오는 케이스 처리
+ * multipart MIME 구조를 파싱해 text.txt 파트의 내용을 직접 추출
+ */
+function extractTextTxtAttachment(source: string): string | null {
+  const boundaryMatch = source.match(
+    /Content-Type:\s*multipart\/[^;]+;\s*boundary="?([^"\r\n]+)"?/i
+  );
+  if (!boundaryMatch) return null;
+
+  const boundary = boundaryMatch[1].trim();
+  const escapedBoundary = boundary.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const mimeParts = source.split(new RegExp(`--${escapedBoundary}`));
+
+  for (const part of mimeParts) {
+    if (!/name="?text\.txt"?/i.test(part) && !/filename="?text\.txt"?/i.test(part)) continue;
+
+    // 헤더와 본문 분리 (빈 줄 기준)
+    const bodyMatch = part.match(/\r?\n\r?\n([\s\S]+)/);
+    if (!bodyMatch) continue;
+
+    let content = bodyMatch[1].trim();
+
+    if (/Content-Transfer-Encoding:\s*base64/i.test(part)) {
+      try {
+        content = Buffer.from(content.replace(/\s/g, ''), 'base64').toString('utf-8');
+      } catch {
+        // ignore
+      }
+    } else if (/Content-Transfer-Encoding:\s*quoted-printable/i.test(part)) {
+      content = content
+        .replace(/=\r?\n/g, '')
+        .replace(/=([0-9A-Fa-f]{2})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
+    }
+
+    return content.trim();
+  }
+
+  return null;
+}
+
 export async function checkVerificationEmail(
   code: string
 ): Promise<ImapCheckResult> {
@@ -75,9 +116,11 @@ export async function checkVerificationEmail(
         if (!PHONE_REGEX.test(digits)) continue;
 
         const source = msg.source?.toString() || '';
+        const textTxt = extractTextTxtAttachment(source);
         const bodyText = extractBodyText(source);
+        const searchText = textTxt ? textTxt + '\n' + bodyText : bodyText;
 
-        if (!bodyText.includes(code)) continue;
+        if (!searchText.includes(code)) continue;
 
         result = { found: true, phoneNumber: digits };
       }
