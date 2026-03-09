@@ -74,10 +74,11 @@ export async function checkVerificationEmail(
         const digits = localPart.replace(/[^0-9]/g, '');
         if (!PHONE_REGEX.test(digits)) continue;
 
+        const subject = msg.envelope?.subject || '';
         const source = msg.source?.toString() || '';
-        const bodyText = extractBodyText(source);
+        const searchText = subject + '\n' + extractBodyText(source);
 
-        if (!bodyText.includes(code)) continue;
+        if (!searchText.includes(code)) continue;
 
         result = { found: true, phoneNumber: digits };
       }
