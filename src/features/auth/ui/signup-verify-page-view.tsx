@@ -84,13 +84,13 @@ export function SignupVerifyPageView() {
 
       {step === 'name' && (
         <div className="flex-1 flex flex-col px-4 pt-8">
-          <h1 className="text-2xl font-bold mb-2">이름을 알려주세요</h1>
+          <h1 className="text-2xl font-bold mb-2">실명을 입력해주세요</h1>
           <p className="text-sm text-slate-500 mb-8">
             경기 참가 시 본인 확인에 사용됩니다.
           </p>
 
           <div className="space-y-2 mb-8">
-            <Label htmlFor="real-name">이름</Label>
+            <Label htmlFor="real-name">실명</Label>
             <Input
               id="real-name"
               placeholder="홍길동"

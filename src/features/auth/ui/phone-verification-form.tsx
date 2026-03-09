@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/shared/ui/shadcn/sonner';
-import { CheckCircle2, Info, Smartphone } from 'lucide-react';
+import { CheckCircle2, Info, Loader2, Smartphone } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useAuth } from '@/shared/session';
 import { useIsMobile } from '@/shared/lib/hooks/use-is-mobile';
@@ -249,9 +249,17 @@ export function PhoneVerificationForm({ onComplete }: PhoneVerificationFormProps
         )}
 
         {/* 발송 후 대기 안내 */}
-        <p className="text-xs text-slate-400 text-center">
-          문자 발송 후 인증까지 수 초가 걸릴 수 있습니다.
-        </p>
+        {!isExpired && (
+          <div className="flex items-center justify-center gap-2 text-slate-900">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            <p className="text-sm font-medium">인증 확인 중...</p>
+          </div>
+        )}
+        {isExpired && (
+          <p className="text-xs text-slate-400 text-center">
+            문자 발송 후 인증까지 수 초가 걸릴 수 있습니다.
+          </p>
+        )}
 
         {/* 만료 시 재요청 */}
         {isExpired && (
