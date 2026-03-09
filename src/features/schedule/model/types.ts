@@ -110,6 +110,7 @@ export interface ScheduleMatchListItemDTO {
   };
   teamId?: string;
   teamCode?: string;
+  teamLogoUrl?: string | null;
 
   // Legacy compatibility field
   type: MatchType;
@@ -297,7 +298,7 @@ export interface ParticipatingMatchRow {
   status: string;
   account_info: { bank?: string; number?: string; holder?: string } | null;
   gym: { name: string; address: string; kakao_place_id: string | null } | null;
-  team: { name: string; code?: string | null } | null;
+  team: { name: string; code?: string | null; logo_url?: string | null } | null;
 }
 
 // ============================================

@@ -98,6 +98,7 @@ export function TeamExerciseCard({
         gymName={match.location}
         gymAddress={match.locationUrl}
         teamName={match.teamName}
+        teamLogoUrl={match.teamLogoUrl}
         onClick={() => {
           if (Date.now() - dialogClosedAt.current < 300) return;
           onClick(match.id);

@@ -42,6 +42,7 @@ function TournamentCard({
       gymName={match.location}
       gymAddress={match.locationUrl}
       teamName={match.teamName}
+      teamLogoUrl={match.teamLogoUrl}
       onClick={() => onClick(match.id)}
       onLocationClick={() => {
         if (match.locationUrl) window.open(match.locationUrl, '_blank');

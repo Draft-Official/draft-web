@@ -52,6 +52,7 @@ export function TeamMatchItem({
   publicId,
   teamCode,
   teamName,
+  teamLogoUrl,
   date,
   time,
   gymName,
@@ -140,6 +141,7 @@ export function TeamMatchItem({
         gymName={gymName}
         gymAddress={gymAddress}
         teamName={teamName}
+        teamLogoUrl={teamLogoUrl}
         onClick={handleClick}
         className={cn(
           className,
