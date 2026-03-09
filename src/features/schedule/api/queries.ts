@@ -193,7 +193,8 @@ export function useHostedMatches(options: UseScheduleMatchesOptions = {}) {
           myVoteReason: myVoteData?.reason,
           votingSummary: votingSummaryMap.get(row.id),
           teamId: row.team_id || undefined,
-          teamCode: (row.team as { name: string; code?: string | null })?.code || undefined,
+          teamCode: (row.team as { name: string; code?: string | null; logo_url?: string | null })?.code || undefined,
+          teamLogoUrl: (row.team as { name: string; code?: string | null; logo_url?: string | null })?.logo_url ?? null,
         };
       });
       const matches = includePast
@@ -247,7 +248,7 @@ export function useParticipatingMatches(options: UseScheduleMatchesOptions = {})
               status,
               account_info,
               gym:gyms!gym_id (name, address, kakao_place_id),
-              team:teams!team_id (name, code)
+              team:teams!team_id (name, code, logo_url)
             )
           `)
           .eq('user_id', user.id)
@@ -448,6 +449,7 @@ export function useParticipatingMatches(options: UseScheduleMatchesOptions = {})
             votingSummary: votingSummaryMap.get(match.id),
             teamId: match.team_id || undefined,
             teamCode: match.team?.code || undefined,
+            teamLogoUrl: match.team?.logo_url ?? null,
           } as ScheduleMatchListItemDTO;
         });
       const matches = includePast

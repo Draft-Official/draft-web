@@ -59,7 +59,7 @@ type ApplicationWithUser = Application & {
 
 type MatchWithRelations = Match & {
   gym?: Gym | null;
-  team?: Pick<Team, 'name'> | null;
+  team?: Pick<Team, 'name' | 'logo_url'> | null;
 };
 
 function isTeamMatch(matchType: string | null | undefined): boolean {
@@ -181,6 +181,7 @@ export function toScheduleMatchListItemDTO(
     type: matchType, // legacy compatibility
     status,
     teamName: match.team?.name || match.manual_team_name || '팀명 미정',
+    teamLogoUrl: match.team?.logo_url ?? null,
     date: formatMatchDate(match.start_time),
     time: formatMatchTime(match.start_time),
     startTimeISO: match.start_time || '',

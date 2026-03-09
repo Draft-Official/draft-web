@@ -1,7 +1,8 @@
 'use client';
 
-import { Calendar, Clock, MapPin, Navigation, Shield } from 'lucide-react';
+import { Calendar, Clock, MapPin, Navigation } from 'lucide-react';
 import { Separator } from '@/shared/ui/shadcn/separator';
+import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/shadcn/avatar';
 import { cn } from '@/shared/lib/utils';
 
 interface MatchCardLayoutProps {
@@ -10,6 +11,7 @@ interface MatchCardLayoutProps {
   gymName: string;
   gymAddress?: string;
   teamName: string;
+  teamLogoUrl?: string | null;
   showTeamName?: boolean;
   onClick?: () => void;
   onLocationClick?: () => void;
@@ -26,6 +28,7 @@ export function MatchCardLayout({
   gymName,
   gymAddress,
   teamName,
+  teamLogoUrl,
   showTeamName = true,
   onClick,
   onLocationClick,
@@ -56,38 +59,43 @@ export function MatchCardLayout({
         {/* 본문 - 날짜, 시간, 체육관, 팀 */}
         <div className="space-y-2">
           <div className="flex items-center gap-1">
-            <Calendar className="w-4 h-4 text-slate-400" />
-            <span className="font-semibold text-lg text-slate-900">{date}</span>
-            <Clock className="w-4 h-4 text-slate-400 ml-1" />
-            <span className="font-semibold text-lg text-slate-900">{time}</span>
+            <Calendar className="w-6 h-6 text-slate-400" />
+            <span className="font-semibold text-xl text-slate-900">{date}</span>
+            <Clock className="w-6 h-6 text-slate-400 ml-1" />
+            <span className="font-semibold text-xl text-slate-900">{time}</span>
           </div>
 
           <div className="flex items-center gap-1">
-            <MapPin className="w-4 h-4 text-slate-400 shrink-0" />
+            <MapPin className="w-6 h-6 text-slate-400 shrink-0" />
             {onLocationClick ? (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   onLocationClick();
                 }}
-                className="text-slate-900 hover:text-slate-700 text-left flex items-center gap-1 group text-lg font-medium"
+                className="text-slate-900 hover:text-slate-700 text-left flex items-center gap-1 group text-xl font-medium"
               >
                 <span>{gymName}</span>
-                <Navigation className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600" />
+                <Navigation className="w-6 h-6 text-slate-400 group-hover:text-slate-600" />
               </button>
             ) : (
               <>
-                <span className="text-lg font-medium text-slate-900">{gymName}</span>
+                <span className="text-xl font-medium text-slate-900">{gymName}</span>
                 {gymAddress && (
-                  <Navigation className="w-3.5 h-3.5 text-slate-400" />
+                  <Navigation className="w-6 h-6 text-slate-400" />
                 )}
               </>
             )}
           </div>
 
           {showTeamName && (
-            <div className="flex items-center gap-1 text-base">
-              <Shield className="w-4 h-4 text-slate-400" />
+            <div className="flex items-center gap-1.5 text-xl">
+              <Avatar className="w-6 h-6 shrink-0">
+                <AvatarImage src={teamLogoUrl ?? undefined} alt={teamName} />
+                <AvatarFallback className="bg-slate-200 text-[9px] font-bold text-slate-500">
+                  {teamName.slice(0, 1)}
+                </AvatarFallback>
+              </Avatar>
               <span className="text-slate-900">{teamName}</span>
             </div>
           )}
