@@ -16,7 +16,7 @@ export type { ApplicationSourceValue } from '@/shared/config/team-constants';
 export interface ApplyFormDTO {
   height: string;
   age: string;
-  weight: string;
+  skillLevel: string;
   position: PositionValue | '';
   teamId: string;
 }
