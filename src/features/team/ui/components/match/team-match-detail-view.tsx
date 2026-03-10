@@ -231,9 +231,7 @@ export function TeamMatchDetailView({
   const handleShareVoteReminder = async () => {
     if (typeof window === 'undefined') return;
 
-    const pendingVoterNames = votes
-      .filter((voteItem) => voteItem.status === 'PENDING')
-      .map((voteItem) => voteItem.userNickname?.trim() || '알수없음');
+    const pendingCount = votes.filter((voteItem) => voteItem.status === 'PENDING').length;
 
     const fallbackAttendingCount = votes.filter(
       (voteItem) => voteItem.status === 'CONFIRMED' || voteItem.status === 'LATE'
@@ -246,7 +244,7 @@ export function TeamMatchDetailView({
     const reminderMessage = buildTeamVoteReminderMessage({
       teamName: team.name,
       matchDateTime: `${match.dateDisplay} ${match.timeDisplay}`,
-      pendingVoterNames,
+      pendingCount,
       voteUrl,
       attendingCount: votingSummary ? votingSummary.attending + votingSummary.late : fallbackAttendingCount,
       notAttendingCount: votingSummary ? votingSummary.notAttending : fallbackNotAttendingCount,

@@ -7,7 +7,7 @@ test('buildTeamVoteReminderMessage builds the agreed reminder format', () => {
   const message = buildTeamVoteReminderMessage({
     teamName: '드래프트',
     matchDateTime: '2026. 03. 12 (목) 20:00',
-    pendingVoterNames: ['홍길동', '김철수', '박영희'],
+    pendingCount: 3,
     voteUrl: 'https://draft.kr/team/draft/matches/abc123',
     attendingCount: 8,
     notAttendingCount: 2,
@@ -21,39 +21,39 @@ test('buildTeamVoteReminderMessage builds the agreed reminder format', () => {
       '',
       '운동 인원 확정을 위해 투표 부탁드립니다',
       '',
-      '미투표: @홍길동 @김철수 @박영희',
+      '미투표: 3명',
       '투표 링크: https://draft.kr/team/draft/matches/abc123',
       '투표 결과: 참석 8 / 불참 2 / 미정 3',
     ].join('\n')
   );
 });
 
-test('buildTeamVoteReminderMessage keeps existing @ mention and removes duplicate names', () => {
+test('buildTeamVoteReminderMessage renders zero pending count as 0명', () => {
   const message = buildTeamVoteReminderMessage({
     teamName: '드래프트',
     matchDateTime: '2026. 03. 12 (목) 20:00',
-    pendingVoterNames: ['@홍길동', '김철수', '홍길동', '  김철수  '],
+    pendingCount: 0,
     voteUrl: 'https://draft.kr/team/draft/matches/abc123',
     attendingCount: 8,
     notAttendingCount: 2,
     maybeCount: 3,
   });
 
-  assert.match(message, /미투표: @홍길동 @김철수/u);
+  assert.match(message, /미투표: 0명/u);
 });
 
-test('buildTeamVoteReminderMessage handles no pending voters', () => {
+test('buildTeamVoteReminderMessage clamps negative pending count to 0명', () => {
   const message = buildTeamVoteReminderMessage({
     teamName: '드래프트',
     matchDateTime: '2026. 03. 12 (목) 20:00',
-    pendingVoterNames: [],
+    pendingCount: -2,
     voteUrl: 'https://draft.kr/team/draft/matches/abc123',
     attendingCount: 10,
     notAttendingCount: 0,
     maybeCount: 0,
   });
 
-  assert.match(message, /미투표: \(전원 투표 완료\)/u);
+  assert.match(message, /미투표: 0명/u);
 });
 
 test('toKakaoShareText keeps message unchanged when under length limit', () => {
