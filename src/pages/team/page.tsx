@@ -1,16 +1,14 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { TeamPageTabs } from '@/features/team';
 import { TeamRouteDetailPanel } from '@/features/team/ui/components/match/team-route-detail-panel';
+import { LoginRequiredBlock } from '@/features/auth';
 import { useDesktopDetailRoute } from '@/shared/lib/hooks';
 import { useAuth } from '@/shared/session';
 import { DesktopSplitView } from '@/shared/ui/layout';
 import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 export default function TeamPage() {
-  const router = useRouter();
   const { isLoading, isAuthenticated } = useAuth();
   const {
     isSplitMode,
@@ -18,12 +16,6 @@ export default function TeamPage() {
     navigateToDetail,
     closeDetail,
   } = useDesktopDetailRoute({ basePath: '/team' });
-
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.replace('/auth/login?redirect=/team');
-    }
-  }, [isLoading, isAuthenticated, router]);
 
   const handleTeamMatchSelect = (detailPath: string) => {
     navigateToDetail(detailPath);
@@ -33,12 +25,16 @@ export default function TeamPage() {
     closeDetail();
   };
 
-  if (isLoading || !isAuthenticated) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Spinner className="w-8 h-8 text-muted-foreground" />
       </div>
     );
+  }
+
+  if (!isAuthenticated) {
+    return <LoginRequiredBlock description="로그인하고 다양한 기능을 이용해보세요." redirectTo="/team" />;
   }
 
   return (

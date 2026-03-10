@@ -23,10 +23,6 @@ export function BottomNav() {
 
   // Smart navigation handler
   const handleNavClick = (href: string) => {
-    if ((href === '/team' || href === '/schedule' || href === '/chat') && !isAuthenticated) {
-      router.push(`/auth/login?redirect=${encodeURIComponent(href)}`);
-      return;
-    }
 
     if (pathname === href) {
       // Same tab: scroll to top

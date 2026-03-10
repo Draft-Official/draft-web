@@ -8,10 +8,6 @@ import { updateSession } from '@/shared/api/supabase/middleware';
 // 인증이 필요한 라우트
 const PROTECTED_ROUTES = [
   '/matches/create',
-  '/schedule',
-  '/chat',
-  '/my',
-  '/team',
   '/signup/verify',
 ];
 
