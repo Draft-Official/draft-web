@@ -2,7 +2,7 @@
 
 import { useState, type ComponentType } from 'react';
 import { useRouter } from 'next/navigation';
-import { Calendar, Clock, Plus, Users } from 'lucide-react';
+import { Calendar, Clock, Plus } from 'lucide-react';
 import { TEAM_ROLE_LABELS } from '@/shared/config/team-constants';
 import { LoginRequiredModal } from '@/features/auth';
 import { CREATE_ACTION_OPTIONS, type CreateActionOptionId } from '@/features/create/lib/create-action-options';
@@ -69,10 +69,6 @@ export function CreateMenuButton({
     navigateIfAllowed('/matches/create');
   };
 
-  const handleTeamCreate = () => {
-    navigateIfAllowed('/team/create');
-  };
-
   const handleTeamRegularMatchCreate = async () => {
     setIsCreateDialogOpen(false);
     if (!requireAuth('/team')) return;
@@ -106,18 +102,12 @@ export function CreateMenuButton({
 
   const ACTION_ICON_MAP: Record<CreateActionOptionId, ComponentType<{ className?: string }>> = {
     'guest-match': Calendar,
-    'team-create': Users,
     'team-regular': Clock,
   };
 
   const handleCreateActionSelect = (actionId: CreateActionOptionId) => {
     if (actionId === 'guest-match') {
       handleGuestMatchCreate();
-      return;
-    }
-
-    if (actionId === 'team-create') {
-      handleTeamCreate();
       return;
     }
 
@@ -128,7 +118,7 @@ export function CreateMenuButton({
     <>
       <button
         type="button"
-        aria-label="게스트 모집하기 메뉴 열기"
+        aria-label="만들기 메뉴 열기"
         onClick={() => setIsCreateDialogOpen(true)}
         className={cn(
           variant === 'pill' &&
