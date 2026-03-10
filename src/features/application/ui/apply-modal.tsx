@@ -62,7 +62,7 @@ export function ApplyModal({
   const [formData, setFormData] = useState<ApplyFormDTO>({
     height: '',
     age: '',
-    weight: '',
+    skillLevel: '',
     position: '',
     teamId: '',
   });
@@ -81,16 +81,32 @@ export function ApplyModal({
     }
   }, [profile]);
 
+  const isPositiveIntegerText = (value: string): boolean => {
+    if (!/^\d+$/.test(value)) return false;
+    return parseInt(value, 10) > 0;
+  };
+
   const isFormValid = () => {
-    if (formData.position === '') return false;
-    if (hasCompanions && companions.length > 0) {
-      return companions.every((c) => c.name.trim() !== '' && c.position !== '');
-    }
-    return true;
+    const isMainValid = formData.position !== ''
+      && formData.skillLevel !== ''
+      && isPositiveIntegerText(formData.height)
+      && isPositiveIntegerText(formData.age);
+    if (!isMainValid) return false;
+
+    if (!hasCompanions) return true;
+    if (companions.length === 0) return false;
+
+    return companions.every((c) =>
+      c.name.trim() !== ''
+      && c.position !== ''
+      && c.skillLevel !== ''
+      && isPositiveIntegerText(c.height)
+      && isPositiveIntegerText(c.age)
+    );
   };
 
   const getUserSkillLevel = (): string => {
-    return sessionProfileToApplyModalViewDTO(profile).userSkillLevel;
+    return formData.skillLevel || sessionProfileToApplyModalViewDTO(profile).userSkillLevel;
   };
 
   const addCompanion = () => {
@@ -183,7 +199,9 @@ export function ApplyModal({
             </div>
 
             <div>
-              <Label htmlFor="height" className="text-sm text-slate-600 mb-1 block">키 (cm)</Label>
+              <Label htmlFor="height" className="text-sm text-slate-600 mb-1 block">
+                키 (cm) <span className="text-red-500">*</span>
+              </Label>
               <div className="relative">
                 <Input
                   id="height"
@@ -199,7 +217,9 @@ export function ApplyModal({
             </div>
 
             <div>
-              <Label htmlFor="age" className="text-sm text-slate-600 mb-1 block">나이</Label>
+              <Label htmlFor="age" className="text-sm text-slate-600 mb-1 block">
+                나이 <span className="text-red-500">*</span>
+              </Label>
               <div className="relative">
                 <Input
                   id="age"
@@ -215,19 +235,24 @@ export function ApplyModal({
             </div>
 
             <div>
-              <Label htmlFor="weight" className="text-sm text-slate-600 mb-1 block">몸무게 (kg)</Label>
-              <div className="relative">
-                <Input
-                  id="weight"
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="72"
-                  value={formData.weight}
-                  onChange={(e) => setFormData({ ...formData, weight: e.target.value.replace(/[^0-9]/g, '') })}
-                  className="h-12 bg-white border-slate-300 focus-visible:ring-primary pr-12"
-                />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500">kg</span>
-              </div>
+              <Label className="text-sm text-slate-600 mb-1 block">
+                실력 <span className="text-red-500">*</span>
+              </Label>
+              <Select
+                value={formData.skillLevel}
+                onValueChange={(value) => setFormData({ ...formData, skillLevel: value })}
+              >
+                <SelectTrigger className="h-12 bg-white border-border">
+                  <SelectValue placeholder="실력 선택" />
+                </SelectTrigger>
+                <SelectContent>
+                  {SKILL_LEVELS.map((skill) => (
+                    <SelectItem key={skill.level} value={skill.level.toString()}>
+                      {skill.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
@@ -308,7 +333,9 @@ export function ApplyModal({
 
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <Label className="text-sm text-slate-600 mb-1 block">키</Label>
+                        <Label className="text-sm text-slate-600 mb-1 block">
+                          키 <span className="text-red-500">*</span>
+                        </Label>
                         <div className="relative">
                           <Input
                             type="text"
@@ -322,7 +349,9 @@ export function ApplyModal({
                         </div>
                       </div>
                       <div>
-                        <Label className="text-sm text-slate-600 mb-1 block">나이</Label>
+                        <Label className="text-sm text-slate-600 mb-1 block">
+                          나이 <span className="text-red-500">*</span>
+                        </Label>
                         <div className="relative">
                           <Input
                             type="text"
@@ -338,7 +367,9 @@ export function ApplyModal({
                     </div>
 
                     <div>
-                      <Label className="text-sm text-slate-600 mb-1 block">실력</Label>
+                      <Label className="text-sm text-slate-600 mb-1 block">
+                        실력 <span className="text-red-500">*</span>
+                      </Label>
                       <Select
                         value={companion.skillLevel}
                         onValueChange={(value) => updateCompanion(index, 'skillLevel', value)}

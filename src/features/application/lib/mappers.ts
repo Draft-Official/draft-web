@@ -24,7 +24,7 @@ export function sessionProfileToApplyFormDTO(profile: SessionProfile | null): Ap
   return {
     height: metadata.height?.toString() ?? '',
     age: metadata.age?.toString() ?? '',
-    weight: metadata.weight?.toString() ?? '',
+    skillLevel: metadata.skill_level?.toString() ?? '',
     position: (position as ApplyFormDTO['position']) || '',
     teamId: '',
   };
@@ -61,8 +61,8 @@ export function buildProfileUpdateFromApplyForm(
     hasUpdates = true;
   }
 
-  if (!metadata.weight && formData.weight) {
-    nextMetadata.weight = parseInt(formData.weight, 10);
+  if (!metadata.skill_level && formData.skillLevel) {
+    nextMetadata.skill_level = parseInt(formData.skillLevel, 10);
     hasUpdates = true;
   }
 
@@ -93,7 +93,7 @@ export function buildCreateApplicationDTO(
   params: BuildCreateApplicationDTOParams
 ): CreateApplicationDTO {
   const metadata = toMetadata(params.profile);
-  const userSkillLevel = metadata.skill_level?.toString() ?? '';
+  const userSkillLevel = params.formData.skillLevel || metadata.skill_level?.toString() || '';
   const positionCode = params.formData.position || POSITION_DEFAULT;
 
   const participants: ParticipantInfo[] = [
@@ -101,18 +101,18 @@ export function buildCreateApplicationDTO(
       type: 'MAIN',
       name: params.profile?.nickname || params.profile?.real_name || '',
       position: positionCode,
-      ...(userSkillLevel ? { skillLevel: parseInt(userSkillLevel, 10) } : {}),
+      height: parseInt(params.formData.height, 10),
+      age: parseInt(params.formData.age, 10),
+      skillLevel: parseInt(userSkillLevel, 10),
     },
     ...(params.hasCompanions
       ? params.companions.map((companion) => ({
           type: 'GUEST' as const,
           name: companion.name,
           position: companion.position || POSITION_DEFAULT,
-          ...(companion.height ? { height: parseInt(companion.height, 10) } : {}),
-          ...(companion.age ? { age: parseInt(companion.age, 10) } : {}),
-          ...(companion.skillLevel
-            ? { skillLevel: parseInt(companion.skillLevel, 10) }
-            : {}),
+          height: parseInt(companion.height, 10),
+          age: parseInt(companion.age, 10),
+          skillLevel: parseInt(companion.skillLevel, 10),
         }))
       : []),
   ];
