@@ -18,12 +18,98 @@ import { TeamInfoSection } from './team-info-section';
 import { TeamFacilitySection } from './team-facility-section';
 import { useTeamVotes, useVotingSummary, useMyVote } from '@/features/team/api/match/queries';
 import { useVote, useCloseVoting, useReopenVoting } from '@/features/team/api/match/mutations';
+import { buildTeamVoteReminderMessage, toKakaoShareText } from '@/features/team/lib/team-vote-reminder';
 import type {
   TeamInfoDTO,
   TeamMatchDetailDTO,
   TeamMembershipDTO,
 } from '@/features/team/model/types';
 import type { TeamVoteStatusValue } from '@/shared/config/team-constants';
+
+interface KakaoShareTextPayload {
+  objectType: 'text';
+  text: string;
+  link: {
+    mobileWebUrl: string;
+    webUrl: string;
+  };
+  buttonTitle?: string;
+}
+
+interface KakaoSdk {
+  isInitialized: () => boolean;
+  init: (appKey: string) => void;
+  Share: {
+    sendDefault: (payload: KakaoShareTextPayload) => void;
+  };
+}
+
+interface WindowWithKakao extends Window {
+  Kakao?: KakaoSdk;
+}
+
+const KAKAO_SDK_SRC = 'https://developers.kakao.com/sdk/js/kakao.min.js';
+let kakaoSdkPromise: Promise<KakaoSdk | null> | null = null;
+
+function initializeKakaoSdk(kakao: KakaoSdk, appKey: string): KakaoSdk | null {
+  try {
+    if (!kakao.isInitialized()) {
+      kakao.init(appKey);
+    }
+    return kakao;
+  } catch {
+    return null;
+  }
+}
+
+async function loadKakaoSdk(appKey: string): Promise<KakaoSdk | null> {
+  if (!appKey || typeof window === 'undefined') return null;
+
+  const existingKakao = (window as WindowWithKakao).Kakao;
+  if (existingKakao) {
+    return initializeKakaoSdk(existingKakao, appKey);
+  }
+
+  if (!kakaoSdkPromise) {
+    kakaoSdkPromise = new Promise((resolve) => {
+      let settled = false;
+      const settle = (sdk: KakaoSdk | null) => {
+        if (settled) return;
+        settled = true;
+        resolve(sdk);
+      };
+
+      const complete = () => {
+        const loadedKakao = (window as WindowWithKakao).Kakao;
+        settle(loadedKakao ? initializeKakaoSdk(loadedKakao, appKey) : null);
+      };
+
+      const handleError = () => settle(null);
+      const existingScript = document.querySelector<HTMLScriptElement>(`script[src="${KAKAO_SDK_SRC}"]`);
+
+      if (existingScript) {
+        existingScript.addEventListener('load', complete, { once: true });
+        existingScript.addEventListener('error', handleError, { once: true });
+        window.setTimeout(complete, 3000);
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = KAKAO_SDK_SRC;
+      script.async = true;
+      script.defer = true;
+      script.addEventListener('load', complete, { once: true });
+      script.addEventListener('error', handleError, { once: true });
+      document.head.appendChild(script);
+    });
+  }
+
+  const sdk = await kakaoSdkPromise;
+  if (!sdk) {
+    kakaoSdkPromise = null;
+  }
+  return sdk;
+}
 
 interface TeamMatchDetailViewProps {
   match: TeamMatchDetailDTO;
@@ -142,6 +228,77 @@ export function TeamMatchDetailView({
     );
   };
 
+  const handleShareVoteReminder = async () => {
+    if (typeof window === 'undefined') return;
+
+    const pendingVoterNames = votes
+      .filter((voteItem) => voteItem.status === 'PENDING')
+      .map((voteItem) => voteItem.userNickname?.trim() || '알수없음');
+
+    const fallbackAttendingCount = votes.filter(
+      (voteItem) => voteItem.status === 'CONFIRMED' || voteItem.status === 'LATE'
+    ).length;
+    const fallbackNotAttendingCount = votes.filter((voteItem) => voteItem.status === 'NOT_ATTENDING').length;
+    const fallbackMaybeCount = votes.filter((voteItem) => voteItem.status === 'MAYBE').length;
+
+    const voteUrl = `${window.location.origin}/team/${team.code ?? team.id}/matches/${match.publicId}`;
+
+    const reminderMessage = buildTeamVoteReminderMessage({
+      teamName: team.name,
+      matchDateTime: `${match.dateDisplay} ${match.timeDisplay}`,
+      pendingVoterNames,
+      voteUrl,
+      attendingCount: votingSummary ? votingSummary.attending + votingSummary.late : fallbackAttendingCount,
+      notAttendingCount: votingSummary ? votingSummary.notAttending : fallbackNotAttendingCount,
+      maybeCount: votingSummary ? votingSummary.maybe : fallbackMaybeCount,
+    });
+
+    const kakaoJavaScriptKey = process.env.NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY ?? '';
+
+    try {
+      const kakaoSdk = await loadKakaoSdk(kakaoJavaScriptKey);
+
+      if (kakaoSdk) {
+        kakaoSdk.Share.sendDefault({
+          objectType: 'text',
+          text: toKakaoShareText(reminderMessage),
+          link: {
+            mobileWebUrl: voteUrl,
+            webUrl: voteUrl,
+          },
+          buttonTitle: '투표하러 가기',
+        });
+        return;
+      }
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return;
+      }
+    }
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: `[${team.name}] ${match.dateDisplay} ${match.timeDisplay}`,
+          text: reminderMessage,
+          url: voteUrl,
+        });
+        return;
+      }
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return;
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(reminderMessage);
+      toast.success('카카오 공유를 사용할 수 없어 리마인더 문구를 복사했습니다.');
+    } catch {
+      toast.error('리마인더 공유에 실패했습니다.');
+    }
+  };
+
   // 내 투표 상태
   const myVoteStatus = myVote?.status as TeamVoteStatusValue | undefined;
   const hasVoted = myVoteStatus && myVoteStatus !== 'PENDING';
@@ -221,6 +378,9 @@ export function TeamMatchDetailView({
           isVotingClosed={isVotingClosed}
           isLoading={isVotesLoading}
           canQuickAddGuest={canQuickAddGuest}
+          canShareReminder={isLeader}
+          onShareReminder={handleShareVoteReminder}
+          isShareReminderDisabled={isVotesLoading}
         />
 
         {showExtraSections && (

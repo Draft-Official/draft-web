@@ -38,6 +38,9 @@ interface TeamVotingSectionProps {
   isVotingClosed: boolean;
   isLoading: boolean;
   canQuickAddGuest?: boolean;
+  canShareReminder?: boolean;
+  onShareReminder?: () => void;
+  isShareReminderDisabled?: boolean;
 }
 
 export function TeamVotingSection({
@@ -48,6 +51,9 @@ export function TeamVotingSection({
   isVotingClosed,
   isLoading,
   canQuickAddGuest = false,
+  canShareReminder = false,
+  onShareReminder,
+  isShareReminderDisabled = false,
 }: TeamVotingSectionProps) {
   const { user } = useAuth();
   const addTeamVoteGuest = useAddTeamVoteGuest();
@@ -103,16 +109,29 @@ export function TeamVotingSection({
           )}
         </h2>
 
-        {canQuickAddGuest && (
-          <button
-            type="button"
-            className="text-sm font-semibold text-primary hover:text-primary/80 transition-colors shrink-0 disabled:text-slate-400 disabled:cursor-not-allowed disabled:hover:text-slate-400"
-            onClick={() => setIsAddGuestOpen(true)}
-            disabled={isVotingClosed || isVoteActionLocked}
-          >
-            게스트 추가
-          </button>
-        )}
+        <div className="flex items-center gap-3 shrink-0">
+          {canShareReminder && (
+            <button
+              type="button"
+              className="text-sm font-semibold text-primary hover:text-primary/80 transition-colors disabled:text-slate-400 disabled:cursor-not-allowed disabled:hover:text-slate-400"
+              onClick={onShareReminder}
+              disabled={isShareReminderDisabled}
+            >
+              카카오톡 공유
+            </button>
+          )}
+
+          {canQuickAddGuest && (
+            <button
+              type="button"
+              className="text-sm font-semibold text-primary hover:text-primary/80 transition-colors disabled:text-slate-400 disabled:cursor-not-allowed disabled:hover:text-slate-400"
+              onClick={() => setIsAddGuestOpen(true)}
+              disabled={isVotingClosed || isVoteActionLocked}
+            >
+              게스트 추가
+            </button>
+          )}
+        </div>
       </div>
 
       {isLoading ? (
