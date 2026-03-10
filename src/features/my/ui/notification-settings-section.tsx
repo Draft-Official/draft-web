@@ -21,7 +21,7 @@ const NOTIFICATION_SETTINGS: NotificationSetting[] = [
 export function NotificationSettingsSection() {
   const { user } = useAuth();
   const { data: settings, isLoading } = useUserSettings();
-  const { mutate: updateSetting } = useUpdateNotificationSetting();
+  const { mutate: updateSetting, isPending: isUpdatingSetting } = useUpdateNotificationSetting();
 
   if (!user) return null;
 
@@ -40,7 +40,7 @@ export function NotificationSettingsSection() {
                   onCheckedChange={(checked) =>
                     updateSetting({ field, value: checked })
                   }
-                  disabled={isLoading}
+                  disabled={isLoading || isUpdatingSetting}
                   size="flat"
                   className="data-[state=checked]:bg-slate-800 data-[state=unchecked]:bg-slate-200"
                 />

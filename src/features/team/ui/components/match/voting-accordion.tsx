@@ -21,6 +21,7 @@ interface VotingAccordionProps {
   isAdmin: boolean;
   matchId: string;
   isVotingClosed: boolean;
+  externalActionsDisabled?: boolean;
 }
 
 export function VotingAccordion({
@@ -29,12 +30,13 @@ export function VotingAccordion({
   isAdmin,
   matchId,
   isVotingClosed,
+  externalActionsDisabled = false,
 }: VotingAccordionProps) {
   void votingSummary;
   const canManageVotes = isAdmin && !isVotingClosed;
   const { mutate: updateMemberVote, isPending: isUpdatingMemberVote } = useUpdateMemberVote();
   const { mutate: removeTeamVoteGuest, isPending: isRemovingGuest } = useRemoveTeamVoteGuest();
-  const isActionPending = isUpdatingMemberVote || isRemovingGuest;
+  const isActionPending = externalActionsDisabled || isUpdatingMemberVote || isRemovingGuest;
 
   const handleMarkNotAttending = (voter: TeamVoteDTO) => {
     if (voter.status === 'NOT_ATTENDING') return;

@@ -9,7 +9,14 @@ import { createTeamService, teamRowToEntity } from '@/entities/team';
 import { gymKeys } from '@/entities/gym';
 import { teamKeys, teamMemberKeys } from '../keys';
 import { toTeamInfoDTO } from '../../lib';
-import type { CreateTeamInput, UpdateTeamInput, TeamInfoDTO } from '../../model/types';
+import { rollbackSnapshot } from '@/shared/lib/query-cache-rollback';
+import {
+  beginOptimisticOperation,
+  buildOptimisticResourceKey,
+  finishOptimisticOperation,
+  isLatestOptimisticOperation,
+} from '@/shared/lib/optimistic/operation-tracker';
+import type { CreateTeamInput, UpdateTeamInput, TeamInfoDTO, MyTeamListItemDTO } from '../../model/types';
 
 /**
  * 팀 생성
@@ -89,23 +96,95 @@ export function useDeleteTeam() {
   const queryClient = useQueryClient();
 
   return useMutation({
+    mutationKey: ['team-info'],
+    onMutate: async ({ teamId, userId, teamCode }) => {
+      const optimisticToken = beginOptimisticOperation(
+        buildOptimisticResourceKey('team-delete-user', userId)
+      );
+      const teamDetailKey = teamKeys.detail(teamId);
+      const teamMembersKey = teamMemberKeys.byTeam(teamId);
+      const myTeamsKey = teamKeys.myTeams(userId);
+
+      await Promise.all([
+        queryClient.cancelQueries({ queryKey: teamDetailKey }),
+        queryClient.cancelQueries({ queryKey: teamMembersKey }),
+        queryClient.cancelQueries({ queryKey: myTeamsKey }),
+      ]);
+
+      const previousTeamDetail = queryClient.getQueryData<TeamInfoDTO | null>(teamDetailKey);
+      const previousTeamMembers = queryClient.getQueryData(teamMembersKey);
+      const previousMyTeams = queryClient.getQueryData<MyTeamListItemDTO[]>(myTeamsKey);
+
+      const resolvedCode = teamCode ?? previousTeamDetail?.code ?? null;
+      const detailByCodeKey = resolvedCode
+        ? teamKeys.detailByCode(resolvedCode)
+        : undefined;
+      const previousTeamByCode = detailByCodeKey
+        ? queryClient.getQueryData<TeamInfoDTO | null>(detailByCodeKey)
+        : undefined;
+
+      queryClient.removeQueries({ queryKey: teamDetailKey, exact: true });
+      if (detailByCodeKey) {
+        queryClient.removeQueries({ queryKey: detailByCodeKey, exact: true });
+      }
+      queryClient.removeQueries({ queryKey: teamMembersKey, exact: true });
+      queryClient.setQueryData<MyTeamListItemDTO[]>(myTeamsKey, (old) =>
+        old?.filter((team) => team.id !== teamId)
+      );
+
+      return {
+        optimisticToken,
+        teamDetailKey,
+        detailByCodeKey,
+        teamMembersKey,
+        myTeamsKey,
+        previousTeamDetail,
+        previousTeamByCode,
+        previousTeamMembers,
+        previousMyTeams,
+      };
+    },
     mutationFn: async ({
       teamId,
     }: {
       teamId: string;
       userId: string;
+      teamCode?: string | null;
     }): Promise<void> => {
       const supabase = getSupabaseBrowserClient();
       const service = createTeamService(supabase);
       await service.deleteTeam(teamId);
     },
-    onSuccess: (_, { teamId, userId }) => {
+    onError: (_error, _variables, context) => {
+      if (!context) return;
+      if (!isLatestOptimisticOperation(context.optimisticToken)) return;
+
+      rollbackSnapshot(queryClient, context.teamDetailKey, context.previousTeamDetail);
+      rollbackSnapshot(queryClient, context.teamMembersKey, context.previousTeamMembers);
+      rollbackSnapshot(queryClient, context.myTeamsKey, context.previousMyTeams);
+
+      if (context.detailByCodeKey) {
+        rollbackSnapshot(queryClient, context.detailByCodeKey, context.previousTeamByCode);
+      }
+    },
+    onSuccess: (_, { teamId }, context) => {
       // 캐시에서 제거
       queryClient.removeQueries({ queryKey: teamKeys.detail(teamId) });
-      // 내 팀 목록 갱신
-      queryClient.invalidateQueries({ queryKey: teamKeys.myTeams(userId) });
+      if (context?.detailByCodeKey) {
+        queryClient.removeQueries({ queryKey: context.detailByCodeKey, exact: true });
+      }
       // 팀원 관련 캐시 무효화
       queryClient.removeQueries({ queryKey: teamMemberKeys.byTeam(teamId) });
+    },
+    onSettled: (_data, _error, { teamId, userId }, context) => {
+      queryClient.invalidateQueries({ queryKey: teamKeys.myTeams(userId) });
+      queryClient.invalidateQueries({ queryKey: teamKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: teamKeys.detail(teamId) });
+      if (context?.detailByCodeKey) {
+        queryClient.invalidateQueries({ queryKey: context.detailByCodeKey, exact: true });
+      }
+      queryClient.invalidateQueries({ queryKey: teamMemberKeys.byTeam(teamId) });
+      finishOptimisticOperation(context?.optimisticToken);
     },
   });
 }

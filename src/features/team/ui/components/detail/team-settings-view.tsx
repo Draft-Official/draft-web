@@ -4,16 +4,14 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { ArrowLeft, ChevronRight } from 'lucide-react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from '@/shared/ui/shadcn/sonner';
 import { cn } from '@/shared/lib/utils';
 import { useSafeBack } from '@/shared/lib/hooks';
 import { useTeamByCode } from '@/features/team/api/team-info/queries';
+import { useDeleteTeam } from '@/features/team/api/team-info/mutations';
 import { useMyMembership, useTeamMembers } from '@/features/team/api/membership/queries';
+import { useLeaveTeam } from '@/features/team/api/membership/mutations';
 import { useAuth } from '@/shared/session';
-import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
-import { createTeamService } from '@/entities/team';
-import { teamKeys, teamMemberKeys } from '@/features/team/api/keys';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,7 +37,6 @@ interface TeamSettingsViewProps {
  */
 export function TeamSettingsView({ code }: TeamSettingsViewProps) {
   const router = useRouter();
-  const queryClient = useQueryClient();
   const { user } = useAuth();
   const handleBack = useSafeBack(`/team/${code}`);
 
@@ -65,42 +62,57 @@ export function TeamSettingsView({ code }: TeamSettingsViewProps) {
   const isMember = !!membership;
 
   // 팀 삭제 mutation
-  const deleteMutation = useMutation({
-    mutationFn: async () => {
-      if (!team?.id) throw new Error('팀 정보가 없습니다');
-      const supabase = getSupabaseBrowserClient();
-      const service = createTeamService(supabase);
-      await service.deleteTeam(team.id);
-    },
-    onSuccess: () => {
-      toast.success('팀이 삭제되었습니다');
-      queryClient.invalidateQueries({ queryKey: teamKeys.all });
-      queryClient.invalidateQueries({ queryKey: teamKeys.myTeams(user?.id || '') });
-      router.replace('/team');
-    },
-    onError: (error: Error) => {
-      toast.error(`삭제 실패: ${error.message}`);
-    },
-  });
+  const deleteMutation = useDeleteTeam();
 
   // 팀 탈퇴 mutation
-  const leaveMutation = useMutation({
-    mutationFn: async () => {
-      if (!team?.id || !user?.id) throw new Error('정보가 없습니다');
-      const supabase = getSupabaseBrowserClient();
-      const service = createTeamService(supabase);
-      await service.leaveTeam(team.id, user.id);
-    },
-    onSuccess: () => {
-      toast.success('팀에서 탈퇴했습니다');
-      queryClient.invalidateQueries({ queryKey: teamMemberKeys.all });
-      queryClient.invalidateQueries({ queryKey: teamKeys.myTeams(user?.id || '') });
-      router.replace('/team');
-    },
-    onError: (error: Error) => {
-      toast.error(`탈퇴 실패: ${error.message}`);
-    },
-  });
+  const leaveMutation = useLeaveTeam();
+
+  const handleDeleteTeam = () => {
+    if (!team?.id || !user?.id) {
+      toast.error('팀 정보가 없습니다');
+      return;
+    }
+
+    deleteMutation.mutate(
+      {
+        teamId: team.id,
+        userId: user.id,
+        teamCode: team.code,
+      },
+      {
+        onSuccess: () => {
+          toast.success('팀이 삭제되었습니다');
+          router.replace('/team');
+        },
+        onError: (error) => {
+          toast.error(`삭제 실패: ${error.message}`);
+        },
+      }
+    );
+  };
+
+  const handleLeaveTeam = () => {
+    if (!team?.id || !user?.id) {
+      toast.error('정보가 없습니다');
+      return;
+    }
+
+    leaveMutation.mutate(
+      {
+        teamId: team.id,
+        userId: user.id,
+      },
+      {
+        onSuccess: () => {
+          toast.success('팀에서 탈퇴했습니다');
+          router.replace('/team');
+        },
+        onError: (error) => {
+          toast.error(`탈퇴 실패: ${error.message}`);
+        },
+      }
+    );
+  };
 
   // 팀 로고 기본값
   const logoChar = team?.name?.charAt(0) || '?';
@@ -245,7 +257,7 @@ export function TeamSettingsView({ code }: TeamSettingsViewProps) {
             <AlertDialogCancel className="flex-1 h-12 rounded-xl font-bold">취소</AlertDialogCancel>
             <AlertDialogAction
               variant="destructive"
-              onClick={() => deleteMutation.mutate()}
+              onClick={handleDeleteTeam}
               className="flex-1 h-12 rounded-xl font-bold"
               disabled={deleteMutation.isPending}
             >
@@ -269,7 +281,7 @@ export function TeamSettingsView({ code }: TeamSettingsViewProps) {
             <AlertDialogCancel className="flex-1 h-12 rounded-xl font-bold">취소</AlertDialogCancel>
             <AlertDialogAction
               variant="destructive"
-              onClick={() => leaveMutation.mutate()}
+              onClick={handleLeaveTeam}
               className="flex-1 h-12 rounded-xl font-bold"
               disabled={leaveMutation.isPending}
             >

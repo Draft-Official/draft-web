@@ -85,6 +85,11 @@ export function HostMatchDetailView({
   const recruitmentMutation = useUpdateRecruitmentSetup();
   const announcementMutation = useCreateAnnouncement();
   const cancelMatchFlowMutation = useCancelMatchFlow();
+  const isGuestActionPending =
+    approveMutation.isPending ||
+    confirmMutation.isPending ||
+    rejectMutation.isPending ||
+    cancelMutation.isPending;
 
   // Local state
   const [selectedTab, setSelectedTab] = useState<GuestStatus>('pending');
@@ -148,6 +153,7 @@ export function HostMatchDetailView({
   };
 
   const doApprove = (guest: MatchApplicantDTO) => {
+    if (isGuestActionPending) return;
     approveMutation.mutate(
       { applicationId: guest.id, matchId: internalMatchId },
       { onSuccess: () => setIsGuestProfileOpen(false) }
@@ -166,6 +172,7 @@ export function HostMatchDetailView({
 
   const handleConfirmPayment = (guest: MatchApplicantDTO) => {
     if (!internalMatchId) return;
+    if (isGuestActionPending) return;
     confirmMutation.mutate(
       { applicationId: guest.id, matchId: internalMatchId },
       { onSuccess: () => setIsGuestProfileOpen(false) }
@@ -174,6 +181,7 @@ export function HostMatchDetailView({
 
   const handleReject = (guest: MatchApplicantDTO) => {
     if (!internalMatchId) return;
+    if (isGuestActionPending) return;
     rejectMutation.mutate(
       { applicationId: guest.id, matchId: internalMatchId },
       { onSuccess: () => setIsGuestProfileOpen(false) }
@@ -182,6 +190,7 @@ export function HostMatchDetailView({
 
   const handleCancel = (guest: MatchApplicantDTO, cancelType?: CancelTypeValue) => {
     if (!internalMatchId) return;
+    if (isGuestActionPending) return;
     cancelMutation.mutate(
       {
         applicationId: guest.id,
@@ -397,6 +406,7 @@ export function HostMatchDetailView({
           selectedTab={selectedTab}
           onTabChange={setSelectedTab}
           isEnded={isEnded}
+          actionsDisabled={isGuestActionPending}
           onGuestClick={openGuestProfile}
           onApprove={handleApprove}
           onReject={openRejectConfirm}
@@ -410,6 +420,7 @@ export function HostMatchDetailView({
         guest={selectedGuest}
         open={isGuestProfileOpen}
         onOpenChange={setIsGuestProfileOpen}
+        actionsDisabled={isGuestActionPending}
         onApprove={handleApprove}
         onReject={(guest) => {
           setIsGuestProfileOpen(false);
@@ -458,12 +469,15 @@ export function HostMatchDetailView({
               variant="outline"
               className="flex-1 h-12 rounded-xl font-bold"
               onClick={() => setIsRejectConfirmOpen(false)}
+              disabled={isGuestActionPending}
             >
               닫기
             </Button>
             <Button
               className="flex-1 bg-red-100 hover:bg-red-200 text-red-600 border border-red-200 h-12 rounded-xl font-bold"
+              disabled={isGuestActionPending}
               onClick={() => {
+                if (isGuestActionPending) return;
                 if (guestToReject) handleReject(guestToReject);
                 setIsRejectConfirmOpen(false);
               }}
@@ -532,11 +546,14 @@ export function HostMatchDetailView({
               onClick={() => setOverQuotaGuest(null)}
               variant="outline"
               className="flex-1 h-12 rounded-xl font-bold"
+              disabled={isGuestActionPending}
             >
               취소
             </Button>
             <Button
+              disabled={isGuestActionPending}
               onClick={() => {
+                if (isGuestActionPending) return;
                 if (overQuotaGuest) doApprove(overQuotaGuest);
                 setOverQuotaGuest(null);
               }}

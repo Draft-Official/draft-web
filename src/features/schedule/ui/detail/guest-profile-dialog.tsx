@@ -17,6 +17,7 @@ interface GuestProfileDialogProps {
   guest: MatchApplicantDTO | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  actionsDisabled?: boolean;
   onApprove: (guest: MatchApplicantDTO) => void;
   onReject: (guest: MatchApplicantDTO) => void;
   onConfirmPayment: (guest: MatchApplicantDTO) => void;
@@ -28,6 +29,7 @@ export function GuestProfileDialog({
   guest,
   open,
   onOpenChange,
+  actionsDisabled = false,
   onApprove,
   onReject,
   onConfirmPayment,
@@ -180,6 +182,7 @@ export function GuestProfileDialog({
                   <>
                     <Button
                       onClick={() => onApprove(guest)}
+                      disabled={actionsDisabled}
                       variant="outline"
                       className="flex-1 h-12 rounded-xl"
                     >
@@ -187,6 +190,7 @@ export function GuestProfileDialog({
                     </Button>
                     <Button
                       onClick={() => onReject(guest)}
+                      disabled={actionsDisabled}
                       className="flex-1 bg-red-100 hover:bg-red-200 text-red-600 border border-red-200 h-12 rounded-xl"
                     >
                       거절
@@ -198,6 +202,7 @@ export function GuestProfileDialog({
                   <>
                     <Button
                       onClick={() => onConfirmPayment(guest)}
+                      disabled={actionsDisabled}
                       variant="outline"
                       className="flex-1 h-12 rounded-xl"
                     >
@@ -205,6 +210,7 @@ export function GuestProfileDialog({
                     </Button>
                     <Button
                       onClick={() => onCancel(guest)}
+                      disabled={actionsDisabled}
                       className="flex-1 bg-red-100 hover:bg-red-200 text-red-600 border border-red-200 h-12 rounded-xl"
                     >
                       취소
@@ -215,6 +221,7 @@ export function GuestProfileDialog({
                 {guest.status === 'confirmed' && (
                   <Button
                     onClick={() => onCancel(guest)}
+                    disabled={actionsDisabled}
                     className="w-full bg-red-100 hover:bg-red-200 text-red-600 border border-red-200 h-12 rounded-xl"
                   >
                     취소
