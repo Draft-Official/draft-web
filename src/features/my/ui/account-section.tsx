@@ -4,15 +4,16 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Phone, LogOut, UserX, AlertTriangle } from 'lucide-react';
 import { toast } from '@/shared/ui/shadcn/sonner';
-import { Button } from '@/shared/ui/shadcn/button';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@/shared/ui/shadcn/dialog';
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from '@/shared/ui/shadcn/alert-dialog';
 import { useAuth, useDeleteAccount } from '@/shared/session';
 import { Spinner } from '@/shared/ui/shadcn/spinner';
 import { ConfirmDialog } from '@/shared/ui/composite/confirm-dialog';
@@ -105,82 +106,76 @@ export function AccountSection() {
         onConfirm={handleLogout}
       />
 
-      <Dialog open={withdrawOpen} onOpenChange={setWithdrawOpen}>
-        <DialogContent size="app" className="rounded-2xl">
-          <DialogHeader className="items-center text-center">
+      <AlertDialog open={withdrawOpen} onOpenChange={setWithdrawOpen}>
+        <AlertDialogContent size="sm">
+          <AlertDialogHeader>
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-red-50">
               <UserX className="h-6 w-6 text-red-500" />
             </div>
-            <DialogTitle>정말 탈퇴하시겠습니까?</DialogTitle>
-            <DialogDescription>
+            <AlertDialogTitle>정말 탈퇴하시겠습니까?</AlertDialogTitle>
+            <AlertDialogDescription>
               탈퇴하면 모든 개인정보가 삭제되며 복구할 수 없습니다.
-            </DialogDescription>
-          </DialogHeader>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
 
           {loadingCheck ? (
             <div className="flex items-center justify-center py-4">
               <Spinner className="h-5 w-5 text-muted-foreground" />
             </div>
-          ) : (
+          ) : hasConfirmed && (
             <>
-              {hasConfirmed && (
-                <>
-                  <div className="rounded-lg bg-red-50 border border-red-200 p-4 space-y-2">
-                    <div className="flex items-start gap-2">
-                      <AlertTriangle className="h-4 w-4 text-red-600 mt-0.5 shrink-0" />
-                      <p className="text-sm text-red-700 font-bold">
-                        현재 입금 완료된 확정자 {confirmedCount}명이 있습니다.
-                      </p>
-                    </div>
-                    <p className="text-xs text-red-600 leading-relaxed">
-                      모든 확정자에게 참가비를 환불해야 할 책임이 호스트에게
-                      있습니다. 환불 없는 탈퇴 시 제재를 받을 수 있습니다.
-                    </p>
-                  </div>
+              <div className="rounded-lg bg-red-50 border border-red-200 p-4 space-y-2">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="h-4 w-4 text-red-600 mt-0.5 shrink-0" />
+                  <p className="text-sm text-red-700 font-bold">
+                    현재 입금 완료된 확정자 {confirmedCount}명이 있습니다.
+                  </p>
+                </div>
+                <p className="text-xs text-red-600 leading-relaxed">
+                  모든 확정자에게 참가비를 환불해야 할 책임이 호스트에게
+                  있습니다. 환불 없는 탈퇴 시 제재를 받을 수 있습니다.
+                </p>
+              </div>
 
-                  <label className="flex items-start gap-3 cursor-pointer rounded-lg border border-slate-200 p-3 hover:bg-slate-50 transition-colors">
-                    <input
-                      type="checkbox"
-                      checked={settlementAcknowledged}
-                      onChange={(e) => setSettlementAcknowledged(e.target.checked)}
-                      className="w-4 h-4 mt-0.5 rounded border-slate-300 accent-primary shrink-0"
-                    />
-                    <span className="text-sm text-slate-700 font-medium leading-snug">
-                      모든 확정자에 대한 참가비 정산을 완료했습니다.
-                    </span>
-                  </label>
-                </>
-              )}
-
-              <DialogFooter className="flex-row gap-2">
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => setWithdrawOpen(false)}
-                  disabled={deleteAccount.isPending}
-                >
-                  취소
-                </Button>
-                <Button
-                  variant="destructive"
-                  className="flex-1"
-                  onClick={handleWithdraw}
-                  disabled={!canSubmit || deleteAccount.isPending}
-                >
-                  {deleteAccount.isPending ? (
-                    <>
-                      <Spinner className="mr-2 h-4 w-4" />
-                      처리 중...
-                    </>
-                  ) : (
-                    '탈퇴하기'
-                  )}
-                </Button>
-              </DialogFooter>
+              <label className="flex items-start gap-3 cursor-pointer rounded-lg border border-slate-200 p-3 hover:bg-slate-50 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={settlementAcknowledged}
+                  onChange={(e) => setSettlementAcknowledged(e.target.checked)}
+                  className="w-4 h-4 mt-0.5 rounded border-slate-300 accent-primary shrink-0"
+                />
+                <span className="text-sm text-slate-700 font-medium leading-snug">
+                  모든 확정자에 대한 참가비 정산을 완료했습니다.
+                </span>
+              </label>
             </>
           )}
-        </DialogContent>
-      </Dialog>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel className="flex-1 h-12 rounded-xl font-bold" disabled={deleteAccount.isPending}>
+              취소
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              className="flex-1 h-12 rounded-xl font-bold"
+              onClick={(e) => {
+                e.preventDefault();
+                handleWithdraw();
+              }}
+              disabled={!canSubmit || deleteAccount.isPending}
+            >
+              {deleteAccount.isPending ? (
+                <>
+                  <Spinner className="mr-2 h-4 w-4" />
+                  처리 중...
+                </>
+              ) : (
+                '탈퇴하기'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
