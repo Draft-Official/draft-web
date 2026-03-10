@@ -11,12 +11,15 @@ import {
   isValidAccountNumber,
 } from '@/shared/lib/validation/account';
 import { normalizePhoneNumber, PHONE_REGEX } from '@/shared/lib/phone-utils';
+import { toKSTDateTimeISO } from '@/shared/lib/datetime';
+import { canCreateMatchAt } from '@/shared/lib/match-recruitment-state';
 
 interface ValidationInput {
   form: MatchCreateSubmitFormValues;
   selectedDate: string | null;
   locationData: LocationData | null;
   currentUserPhone?: string | null;
+  enforceFutureStartTime?: boolean;
   isPositionMode: boolean;
   positions: {
     guard: number;
@@ -36,6 +39,7 @@ export function validateMatchCreateSubmit({
   selectedDate,
   locationData,
   currentUserPhone,
+  enforceFutureStartTime = true,
   isPositionMode,
   positions,
   totalCount,
@@ -58,6 +62,19 @@ export function validateMatchCreateSubmit({
         message: '⚠️ 기본 정보를 확인해주세요: 장소를 검색하여 선택해주세요.',
       },
     };
+  }
+
+  if (enforceFutureStartTime) {
+    const startDateTimeISO = toKSTDateTimeISO(selectedDate, form.startTime || '19:00');
+    if (!canCreateMatchAt(startDateTimeISO)) {
+      return {
+        ok: false,
+        error: {
+          sectionId: 'section-basic-info',
+          message: '⚠️ 기본 정보를 확인해주세요: 이미 지난 시작 시간으로는 경기를 생성할 수 없습니다.',
+        },
+      };
+    }
   }
 
   if (isPositionMode) {

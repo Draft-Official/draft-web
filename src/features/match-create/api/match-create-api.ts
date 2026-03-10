@@ -9,6 +9,7 @@ import { createGymService } from '@/entities/gym';
 import { logRequest, logResponse, logSupabaseQuery, logSupabaseResult } from '@/shared/lib/logger';
 import { handleSupabaseError, ValidationError } from '@/shared/lib/errors';
 import { normalizePhoneNumber, PHONE_REGEX } from '@/shared/lib/phone-utils';
+import { canCreateMatchAt } from '@/shared/lib/match-recruitment-state';
 
 export class MatchCreateService {
   private readonly SERVICE_NAME = 'MatchCreateService';
@@ -97,6 +98,10 @@ export class MatchCreateService {
       const { phone } = await this.assertPhoneVerified(hostId, '경기 생성');
       const verifiedPhone = this.resolveVerifiedPhone(phone, '경기 생성');
       const { matchData, gymId } = await this.prepareMatchData(hostId, form, verifiedPhone);
+
+      if (!canCreateMatchAt(matchData.start_time ?? null)) {
+        throw new ValidationError('이미 지난 시간으로는 경기를 생성할 수 없습니다.');
+      }
 
       logSupabaseQuery('matches', 'INSERT', matchData);
       const { data: match, error } = await this.supabase

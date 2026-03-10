@@ -29,6 +29,7 @@ import {
   formatTeamRegion,
   formatTeamRegularSchedule,
 } from './formatters';
+import { isTeamVotingClosed } from '@/shared/lib/match-recruitment-state';
 
 type TeamMemberUserInput = {
   id: string;
@@ -202,7 +203,10 @@ export function toTeamMatchDetailDTO(
     operationInfo: match.operationInfo,
     accountInfo: match.accountInfo,
     facilities: extras?.gym?.facilities ?? null,
-    isVotingClosed: match.status === 'CLOSED' || new Date(match.startTime) < new Date(),
+    isVotingClosed: isTeamVotingClosed({
+      status: match.status,
+      startTimeISO: match.startTime,
+    }),
   };
 }
 
