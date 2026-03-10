@@ -42,6 +42,8 @@ export function CreateMenuButton({
     enabled: shouldLoadTeams,
   });
 
+  if (!isAuthLoading && !isAuthenticated) return null;
+
   const filterManageableTeams = (teams: typeof myTeams) => (teams ?? []).filter(
     (team) => (team.role === 'LEADER' || team.role === 'MANAGER') && team.code
   );

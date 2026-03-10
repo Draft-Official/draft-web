@@ -5,7 +5,6 @@ import { usePathname } from 'next/navigation';
 import { Home, Users, Calendar, MessageCircle, User } from 'lucide-react';
 import { Fragment, type ReactNode } from 'react';
 import { cn } from '@/shared/lib/utils';
-import { useAuth } from '@/shared/session';
 
 interface SidebarProps {
   compact?: boolean;
@@ -14,7 +13,6 @@ interface SidebarProps {
 
 export function Sidebar({ compact = false, actionSlot }: SidebarProps) {
   const pathname = usePathname() ?? '';
-  const { isAuthenticated } = useAuth();
   const isActivePath = (href: string) => {
     if (href === '/') return pathname === '/';
     return pathname === href || pathname.startsWith(`${href}/`);
@@ -41,12 +39,7 @@ export function Sidebar({ compact = false, actionSlot }: SidebarProps) {
         </div>
         <nav className="flex-1 flex flex-col items-center gap-1 px-2">
           {NAV_ITEMS.map((item) => {
-            const isProtectedTab =
-              item.href === '/team' || item.href === '/schedule' || item.href === '/chat';
-            const href =
-              isProtectedTab && !isAuthenticated
-                ? `/auth/login?redirect=${encodeURIComponent(item.href)}`
-                : item.href;
+            const href = item.href;
             const isActive = isActivePath(item.href);
 
             return (
@@ -90,12 +83,7 @@ export function Sidebar({ compact = false, actionSlot }: SidebarProps) {
       {/* Menu */}
       <nav className="flex-1 space-y-1 px-2">
         {NAV_ITEMS.map((item) => {
-          const isProtectedTab =
-            item.href === '/team' || item.href === '/schedule' || item.href === '/chat';
-          const href =
-            isProtectedTab && !isAuthenticated
-              ? `/auth/login?redirect=${encodeURIComponent(item.href)}`
-              : item.href;
+          const href = item.href;
           const isActive = isActivePath(item.href);
           return (
             <Fragment key={item.href}>
