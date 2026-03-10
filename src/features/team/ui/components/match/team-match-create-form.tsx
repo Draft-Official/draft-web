@@ -20,6 +20,7 @@ import { Spinner } from '@/shared/ui/shadcn/spinner';
 import { ConfirmDialog } from '@/shared/ui/composite/confirm-dialog';
 import { useLeaveGuard } from '@/shared/lib/hooks/use-leave-guard';
 import {
+  canCreateMatchAt,
   formatKSTDateISO,
   getKSTDateParts,
   normalizeHHMM,
@@ -200,6 +201,12 @@ export function TeamMatchCreateForm({ team, onClose }: TeamMatchCreateFormProps)
     // 저장은 KST 오프셋이 포함된 ISO 문자열로 통일
     const startDateTime = toKSTDateTimeISO(selectedDate, normalizeTime(startTime));
     const endDateTime = toKSTDateTimeISO(selectedDate, normalizeTime(endTime));
+
+    if (!canCreateMatchAt(startDateTime)) {
+      toast.error('이미 지난 시간으로는 팀 운동을 개설할 수 없습니다.');
+      return;
+    }
+
     const trimmedNotice = notice.trim();
     const operationInfo = team.operationInfo || trimmedNotice
       ? {

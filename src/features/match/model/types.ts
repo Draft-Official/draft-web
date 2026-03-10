@@ -72,7 +72,7 @@ export interface GuestMatchListItemDTO {
   levelDisplay: string | null; // "중수(B) 이상"
   ageDisplay: string | null; // "20대~30대"
   isNew: boolean; // Created within 24 hours
-  isClosed: boolean; // status === 'CLOSED'
+  isClosed: boolean; // 모집 마감 상태 (status 기반 또는 경기 시작 이후)
 }
 
 /**

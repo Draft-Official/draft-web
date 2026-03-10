@@ -95,6 +95,7 @@ export function useMatchCreateSubmit({
       selectedDate,
       locationData,
       currentUserPhone,
+      enforceFutureStartTime: !isEditMode,
       isPositionMode: recruitment.isPositionMode,
       positions: recruitment.positions,
       totalCount: recruitment.totalCount,

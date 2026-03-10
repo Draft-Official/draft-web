@@ -52,6 +52,7 @@ import { MatchActionButton } from './match-action-button';
 import { Spinner } from '@/shared/ui/shadcn/spinner';
 import { useHostMatchChatRooms } from '@/features/chat';
 import { formatRelativeTime } from '@/features/notification/lib/format-time';
+import { hasMatchStarted } from '@/shared/lib/match-recruitment-state';
 
 interface HostMatchDetailViewProps {
   matchIdentifier?: string;
@@ -111,9 +112,11 @@ export function HostMatchDetailView({
   const isMatchFinished = !!(match?.endTimeISO && new Date() >= new Date(match.endTimeISO));
   const isMatchCanceled = matchStatus === 'CANCELED';
   const isEnded = isMatchFinished || isMatchCanceled;
-  const isRecruiting = !isEnded && matchStatus === 'RECRUITING';
-  const isClosed = !isEnded && matchStatus === 'CLOSED';
-  const isConfirmed = !isEnded && (matchStatus === 'CONFIRMED' || matchStatus === 'ONGOING');
+  const isMatchStarted = hasMatchStarted(match?.startTimeISO ?? null);
+  const isRecruiting = !isEnded && !isMatchStarted && matchStatus === 'RECRUITING';
+  const isClosed = !isEnded && (matchStatus === 'CLOSED' || isMatchStarted);
+  const isConfirmed = !isEnded && !isMatchStarted && matchStatus === 'CONFIRMED';
+  const canResumeRecruiting = !isEnded && !isMatchStarted && (isClosed || isConfirmed);
 
   // 확정자 수 계산 (포지션별, 동반인 포함)
   const confirmedCountByPosition = guests
@@ -284,7 +287,7 @@ export function HostMatchDetailView({
               <DropdownMenuItem onClick={() => router.push(`/matches/${match.publicId}`)}>
                 상세페이지 보기
               </DropdownMenuItem>
-              {!isEnded && (isClosed || isConfirmed) && (
+              {canResumeRecruiting && (
                 <DropdownMenuItem onClick={handleResumeRecruiting}>
                   추가 모집하기
                 </DropdownMenuItem>

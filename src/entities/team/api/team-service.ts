@@ -25,6 +25,7 @@ import { handleSupabaseError, ValidationError } from '@/shared/lib/errors';
 import type { TeamRoleValue, TeamVoteStatusValue } from '@/shared/config/team-constants';
 import type { PositionValue } from '@/shared/config/match-constants';
 import { toKSTDateTimeISO } from '@/shared/lib/datetime';
+import { canCreateMatchAt, hasMatchStarted } from '@/shared/lib/match-recruitment-state';
 import {
   countTeamVoteParticipants,
   normalizeTeamVotePosition,
@@ -80,6 +81,23 @@ function normalizeMatchDateTimeInput(value: string): string {
 
 export class TeamService {
   constructor(private supabase: SupabaseClient<Database>) {}
+
+  private isTeamVoteClosed(
+    match?: { status?: string | null; start_time?: string | null } | null
+  ): boolean {
+    if (!match) return false;
+    if (match.status === 'CLOSED') return true;
+    return hasMatchStarted(match.start_time ?? null);
+  }
+
+  private assertTeamVoteOpen(
+    match: { status?: string | null; start_time?: string | null } | null | undefined,
+    message: string
+  ): void {
+    if (this.isTeamVoteClosed(match)) {
+      throw new ValidationError(message);
+    }
+  }
 
   private async assertPhoneVerified(userId: string, actionLabel: string): Promise<void> {
     const { data, error } = await this.supabase
@@ -689,12 +707,19 @@ export class TeamService {
   async createTeamMatch(hostId: string, input: CreateTeamMatchInput): Promise<Match> {
     await this.assertPhoneVerified(hostId, '팀 운동 개설');
 
+    const startTimeISO = normalizeMatchDateTimeInput(input.startTime);
+    const endTimeISO = normalizeMatchDateTimeInput(input.endTime);
+
+    if (!canCreateMatchAt(startTimeISO)) {
+      throw new ValidationError('이미 지난 시간으로는 팀 운동을 개설할 수 없습니다.');
+    }
+
     const matchInsert: MatchInsert = {
       team_id: input.teamId,
       host_id: hostId,
       match_type: 'TEAM_MATCH',
-      start_time: normalizeMatchDateTimeInput(input.startTime),
-      end_time: normalizeMatchDateTimeInput(input.endTime),
+      start_time: startTimeISO,
+      end_time: endTimeISO,
       gym_id: input.gymId,
       cost_type: input.costType || 'FREE',
       cost_amount: input.costAmount,
@@ -871,13 +896,11 @@ export class TeamService {
 
     const { data: match } = await this.supabase
       .from('matches')
-      .select('status')
+      .select('status, start_time')
       .eq('id', input.matchId)
       .single();
 
-    if (match?.status === 'CLOSED') {
-      throw new Error('투표가 마감되었습니다');
-    }
+    this.assertTeamVoteOpen(match, '투표가 마감되었습니다');
 
     const applicationStatus = TEAM_VOTE_STATUS_TO_APPLICATION_STATUS[input.status];
 
@@ -932,15 +955,16 @@ export class TeamService {
 
     const { data: match, error: matchError } = await this.supabase
       .from('matches')
-      .select('status')
+      .select('status, start_time')
       .eq('id', matchId)
       .single();
 
     if (matchError) handleSupabaseError(matchError, '경기 상태 조회');
 
-    if (match?.status === 'CLOSED') {
-      throw new ValidationError('투표가 마감된 경기에는 게스트를 추가할 수 없습니다');
-    }
+    this.assertTeamVoteOpen(
+      match,
+      '투표가 마감된 경기에는 게스트를 추가할 수 없습니다'
+    );
 
     const { data: voteRow, error: voteError } = await this.supabase
       .from('applications')
@@ -1007,15 +1031,16 @@ export class TeamService {
 
     const { data: match, error: matchError } = await this.supabase
       .from('matches')
-      .select('status')
+      .select('status, start_time')
       .eq('id', matchId)
       .single();
 
     if (matchError) handleSupabaseError(matchError, '경기 상태 조회');
 
-    if (match?.status === 'CLOSED') {
-      throw new ValidationError('투표가 마감된 경기에서는 게스트를 제외할 수 없습니다');
-    }
+    this.assertTeamVoteOpen(
+      match,
+      '투표가 마감된 경기에서는 게스트를 제외할 수 없습니다'
+    );
 
     const { data: voteRow, error: voteError } = await this.supabase
       .from('applications')
@@ -1177,6 +1202,19 @@ export class TeamService {
    * 투표 재오픈 (status를 RECRUITING으로 변경)
    */
   async reopenVoting(matchId: string): Promise<Match> {
+    const { data: match, error: matchError } = await this.supabase
+      .from('matches')
+      .select('start_time')
+      .eq('id', matchId)
+      .eq('match_type', 'TEAM_MATCH')
+      .single();
+
+    if (matchError) handleSupabaseError(matchError, '투표 재오픈 대상 조회');
+
+    if (hasMatchStarted(match?.start_time ?? null)) {
+      throw new ValidationError('경기가 시작된 이후에는 투표를 재오픈할 수 없습니다');
+    }
+
     const { data, error } = await this.supabase
       .from('matches')
       .update({
@@ -1200,6 +1238,19 @@ export class TeamService {
     status: TeamVoteStatusValue,
     description?: string
   ): Promise<Application> {
+    const { data: match, error: matchError } = await this.supabase
+      .from('matches')
+      .select('status, start_time')
+      .eq('id', matchId)
+      .single();
+
+    if (matchError) handleSupabaseError(matchError, '경기 상태 조회');
+
+    this.assertTeamVoteOpen(
+      match,
+      '투표가 마감된 경기에서는 상태를 변경할 수 없습니다'
+    );
+
     const applicationStatus = TEAM_VOTE_STATUS_TO_APPLICATION_STATUS[status];
 
     const { data, error } = await this.supabase
