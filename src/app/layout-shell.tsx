@@ -106,7 +106,8 @@ function LayoutShellContent({ children }: { children: React.ReactNode }) {
                 <div className="flex items-center gap-1.5">
                   <CreateMenuButton
                     compact
-                    className="border border-slate-900 bg-slate-50 text-slate-900 hover:bg-slate-100 active:bg-slate-200"
+                    hoverDescription="만들기"
+                    className="bg-transparent text-slate-900 hover:bg-slate-100 active:bg-slate-200"
                   />
                   <NotificationBell mode="panel" />
                 </div>
