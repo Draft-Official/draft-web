@@ -183,6 +183,7 @@ export function useHostedMatches(options: UseScheduleMatchesOptions = {}) {
       const mappedMatches = rows.map((row) => {
         const dto = toScheduleMatchListItemDTO(row, 'host');
         const myVoteData = myVoteMap.get(row.id);
+        const isTeamExercise = row.match_type === 'TEAM_MATCH';
         return {
           ...dto,
           // 게스트 모집 경기: 실제 신청자 수(PENDING + PAYMENT_PENDING)로 덮어씌우기
@@ -191,6 +192,7 @@ export function useHostedMatches(options: UseScheduleMatchesOptions = {}) {
             : dto.applicants,
           myVote: myVoteData?.vote,
           myVoteReason: myVoteData?.reason,
+          isVotingClosed: isTeamExercise ? row.status === 'CLOSED' : undefined,
           votingSummary: votingSummaryMap.get(row.id),
           teamId: row.team_id || undefined,
           teamCode: (row.team as { name: string; code?: string | null; logo_url?: string | null })?.code || undefined,
@@ -405,6 +407,7 @@ export function useParticipatingMatches(options: UseScheduleMatchesOptions = {})
           // Team 매치: 투표 상태 매핑
           const myVote = managementType === 'team_exercise' ? toTeamVoteStatus(app.status) : undefined;
           const myVoteReason = managementType === 'team_exercise' ? (app.description || undefined) : undefined;
+          const isVotingClosed = managementType === 'team_exercise' ? match.status === 'CLOSED' : undefined;
 
           return {
             id: match.id,
@@ -447,6 +450,7 @@ export function useParticipatingMatches(options: UseScheduleMatchesOptions = {})
             // Team vote fields
             myVote,
             myVoteReason,
+            isVotingClosed,
             votingSummary: votingSummaryMap.get(match.id),
             teamId: match.team_id || undefined,
             teamCode: match.team?.code || undefined,

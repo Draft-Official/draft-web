@@ -31,7 +31,7 @@ import { ScheduleRouteDetailPanel } from './detail/schedule-route-detail-panel';
 
 type ViewMode = "guest" | "host";
 type GuestTypeFilterValue = Exclude<MatchType, "host">;
-type HostTypeFilterValue = Exclude<MatchType, "guest">;
+type HostTypeFilterValue = "host";
 type GuestStatusFilterValue = "pending" | "payment_waiting" | "voting" | "confirmed" | "ended" | "cancelled";
 type HostStatusFilterValue = "recruiting" | "closed" | "voting" | "confirmed" | "ended" | "cancelled";
 
@@ -63,7 +63,7 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
       setGuestTypeFilter(normalizedGuest as GuestTypeFilterValue[]);
     }
 
-    const normalizedHost = hostTypeFilter.filter((value) => value !== "tournament");
+    const normalizedHost = hostTypeFilter.filter((value) => value === "host");
     if (normalizedHost.length !== hostTypeFilter.length) {
       setHostTypeFilter(normalizedHost as HostTypeFilterValue[]);
     }
@@ -93,7 +93,13 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
     isFetchingNextPage: isFetchingNextParticipating,
   } = useParticipatingMatches({ includePast: includePastMatches });
 
-  const hostedMatches = useMemo(() => hostedData?.pages.flatMap((page) => page.matches) ?? [], [hostedData]);
+  const hostedMatches = useMemo(
+    () =>
+      (hostedData?.pages.flatMap((page) => page.matches) ?? []).filter(
+        (match) => match.managementType !== "team_exercise"
+      ),
+    [hostedData]
+  );
   const participatingMatches = useMemo(() => participatingData?.pages.flatMap((page) => page.matches) ?? [], [participatingData]);
 
   // Fetch unread notifications & group by matchId
@@ -339,7 +345,7 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
                   value="host"
                   className="relative z-10 rounded-md px-4 py-1.5 text-base font-semibold text-slate-500 hover:text-slate-700 data-active:bg-transparent data-active:shadow-none data-active:text-slate-900"
                 >
-                  관리
+                  운영
                 </TabsTrigger>
               </TabsList>
             </Tabs>

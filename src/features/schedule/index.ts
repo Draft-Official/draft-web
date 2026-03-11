@@ -52,6 +52,5 @@ export { MatchManagementView } from './ui/match-management-view';
 // Detail views
 export { HostMatchDetailView } from './ui/detail/host-match-detail-view';
 export { TeamExerciseDetailView } from './ui/detail/team-exercise-detail-view';
-export { TeamExerciseManageView } from './ui/detail/team-exercise-manage-view';
 export { TournamentDetailView } from './ui/detail/tournament-detail-view';
 export { TournamentManageView } from './ui/detail/tournament-manage-view';

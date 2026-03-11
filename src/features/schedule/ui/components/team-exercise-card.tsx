@@ -50,7 +50,7 @@ export function TeamExerciseCard({
   const isManagingMode = match.scheduleMode === 'managing';
   const isPastMatch = PAST_MATCH_STATUSES.includes(match.status);
   const hasVoted = match.myVote && match.myVote !== 'PENDING';
-  const isVoteClosed = match.status === 'closed';
+  const isVoteClosed = match.isVotingClosed === true || match.status === 'closed';
 
   const handleVoteDialogChange = (open: boolean) => {
     if (!open) dialogClosedAt.current = Date.now();
@@ -76,13 +76,6 @@ export function TeamExerciseCard({
       };
     }
 
-    if (isVoteClosed) {
-      return {
-        label: '투표마감',
-        className: 'bg-slate-100 text-slate-600 border-slate-200',
-      };
-    }
-
     const voteStatus = (match.myVote ?? 'PENDING') as TeamVoteStatusValue;
 
     return {
@@ -92,6 +85,10 @@ export function TeamExerciseCard({
   };
 
   const statusBadge = renderStatusBadge();
+  const recruitmentBadge =
+    isVoteClosed
+      ? { label: '모집 마감', className: MATCH_STATUS_COLORS.closed }
+      : { label: '모집 중', className: MATCH_STATUS_COLORS.recruiting };
 
   return (
     <>
@@ -138,15 +135,28 @@ export function TeamExerciseCard({
               <MatchTypeIcon matchType={match.matchType} />
               {MANAGEMENT_TYPE_LABELS[match.managementType]}
             </Badge>
-            <Badge
-              variant="outline"
-              className={cn(
-                'text-xs font-medium border px-2.5 py-1',
-                statusBadge.className
+            <div className="flex items-center gap-2">
+              <Badge
+                variant="outline"
+                className={cn(
+                  'text-xs font-medium border px-2.5 py-1',
+                  statusBadge.className
+                )}
+              >
+                {statusBadge.label}
+              </Badge>
+              {!isPastMatch && (
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    'text-xs font-medium border px-2.5 py-1',
+                    recruitmentBadge.className
+                  )}
+                >
+                  {recruitmentBadge.label}
+                </Badge>
               )}
-            >
-              {statusBadge.label}
-            </Badge>
+            </div>
           </>
         }
         bottomSlot={

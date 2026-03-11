@@ -17,10 +17,9 @@ export const MATCH_TYPE_FILTER_OPTIONS: FilterOption<'guest' | 'team'>[] = [
   { value: 'team', label: '팀운동' },
 ];
 
-// 경기 타입 필터 옵션 (관리 모드 - 대회 필터 임시 비노출)
-export const HOST_TYPE_FILTER_OPTIONS: FilterOption<'host' | 'team'>[] = [
+// 경기 타입 필터 옵션 (운영 모드)
+export const HOST_TYPE_FILTER_OPTIONS: FilterOption<'host'>[] = [
   { value: 'host', label: '게스트' },
-  { value: 'team', label: '팀운동' },
 ];
 
 // 경기 상태 필터 옵션 - 참여 모드 (중복선택용)

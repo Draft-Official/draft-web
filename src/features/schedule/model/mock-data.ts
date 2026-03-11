@@ -10,7 +10,6 @@ import type {
   TeamExerciseDetailDTO,
   TournamentDetailDTO,
   GuestMatchDetail,
-  TeamExerciseManageDetailDTO,
   TournamentManageDetailDTO,
 } from './types';
 
@@ -54,6 +53,7 @@ export const MOCK_HOST_MATCH_DETAIL: HostMatchDetailDTO = {
   publicId: '2',
   date: '2025. 01. 22 (수)',
   time: '20:00',
+  startTimeISO: '2025-01-22T11:00:00.000Z',
   endTimeISO: '2025-01-22T13:00:00.000Z',
   location: '서초구민체육센터 농구장',
   locationUrl: 'https://map.kakao.com',
@@ -132,18 +132,6 @@ export const MOCK_GUEST_MATCH_DETAIL: GuestMatchDetail = {
 // ============================================
 // 관리 페이지 Mock 데이터
 // ============================================
-
-// 팀운동 관리 상세 Mock
-export const MOCK_TEAM_EXERCISE_MANAGE: TeamExerciseManageDetailDTO = {
-  id: '3',
-  teamName: '판교 드래곤즈',
-  date: '2025. 01. 13 (월)',
-  time: '18:30',
-  location: '판교테크노밸리 체육관',
-  locationUrl: 'https://map.kakao.com',
-  description: '오늘은 속공 연습 + 존 디펜스 연습합니다. 링크의 영상 보고오세요',
-  participants: MOCK_PARTICIPANTS,
-};
 
 // 대회 관리 상세 Mock
 export const MOCK_TOURNAMENT_MANAGE: TournamentManageDetailDTO = {

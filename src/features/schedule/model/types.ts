@@ -104,6 +104,7 @@ export interface ScheduleMatchListItemDTO {
   // Team vote fields (managementType === 'team_exercise')
   myVote?: TeamVoteStatusValue;
   myVoteReason?: string;
+  isVotingClosed?: boolean;
   votingSummary?: {
     attending: number;
     notAttending: number;
@@ -123,6 +124,7 @@ export interface HostMatchDetailDTO {
   publicId: string;
   date: string;
   time: string;
+  startTimeISO: string;
   endTimeISO: string;
   location: string;
   locationUrl: string;
@@ -160,18 +162,6 @@ export interface TournamentDetailDTO {
   tactics: string;
   participants: Participant[];
   teamName: string;
-}
-
-// 팀운동 관리 상세 DTO
-export interface TeamExerciseManageDetailDTO {
-  id: string;
-  teamName: string;
-  date: string;
-  time: string;
-  location: string;
-  locationUrl: string;
-  description: string;
-  participants: Participant[];
 }
 
 // 대회 관리 상세 DTO

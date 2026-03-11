@@ -7,9 +7,12 @@ import type { TeamInfoDTO } from '@/features/team/model/types';
 
 interface TeamInfoSectionProps {
   team: TeamInfoDTO;
+  notice?: string;
 }
 
-export function TeamInfoSection({ team }: TeamInfoSectionProps) {
+export function TeamInfoSection({ team, notice }: TeamInfoSectionProps) {
+  const normalizedNotice = notice?.trim();
+
   return (
     <section className="px-5 py-6">
       <div className="flex items-center justify-between mb-4">
@@ -27,6 +30,14 @@ export function TeamInfoSection({ team }: TeamInfoSectionProps) {
           </div>
         </div>
       </div>
+
+      {normalizedNotice ? (
+        <div className="bg-slate-50 rounded-xl p-4 text-sm text-slate-600 leading-relaxed relative mb-4">
+          <p className="whitespace-pre-wrap">
+            &quot;{normalizedNotice}&quot;
+          </p>
+        </div>
+      ) : null}
 
       {/* Draft Mediator Notice */}
       <div>

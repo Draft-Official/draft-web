@@ -322,6 +322,7 @@ export function TeamMatchDetailView({
   // 내 투표 상태
   const myVoteStatus = myVote?.status as TeamVoteStatusValue | undefined;
   const hasVoted = myVoteStatus && myVoteStatus !== 'PENDING';
+  const notice = match.operationInfo?.notice?.trim() ?? '';
   const isVotingActionDialogOpen = pendingVotingAction !== null;
   const isVotingActionLoading =
     pendingVotingAction === 'close' ? isClosing : pendingVotingAction === 'reopen' ? isReopening : false;
@@ -417,7 +418,7 @@ export function TeamMatchDetailView({
           <>
             <div className="h-px bg-slate-100 mx-5" />
 
-            <TeamInfoSection team={team} />
+            <TeamInfoSection team={team} notice={notice} />
 
             <div className="h-px bg-slate-100 mx-5" />
 

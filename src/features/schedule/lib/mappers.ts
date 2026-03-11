@@ -219,6 +219,7 @@ export function toHostMatchDetailDTO(match: MatchWithRelations): HostMatchDetail
     publicId: match.short_id,
     date: formatMatchDate(match.start_time),
     time: formatMatchTime(match.start_time),
+    startTimeISO: match.start_time || '',
     endTimeISO: match.end_time || '',
     location: match.gym?.name || '장소 미정',
     locationUrl: match.gym?.kakao_place_id

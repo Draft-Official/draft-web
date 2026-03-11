@@ -20,13 +20,13 @@ import { Spinner } from '@/shared/ui/shadcn/spinner';
 import { ConfirmDialog } from '@/shared/ui/composite/confirm-dialog';
 import { useLeaveGuard } from '@/shared/lib/hooks/use-leave-guard';
 import {
-  canCreateMatchAt,
   formatKSTDateISO,
   getKSTDateParts,
   normalizeHHMM,
   parseKSTDateISO,
   toKSTDateTimeISO,
 } from '@/shared/lib/datetime';
+import { canCreateMatchAt } from '@/shared/lib/match-recruitment-state';
 
 interface TeamMatchCreateFormProps {
   team: Team & { homeGymName: string | null; homeGymAddress?: string | null };
