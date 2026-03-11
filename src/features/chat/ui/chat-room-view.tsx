@@ -77,27 +77,48 @@ function formatDayKey(date: string): string {
 function MessageBubble({
   message,
   showReadIndicator = false,
+  incomingAvatarSrc,
+  incomingAvatarFallback,
 }: {
   message: MatchChatMessageDTO;
   showReadIndicator?: boolean;
+  incomingAvatarSrc?: string | null;
+  incomingAvatarFallback: string;
 }) {
+  const isMine = message.isMine;
+  const timeLabel = formatKSTTime(message.createdAt);
+
+  if (isMine) {
+    return (
+      <div className="flex justify-end">
+        <div className="flex items-end gap-1.5">
+          <span className="mb-0.5 whitespace-nowrap text-xs leading-none text-slate-400">
+            {showReadIndicator ? '읽음 · ' : ''}
+            {timeLabel}
+          </span>
+          <div className="max-w-[78%] break-words rounded-lg bg-primary px-3 py-2 text-sm leading-5 text-white">
+            {message.body}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className={cn('flex', message.isMine ? 'justify-end' : 'justify-start')}>
-      <div className={cn('max-w-[80%]', message.isMine ? 'items-end' : 'items-start')}>
-        <div
-          className={cn(
-            'break-words rounded-2xl px-3.5 py-2 text-sm leading-relaxed',
-            message.isMine
-              ? 'rounded-br-sm bg-primary text-white'
-              : 'rounded-bl-sm bg-slate-100 text-slate-800'
-          )}
-        >
+    <div className="flex justify-start">
+      <div className="flex items-end gap-1.5">
+        <Avatar className="h-7 w-7 border border-slate-200">
+          <AvatarImage src={incomingAvatarSrc || undefined} />
+          <AvatarFallback className="bg-slate-100 text-[10px] font-bold text-slate-600">
+            {incomingAvatarFallback}
+          </AvatarFallback>
+        </Avatar>
+        <div className="max-w-[78%] break-words rounded-lg bg-slate-100 px-3 py-2 text-sm leading-5 text-slate-800">
           {message.body}
         </div>
-        <p className={cn('mt-1 text-xs text-slate-400', message.isMine ? 'text-right' : 'text-left')}>
-          {message.isMine && showReadIndicator ? '읽음 · ' : ''}
-          {formatKSTTime(message.createdAt)}
-        </p>
+        <span className="mb-0.5 whitespace-nowrap text-xs leading-none text-slate-400">
+          {timeLabel}
+        </span>
       </div>
     </div>
   );
@@ -363,8 +384,12 @@ export function ChatRoomView({ roomId, layoutMode = 'page' }: ChatRoomViewProps)
   const headerAvatar = isGuestToHostInquiry ? room.teamLogoUrl : room.otherUserAvatar;
   const headerSubtitle = isGuestToHostInquiry
     ? formatRoomMeta(room.matchStartTimeISO)
-    : `${room.teamName} · ${formatRoomMeta(room.matchStartTimeISO)}`;
+    : (room.otherUserInfoSummary || '프로필 정보 없음');
   const headerInitial = headerTitle.substring(0, 1) || 'T';
+  const otherAvatarSrc = room.myRole === 'host'
+    ? room.guestAvatar
+    : (room.teamLogoUrl || room.hostAvatar);
+  const otherAvatarFallback = (room.myRole === 'host' ? room.guestName : room.teamName).substring(0, 1) || '상';
 
   return (
     <div className={cn(
@@ -483,12 +508,14 @@ export function ChatRoomView({ roomId, layoutMode = 'page' }: ChatRoomViewProps)
                     {section.dateLabel}
                   </span>
                 </div>
-                <div className="space-y-2.5">
+                <div className="space-y-1.5">
                   {section.items.map((message) => (
                     <MessageBubble
                       key={message.id}
                       message={message}
                       showReadIndicator={message.id === lastReadMineMessageId}
+                      incomingAvatarSrc={otherAvatarSrc}
+                      incomingAvatarFallback={otherAvatarFallback}
                     />
                   ))}
                 </div>

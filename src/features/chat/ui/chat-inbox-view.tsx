@@ -49,7 +49,7 @@ function ChatRoomListItem({
   const avatarSrc = isGuestToHostInquiry ? room.teamLogoUrl : room.otherUserAvatar;
   const subtitle = isGuestToHostInquiry
     ? formatMatchSummary(room.matchStartTimeISO)
-    : `${room.teamName} · ${formatMatchSummary(room.matchStartTimeISO)}`;
+    : (room.otherUserInfoSummary || '프로필 정보 없음');
   const initial = title.substring(0, 1) || 'T';
   const roleLabel = room.myRole === 'host' ? '호스트' : '게스트';
 
@@ -200,6 +200,11 @@ export function ChatInboxView({
         isSplitLayout ? 'pb-6' : 'pb-(--dimension-spacing-y-screen-bottom)'
       )}
     >
+      <section className="mb-4">
+        <h1 className="text-xl font-extrabold tracking-tight text-slate-900">채팅</h1>
+        <p className="mt-1 text-sm text-slate-500">문의/응답을 채팅으로 빠르게 처리하세요.</p>
+      </section>
+
       <section className="mb-4 flex items-center gap-2 overflow-x-auto no-scrollbar">
         {CHAT_MODE_TABS.map((tab) => (
           <button

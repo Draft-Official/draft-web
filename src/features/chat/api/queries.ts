@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { createChatService } from '@/entities/chat';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
+import { getPositionLabel } from '@/shared/config/match-constants';
+import { SKILL_LEVEL_NAMES } from '@/shared/config/skill-constants';
 import { useAuth } from '@/shared/session';
 import type { MatchChatRoomWithRelations } from '@/entities/chat';
 import type {
@@ -18,6 +20,87 @@ import { matchChatKeys } from './keys';
 
 function getUnreadSince(room: MatchChatRoomWithRelations, viewerUserId: string): string {
   return room.host_id === viewerUserId ? room.host_last_read_at : room.guest_last_read_at;
+}
+
+type UserProfileSnapshot = {
+  id: string;
+  metadata: unknown;
+  positions: string[] | null;
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function toOtherUserInfoSummary(profile: UserProfileSnapshot): string | null {
+  const segments: string[] = [];
+  const position = profile.positions?.[0];
+
+  if (position) {
+    segments.push(getPositionLabel(position, 'combined'));
+  }
+
+  if (isRecord(profile.metadata)) {
+    const skillLevel = profile.metadata.skill_level;
+    const age = profile.metadata.age;
+    const height = profile.metadata.height;
+
+    if (typeof skillLevel === 'number') {
+      const levelName = SKILL_LEVEL_NAMES[skillLevel] || `Lv.${skillLevel}`;
+      segments.push(levelName);
+    }
+
+    if (typeof age === 'number') {
+      segments.push(`${age}세`);
+    }
+
+    if (typeof height === 'number') {
+      segments.push(`${height}cm`);
+    }
+  }
+
+  return segments.length > 0 ? segments.join(' · ') : null;
+}
+
+async function loadUserInfoSummaryMap(userIds: string[]): Promise<Map<string, string | null>> {
+  const uniqueUserIds = Array.from(new Set(userIds.filter(Boolean)));
+  const summaryMap = new Map<string, string | null>();
+
+  if (uniqueUserIds.length === 0) {
+    return summaryMap;
+  }
+
+  const supabase = getSupabaseBrowserClient();
+  const { data, error } = await supabase
+    .from('users')
+    .select('id, metadata, positions')
+    .in('id', uniqueUserIds);
+
+  if (error || !data) {
+    return summaryMap;
+  }
+
+  for (const row of data as UserProfileSnapshot[]) {
+    summaryMap.set(row.id, toOtherUserInfoSummary(row));
+  }
+
+  return summaryMap;
+}
+
+async function attachOtherUserInfoSummary<T extends MatchChatRoomListItemDTO>(rooms: T[]): Promise<T[]> {
+  if (rooms.length === 0) {
+    return rooms;
+  }
+
+  const summaryMap = await loadUserInfoSummaryMap(rooms.map((room) => room.otherUserId));
+  if (summaryMap.size === 0) {
+    return rooms;
+  }
+
+  return rooms.map((room) => ({
+    ...room,
+    otherUserInfoSummary: summaryMap.get(room.otherUserId) ?? null,
+  }));
 }
 
 async function mapRoomsWithUnread(
@@ -65,7 +148,8 @@ export function useMatchChatRooms(options: UseMatchChatRoomsOptions = {}) {
         matchId,
       });
 
-      return mapRoomsWithUnread(rooms, user.id);
+      const mapped = await mapRoomsWithUnread(rooms, user.id);
+      return attachOtherUserInfoSummary(mapped);
     },
   });
 }
@@ -85,7 +169,8 @@ export function useHostMatchChatRooms(matchId: string) {
       const chatService = createChatService(getSupabaseBrowserClient());
       const rooms = await chatService.listHostRoomsByMatch(user.id, matchId);
 
-      return mapRoomsWithUnread(rooms, user.id);
+      const mapped = await mapRoomsWithUnread(rooms, user.id);
+      return attachOtherUserInfoSummary(mapped);
     },
   });
 }
@@ -110,7 +195,9 @@ export function useMatchChatRoom(roomId: string) {
         getUnreadSince(room, user.id)
       );
 
-      return toMatchChatRoomDetailDTO(room, user.id, unreadCount);
+      const mapped = toMatchChatRoomDetailDTO(room, user.id, unreadCount);
+      const [withSummary] = await attachOtherUserInfoSummary([mapped]);
+      return withSummary ?? mapped;
     },
   });
 }
