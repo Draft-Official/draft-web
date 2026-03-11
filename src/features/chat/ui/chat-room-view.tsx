@@ -2,7 +2,6 @@
 
 import { FormEvent, KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Bell, BellOff, Flag, MoreHorizontal, Send } from 'lucide-react';
 import { toast } from '@/shared/ui/shadcn/sonner';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/shadcn/avatar';
@@ -23,7 +22,6 @@ import {
   DropdownMenuTrigger,
 } from '@/shared/ui/shadcn/dropdown-menu';
 import { Spinner } from '@/shared/ui/shadcn/spinner';
-import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { formatKSTTime, getKSTDateParts } from '@/shared/lib/datetime';
 import { cn } from '@/shared/lib/utils';
 import { useMatchChatMessages, useMatchChatRoom } from '../api/queries';
@@ -34,7 +32,7 @@ import {
   useSendMatchChatMessage,
   useSetMatchChatMute,
 } from '../api/mutations';
-import { matchChatKeys } from '../api/keys';
+import { useMatchChatRealtime } from '../lib/use-match-chat-realtime';
 import type { MatchChatMessageDTO } from '../model/types';
 
 interface ChatRoomViewProps {
@@ -76,7 +74,13 @@ function formatDayKey(date: string): string {
   return `${parts.year}-${String(parts.month).padStart(2, '0')}-${String(parts.day).padStart(2, '0')}`;
 }
 
-function MessageBubble({ message }: { message: MatchChatMessageDTO }) {
+function MessageBubble({
+  message,
+  showReadIndicator = false,
+}: {
+  message: MatchChatMessageDTO;
+  showReadIndicator?: boolean;
+}) {
   return (
     <div className={cn('flex', message.isMine ? 'justify-end' : 'justify-start')}>
       <div className={cn('max-w-[80%]', message.isMine ? 'items-end' : 'items-start')}>
@@ -91,6 +95,7 @@ function MessageBubble({ message }: { message: MatchChatMessageDTO }) {
           {message.body}
         </div>
         <p className={cn('mt-1 text-xs text-slate-400', message.isMine ? 'text-right' : 'text-left')}>
+          {message.isMine && showReadIndicator ? '읽음 · ' : ''}
           {formatKSTTime(message.createdAt)}
         </p>
       </div>
@@ -100,7 +105,6 @@ function MessageBubble({ message }: { message: MatchChatMessageDTO }) {
 
 export function ChatRoomView({ roomId, layoutMode = 'page' }: ChatRoomViewProps) {
   const router = useRouter();
-  const queryClient = useQueryClient();
   const isSplitLayout = layoutMode === 'split';
 
   const { data: room, isLoading: isLoadingRoom, isError: isRoomError } = useMatchChatRoom(roomId);
@@ -120,6 +124,9 @@ export function ChatRoomView({ roomId, layoutMode = 'page' }: ChatRoomViewProps)
   const [lastMarkedIncomingMessageId, setLastMarkedIncomingMessageId] = useState<string | null>(null);
   const hasInitialReadSync = useRef(false);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const isSubmittingMessageRef = useRef(false);
+
+  useMatchChatRealtime({ roomId });
 
   useEffect(() => {
     hasInitialReadSync.current = false;
@@ -151,6 +158,38 @@ export function ChatRoomView({ roomId, layoutMode = 'page' }: ChatRoomViewProps)
 
     return sections;
   }, [messages]);
+
+  const lastReadMineMessageId = useMemo(() => {
+    if (!room) {
+      return null;
+    }
+
+    const opponentLastReadAt =
+      room.myRole === 'host' ? room.guestLastReadAt : room.hostLastReadAt;
+    if (!opponentLastReadAt) {
+      return null;
+    }
+
+    const opponentReadMillis = Date.parse(opponentLastReadAt);
+    if (Number.isNaN(opponentReadMillis)) {
+      return null;
+    }
+
+    let latestId: string | null = null;
+
+    for (const message of messages) {
+      if (!message.isMine) {
+        continue;
+      }
+
+      const messageMillis = Date.parse(message.createdAt);
+      if (!Number.isNaN(messageMillis) && messageMillis <= opponentReadMillis) {
+        latestId = message.id;
+      }
+    }
+
+    return latestId;
+  }, [room, messages]);
 
   useEffect(() => {
     if (!scrollRef.current) {
@@ -184,36 +223,10 @@ export function ChatRoomView({ roomId, layoutMode = 'page' }: ChatRoomViewProps)
     markReadMutation.mutate({ roomId: room.roomId, role: room.myRole });
   }, [room, messages, lastMarkedIncomingMessageId, markReadMutation]);
 
-  useEffect(() => {
-    if (!roomId) {
+  const sendMessageOnce = async () => {
+    if (isSubmittingMessageRef.current) {
       return;
     }
-
-    const supabase = getSupabaseBrowserClient();
-    const channel = supabase
-      .channel(`match-chat-room-${roomId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'match_chat_messages',
-          filter: `room_id=eq.${roomId}`,
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: matchChatKeys.all });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [roomId, queryClient]);
-
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
     const trimmed = input.trim();
     if (!trimmed) {
       return;
@@ -225,12 +238,20 @@ export function ChatRoomView({ roomId, layoutMode = 'page' }: ChatRoomViewProps)
     }
 
     try {
+      isSubmittingMessageRef.current = true;
       await sendMessageMutation.mutateAsync({ roomId, body: trimmed });
       setInput('');
     } catch (error) {
       const message = error instanceof Error ? error.message : '메시지 전송에 실패했습니다.';
       toast.error(message);
+    } finally {
+      isSubmittingMessageRef.current = false;
     }
+  };
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    await sendMessageOnce();
   };
 
   const handleBack = () => {
@@ -248,22 +269,10 @@ export function ChatRoomView({ roomId, layoutMode = 'page' }: ChatRoomViewProps)
   const handleInputKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
-      const trimmed = input.trim();
-      if (!trimmed || sendMessageMutation.isPending) {
+      if (sendMessageMutation.isPending) {
         return;
       }
-
-      if (trimmed.length > 1000) {
-        toast.error('메시지는 1000자 이하로 입력해 주세요.');
-        return;
-      }
-
-      void sendMessageMutation.mutateAsync({ roomId, body: trimmed })
-        .then(() => setInput(''))
-        .catch((error) => {
-          const message = error instanceof Error ? error.message : '메시지 전송에 실패했습니다.';
-          toast.error(message);
-        });
+      void sendMessageOnce();
     }
   };
 
@@ -349,7 +358,13 @@ export function ChatRoomView({ roomId, layoutMode = 'page' }: ChatRoomViewProps)
     );
   }
 
-  const otherInitial = room.otherUserName.substring(0, 1) || 'U';
+  const isGuestToHostInquiry = room.myRole === 'guest';
+  const headerTitle = isGuestToHostInquiry ? room.teamName : room.otherUserName;
+  const headerAvatar = isGuestToHostInquiry ? room.teamLogoUrl : room.otherUserAvatar;
+  const headerSubtitle = isGuestToHostInquiry
+    ? formatRoomMeta(room.matchStartTimeISO)
+    : `${room.teamName} · ${formatRoomMeta(room.matchStartTimeISO)}`;
+  const headerInitial = headerTitle.substring(0, 1) || 'T';
 
   return (
     <div className={cn(
@@ -373,16 +388,16 @@ export function ChatRoomView({ roomId, layoutMode = 'page' }: ChatRoomViewProps)
           )}
 
           <Avatar className="mr-2.5 h-9 w-9 border border-slate-200">
-            <AvatarImage src={room.otherUserAvatar || undefined} />
+            <AvatarImage src={headerAvatar || undefined} />
             <AvatarFallback className="bg-slate-100 text-slate-600 text-xs font-bold">
-              {otherInitial}
+              {headerInitial}
             </AvatarFallback>
           </Avatar>
 
           <div className="min-w-0">
-            <p className="truncate text-sm font-bold text-slate-900">{room.otherUserName}</p>
+            <p className="truncate text-sm font-bold text-slate-900">{headerTitle}</p>
             <p className="truncate text-xs text-slate-500">
-              {room.teamName} · {formatRoomMeta(room.matchStartTimeISO)}
+              {headerSubtitle}
             </p>
           </div>
 
@@ -470,7 +485,11 @@ export function ChatRoomView({ roomId, layoutMode = 'page' }: ChatRoomViewProps)
                 </div>
                 <div className="space-y-2.5">
                   {section.items.map((message) => (
-                    <MessageBubble key={message.id} message={message} />
+                    <MessageBubble
+                      key={message.id}
+                      message={message}
+                      showReadIndicator={message.id === lastReadMineMessageId}
+                    />
                   ))}
                 </div>
               </section>
@@ -495,7 +514,7 @@ export function ChatRoomView({ roomId, layoutMode = 'page' }: ChatRoomViewProps)
               rows={1}
               maxLength={1000}
               placeholder="메시지를 입력하세요"
-              className="max-h-28 min-h-9 flex-1 resize-none bg-transparent px-2 py-1.5 text-sm text-slate-900 outline-none placeholder:text-slate-400"
+              className="max-h-28 min-h-9 flex-1 resize-none bg-transparent px-2 py-1.5 text-[16px] leading-6 text-slate-900 outline-none placeholder:text-slate-400"
             />
             <Button
               type="submit"
@@ -551,7 +570,7 @@ export function ChatRoomView({ roomId, layoutMode = 'page' }: ChatRoomViewProps)
               maxLength={1000}
               rows={4}
               placeholder="상황을 구체적으로 작성하면 더 빠르게 검토할 수 있어요."
-              className="w-full resize-none rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-primary"
+              className="w-full resize-none rounded-lg border border-slate-200 px-3 py-2 text-[16px] leading-6 text-slate-900 outline-none placeholder:text-slate-400 focus:border-primary"
             />
           </div>
 

@@ -3,7 +3,10 @@ import { createChatService } from '@/entities/chat';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { useAuth } from '@/shared/session';
 import type { MatchChatRole } from '@/entities/chat';
-import type { CreateOrGetMatchChatRoomInputDTO } from '../model/types';
+import type {
+  CreateOrGetMatchChatRoomInputDTO,
+  MatchChatMessageDTO,
+} from '../model/types';
 import { matchChatKeys } from './keys';
 
 interface SendMatchChatMessageInput {
@@ -31,6 +34,15 @@ interface ReportMatchChatRoomInput {
   roomId: string;
   reason: string;
   details?: string;
+}
+
+interface SendMatchChatMessageContext {
+  previousMessages?: MatchChatMessageDTO[];
+  optimisticId: string;
+}
+
+function sortMessagesByCreatedAt(messages: MatchChatMessageDTO[]): MatchChatMessageDTO[] {
+  return [...messages].sort((left, right) => left.createdAt.localeCompare(right.createdAt));
 }
 
 export function useCreateOrGetMatchChatRoom() {
@@ -71,11 +83,85 @@ export function useSendMatchChatMessage() {
       const chatService = createChatService(getSupabaseBrowserClient());
       return chatService.sendMessage(roomId, user.id, body);
     },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: matchChatKeys.all });
+    onMutate: async ({ roomId, body }): Promise<SendMatchChatMessageContext | undefined> => {
+      if (!user?.id) {
+        return undefined;
+      }
+
+      const messagesKey = matchChatKeys.messages(roomId, user.id);
+      await queryClient.cancelQueries({ queryKey: messagesKey });
+
+      const previousMessages = queryClient.getQueryData<MatchChatMessageDTO[]>(messagesKey);
+      const optimisticId = `optimistic-${Date.now()}`;
+      const optimisticMessage: MatchChatMessageDTO = {
+        id: optimisticId,
+        roomId,
+        senderId: user.id,
+        body: body.trim(),
+        createdAt: new Date().toISOString(),
+        isMine: true,
+      };
+
+      queryClient.setQueryData<MatchChatMessageDTO[]>(messagesKey, (current) =>
+        sortMessagesByCreatedAt([...(current ?? []), optimisticMessage])
+      );
+
+      return {
+        previousMessages,
+        optimisticId,
+      };
+    },
+    onError: (_error, variables, context) => {
+      if (!user?.id) {
+        return;
+      }
+
+      const messagesKey = matchChatKeys.messages(variables.roomId, user.id);
+      if (context?.previousMessages) {
+        queryClient.setQueryData(messagesKey, context.previousMessages);
+        return;
+      }
+
+      queryClient.setQueryData<MatchChatMessageDTO[]>(messagesKey, (current) =>
+        (current ?? []).filter((message) => message.id !== context?.optimisticId)
+      );
+    },
+    onSuccess: (sentMessage, variables, context) => {
+      if (!user?.id) {
+        return;
+      }
+
+      const messagesKey = matchChatKeys.messages(variables.roomId, user.id);
+      const confirmed: MatchChatMessageDTO = {
+        id: sentMessage.id,
+        roomId: sentMessage.room_id,
+        senderId: sentMessage.sender_id,
+        body: sentMessage.body,
+        createdAt: sentMessage.created_at,
+        isMine: sentMessage.sender_id === user.id,
+      };
+
+      queryClient.setQueryData<MatchChatMessageDTO[]>(messagesKey, (current) => {
+        const filtered = (current ?? []).filter(
+          (message) =>
+            message.id !== context?.optimisticId &&
+            message.id !== confirmed.id
+        );
+
+        return sortMessagesByCreatedAt([...filtered, confirmed]);
+      });
+    },
+    onSettled: (_result, _error, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: matchChatKeys.all,
+        refetchType: 'active',
+      });
+
       if (user?.id) {
-        queryClient.invalidateQueries({ queryKey: matchChatKeys.messages(variables.roomId, user.id) });
-        queryClient.invalidateQueries({ queryKey: matchChatKeys.roomDetail(variables.roomId, user.id) });
+        queryClient.invalidateQueries({
+          queryKey: matchChatKeys.roomDetail(variables.roomId, user.id),
+          refetchType: 'active',
+        });
       }
     },
   });
