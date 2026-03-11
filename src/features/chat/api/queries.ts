@@ -108,24 +108,35 @@ async function mapRoomsWithUnread(
   viewerUserId: string
 ): Promise<MatchChatRoomListItemDTO[]> {
   const chatService = createChatService(getSupabaseBrowserClient());
+  const unreadInputs = rooms.map((room) => ({
+    roomId: room.id,
+    sinceISO: getUnreadSince(room, viewerUserId),
+  }));
 
-  const unreadCounts = await Promise.all(
-    rooms.map(async (room) => {
-      try {
-        return await chatService.countUnreadMessages(
-          room.id,
-          viewerUserId,
-          getUnreadSince(room, viewerUserId)
-        );
-      } catch {
-        return 0;
-      }
-    })
-  );
+  try {
+    const unreadCountMap = await chatService.countUnreadMessagesBulk(unreadInputs, viewerUserId);
+    return rooms.map((room) =>
+      toMatchChatRoomListItemDTO(room, viewerUserId, unreadCountMap.get(room.id) ?? 0)
+    );
+  } catch {
+    const unreadCounts = await Promise.all(
+      rooms.map(async (room) => {
+        try {
+          return await chatService.countUnreadMessages(
+            room.id,
+            viewerUserId,
+            getUnreadSince(room, viewerUserId)
+          );
+        } catch {
+          return 0;
+        }
+      })
+    );
 
-  return rooms.map((room, index) =>
-    toMatchChatRoomListItemDTO(room, viewerUserId, unreadCounts[index] ?? 0)
-  );
+    return rooms.map((room, index) =>
+      toMatchChatRoomListItemDTO(room, viewerUserId, unreadCounts[index] ?? 0)
+    );
+  }
 }
 
 export function useMatchChatRooms(options: UseMatchChatRoomsOptions = {}) {
@@ -136,7 +147,6 @@ export function useMatchChatRooms(options: UseMatchChatRoomsOptions = {}) {
   return useQuery({
     queryKey: matchChatKeys.rooms(user?.id ?? '', mode, matchId),
     enabled: !!user?.id,
-    refetchInterval: 30_000,
     queryFn: async (): Promise<MatchChatRoomListItemDTO[]> => {
       if (!user?.id) {
         return [];
@@ -160,7 +170,6 @@ export function useHostMatchChatRooms(matchId: string) {
   return useQuery({
     queryKey: matchChatKeys.hostRoomsByMatch(user?.id ?? '', matchId),
     enabled: !!user?.id && !!matchId,
-    refetchInterval: 30_000,
     queryFn: async (): Promise<MatchChatRoomListItemDTO[]> => {
       if (!user?.id || !matchId) {
         return [];
@@ -181,7 +190,6 @@ export function useMatchChatRoom(roomId: string) {
   return useQuery({
     queryKey: matchChatKeys.roomDetail(roomId, user?.id ?? ''),
     enabled: !!user?.id && !!roomId,
-    refetchInterval: 30_000,
     queryFn: async (): Promise<MatchChatRoomDetailDTO | null> => {
       if (!user?.id || !roomId) {
         return null;
@@ -208,7 +216,6 @@ export function useMatchChatMessages(roomId: string) {
   return useQuery({
     queryKey: matchChatKeys.messages(roomId, user?.id ?? ''),
     enabled: !!user?.id && !!roomId,
-    refetchInterval: 30_000,
     queryFn: async (): Promise<MatchChatMessageDTO[]> => {
       if (!user?.id || !roomId) {
         return [];

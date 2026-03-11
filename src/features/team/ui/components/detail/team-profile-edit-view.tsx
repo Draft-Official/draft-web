@@ -30,12 +30,12 @@ import {
 } from '@/features/team/lib';
 import {
   TeamProfileEditBasicInfoSection,
-  TeamProfileEditScheduleSection,
   TeamProfileEditTraitsSection,
   type TeamProfileEditFormData,
   isResolvedLocationData,
   validateTeamProfileEditForm,
 } from '../edit';
+import { TeamProfileEditScheduleSection } from './team-profile-edit/schedule-section';
 import { Spinner } from '@/shared/ui/shadcn/spinner';
 
 interface TeamProfileEditViewProps {

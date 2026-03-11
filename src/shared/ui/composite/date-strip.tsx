@@ -3,14 +3,8 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
-
-export interface DateOption {
-  dateISO: string;
-  dayStr: string;
-  dayNum: number | string;
-  label?: string;
-  isToday?: boolean;
-}
+import type { DateOption } from '@/shared/lib/date-options';
+export type { DateOption } from '@/shared/lib/date-options';
 
 interface DateStripProps {
   dates: DateOption[];

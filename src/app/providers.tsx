@@ -1,13 +1,20 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { persistQueryClient } from '@tanstack/react-query-persist-client';
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { getQueryClient } from '@/shared/api/query-client';
 import { CacheRestoredContext } from '@/shared/lib/cache-restored-context';
 import { AuthProvider } from '@/shared/session';
+
+const ReactQueryDevtools =
+  process.env.NODE_ENV === 'development'
+    ? dynamic(() =>
+      import('@tanstack/react-query-devtools').then((module) => module.ReactQueryDevtools)
+    )
+    : (() => null);
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => getQueryClient());
@@ -43,7 +50,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
           {children}
         </AuthProvider>
       </CacheRestoredContext.Provider>
-      <ReactQueryDevtools initialIsOpen={false} />
+      {process.env.NODE_ENV === 'development' ? <ReactQueryDevtools initialIsOpen={false} /> : null}
     </QueryClientProvider>
   );
 }

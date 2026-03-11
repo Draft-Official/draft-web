@@ -308,6 +308,89 @@ export class ChatService {
 
     return count ?? 0;
   }
+
+  async countUnreadMessagesBulk(
+    rooms: Array<{ roomId: string; sinceISO?: string | null }>,
+    userId: string
+  ): Promise<Map<string, number>> {
+    const counts = new Map<string, number>();
+    if (rooms.length === 0) {
+      return counts;
+    }
+
+    const uniqueRooms: Array<{ roomId: string; sinceISO?: string | null }> = [];
+    const seen = new Set<string>();
+    for (const room of rooms) {
+      if (!room.roomId || seen.has(room.roomId)) continue;
+      seen.add(room.roomId);
+      uniqueRooms.push(room);
+      counts.set(room.roomId, 0);
+    }
+
+    const noSinceRoomIds = uniqueRooms
+      .filter((room) => !room.sinceISO)
+      .map((room) => room.roomId);
+
+    const withSinceRooms = uniqueRooms.filter((room) => room.sinceISO);
+
+    if (noSinceRoomIds.length > 0) {
+      const { data, error } = await this.supabase
+        .from('match_chat_messages')
+        .select('room_id')
+        .in('room_id', noSinceRoomIds)
+        .neq('sender_id', userId);
+
+      if (error) {
+        handleSupabaseError(error, '채팅 안 읽은 메시지 수 일괄 조회(전체)');
+      }
+
+      for (const row of data ?? []) {
+        counts.set(row.room_id, (counts.get(row.room_id) ?? 0) + 1);
+      }
+    }
+
+    if (withSinceRooms.length > 0) {
+      const sinceMillisByRoom = new Map<string, number>();
+      let minSinceMillis = Number.POSITIVE_INFINITY;
+
+      for (const room of withSinceRooms) {
+        const parsed = Date.parse(room.sinceISO ?? '');
+        if (Number.isNaN(parsed)) continue;
+        sinceMillisByRoom.set(room.roomId, parsed);
+        if (parsed < minSinceMillis) {
+          minSinceMillis = parsed;
+        }
+      }
+
+      if (Number.isFinite(minSinceMillis)) {
+        const minSinceISO = new Date(minSinceMillis).toISOString();
+        const roomIds = withSinceRooms.map((room) => room.roomId);
+
+        const { data, error } = await this.supabase
+          .from('match_chat_messages')
+          .select('room_id, created_at')
+          .in('room_id', roomIds)
+          .neq('sender_id', userId)
+          .gt('created_at', minSinceISO);
+
+        if (error) {
+          handleSupabaseError(error, '채팅 안 읽은 메시지 수 일괄 조회(시각 기준)');
+        }
+
+        for (const row of data ?? []) {
+          const sinceMillis = sinceMillisByRoom.get(row.room_id);
+          if (sinceMillis === undefined) continue;
+          const createdAtMillis = Date.parse(row.created_at);
+          if (Number.isNaN(createdAtMillis)) continue;
+          if (createdAtMillis > sinceMillis) {
+            counts.set(row.room_id, (counts.get(row.room_id) ?? 0) + 1);
+          }
+        }
+      }
+    }
+
+    return counts;
+  }
 }
 
 export function createChatService(supabase: SupabaseClient<Database>) {

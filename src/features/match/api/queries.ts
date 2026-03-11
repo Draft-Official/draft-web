@@ -20,12 +20,10 @@ export function useRecruitingMatches() {
   return useQuery({
     queryKey: matchKeys.lists(),
     queryFn: async (): Promise<GuestMatchListItemDTO[]> => {
-      console.log('[useRecruitingMatches] Fetching matches...');
       const supabase = getSupabaseBrowserClient();
       const matchService = createMatchService(supabase);
 
       const rows = (await matchService.getRecruitingMatches()) as MatchWithRelations[];
-      console.log('[useRecruitingMatches] Raw rows:', rows);
 
       const dtos = rows
         .filter((row) => row.gym && row.host)
@@ -37,7 +35,6 @@ export function useRecruitingMatches() {
           return toGuestMatchListItemDTO(match, gym, host, team);
         });
 
-      console.log('[useRecruitingMatches] Mapped DTOs:', dtos);
       return dtos;
     },
   });
@@ -124,7 +121,6 @@ export function useRecruitingMatchesInfinite() {
   return useInfiniteQuery({
     queryKey: matchKeys.listInfinite(),
     queryFn: async ({ pageParam = 0 }) => {
-      console.log('[useRecruitingMatchesInfinite] Fetching page:', pageParam);
       const supabase = getSupabaseBrowserClient();
       const matchService = createMatchService(supabase);
 
@@ -140,8 +136,6 @@ export function useRecruitingMatchesInfinite() {
           const team = row.team ? teamRowToEntity(row.team) : null;
           return toGuestMatchListItemDTO(match, gym, host, team);
         });
-
-      console.log('[useRecruitingMatchesInfinite] Mapped DTO matches:', matches.length);
 
       return {
         matches,
