@@ -5,7 +5,7 @@
 
 import type { NotificationTypeValue } from '@/shared/config/match-constants';
 
-export type NotificationReferenceType = 'APPLICATION' | 'MATCH' | 'ANNOUNCEMENT';
+export type NotificationReferenceType = 'APPLICATION' | 'MATCH';
 
 export interface Notification {
   id: string;

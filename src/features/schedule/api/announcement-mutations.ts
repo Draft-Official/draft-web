@@ -28,25 +28,7 @@ export function useCreateAnnouncement() {
 
       const supabase = getSupabaseBrowserClient();
 
-      // announcements 테이블은 아직 generated types에 미반영 — 타입 우회
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const supabaseAny = supabase as any;
-
-      // 1. announcements INSERT (in-app 알림 트리거용)
-      const { data, error } = await supabaseAny
-        .from('announcements')
-        .insert({
-          author_id: user.id,
-          target_type: 'MATCH',
-          target_id: matchId,
-          message,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // 2. confirmed/payment_waiting 게스트 조회
+      // confirmed/payment_pending 게스트 조회
       const { data: applications, error: appError } = await supabase
         .from('applications')
         .select('user_id')
@@ -55,11 +37,9 @@ export function useCreateAnnouncement() {
 
       if (appError) throw appError;
 
-      if (!applications || applications.length === 0) {
-        return data;
-      }
+      if (!applications || applications.length === 0) return;
 
-      // 3. 각 게스트의 채팅방에 공지 메시지 발송
+      // 각 게스트의 채팅방에 공지 메시지 발송
       const chatService = createChatService(supabase);
       const guestIds = [...new Set(applications.map((a) => a.user_id).filter(Boolean))] as string[];
 
@@ -73,8 +53,6 @@ export function useCreateAnnouncement() {
           await chatService.sendMessage(room.id, user.id, message, 'announcement');
         })
       );
-
-      return data;
     },
     onSuccess: () => {
       toast.success('공지가 발송되었습니다.');

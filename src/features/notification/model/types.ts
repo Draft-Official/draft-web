@@ -13,7 +13,6 @@ export interface NotificationListItemDTO {
   createdAt: string;
   title: string;
   description: string;
-  announcementMessage?: string;
   targetPath: string | null;
 }
 

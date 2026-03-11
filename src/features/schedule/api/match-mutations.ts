@@ -292,30 +292,8 @@ export function useCancelMatchFlow() {
       if (matchError) throw matchError;
 
       const REFUND_NOTICE = '[환불 안내] 입금하신 참가비는 호스트가 1시간 이내에 환불할 예정입니다. 1시간이 지나도 환불받지 못한 경우, 고객센터를 통해 문의해 주세요.';
-      const hasSettlementGuests = guestIds.length > 0;
-      const fullMessage = hasSettlementGuests && message
-        ? `${message}\n\n${REFUND_NOTICE}`
-        : hasSettlementGuests
-          ? REFUND_NOTICE
-          : message;
 
-      // 4. announcements INSERT (in-app 알림 트리거용, 실패해도 취소는 유지)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const supabaseAny = supabase as any;
-      const { error: announcementError } = await supabaseAny
-        .from('announcements')
-        .insert({
-          author_id: user?.id,
-          target_type: 'MATCH',
-          target_id: matchId,
-          message: fullMessage,
-        });
-
-      if (announcementError) {
-        console.error('Cancel match announcement error:', announcementError);
-      }
-
-      // 5. 게스트 채팅방에 공지 메시지 발송 (실패해도 취소는 유지)
+      // 4. 게스트 채팅방에 공지 메시지 발송 (실패해도 취소는 유지)
       if (user?.id && guestIds.length > 0) {
         const { createChatService } = await import('@/entities/chat');
         const chatService = createChatService(supabase);
