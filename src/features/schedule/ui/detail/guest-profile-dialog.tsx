@@ -94,7 +94,7 @@ export function GuestProfileDialog({
                 <span className="text-slate-500">팀</span>
                 <span className="font-medium text-slate-900">{guest.teamName || '-'}</span>
               </div>
-              {guest.phone && (
+              {guest.phone && (guest.status === 'payment_waiting' || guest.status === 'confirmed') && (
                 <div className="flex items-center justify-between">
                   <span className="text-slate-500">연락처</span>
                   {phoneRevealed ? (
