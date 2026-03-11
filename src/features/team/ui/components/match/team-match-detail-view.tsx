@@ -1,29 +1,111 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowLeft, MoreVertical } from 'lucide-react';
+import { ArrowLeft, Lock, LockOpen } from 'lucide-react';
 import { toast } from '@/shared/ui/shadcn/sonner';
 import { cn } from '@/shared/lib/utils';
 import { useSafeBack } from '@/shared/lib/hooks';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/shared/ui/shadcn/dropdown-menu';
 import { VoteDialog } from '@/shared/ui/composite/vote-dialog';
+import { ConfirmDialog } from '@/shared/ui/composite/confirm-dialog';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/shared/ui/shadcn/hover-card';
 import { TeamHeroSection } from './team-hero-section';
 import { TeamVotingSection } from './team-voting-section';
 import { TeamInfoSection } from './team-info-section';
 import { TeamFacilitySection } from './team-facility-section';
 import { useTeamVotes, useVotingSummary, useMyVote } from '@/features/team/api/match/queries';
 import { useVote, useCloseVoting, useReopenVoting } from '@/features/team/api/match/mutations';
+import { buildTeamVoteReminderMessage, toKakaoShareText } from '@/features/team/lib/team-vote-reminder';
 import type {
   TeamInfoDTO,
   TeamMatchDetailDTO,
   TeamMembershipDTO,
 } from '@/features/team/model/types';
 import type { TeamVoteStatusValue } from '@/shared/config/team-constants';
+
+interface KakaoShareTextPayload {
+  objectType: 'text';
+  text: string;
+  link: {
+    mobileWebUrl: string;
+    webUrl: string;
+  };
+  buttonTitle?: string;
+}
+
+interface KakaoSdk {
+  isInitialized: () => boolean;
+  init: (appKey: string) => void;
+  Share: {
+    sendDefault: (payload: KakaoShareTextPayload) => void;
+  };
+}
+
+interface WindowWithKakao extends Window {
+  Kakao?: KakaoSdk;
+}
+
+const KAKAO_SDK_SRC = 'https://developers.kakao.com/sdk/js/kakao.min.js';
+let kakaoSdkPromise: Promise<KakaoSdk | null> | null = null;
+
+function initializeKakaoSdk(kakao: KakaoSdk, appKey: string): KakaoSdk | null {
+  try {
+    if (!kakao.isInitialized()) {
+      kakao.init(appKey);
+    }
+    return kakao;
+  } catch {
+    return null;
+  }
+}
+
+async function loadKakaoSdk(appKey: string): Promise<KakaoSdk | null> {
+  if (!appKey || typeof window === 'undefined') return null;
+
+  const existingKakao = (window as WindowWithKakao).Kakao;
+  if (existingKakao) {
+    return initializeKakaoSdk(existingKakao, appKey);
+  }
+
+  if (!kakaoSdkPromise) {
+    kakaoSdkPromise = new Promise((resolve) => {
+      let settled = false;
+      const settle = (sdk: KakaoSdk | null) => {
+        if (settled) return;
+        settled = true;
+        resolve(sdk);
+      };
+
+      const complete = () => {
+        const loadedKakao = (window as WindowWithKakao).Kakao;
+        settle(loadedKakao ? initializeKakaoSdk(loadedKakao, appKey) : null);
+      };
+
+      const handleError = () => settle(null);
+      const existingScript = document.querySelector<HTMLScriptElement>(`script[src="${KAKAO_SDK_SRC}"]`);
+
+      if (existingScript) {
+        existingScript.addEventListener('load', complete, { once: true });
+        existingScript.addEventListener('error', handleError, { once: true });
+        window.setTimeout(complete, 3000);
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = KAKAO_SDK_SRC;
+      script.async = true;
+      script.defer = true;
+      script.addEventListener('load', complete, { once: true });
+      script.addEventListener('error', handleError, { once: true });
+      document.head.appendChild(script);
+    });
+  }
+
+  const sdk = await kakaoSdkPromise;
+  if (!sdk) {
+    kakaoSdkPromise = null;
+  }
+  return sdk;
+}
 
 interface TeamMatchDetailViewProps {
   match: TeamMatchDetailDTO;
@@ -71,9 +153,12 @@ export function TeamMatchDetailView({
   onBack,
   layoutMode = 'page',
 }: TeamMatchDetailViewProps) {
+  type VotingAction = 'close' | 'reopen' | null;
+
   const safeBack = useSafeBack(`/team/${team.code}`);
   const handleBack = onBack ?? safeBack;
   const [isVoteDialogOpen, setIsVoteDialogOpen] = useState(false);
+  const [pendingVotingAction, setPendingVotingAction] = useState<VotingAction>(null);
 
   // 투표 현황 조회
   const { data: votes = [], isLoading: isVotesLoading } = useTeamVotes(match.matchId);
@@ -125,8 +210,14 @@ export function TeamMatchDetailView({
     closeVoting(
       { matchId: match.matchId, teamId: team.id },
       {
-        onSuccess: () => toast.success('투표가 마감되었습니다.'),
-        onError: (error) => toast.error(`마감 실패: ${error.message}`),
+        onSuccess: () => {
+          toast.success('투표가 마감되었습니다.');
+          setPendingVotingAction(null);
+        },
+        onError: (error) => {
+          toast.error(`마감 실패: ${error.message}`);
+          setPendingVotingAction(null);
+        },
       }
     );
   };
@@ -136,15 +227,109 @@ export function TeamMatchDetailView({
     reopenVoting(
       { matchId: match.matchId, teamId: team.id },
       {
-        onSuccess: () => toast.success('투표가 재오픈되었습니다.'),
-        onError: (error) => toast.error(`재오픈 실패: ${error.message}`),
+        onSuccess: () => {
+          toast.success('투표가 재오픈되었습니다.');
+          setPendingVotingAction(null);
+        },
+        onError: (error) => {
+          toast.error(`재오픈 실패: ${error.message}`);
+          setPendingVotingAction(null);
+        },
       }
     );
+  };
+
+  const handleConfirmVotingAction = () => {
+    if (pendingVotingAction === 'close') {
+      handleCloseVoting();
+      return;
+    }
+
+    if (pendingVotingAction === 'reopen') {
+      handleReopenVoting();
+    }
+  };
+
+  const handleShareVoteReminder = async () => {
+    if (typeof window === 'undefined') return;
+
+    const pendingCount = votes.filter((voteItem) => voteItem.status === 'PENDING').length;
+
+    const fallbackAttendingCount = votes.filter(
+      (voteItem) => voteItem.status === 'CONFIRMED' || voteItem.status === 'LATE'
+    ).length;
+    const fallbackNotAttendingCount = votes.filter((voteItem) => voteItem.status === 'NOT_ATTENDING').length;
+    const fallbackMaybeCount = votes.filter((voteItem) => voteItem.status === 'MAYBE').length;
+
+    const voteUrl = `${window.location.origin}/team/${team.code ?? team.id}/matches/${match.publicId}`;
+
+    const reminderMessage = buildTeamVoteReminderMessage({
+      teamName: team.name,
+      matchDateTime: `${match.dateDisplay} ${match.timeDisplay}`,
+      pendingCount,
+      voteUrl,
+      attendingCount: votingSummary ? votingSummary.attending + votingSummary.late : fallbackAttendingCount,
+      notAttendingCount: votingSummary ? votingSummary.notAttending : fallbackNotAttendingCount,
+      maybeCount: votingSummary ? votingSummary.maybe : fallbackMaybeCount,
+    });
+
+    const kakaoJavaScriptKey = process.env.NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY ?? '';
+
+    try {
+      const kakaoSdk = await loadKakaoSdk(kakaoJavaScriptKey);
+
+      if (kakaoSdk) {
+        kakaoSdk.Share.sendDefault({
+          objectType: 'text',
+          text: toKakaoShareText(reminderMessage),
+          link: {
+            mobileWebUrl: voteUrl,
+            webUrl: voteUrl,
+          },
+          buttonTitle: '투표하러 가기',
+        });
+        return;
+      }
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return;
+      }
+    }
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: `[${team.name}] ${match.dateDisplay} ${match.timeDisplay}`,
+          text: reminderMessage,
+          url: voteUrl,
+        });
+        return;
+      }
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return;
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(reminderMessage);
+      toast.success('카카오 공유를 사용할 수 없어 리마인더 문구를 복사했습니다.');
+    } catch {
+      toast.error('리마인더 공유에 실패했습니다.');
+    }
   };
 
   // 내 투표 상태
   const myVoteStatus = myVote?.status as TeamVoteStatusValue | undefined;
   const hasVoted = myVoteStatus && myVoteStatus !== 'PENDING';
+  const notice = match.operationInfo?.notice?.trim() ?? '';
+  const isVotingActionDialogOpen = pendingVotingAction !== null;
+  const isVotingActionLoading =
+    pendingVotingAction === 'close' ? isClosing : pendingVotingAction === 'reopen' ? isReopening : false;
+  const votingActionTitle =
+    pendingVotingAction === 'close' ? '투표를 마감하시겠습니까?' : '투표를 재오픈 하시겠습니까?';
+  const votingActionConfirmLabel = pendingVotingAction === 'close' ? '마감하기' : '재오픈하기';
+  const VotingActionIcon = pendingVotingAction === 'close' ? Lock : LockOpen;
 
   return (
     <div
@@ -163,36 +348,39 @@ export function TeamMatchDetailView({
           <ArrowLeft className="w-6 h-6" />
         </button>
         <div className="flex items-center gap-1">
-          {/* Admin Menu */}
-          {canManageMatch && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="p-2.5 text-slate-900 hover:bg-slate-50 rounded-full transition-colors">
-                  <MoreVertical className="w-5 h-5" />
+          {canManageMatch && !isVotingClosed && (
+            <HoverCard openDelay={200}>
+              <HoverCardTrigger asChild>
+                <button
+                  onClick={() => setPendingVotingAction('close')}
+                  disabled={isClosing}
+                  aria-label="투표 마감하기"
+                  className="p-2.5 text-slate-900 hover:bg-slate-50 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Lock className="w-5 h-5" />
                 </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-40">
-                {!isVotingClosed ? (
-                  <DropdownMenuItem
-                    onClick={handleCloseVoting}
-                    disabled={isClosing}
-                    className="text-slate-700"
-                  >
-                    투표 마감
-                  </DropdownMenuItem>
-                ) : (
-                  isLeader && (
-                    <DropdownMenuItem
-                      onClick={handleReopenVoting}
-                      disabled={isReopening}
-                      className="text-slate-700"
-                    >
-                      투표 재오픈
-                    </DropdownMenuItem>
-                  )
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+              </HoverCardTrigger>
+              <HoverCardContent side="bottom" align="end" className="w-auto px-3 py-1.5">
+                <p className="text-sm">투표 마감하기</p>
+              </HoverCardContent>
+            </HoverCard>
+          )}
+          {canManageMatch && isVotingClosed && isLeader && (
+            <HoverCard openDelay={200}>
+              <HoverCardTrigger asChild>
+                <button
+                  onClick={() => setPendingVotingAction('reopen')}
+                  disabled={isReopening}
+                  aria-label="투표 재오픈하기"
+                  className="p-2.5 text-slate-900 hover:bg-slate-50 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <LockOpen className="w-5 h-5" />
+                </button>
+              </HoverCardTrigger>
+              <HoverCardContent side="bottom" align="end" className="w-auto px-3 py-1.5">
+                <p className="text-sm">투표 재오픈하기</p>
+              </HoverCardContent>
+            </HoverCard>
           )}
         </div>
       </header>
@@ -221,13 +409,16 @@ export function TeamMatchDetailView({
           isVotingClosed={isVotingClosed}
           isLoading={isVotesLoading}
           canQuickAddGuest={canQuickAddGuest}
+          canShareReminder={isLeader}
+          onShareReminder={handleShareVoteReminder}
+          isShareReminderDisabled={isVotesLoading}
         />
 
         {showExtraSections && (
           <>
             <div className="h-px bg-slate-100 mx-5" />
 
-            <TeamInfoSection team={team} />
+            <TeamInfoSection team={team} notice={notice} />
 
             <div className="h-px bg-slate-100 mx-5" />
 
@@ -267,6 +458,21 @@ export function TeamMatchDetailView({
           isSubmitting={isVoting}
         />
       )}
+
+      <ConfirmDialog
+        open={isVotingActionDialogOpen}
+        onOpenChange={(open) => {
+          if (!open && !isVotingActionLoading) {
+            setPendingVotingAction(null);
+          }
+        }}
+        icon={VotingActionIcon}
+        title={votingActionTitle}
+        confirmLabel={votingActionConfirmLabel}
+        cancelLabel="취소"
+        onConfirm={handleConfirmVotingAction}
+        loading={isVotingActionLoading}
+      />
     </div>
   );
 }

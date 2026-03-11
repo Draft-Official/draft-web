@@ -7,6 +7,7 @@ import { toast } from '@/shared/ui/shadcn/sonner';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { matchKeys } from '@/entities/match';
 import { useAuth } from '@/shared/session';
+import { hasMatchStarted } from '@/shared/lib/match-recruitment-state';
 import { matchManagementKeys } from './keys';
 import type { RecruitmentSetup, Json, Database, ParticipantInfo } from '@/shared/types/database.types';
 
@@ -66,6 +67,19 @@ export function useUpdateMatchStatus() {
       status: 'RECRUITING' | 'CLOSED' | 'CANCELED';
     }) => {
       const supabase = getSupabaseBrowserClient();
+
+      if (status === 'RECRUITING') {
+        const { data: match, error: matchError } = await supabase
+          .from('matches')
+          .select('start_time')
+          .eq('id', matchId)
+          .single();
+
+        if (matchError) throw matchError;
+        if (hasMatchStarted(match?.start_time ?? null)) {
+          throw new Error('경기가 시작된 이후에는 추가 모집할 수 없습니다.');
+        }
+      }
 
       const { data, error } = await supabase
         .from('matches')

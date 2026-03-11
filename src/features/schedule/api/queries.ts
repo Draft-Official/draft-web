@@ -17,7 +17,7 @@ import {
 } from '@/entities/application';
 import { createTeamService } from '@/entities/team';
 import { useAuth } from '@/shared/session';
-import { formatMatchDate, formatMatchTime } from '@/shared/lib/datetime';
+import { formatMatchDate, formatMatchTimeRange } from '@/shared/lib/datetime';
 import { getPositionLabel } from '@/shared/config/match-constants';
 import type { TeamVoteStatusValue } from '@/shared/config/application-constants';
 import { matchManagementKeys } from './keys';
@@ -183,6 +183,7 @@ export function useHostedMatches(options: UseScheduleMatchesOptions = {}) {
       const mappedMatches = rows.map((row) => {
         const dto = toScheduleMatchListItemDTO(row, 'host');
         const myVoteData = myVoteMap.get(row.id);
+        const isTeamExercise = row.match_type === 'TEAM_MATCH';
         return {
           ...dto,
           // 게스트 모집 경기: 실제 신청자 수(PENDING + PAYMENT_PENDING)로 덮어씌우기
@@ -191,6 +192,7 @@ export function useHostedMatches(options: UseScheduleMatchesOptions = {}) {
             : dto.applicants,
           myVote: myVoteData?.vote,
           myVoteReason: myVoteData?.reason,
+          isVotingClosed: isTeamExercise ? row.status === 'CLOSED' : undefined,
           votingSummary: votingSummaryMap.get(row.id),
           teamId: row.team_id || undefined,
           teamCode: (row.team as { name: string; code?: string | null; logo_url?: string | null })?.code || undefined,
@@ -405,6 +407,7 @@ export function useParticipatingMatches(options: UseScheduleMatchesOptions = {})
           // Team 매치: 투표 상태 매핑
           const myVote = managementType === 'team_exercise' ? toTeamVoteStatus(app.status) : undefined;
           const myVoteReason = managementType === 'team_exercise' ? (app.description || undefined) : undefined;
+          const isVotingClosed = managementType === 'team_exercise' ? match.status === 'CLOSED' : undefined;
 
           return {
             id: match.id,
@@ -416,8 +419,9 @@ export function useParticipatingMatches(options: UseScheduleMatchesOptions = {})
             status,
             teamName: match.team?.name || match.manual_team_name || '팀명 미정',
             date: formatMatchDate(match.start_time),
-            time: formatMatchTime(match.start_time),
+            time: formatMatchTimeRange(match.start_time, match.end_time),
             startTimeISO: match.start_time || '',
+            endTimeISO: match.end_time || '',
             location: match.gym?.name || match.gym?.address || '장소 미정',
             locationUrl: match.gym?.kakao_place_id ? `https://map.kakao.com/link/map/${match.gym.kakao_place_id}` : undefined,
             applicationId: app.id,
@@ -446,6 +450,7 @@ export function useParticipatingMatches(options: UseScheduleMatchesOptions = {})
             // Team vote fields
             myVote,
             myVoteReason,
+            isVotingClosed,
             votingSummary: votingSummaryMap.get(match.id),
             teamId: match.team_id || undefined,
             teamCode: match.team?.code || undefined,

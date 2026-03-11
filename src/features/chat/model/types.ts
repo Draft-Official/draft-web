@@ -16,6 +16,7 @@ export interface MatchChatRoomListItemDTO {
   otherUserId: string;
   otherUserName: string;
   otherUserAvatar: string | null;
+  otherUserInfoSummary: string | null;
 }
 
 export interface MatchChatRoomDetailDTO extends MatchChatRoomListItemDTO {

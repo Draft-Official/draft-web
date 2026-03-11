@@ -7,7 +7,6 @@ import {
   MoreVertical,
   MapPin,
   Calendar as CalendarIcon,
-  Clock,
   Trophy,
   Users,
   Shield,
@@ -122,26 +121,25 @@ export function TournamentManageView({
             </h2>
           </div>
 
-          <div className="flex items-center gap-2 text-lg font-bold text-slate-900">
+          <div className="flex items-center gap-2 text-lg font-semibold text-slate-900">
             <CalendarIcon className="w-5 h-5 text-slate-400" />
             <span>{tournament.date}</span>
-            <Clock className="w-5 h-5 text-slate-400 ml-2" />
-            <span>{tournament.time}</span>
+            <span className="ml-2">{tournament.time}</span>
           </div>
 
           <a
             href={tournament.locationUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 text-slate-700 hover:text-primary transition-colors"
+            className="flex items-center gap-2.5 text-slate-700 hover:text-primary transition-colors"
           >
             <MapPin className="w-5 h-5 text-slate-400" />
-            <span className="font-medium">{tournament.location}</span>
+            <span className="font-semibold">{tournament.location}</span>
           </a>
 
-          <div className="flex items-center gap-2 text-lg text-slate-700">
+          <div className="flex items-center gap-2.5 text-lg text-slate-700">
             <Shield className="w-5 h-5 text-slate-400" />
-            <span className="font-medium">{tournament.teamName}</span>
+            <span className="font-semibold">{tournament.teamName}</span>
           </div>
         </section>
 

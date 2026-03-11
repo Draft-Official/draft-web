@@ -19,6 +19,7 @@ import {
   MATCH_STATUS_LABELS,
   PAST_MATCH_STATUSES,
 } from '../../config/constants';
+import { MatchTypeIcon } from './match-type-icon';
 
 interface GuestRecruitmentCardProps {
   match: ScheduleMatchListItemDTO;
@@ -95,10 +96,11 @@ export function GuestRecruitmentCard({
             <Badge
               variant="outline"
               className={cn(
-                'text-xs font-medium border px-2.5 py-1',
+                'inline-flex items-center gap-1 text-xs font-medium border px-2.5 py-1',
                 MANAGEMENT_TYPE_COLORS[match.managementType]
               )}
             >
+              <MatchTypeIcon matchType={match.matchType} />
               {MANAGEMENT_TYPE_LABELS[match.managementType]}
             </Badge>
             <Badge

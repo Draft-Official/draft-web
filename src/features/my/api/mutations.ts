@@ -3,6 +3,13 @@ import { useAuth } from '@/shared/session';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { createSettingsService } from './settings-api';
 import { settingsKeys } from './keys';
+import { rollbackSnapshot } from '@/shared/lib/query-cache-rollback';
+import {
+  beginOptimisticOperation,
+  buildOptimisticResourceKey,
+  finishOptimisticOperation,
+  isLatestOptimisticOperation,
+} from '@/shared/lib/optimistic/operation-tracker';
 import { myNotificationUpdateToUserSettingsUpdate } from '../lib';
 import type { MyNotificationSettingField, MyNotificationSettingsDTO } from '../model/types';
 
@@ -12,6 +19,7 @@ export function useUpdateNotificationSetting() {
   const userId = user?.id;
 
   return useMutation({
+    mutationKey: ['notification-setting'],
     mutationFn: async ({
       field,
       value,
@@ -27,6 +35,9 @@ export function useUpdateNotificationSetting() {
       );
     },
     onMutate: async ({ field, value }) => {
+      const optimisticToken = beginOptimisticOperation(
+        buildOptimisticResourceKey('notification-settings-user', userId ?? '')
+      );
       const queryKey = settingsKeys.byUser(userId!);
       await queryClient.cancelQueries({ queryKey });
 
@@ -37,15 +48,17 @@ export function useUpdateNotificationSetting() {
         return { ...old, [field]: value };
       });
 
-      return { previous };
+      return { optimisticToken, queryKey, previous };
     },
     onError: (_err, _vars, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(settingsKeys.byUser(userId!), context.previous);
-      }
+      if (!context) return;
+      if (!isLatestOptimisticOperation(context.optimisticToken)) return;
+
+      rollbackSnapshot(queryClient, context.queryKey, context.previous);
     },
-    onSettled: () => {
+    onSettled: (_data, _error, _variables, context) => {
       queryClient.invalidateQueries({ queryKey: settingsKeys.byUser(userId!) });
+      finishOptimisticOperation(context?.optimisticToken);
     },
   });
 }

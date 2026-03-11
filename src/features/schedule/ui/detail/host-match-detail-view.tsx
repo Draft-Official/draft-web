@@ -7,7 +7,6 @@ import {
   MoreVertical,
   MapPin,
   Calendar as CalendarIcon,
-  Clock,
   Shield,
   Megaphone,
   MessageCircle,
@@ -52,6 +51,7 @@ import { MatchActionButton } from './match-action-button';
 import { Spinner } from '@/shared/ui/shadcn/spinner';
 import { useHostMatchChatRooms } from '@/features/chat';
 import { formatRelativeTime } from '@/features/notification/lib/format-time';
+import { hasMatchStarted } from '@/shared/lib/match-recruitment-state';
 
 interface HostMatchDetailViewProps {
   matchIdentifier?: string;
@@ -85,6 +85,11 @@ export function HostMatchDetailView({
   const recruitmentMutation = useUpdateRecruitmentSetup();
   const announcementMutation = useCreateAnnouncement();
   const cancelMatchFlowMutation = useCancelMatchFlow();
+  const isGuestActionPending =
+    approveMutation.isPending ||
+    confirmMutation.isPending ||
+    rejectMutation.isPending ||
+    cancelMutation.isPending;
 
   // Local state
   const [selectedTab, setSelectedTab] = useState<GuestStatus>('pending');
@@ -106,9 +111,11 @@ export function HostMatchDetailView({
   const isMatchFinished = !!(match?.endTimeISO && new Date() >= new Date(match.endTimeISO));
   const isMatchCanceled = matchStatus === 'CANCELED';
   const isEnded = isMatchFinished || isMatchCanceled;
-  const isRecruiting = !isEnded && matchStatus === 'RECRUITING';
-  const isClosed = !isEnded && matchStatus === 'CLOSED';
-  const isConfirmed = !isEnded && (matchStatus === 'CONFIRMED' || matchStatus === 'ONGOING');
+  const isMatchStarted = hasMatchStarted(match?.startTimeISO ?? null);
+  const isRecruiting = !isEnded && !isMatchStarted && matchStatus === 'RECRUITING';
+  const isClosed = !isEnded && (matchStatus === 'CLOSED' || isMatchStarted);
+  const isConfirmed = !isEnded && !isMatchStarted && matchStatus === 'CONFIRMED';
+  const canResumeRecruiting = !isEnded && !isMatchStarted && (isClosed || isConfirmed);
 
   // 확정자 수 계산 (포지션별, 동반인 포함)
   const confirmedCountByPosition = guests
@@ -148,6 +155,7 @@ export function HostMatchDetailView({
   };
 
   const doApprove = (guest: MatchApplicantDTO) => {
+    if (isGuestActionPending) return;
     approveMutation.mutate(
       { applicationId: guest.id, matchId: internalMatchId },
       { onSuccess: () => setIsGuestProfileOpen(false) }
@@ -166,6 +174,7 @@ export function HostMatchDetailView({
 
   const handleConfirmPayment = (guest: MatchApplicantDTO) => {
     if (!internalMatchId) return;
+    if (isGuestActionPending) return;
     confirmMutation.mutate(
       { applicationId: guest.id, matchId: internalMatchId },
       { onSuccess: () => setIsGuestProfileOpen(false) }
@@ -174,6 +183,7 @@ export function HostMatchDetailView({
 
   const handleReject = (guest: MatchApplicantDTO) => {
     if (!internalMatchId) return;
+    if (isGuestActionPending) return;
     rejectMutation.mutate(
       { applicationId: guest.id, matchId: internalMatchId },
       { onSuccess: () => setIsGuestProfileOpen(false) }
@@ -182,6 +192,7 @@ export function HostMatchDetailView({
 
   const handleCancel = (guest: MatchApplicantDTO, cancelType?: CancelTypeValue) => {
     if (!internalMatchId) return;
+    if (isGuestActionPending) return;
     cancelMutation.mutate(
       {
         applicationId: guest.id,
@@ -275,7 +286,7 @@ export function HostMatchDetailView({
               <DropdownMenuItem onClick={() => router.push(`/matches/${match.publicId}`)}>
                 상세페이지 보기
               </DropdownMenuItem>
-              {!isEnded && (isClosed || isConfirmed) && (
+              {canResumeRecruiting && (
                 <DropdownMenuItem onClick={handleResumeRecruiting}>
                   추가 모집하기
                 </DropdownMenuItem>
@@ -301,26 +312,25 @@ export function HostMatchDetailView({
       <div className="app-content-container p-4 space-y-4">
         {/* 경기 기본 정보 */}
         <section className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 space-y-3">
-          <div className="flex items-center gap-2 text-xl font-bold text-slate-900">
+          <div className="flex items-center gap-2 text-lg font-semibold text-slate-900">
             <CalendarIcon className="w-5 h-5 text-muted-foreground" />
             <span>{match.date}</span>
-            <Clock className="w-5 h-5 text-muted-foreground ml-2" />
-            <span>{match.time}</span>
+            <span className="ml-2">{match.time}</span>
           </div>
 
           <a
             href={match.locationUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 text-slate-700 hover:text-muted-foreground transition-colors"
+            className="flex items-center gap-2.5 text-slate-700 hover:text-muted-foreground transition-colors"
           >
             <MapPin className="w-5 h-5 text-muted-foreground" />
-            <span className="font-medium">{match.location}</span>
+            <span className="font-semibold">{match.location}</span>
           </a>
 
-          <div className="flex items-center gap-2 text-slate-700">
+          <div className="flex items-center gap-2.5 text-slate-700">
             <Shield className="w-5 h-5 text-muted-foreground" />
-            <span className="font-medium">{match.teamName}</span>
+            <span className="font-semibold">{match.teamName}</span>
           </div>
         </section>
 
@@ -397,6 +407,7 @@ export function HostMatchDetailView({
           selectedTab={selectedTab}
           onTabChange={setSelectedTab}
           isEnded={isEnded}
+          actionsDisabled={isGuestActionPending}
           onGuestClick={openGuestProfile}
           onApprove={handleApprove}
           onReject={openRejectConfirm}
@@ -410,6 +421,7 @@ export function HostMatchDetailView({
         guest={selectedGuest}
         open={isGuestProfileOpen}
         onOpenChange={setIsGuestProfileOpen}
+        actionsDisabled={isGuestActionPending}
         onApprove={handleApprove}
         onReject={(guest) => {
           setIsGuestProfileOpen(false);
@@ -458,12 +470,15 @@ export function HostMatchDetailView({
               variant="outline"
               className="flex-1 h-12 rounded-xl font-bold"
               onClick={() => setIsRejectConfirmOpen(false)}
+              disabled={isGuestActionPending}
             >
               닫기
             </Button>
             <Button
               className="flex-1 bg-red-100 hover:bg-red-200 text-red-600 border border-red-200 h-12 rounded-xl font-bold"
+              disabled={isGuestActionPending}
               onClick={() => {
+                if (isGuestActionPending) return;
                 if (guestToReject) handleReject(guestToReject);
                 setIsRejectConfirmOpen(false);
               }}
@@ -532,11 +547,14 @@ export function HostMatchDetailView({
               onClick={() => setOverQuotaGuest(null)}
               variant="outline"
               className="flex-1 h-12 rounded-xl font-bold"
+              disabled={isGuestActionPending}
             >
               취소
             </Button>
             <Button
+              disabled={isGuestActionPending}
               onClick={() => {
+                if (isGuestActionPending) return;
                 if (overQuotaGuest) doApprove(overQuotaGuest);
                 setOverQuotaGuest(null);
               }}

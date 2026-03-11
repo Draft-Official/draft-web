@@ -2,7 +2,7 @@
 
 import { useState, type ComponentType } from 'react';
 import { useRouter } from 'next/navigation';
-import { Calendar, Clock, Plus, Users } from 'lucide-react';
+import { Calendar, Clock, Plus } from 'lucide-react';
 import { TEAM_ROLE_LABELS } from '@/shared/config/team-constants';
 import { LoginRequiredModal } from '@/features/auth';
 import { CREATE_ACTION_OPTIONS, type CreateActionOptionId } from '@/features/create/lib/create-action-options';
@@ -16,17 +16,24 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/shared/ui/shadcn/dialog';
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from '@/shared/ui/shadcn/hover-card';
 
 interface CreateMenuButtonProps {
   className?: string;
   compact?: boolean;
   variant?: 'pill' | 'sidebar';
+  hoverDescription?: string;
 }
 
 export function CreateMenuButton({
   className,
   compact = false,
   variant = 'pill',
+  hoverDescription,
 }: CreateMenuButtonProps) {
   const router = useRouter();
   const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
@@ -69,10 +76,6 @@ export function CreateMenuButton({
     navigateIfAllowed('/matches/create');
   };
 
-  const handleTeamCreate = () => {
-    navigateIfAllowed('/team/create');
-  };
-
   const handleTeamRegularMatchCreate = async () => {
     setIsCreateDialogOpen(false);
     if (!requireAuth('/team')) return;
@@ -106,7 +109,6 @@ export function CreateMenuButton({
 
   const ACTION_ICON_MAP: Record<CreateActionOptionId, ComponentType<{ className?: string }>> = {
     'guest-match': Calendar,
-    'team-create': Users,
     'team-regular': Clock,
   };
 
@@ -116,54 +118,66 @@ export function CreateMenuButton({
       return;
     }
 
-    if (actionId === 'team-create') {
-      handleTeamCreate();
-      return;
-    }
-
     void handleTeamRegularMatchCreate();
   };
 
+  const shouldShowHoverDescription = Boolean(hoverDescription && compact && variant === 'pill');
+
+  const createButton = (
+    <button
+      type="button"
+      aria-label="만들기 메뉴 열기"
+      onClick={() => setIsCreateDialogOpen(true)}
+      className={cn(
+        variant === 'pill' &&
+          'inline-flex h-10 items-center rounded-full bg-primary text-white transition-colors hover:bg-primary/90',
+        variant === 'pill' && (compact ? 'w-10 justify-center p-0' : 'gap-2 px-4'),
+        variant === 'sidebar' &&
+          'flex w-full rounded-xl text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900',
+        variant === 'sidebar' &&
+          (compact
+            ? 'items-center justify-center px-2 py-3'
+            : 'items-center gap-4 px-4 py-3 text-lg font-medium'),
+        'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2',
+        className
+      )}
+    >
+      <Plus
+        className={cn(
+          variant === 'sidebar'
+            ? (compact ? 'h-6 w-6' : 'h-7 w-7')
+            : (compact ? 'h-6 w-6' : 'h-5 w-5')
+        )}
+        strokeWidth={2.5}
+      />
+      {compact ? (
+        <span className="sr-only">만들기</span>
+      ) : (
+        <span
+          className={cn(
+            variant === 'sidebar'
+              ? 'text-lg font-medium leading-none'
+              : 'text-base font-semibold leading-none'
+          )}
+        >
+          만들기
+        </span>
+      )}
+    </button>
+  );
+
   return (
     <>
-      <button
-        type="button"
-        aria-label="게스트 모집하기 메뉴 열기"
-        onClick={() => setIsCreateDialogOpen(true)}
-        className={cn(
-          variant === 'pill' &&
-            'inline-flex h-10 items-center rounded-full bg-primary text-white transition-colors hover:bg-primary/90',
-          variant === 'pill' && (compact ? 'w-10 justify-center p-0' : 'gap-2 px-4'),
-          variant === 'sidebar' &&
-            'flex w-full rounded-xl text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900',
-          variant === 'sidebar' &&
-            (compact
-              ? 'items-center justify-center px-2 py-3'
-              : 'items-center gap-4 px-4 py-3 text-lg font-medium'),
-          'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2',
-          className
-        )}
-      >
-        <Plus
-          className={cn(
-            variant === 'sidebar' ? (compact ? 'h-6 w-6' : 'h-7 w-7') : 'h-5 w-5'
-          )}
-          strokeWidth={2.5}
-        />
-        {compact ? (
-          <span className="sr-only">만들기</span>
-        ) : (
-          <span
-            className={cn(
-              variant === 'sidebar'
-                ? 'text-lg font-medium leading-none'
-                : 'text-base font-semibold leading-none'
-            )}
-          >
-            만들기
-          </span>
-        )}
-      </button>
+      {shouldShowHoverDescription ? (
+        <HoverCard openDelay={150}>
+          <HoverCardTrigger asChild>{createButton}</HoverCardTrigger>
+          <HoverCardContent side="bottom" align="end" className="w-auto px-3 py-1.5">
+            <p className="text-sm">{hoverDescription}</p>
+          </HoverCardContent>
+        </HoverCard>
+      ) : (
+        createButton
+      )}
 
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent size="sm" className="rounded-2xl">

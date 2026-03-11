@@ -1,7 +1,5 @@
 'use client';
 
-import { useState } from 'react';
-import { useSearchParams } from 'next/navigation';
 import {
   Dialog,
   DialogContent,
@@ -14,10 +12,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/shared/ui/shadcn/accordion';
-import { Button } from '@/shared/ui/shadcn/button';
 import { Spinner } from '@/shared/ui/shadcn/spinner';
 import { useTeamExerciseVotes } from '../../api/queries';
-import { MOCK_TEAM_EXERCISE_VOTES_30 } from '../../model/mock-data';
 import type { TeamExerciseVoteItemDTO } from '../../model/types';
 
 interface TeamExerciseVoteStatusDialogProps {
@@ -80,36 +76,17 @@ export function TeamExerciseVoteStatusDialog({
   onOpenChange,
   matchId,
 }: TeamExerciseVoteStatusDialogProps) {
-  const searchParams = useSearchParams();
-  const [isVoteMockMode, setIsVoteMockMode] = useState(
-    () => searchParams?.get('voteMock') === '1'
-  );
-  const { data: fetchedVotes = [], isLoading } = useTeamExerciseVotes(
-    matchId,
-    open && !isVoteMockMode
-  );
-  const votes = isVoteMockMode ? MOCK_TEAM_EXERCISE_VOTES_30 : fetchedVotes;
+  const { data: votes = [], isLoading } = useTeamExerciseVotes(matchId, open);
   const groups = buildVoteGroups(votes);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent size="lg" className="rounded-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader className="space-y-0">
-          <div className="flex items-center justify-between gap-3">
-            <DialogTitle>투표현황</DialogTitle>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              className="h-8 px-3 text-xs font-semibold border-slate-200 text-slate-600 hover:bg-slate-50"
-              onClick={() => setIsVoteMockMode((prev) => !prev)}
-            >
-              {isVoteMockMode ? '실데이터 보기' : 'Mock 30명 보기'}
-            </Button>
-          </div>
+          <DialogTitle>투표현황</DialogTitle>
         </DialogHeader>
 
-        {!isVoteMockMode && isLoading ? (
+        {isLoading ? (
           <div className="py-10 flex justify-center">
             <Spinner className="h-6 w-6 text-muted-foreground" />
           </div>

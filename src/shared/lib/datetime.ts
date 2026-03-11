@@ -125,3 +125,13 @@ export function formatMatchDate(dateString: string): string {
 export function formatMatchTime(dateString: string): string {
   return formatKSTTime(dateString);
 }
+
+export function formatMatchTimeRange(startDateString: string, endDateString?: string | null): string {
+  const start = formatMatchTime(startDateString);
+  if (!endDateString) return start;
+
+  const end = formatMatchTime(endDateString);
+  if (!end) return start;
+
+  return `${start} ~ ${end}`;
+}

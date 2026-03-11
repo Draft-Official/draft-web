@@ -1,7 +1,7 @@
 import { REGULAR_DAY_SHORT_LABELS, type RegularDayValue } from '@/shared/config/team-constants';
 import { getLevelLabel } from '@/shared/config/skill-constants';
 import type { AgeRange, LevelRange } from '@/shared/types/jsonb.types';
-import { formatKSTTime, getKSTDateParts } from '@/shared/lib/datetime';
+import { formatMatchTimeRange, getKSTDateParts } from '@/shared/lib/datetime';
 
 /**
  * 팀 지역 표시 문자열 생성
@@ -81,6 +81,6 @@ export function formatTeamMatchDate(dateISO: string): string {
  * 팀 매치 시간 표시 문자열 생성
  * @example 19:00
  */
-export function formatTeamMatchTime(dateISO: string): string {
-  return formatKSTTime(dateISO);
+export function formatTeamMatchTime(startDateISO: string, endDateISO?: string | null): string {
+  return formatMatchTimeRange(startDateISO, endDateISO);
 }

@@ -16,16 +16,20 @@ import {
   formatDateISO,
   isWithin1Hour,
 } from '@/shared/lib/formatters';
+import { isRecruitmentClosed } from '@/shared/lib/match-recruitment-state';
 import { formatPositions } from './formatters';
 
-function toPositionStatuses(recruitmentSetup: Match['recruitmentSetup']): GuestMatchListItemDTO['positions'] {
+function toPositionStatuses(
+  recruitmentSetup: Match['recruitmentSetup'],
+  forceClosed: boolean
+): GuestMatchListItemDTO['positions'] {
   const positions: GuestMatchListItemDTO['positions'] = {};
 
   if (recruitmentSetup.type === 'ANY') {
     const max = recruitmentSetup.max_count;
     const current = recruitmentSetup.current_count;
     positions.all = {
-      status: current >= max && max > 0 ? 'closed' : 'open',
+      status: forceClosed || (current >= max && max > 0) ? 'closed' : 'open',
       max,
       current,
     };
@@ -48,7 +52,7 @@ function toPositionStatuses(recruitmentSetup: Match['recruitmentSetup']): GuestM
     const max = quota.max;
 
     positions[uiKeyMap[positionKey]] = {
-      status: current >= max ? 'closed' : 'open',
+      status: forceClosed || current >= max ? 'closed' : 'open',
       max,
       current,
     };
@@ -72,6 +76,11 @@ export function toGuestMatchListItemDTO(
   host: User,
   team: Team | null
 ): GuestMatchListItemDTO {
+  const closed = isRecruitmentClosed({
+    status: match.status,
+    startTimeISO: match.startTime,
+  });
+
   return {
     // Match fields
     matchId: match.id,
@@ -104,11 +113,11 @@ export function toGuestMatchListItemDTO(
     // Computed UI fields
     priceDisplay: formatPrice(match.costType, match.costAmount),
     positionsDisplay: formatPositions(match.recruitmentSetup),
-    positions: toPositionStatuses(match.recruitmentSetup),
+    positions: toPositionStatuses(match.recruitmentSetup, closed),
     levelDisplay: formatLevelRange(match.levelRange),
     ageDisplay: formatAgeRange(match.ageRange),
     isNew: isWithin1Hour(match.createdAt),
-    isClosed: match.status === 'CLOSED',
+    isClosed: closed,
   };
 }
 
@@ -131,7 +140,7 @@ export function toGuestMatchDetailDTO(
   const listItem = toGuestMatchListItemDTO(match, gym, host, team);
 
   // Calculate recruitment status + detailed position status
-  const positions = toPositionStatuses(match.recruitmentSetup) as GuestMatchDetailDTO['positions'];
+  const positions = toPositionStatuses(match.recruitmentSetup, listItem.isClosed) as GuestMatchDetailDTO['positions'];
   let total = 0;
   let current = 0;
 

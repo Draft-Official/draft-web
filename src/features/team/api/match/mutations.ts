@@ -10,11 +10,27 @@ import { createTeamService } from '@/entities/team';
 import { matchRowToEntity } from '@/entities/match';
 import { applicationRowToEntity } from '@/entities/application';
 import { toTeamVoteDTO } from '../../lib';
+import { rollbackSnapshot } from '@/shared/lib/query-cache-rollback';
+import {
+  beginOptimisticOperation,
+  buildOptimisticResourceKey,
+  finishOptimisticOperation,
+  isLatestOptimisticOperation,
+} from '@/shared/lib/optimistic/operation-tracker';
 import type { CreateTeamMatchInput, VoteInput } from '@/entities/team/model/types';
 import type { TeamVoteStatusValue } from '@/shared/config/team-constants';
 import type { PositionValue } from '@/shared/config/match-constants';
 import type { Match as MatchEntity } from '@/entities/match';
-import type { TeamVoteDTO } from '../../model/types';
+import type { MyPendingTeamVoteMatchDTO, TeamVoteDTO, VotingSummary } from '../../model/types';
+import {
+  applyCompactVotingSummaryDelta,
+  applyTeamVotingSummaryDelta,
+  applyTeamVotingSummaryTransition,
+  createOptimisticTeamVote,
+  participantCountFromVote,
+  patchPendingVoteItem,
+  upsertVoteForUser,
+} from './optimistic-vote-helpers';
 
 /**
  * 팀 매치 생성
@@ -55,6 +71,76 @@ export function useVote() {
   const queryClient = useQueryClient();
 
   return useMutation({
+    mutationKey: ['team-vote'],
+    onMutate: async ({ userId, input }) => {
+      const optimisticToken = beginOptimisticOperation(
+        buildOptimisticResourceKey('team-vote-match', input.matchId)
+      );
+      const myVoteKey = teamMatchKeys.myVote(input.matchId, userId);
+      const votingStatusKey = teamMatchKeys.votingStatus(input.matchId);
+      const votingSummaryKey = [...votingStatusKey, 'summary'] as const;
+      const pendingVotesKey = teamMatchKeys.myPendingVotes(userId);
+
+      await Promise.all([
+        queryClient.cancelQueries({ queryKey: myVoteKey }),
+        queryClient.cancelQueries({ queryKey: votingStatusKey }),
+        queryClient.cancelQueries({ queryKey: pendingVotesKey }),
+      ]);
+
+      const previousMyVote = queryClient.getQueryData<TeamVoteDTO | null>(myVoteKey);
+      const previousVotingStatus = queryClient.getQueryData<TeamVoteDTO[]>(votingStatusKey);
+      const previousVotingSummary = queryClient.getQueryData<VotingSummary | null>(votingSummaryKey);
+      const previousPendingVotes = queryClient.getQueryData<MyPendingTeamVoteMatchDTO[]>(pendingVotesKey);
+
+      const baseVote =
+        previousMyVote ??
+        previousVotingStatus?.find((vote) => vote.userId === userId) ??
+        null;
+
+      const optimisticVote = createOptimisticTeamVote({
+        matchId: input.matchId,
+        userId,
+        status: input.status,
+        description: input.description,
+        baseVote,
+      });
+
+      const participantCount = participantCountFromVote(baseVote);
+      const previousStatus = baseVote?.status ?? 'PENDING';
+
+      queryClient.setQueryData(myVoteKey, optimisticVote);
+      queryClient.setQueryData<TeamVoteDTO[]>(votingStatusKey, (old) =>
+        upsertVoteForUser(old, optimisticVote)
+      );
+      queryClient.setQueryData<VotingSummary | null>(votingSummaryKey, (old) =>
+        applyTeamVotingSummaryTransition(old, previousStatus, input.status, participantCount) ?? old
+      );
+      queryClient.setQueryData<MyPendingTeamVoteMatchDTO[]>(pendingVotesKey, (old) =>
+        old?.map((item) =>
+          item.matchId === input.matchId
+            ? patchPendingVoteItem(
+                item,
+                input.status,
+                input.description ?? null,
+                participantCount,
+                previousStatus
+              )
+            : item
+        )
+      );
+
+      return {
+        optimisticToken,
+        myVoteKey,
+        votingStatusKey,
+        votingSummaryKey,
+        pendingVotesKey,
+        previousMyVote,
+        previousVotingStatus,
+        previousVotingSummary,
+        previousPendingVotes,
+      };
+    },
     mutationFn: async ({
       userId,
       input,
@@ -67,20 +153,46 @@ export function useVote() {
       const row = await service.upsertTeamVote(userId, input);
       return toTeamVoteDTO(applicationRowToEntity(row));
     },
+    onError: (_error, _variables, context) => {
+      if (!context) return;
+      if (!isLatestOptimisticOperation(context.optimisticToken)) return;
+
+      rollbackSnapshot(queryClient, context.myVoteKey, context.previousMyVote);
+      rollbackSnapshot(queryClient, context.votingStatusKey, context.previousVotingStatus);
+      rollbackSnapshot(queryClient, context.votingSummaryKey, context.previousVotingSummary);
+      rollbackSnapshot(queryClient, context.pendingVotesKey, context.previousPendingVotes);
+    },
     onSuccess: (data, { userId, input }) => {
       // 내 투표 캐시 갱신
       queryClient.setQueryData(
         teamMatchKeys.myVote(input.matchId, userId),
         data
       );
-      // 투표 현황 갱신
+      queryClient.setQueryData<TeamVoteDTO[]>(
+        teamMatchKeys.votingStatus(input.matchId),
+        (old) => upsertVoteForUser(old, data)
+      );
+      queryClient.setQueryData<MyPendingTeamVoteMatchDTO[]>(
+        teamMatchKeys.myPendingVotes(userId),
+        (old) =>
+          old?.map((item) =>
+            item.matchId === input.matchId
+              ? { ...item, myVote: data.status, myVoteReason: data.description }
+              : item
+          )
+      );
+    },
+    onSettled: (_data, _error, { userId, input }, context) => {
+      queryClient.invalidateQueries({
+        queryKey: teamMatchKeys.myVote(input.matchId, userId),
+      });
       queryClient.invalidateQueries({
         queryKey: teamMatchKeys.votingStatus(input.matchId),
       });
-      // 미투표 목록 갱신
       queryClient.invalidateQueries({
         queryKey: teamMatchKeys.myPendingVotes(userId),
       });
+      finishOptimisticOperation(context?.optimisticToken);
     },
   });
 }
@@ -92,6 +204,77 @@ export function useAddTeamVoteGuest() {
   const queryClient = useQueryClient();
 
   return useMutation({
+    mutationKey: ['team-vote'],
+    onMutate: async ({ matchId, ownerUserId, guestName, guestPosition }) => {
+      const optimisticToken = beginOptimisticOperation(
+        buildOptimisticResourceKey('team-vote-match', matchId)
+      );
+      const myVoteKey = teamMatchKeys.myVote(matchId, ownerUserId);
+      const votingStatusKey = teamMatchKeys.votingStatus(matchId);
+      const votingSummaryKey = [...votingStatusKey, 'summary'] as const;
+      const pendingVotesKey = teamMatchKeys.myPendingVotes(ownerUserId);
+
+      await Promise.all([
+        queryClient.cancelQueries({ queryKey: myVoteKey }),
+        queryClient.cancelQueries({ queryKey: votingStatusKey }),
+        queryClient.cancelQueries({ queryKey: pendingVotesKey }),
+      ]);
+
+      const previousMyVote = queryClient.getQueryData<TeamVoteDTO | null>(myVoteKey);
+      const previousVotingStatus = queryClient.getQueryData<TeamVoteDTO[]>(votingStatusKey);
+      const previousVotingSummary = queryClient.getQueryData<VotingSummary | null>(votingSummaryKey);
+      const previousPendingVotes = queryClient.getQueryData<MyPendingTeamVoteMatchDTO[]>(pendingVotesKey);
+
+      const baseVote =
+        previousMyVote ??
+        previousVotingStatus?.find((vote) => vote.userId === ownerUserId) ??
+        createOptimisticTeamVote({
+          matchId,
+          userId: ownerUserId,
+          status: 'PENDING',
+        });
+
+      const optimisticVote: TeamVoteDTO = {
+        ...baseVote,
+        guestParticipants: [
+          ...baseVote.guestParticipants,
+          { name: guestName, position: guestPosition },
+        ],
+        updatedAt: new Date().toISOString(),
+      };
+
+      queryClient.setQueryData(myVoteKey, optimisticVote);
+      queryClient.setQueryData<TeamVoteDTO[]>(votingStatusKey, (old) =>
+        upsertVoteForUser(old, optimisticVote)
+      );
+      queryClient.setQueryData<VotingSummary | null>(votingSummaryKey, (old) =>
+        applyTeamVotingSummaryDelta(old, optimisticVote.status, 1) ?? old
+      );
+      queryClient.setQueryData<MyPendingTeamVoteMatchDTO[]>(pendingVotesKey, (old) =>
+        old?.map((item) =>
+          item.matchId === matchId
+            ? {
+                ...item,
+                votingSummary:
+                  applyCompactVotingSummaryDelta(item.votingSummary, item.myVote, 1) ??
+                  item.votingSummary,
+              }
+            : item
+        )
+      );
+
+      return {
+        optimisticToken,
+        myVoteKey,
+        votingStatusKey,
+        votingSummaryKey,
+        pendingVotesKey,
+        previousMyVote,
+        previousVotingStatus,
+        previousVotingSummary,
+        previousPendingVotes,
+      };
+    },
     mutationFn: async ({
       matchId,
       ownerUserId,
@@ -111,7 +294,23 @@ export function useAddTeamVoteGuest() {
       });
       return toTeamVoteDTO(applicationRowToEntity(row));
     },
-    onSuccess: (_, { matchId, ownerUserId }) => {
+    onError: (_error, _variables, context) => {
+      if (!context) return;
+      if (!isLatestOptimisticOperation(context.optimisticToken)) return;
+
+      rollbackSnapshot(queryClient, context.myVoteKey, context.previousMyVote);
+      rollbackSnapshot(queryClient, context.votingStatusKey, context.previousVotingStatus);
+      rollbackSnapshot(queryClient, context.votingSummaryKey, context.previousVotingSummary);
+      rollbackSnapshot(queryClient, context.pendingVotesKey, context.previousPendingVotes);
+    },
+    onSuccess: (data, { matchId, ownerUserId }) => {
+      queryClient.setQueryData(teamMatchKeys.myVote(matchId, ownerUserId), data);
+      queryClient.setQueryData<TeamVoteDTO[]>(
+        teamMatchKeys.votingStatus(matchId),
+        (old) => upsertVoteForUser(old, data)
+      );
+    },
+    onSettled: (_data, _error, { matchId, ownerUserId }, context) => {
       queryClient.invalidateQueries({
         queryKey: teamMatchKeys.votingStatus(matchId),
       });
@@ -121,6 +320,7 @@ export function useAddTeamVoteGuest() {
       queryClient.invalidateQueries({
         queryKey: teamMatchKeys.myPendingVotes(ownerUserId),
       });
+      finishOptimisticOperation(context?.optimisticToken);
     },
   });
 }
@@ -132,6 +332,74 @@ export function useRemoveTeamVoteGuest() {
   const queryClient = useQueryClient();
 
   return useMutation({
+    mutationKey: ['team-vote'],
+    onMutate: async ({ matchId, ownerUserId, guestIndex }) => {
+      const optimisticToken = beginOptimisticOperation(
+        buildOptimisticResourceKey('team-vote-match', matchId)
+      );
+      const myVoteKey = teamMatchKeys.myVote(matchId, ownerUserId);
+      const votingStatusKey = teamMatchKeys.votingStatus(matchId);
+      const votingSummaryKey = [...votingStatusKey, 'summary'] as const;
+      const pendingVotesKey = teamMatchKeys.myPendingVotes(ownerUserId);
+
+      await Promise.all([
+        queryClient.cancelQueries({ queryKey: myVoteKey }),
+        queryClient.cancelQueries({ queryKey: votingStatusKey }),
+        queryClient.cancelQueries({ queryKey: pendingVotesKey }),
+      ]);
+
+      const previousMyVote = queryClient.getQueryData<TeamVoteDTO | null>(myVoteKey);
+      const previousVotingStatus = queryClient.getQueryData<TeamVoteDTO[]>(votingStatusKey);
+      const previousVotingSummary = queryClient.getQueryData<VotingSummary | null>(votingSummaryKey);
+      const previousPendingVotes = queryClient.getQueryData<MyPendingTeamVoteMatchDTO[]>(pendingVotesKey);
+
+      const baseVote =
+        previousMyVote ?? previousVotingStatus?.find((vote) => vote.userId === ownerUserId);
+      const hasTargetGuest =
+        !!baseVote &&
+        guestIndex >= 0 &&
+        guestIndex < baseVote.guestParticipants.length;
+
+      if (hasTargetGuest && baseVote) {
+        const optimisticVote: TeamVoteDTO = {
+          ...baseVote,
+          guestParticipants: baseVote.guestParticipants.filter((_, index) => index !== guestIndex),
+          updatedAt: new Date().toISOString(),
+        };
+
+        queryClient.setQueryData(myVoteKey, optimisticVote);
+        queryClient.setQueryData<TeamVoteDTO[]>(votingStatusKey, (old) =>
+          upsertVoteForUser(old, optimisticVote)
+        );
+        queryClient.setQueryData<VotingSummary | null>(votingSummaryKey, (old) =>
+          applyTeamVotingSummaryDelta(old, optimisticVote.status, -1) ?? old
+        );
+        queryClient.setQueryData<MyPendingTeamVoteMatchDTO[]>(pendingVotesKey, (old) =>
+          old?.map((item) =>
+            item.matchId === matchId
+              ? {
+                  ...item,
+                  votingSummary:
+                    applyCompactVotingSummaryDelta(item.votingSummary, item.myVote, -1) ??
+                    item.votingSummary,
+                }
+              : item
+          )
+        );
+      }
+
+      return {
+        optimisticToken,
+        myVoteKey,
+        votingStatusKey,
+        votingSummaryKey,
+        pendingVotesKey,
+        previousMyVote,
+        previousVotingStatus,
+        previousVotingSummary,
+        previousPendingVotes,
+      };
+    },
     mutationFn: async ({
       matchId,
       ownerUserId,
@@ -146,7 +414,23 @@ export function useRemoveTeamVoteGuest() {
       const row = await service.removeGuestFromTeamVote(matchId, ownerUserId, guestIndex);
       return toTeamVoteDTO(applicationRowToEntity(row));
     },
-    onSuccess: (_, { matchId, ownerUserId }) => {
+    onError: (_error, _variables, context) => {
+      if (!context) return;
+      if (!isLatestOptimisticOperation(context.optimisticToken)) return;
+
+      rollbackSnapshot(queryClient, context.myVoteKey, context.previousMyVote);
+      rollbackSnapshot(queryClient, context.votingStatusKey, context.previousVotingStatus);
+      rollbackSnapshot(queryClient, context.votingSummaryKey, context.previousVotingSummary);
+      rollbackSnapshot(queryClient, context.pendingVotesKey, context.previousPendingVotes);
+    },
+    onSuccess: (data, { matchId, ownerUserId }) => {
+      queryClient.setQueryData(teamMatchKeys.myVote(matchId, ownerUserId), data);
+      queryClient.setQueryData<TeamVoteDTO[]>(
+        teamMatchKeys.votingStatus(matchId),
+        (old) => upsertVoteForUser(old, data)
+      );
+    },
+    onSettled: (_data, _error, { matchId, ownerUserId }, context) => {
       queryClient.invalidateQueries({
         queryKey: teamMatchKeys.votingStatus(matchId),
       });
@@ -156,6 +440,7 @@ export function useRemoveTeamVoteGuest() {
       queryClient.invalidateQueries({
         queryKey: teamMatchKeys.myPendingVotes(ownerUserId),
       });
+      finishOptimisticOperation(context?.optimisticToken);
     },
   });
 }
@@ -266,6 +551,62 @@ export function useUpdateMemberVote() {
   const queryClient = useQueryClient();
 
   return useMutation({
+    mutationKey: ['team-vote'],
+    onMutate: async ({ matchId, memberId, status, description }) => {
+      const optimisticToken = beginOptimisticOperation(
+        buildOptimisticResourceKey('team-vote-match', matchId)
+      );
+      const memberVoteKey = teamMatchKeys.myVote(matchId, memberId);
+      const votingStatusKey = teamMatchKeys.votingStatus(matchId);
+      const votingSummaryKey = [...votingStatusKey, 'summary'] as const;
+
+      await Promise.all([
+        queryClient.cancelQueries({ queryKey: memberVoteKey }),
+        queryClient.cancelQueries({ queryKey: votingStatusKey }),
+      ]);
+
+      const previousMemberVote = queryClient.getQueryData<TeamVoteDTO | null>(memberVoteKey);
+      const previousVotingStatus = queryClient.getQueryData<TeamVoteDTO[]>(votingStatusKey);
+      const previousVotingSummary = queryClient.getQueryData<VotingSummary | null>(votingSummaryKey);
+
+      const baseVote =
+        previousMemberVote ??
+        previousVotingStatus?.find((vote) => vote.userId === memberId) ??
+        createOptimisticTeamVote({
+          matchId,
+          userId: memberId,
+          status: 'PENDING',
+        });
+
+      const optimisticVote = createOptimisticTeamVote({
+        matchId,
+        userId: memberId,
+        status,
+        description,
+        baseVote,
+      });
+
+      const participantCount = participantCountFromVote(baseVote);
+      const previousStatus = baseVote.status;
+
+      queryClient.setQueryData(memberVoteKey, optimisticVote);
+      queryClient.setQueryData<TeamVoteDTO[]>(votingStatusKey, (old) =>
+        upsertVoteForUser(old, optimisticVote)
+      );
+      queryClient.setQueryData<VotingSummary | null>(votingSummaryKey, (old) =>
+        applyTeamVotingSummaryTransition(old, previousStatus, status, participantCount) ?? old
+      );
+
+      return {
+        optimisticToken,
+        memberVoteKey,
+        votingStatusKey,
+        votingSummaryKey,
+        previousMemberVote,
+        previousVotingStatus,
+        previousVotingSummary,
+      };
+    },
     mutationFn: async ({
       matchId,
       memberId,
@@ -282,16 +623,33 @@ export function useUpdateMemberVote() {
       const row = await service.updateMemberVote(matchId, memberId, status, description);
       return toTeamVoteDTO(applicationRowToEntity(row));
     },
+    onError: (_error, _variables, context) => {
+      if (!context) return;
+      if (!isLatestOptimisticOperation(context.optimisticToken)) return;
+
+      rollbackSnapshot(queryClient, context.memberVoteKey, context.previousMemberVote);
+      rollbackSnapshot(queryClient, context.votingStatusKey, context.previousVotingStatus);
+      rollbackSnapshot(queryClient, context.votingSummaryKey, context.previousVotingSummary);
+    },
     onSuccess: (data, { matchId, memberId }) => {
       // 해당 멤버의 투표 캐시 갱신
       queryClient.setQueryData(
         teamMatchKeys.myVote(matchId, memberId),
         data
       );
-      // 투표 현황 갱신
+      queryClient.setQueryData<TeamVoteDTO[]>(
+        teamMatchKeys.votingStatus(matchId),
+        (old) => upsertVoteForUser(old, data)
+      );
+    },
+    onSettled: (_data, _error, { matchId, memberId }, context) => {
+      queryClient.invalidateQueries({
+        queryKey: teamMatchKeys.myVote(matchId, memberId),
+      });
       queryClient.invalidateQueries({
         queryKey: teamMatchKeys.votingStatus(matchId),
       });
+      finishOptimisticOperation(context?.optimisticToken);
     },
   });
 }

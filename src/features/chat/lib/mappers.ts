@@ -48,6 +48,7 @@ export function toMatchChatRoomListItemDTO(
     otherUserId: otherUser?.id || (myRole === 'host' ? room.guest_id : room.host_id),
     otherUserName: otherUser?.nickname || FALLBACK_USER_NAME,
     otherUserAvatar: otherUser?.avatar_url || null,
+    otherUserInfoSummary: null,
   };
 }
 

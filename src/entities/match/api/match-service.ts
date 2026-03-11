@@ -7,6 +7,8 @@ import { Database, MatchInsert, MatchUpdate } from '@/shared/types/database.type
 import { logRequest, logResponse } from '@/shared/lib/logger';
 import type { MatchStatusValue } from '@/shared/config/match-constants';
 import { getKSTStartOfTodayISO } from '@/shared/lib/datetime';
+import { ValidationError } from '@/shared/lib/errors';
+import { canCreateMatchAt } from '@/shared/lib/match-recruitment-state';
 
 type MatchType = 'GUEST_RECRUIT' | 'TEAM_MATCH';
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -87,6 +89,10 @@ export class MatchService {
    */
   async createMatch(data: MatchInsert) {
     logRequest(this.SERVICE_NAME, 'createMatch', data);
+
+    if (!canCreateMatchAt(data.start_time ?? null)) {
+      throw new ValidationError('이미 지난 시간으로는 경기를 생성할 수 없습니다.');
+    }
 
     const { data: match, error } = await this.supabase
       .from('matches')

@@ -35,6 +35,41 @@ function extractPositionsFromParticipants(
     .filter((pos): pos is string => typeof pos === 'string' && pos.length > 0);
 }
 
+function isPositiveInteger(value: unknown): value is number {
+  return typeof value === 'number'
+    && Number.isInteger(value)
+    && value > 0;
+}
+
+export function validateGuestApplicationParticipants(participantsInfo: ParticipantInfo[]): void {
+  if (!Array.isArray(participantsInfo) || participantsInfo.length === 0) {
+    throw new ValidationError('신청자 정보를 입력해주세요.');
+  }
+
+  const hasMainParticipant = participantsInfo.some((participant) => participant.type === 'MAIN');
+  if (!hasMainParticipant) {
+    throw new ValidationError('본인 정보를 다시 확인해주세요.');
+  }
+
+  for (const participant of participantsInfo) {
+    if (!participant.position || participant.position.trim().length === 0) {
+      throw new ValidationError('포지션을 입력해주세요.');
+    }
+
+    if (!isPositiveInteger(participant.height)) {
+      throw new ValidationError('키를 입력해주세요.');
+    }
+
+    if (!isPositiveInteger(participant.age)) {
+      throw new ValidationError('나이를 입력해주세요.');
+    }
+
+    if (!isPositiveInteger(participant.skillLevel)) {
+      throw new ValidationError('실력을 입력해주세요.');
+    }
+  }
+}
+
 export class ApplicationService {
   constructor(private supabase: SupabaseClient<Database>) {}
 
@@ -164,6 +199,7 @@ export class ApplicationService {
     participantsInfo: ParticipantInfo[],
     teamId?: string | null
   ): Promise<Application> {
+    validateGuestApplicationParticipants(participantsInfo);
     await this.assertPhoneVerified(userId, '경기 신청');
 
     const { data, error } = await this.supabase

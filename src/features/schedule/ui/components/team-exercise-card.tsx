@@ -23,6 +23,7 @@ import {
   TEAM_EXERCISE_VOTE_BADGE_COLORS,
 } from '../../config/constants';
 import { TeamExerciseVoteStatusDialog } from './team-exercise-vote-status-dialog';
+import { MatchTypeIcon } from './match-type-icon';
 
 interface TeamExerciseCardProps {
   match: ScheduleMatchListItemDTO;
@@ -31,6 +32,7 @@ interface TeamExerciseCardProps {
   onVote?: (matchId: string, vote: TeamVoteStatusValue, reason: string) => void;
   isVoting?: boolean;
   isActive?: boolean;
+  isDesktop?: boolean;
 }
 
 export function TeamExerciseCard({
@@ -40,6 +42,7 @@ export function TeamExerciseCard({
   onVote,
   isVoting = false,
   isActive = false,
+  isDesktop = false,
 }: TeamExerciseCardProps) {
   const [isVoteDialogOpen, setIsVoteDialogOpen] = useState(false);
   const [isVoteStatusOpen, setIsVoteStatusOpen] = useState(false);
@@ -47,7 +50,7 @@ export function TeamExerciseCard({
   const isManagingMode = match.scheduleMode === 'managing';
   const isPastMatch = PAST_MATCH_STATUSES.includes(match.status);
   const hasVoted = match.myVote && match.myVote !== 'PENDING';
-  const isVoteClosed = match.status === 'closed';
+  const isVoteClosed = match.isVotingClosed === true || match.status === 'closed';
 
   const handleVoteDialogChange = (open: boolean) => {
     if (!open) dialogClosedAt.current = Date.now();
@@ -73,13 +76,6 @@ export function TeamExerciseCard({
       };
     }
 
-    if (isVoteClosed) {
-      return {
-        label: '투표마감',
-        className: 'bg-slate-100 text-slate-600 border-slate-200',
-      };
-    }
-
     const voteStatus = (match.myVote ?? 'PENDING') as TeamVoteStatusValue;
 
     return {
@@ -89,6 +85,10 @@ export function TeamExerciseCard({
   };
 
   const statusBadge = renderStatusBadge();
+  const recruitmentBadge =
+    isVoteClosed
+      ? { label: '모집 마감', className: MATCH_STATUS_COLORS.closed }
+      : { label: '모집 중', className: MATCH_STATUS_COLORS.recruiting };
 
   return (
     <>
@@ -128,21 +128,35 @@ export function TeamExerciseCard({
             <Badge
               variant="outline"
               className={cn(
-                'text-xs font-medium border px-2.5 py-1',
+                'inline-flex items-center gap-1 text-xs font-medium border px-2.5 py-1',
                 MANAGEMENT_TYPE_COLORS[match.managementType]
               )}
             >
+              <MatchTypeIcon matchType={match.matchType} />
               {MANAGEMENT_TYPE_LABELS[match.managementType]}
             </Badge>
-            <Badge
-              variant="outline"
-              className={cn(
-                'text-xs font-medium border px-2.5 py-1',
-                statusBadge.className
+            <div className="flex items-center gap-2">
+              <Badge
+                variant="outline"
+                className={cn(
+                  'text-xs font-medium border px-2.5 py-1',
+                  statusBadge.className
+                )}
+              >
+                {statusBadge.label}
+              </Badge>
+              {!isPastMatch && (
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    'text-xs font-medium border px-2.5 py-1',
+                    recruitmentBadge.className
+                  )}
+                >
+                  {recruitmentBadge.label}
+                </Badge>
               )}
-            >
-              {statusBadge.label}
-            </Badge>
+            </div>
           </>
         }
         bottomSlot={
@@ -156,10 +170,12 @@ export function TeamExerciseCard({
                 불참{' '}
                 <strong className="text-red-500">{match.votingSummary?.notAttending ?? 0}명</strong>
               </span>
-              <span>
-                미투표{' '}
-                <strong className="text-slate-600">{match.votingSummary?.pending ?? 0}명</strong>
-              </span>
+              {isDesktop && (
+                <span>
+                  미투표{' '}
+                  <strong className="text-slate-600">{match.votingSummary?.pending ?? 0}명</strong>
+                </span>
+              )}
             </div>
 
             <div className="flex items-center gap-2 shrink-0">

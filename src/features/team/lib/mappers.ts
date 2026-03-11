@@ -29,6 +29,7 @@ import {
   formatTeamRegion,
   formatTeamRegularSchedule,
 } from './formatters';
+import { isTeamVotingClosed } from '@/shared/lib/match-recruitment-state';
 
 type TeamMemberUserInput = {
   id: string;
@@ -152,7 +153,7 @@ export function toTeamScheduleMatchItemDTO(
     startTime: match.startTime,
     endTime: match.endTime,
     dateDisplay: formatTeamMatchDate(match.startTime),
-    timeDisplay: formatTeamMatchTime(match.startTime),
+    timeDisplay: formatTeamMatchTime(match.startTime, match.endTime),
     status: match.status,
     statusLabel: toMatchStatusLabel(match.status),
     isPast: new Date(match.startTime) < new Date(),
@@ -202,7 +203,10 @@ export function toTeamMatchDetailDTO(
     operationInfo: match.operationInfo,
     accountInfo: match.accountInfo,
     facilities: extras?.gym?.facilities ?? null,
-    isVotingClosed: match.status === 'CLOSED' || new Date(match.startTime) < new Date(),
+    isVotingClosed: isTeamVotingClosed({
+      status: match.status,
+      startTimeISO: match.startTime,
+    }),
   };
 }
 
@@ -226,7 +230,7 @@ export function toMyPendingTeamVoteMatchDTO(
     teamLogoUrl: team.logoUrl,
     startTime: match.startTime,
     dateDisplay: formatTeamMatchDate(match.startTime),
-    timeDisplay: formatTeamMatchTime(match.startTime),
+    timeDisplay: formatTeamMatchTime(match.startTime, match.endTime),
     gymName: gym?.name ?? '장소 미정',
     gymAddress: gym?.address ?? null,
     status: (match.status ?? 'RECRUITING') as MatchStatusValue,

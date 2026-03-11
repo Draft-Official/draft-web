@@ -29,6 +29,7 @@ interface GuestListSectionProps {
   selectedTab: GuestStatus;
   onTabChange: (status: GuestStatus) => void;
   isEnded: boolean;
+  actionsDisabled?: boolean;
   onGuestClick: (guest: MatchApplicantDTO) => void;
   onApprove: (guest: MatchApplicantDTO) => void;
   onReject: (guest: MatchApplicantDTO) => void;
@@ -41,6 +42,7 @@ export function GuestListSection({
   selectedTab,
   onTabChange,
   isEnded,
+  actionsDisabled = false,
   onGuestClick,
   onApprove,
   onReject,
@@ -89,6 +91,7 @@ export function GuestListSection({
               key={guest.id}
               guest={guest}
               isEnded={isEnded}
+              actionsDisabled={actionsDisabled}
               onClick={() => onGuestClick(guest)}
               onApprove={() => onApprove(guest)}
               onReject={() => onReject(guest)}
@@ -105,6 +108,7 @@ export function GuestListSection({
 interface GuestListItemProps {
   guest: MatchApplicantDTO;
   isEnded: boolean;
+  actionsDisabled: boolean;
   onClick: () => void;
   onApprove: () => void;
   onReject: () => void;
@@ -115,6 +119,7 @@ interface GuestListItemProps {
 function GuestListItem({
   guest,
   isEnded,
+  actionsDisabled,
   onClick,
   onApprove,
   onReject,
@@ -173,6 +178,7 @@ function GuestListItem({
                     e.stopPropagation();
                     onApprove();
                   }}
+                  disabled={actionsDisabled}
                   variant="outline"
                   className="h-8 px-3 text-xs border-slate-200"
                 >
@@ -184,6 +190,7 @@ function GuestListItem({
                     e.stopPropagation();
                     onReject();
                   }}
+                  disabled={actionsDisabled}
                   className="bg-red-100 hover:bg-red-200 text-red-600 border border-red-200 h-8 px-3 text-xs"
                 >
                   거절
@@ -199,6 +206,7 @@ function GuestListItem({
                     e.stopPropagation();
                     onConfirmPayment();
                   }}
+                  disabled={actionsDisabled}
                   variant="outline"
                   className="h-8 px-3 text-xs border-slate-200"
                 >
@@ -210,6 +218,7 @@ function GuestListItem({
                     e.stopPropagation();
                     onCancelClick();
                   }}
+                  disabled={actionsDisabled}
                   className="bg-red-100 hover:bg-red-200 text-red-600 border border-red-200 h-8 px-3 text-xs"
                 >
                   취소
@@ -224,6 +233,7 @@ function GuestListItem({
                   e.stopPropagation();
                   onCancelClick();
                 }}
+                disabled={actionsDisabled}
                 className="bg-red-100 hover:bg-red-200 text-red-600 border border-red-200 h-8 px-3 text-xs"
               >
                 취소

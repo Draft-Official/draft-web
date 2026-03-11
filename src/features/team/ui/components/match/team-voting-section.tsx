@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useIsMutating } from '@tanstack/react-query';
 import { toast } from '@/shared/ui/shadcn/sonner';
 import { Button } from '@/shared/ui/shadcn/button';
 import { Input } from '@/shared/ui/shadcn/input';
@@ -37,6 +38,9 @@ interface TeamVotingSectionProps {
   isVotingClosed: boolean;
   isLoading: boolean;
   canQuickAddGuest?: boolean;
+  canShareReminder?: boolean;
+  onShareReminder?: () => void;
+  isShareReminderDisabled?: boolean;
 }
 
 export function TeamVotingSection({
@@ -47,9 +51,14 @@ export function TeamVotingSection({
   isVotingClosed,
   isLoading,
   canQuickAddGuest = false,
+  canShareReminder = false,
+  onShareReminder,
+  isShareReminderDisabled = false,
 }: TeamVotingSectionProps) {
   const { user } = useAuth();
   const addTeamVoteGuest = useAddTeamVoteGuest();
+  const teamVoteMutatingCount = useIsMutating({ mutationKey: ['team-vote'] });
+  const isVoteActionLocked = teamVoteMutatingCount > 0;
   const [isAddGuestOpen, setIsAddGuestOpen] = useState(false);
   const [guestName, setGuestName] = useState('');
   const [guestPosition, setGuestPosition] = useState<PositionValue>(POSITION_DEFAULT);
@@ -63,6 +72,10 @@ export function TeamVotingSection({
 
     if (!user?.id) {
       toast.error('로그인이 필요합니다.');
+      return;
+    }
+    if (isVoteActionLocked) {
+      toast.error('이전 투표 변경 처리 중입니다. 잠시 후 다시 시도해주세요.');
       return;
     }
 
@@ -96,16 +109,29 @@ export function TeamVotingSection({
           )}
         </h2>
 
-        {canQuickAddGuest && (
-          <button
-            type="button"
-            className="text-sm font-semibold text-primary hover:text-primary/80 transition-colors shrink-0 disabled:text-slate-400 disabled:cursor-not-allowed disabled:hover:text-slate-400"
-            onClick={() => setIsAddGuestOpen(true)}
-            disabled={isVotingClosed}
-          >
-            게스트 추가
-          </button>
-        )}
+        <div className="flex items-center gap-3 shrink-0">
+          {canShareReminder && (
+            <button
+              type="button"
+              className="text-sm font-semibold text-primary hover:text-primary/80 transition-colors disabled:text-slate-400 disabled:cursor-not-allowed disabled:hover:text-slate-400"
+              onClick={onShareReminder}
+              disabled={isShareReminderDisabled}
+            >
+              카카오톡 공유
+            </button>
+          )}
+
+          {canQuickAddGuest && (
+            <button
+              type="button"
+              className="text-sm font-semibold text-primary hover:text-primary/80 transition-colors disabled:text-slate-400 disabled:cursor-not-allowed disabled:hover:text-slate-400"
+              onClick={() => setIsAddGuestOpen(true)}
+              disabled={isVotingClosed || isVoteActionLocked}
+            >
+              게스트 추가
+            </button>
+          )}
+        </div>
       </div>
 
       {isLoading ? (
@@ -119,6 +145,7 @@ export function TeamVotingSection({
           isAdmin={isAdmin}
           matchId={matchId}
           isVotingClosed={isVotingClosed}
+          externalActionsDisabled={isVoteActionLocked}
         />
       )}
 
@@ -166,7 +193,7 @@ export function TeamVotingSection({
                 type="button"
                 className="w-full h-11 font-bold"
                 onClick={handleAddGuest}
-                disabled={addTeamVoteGuest.isPending}
+                disabled={isVoteActionLocked || addTeamVoteGuest.isPending}
               >
                 {addTeamVoteGuest.isPending ? '추가 중...' : '추가하기'}
               </Button>

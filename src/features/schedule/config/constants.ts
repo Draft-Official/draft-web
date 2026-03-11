@@ -11,18 +11,15 @@ import type {
 } from '../model/types';
 import type { TeamVoteStatusValue } from '@/shared/config/application-constants';
 
-// 경기 타입 필터 옵션 (참여 모드 - guest 제외, 중복선택용)
-export const MATCH_TYPE_FILTER_OPTIONS: FilterOption<Exclude<MatchType, 'host'>>[] = [
+// 경기 타입 필터 옵션 (참여 모드 - 대회 필터 임시 비노출)
+export const MATCH_TYPE_FILTER_OPTIONS: FilterOption<'guest' | 'team'>[] = [
   { value: 'guest', label: '게스트' },
   { value: 'team', label: '팀운동' },
-  { value: 'tournament', label: '대회' },
 ];
 
-// 경기 타입 필터 옵션 (관리 모드 - guest 제외, 중복선택용)
-export const HOST_TYPE_FILTER_OPTIONS: FilterOption<Exclude<MatchType, 'guest'>>[] = [
+// 경기 타입 필터 옵션 (운영 모드)
+export const HOST_TYPE_FILTER_OPTIONS: FilterOption<'host'>[] = [
   { value: 'host', label: '게스트' },
-  { value: 'team', label: '팀운동' },
-  { value: 'tournament', label: '대회' },
 ];
 
 // 경기 상태 필터 옵션 - 참여 모드 (중복선택용)
@@ -60,16 +57,25 @@ export const MATCH_TYPE_COLORS: Record<MatchType, string> = {
   tournament: 'bg-purple-500/10 text-purple-700 border-purple-500/20',
 };
 
+// 경기 타입별 아이콘 토큰
+export type MatchTypeIconToken = 'user' | 'crown' | 'users' | 'trophy';
+export const MATCH_TYPE_ICON_TOKENS: Record<MatchType, MatchTypeIconToken> = {
+  guest: 'user',
+  host: 'crown',
+  team: 'users',
+  tournament: 'trophy',
+};
+
 // 관리 도메인 타입별 레이블
 export const MANAGEMENT_TYPE_LABELS: Record<MatchManagementType, string> = {
-  guest_recruitment: '게스트',
+  guest_recruitment: '게스트 모집',
   team_exercise: '팀운동',
   tournament: '대회',
 };
 
 // 관리 도메인 타입별 색상 (Tailwind classes)
 export const MANAGEMENT_TYPE_COLORS: Record<MatchManagementType, string> = {
-  guest_recruitment: 'bg-draft-500/10 text-primary border-draft-500/20',
+  guest_recruitment: 'bg-amber-500/10 text-amber-800 border-amber-300/70',
   team_exercise: 'bg-green-500/10 text-green-700 border-green-500/20',
   tournament: 'bg-purple-500/10 text-purple-700 border-purple-500/20',
 };

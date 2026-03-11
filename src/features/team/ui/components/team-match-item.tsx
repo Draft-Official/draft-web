@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Users } from 'lucide-react';
 import { Badge } from '@/shared/ui/shadcn/badge';
 import { Button } from '@/shared/ui/shadcn/button';
 import { MatchCardLayout } from '@/shared/ui/composite/match-card-layout';
@@ -151,8 +152,9 @@ export function TeamMatchItem({
           <>
             <Badge
               variant="outline"
-              className="text-xs font-medium border px-2.5 py-1 bg-green-500/10 text-green-700 border-green-500/20"
+              className="inline-flex items-center gap-1 text-xs font-medium border px-2.5 py-1 bg-green-500/10 text-green-700 border-green-500/20"
             >
+              <Users className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
               팀운동
             </Badge>
             <Badge
@@ -177,7 +179,7 @@ export function TeamMatchItem({
                 불참{' '}
                 <strong className="text-red-500">{votingSummary.notAttending}명</strong>
               </span>
-              <span>
+              <span className="hidden lg:inline">
                 미투표{' '}
                 <strong className="text-slate-600">{votingSummary.pending}명</strong>
               </span>

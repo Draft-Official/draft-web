@@ -9,12 +9,12 @@ import { cn } from '@/shared/lib/utils';
 import { formatRelativeTime } from '@/features/notification/lib/format-time';
 import { formatKSTTime, getKSTDateParts } from '@/shared/lib/datetime';
 import { useMatchChatRooms } from '../api/queries';
+import { useMatchChatRealtime } from '../lib/use-match-chat-realtime';
 import type { MatchChatRoomListItemDTO } from '../model/types';
 
-type ChatMode = 'all' | 'host' | 'guest';
+type ChatMode = 'host' | 'guest';
 
 const CHAT_MODE_TABS: Array<{ mode: ChatMode; label: string }> = [
-  { mode: 'all', label: '전체' },
   { mode: 'host', label: '호스트' },
   { mode: 'guest', label: '게스트' },
 ];
@@ -44,7 +44,13 @@ function ChatRoomListItem({
   showRoleBadge?: boolean;
   isActive?: boolean;
 }) {
-  const initial = room.otherUserName.substring(0, 1) || 'U';
+  const isGuestToHostInquiry = room.myRole === 'guest';
+  const title = isGuestToHostInquiry ? room.teamName : room.otherUserName;
+  const avatarSrc = isGuestToHostInquiry ? room.teamLogoUrl : room.otherUserAvatar;
+  const subtitle = isGuestToHostInquiry
+    ? formatMatchSummary(room.matchStartTimeISO)
+    : (room.otherUserInfoSummary || '프로필 정보 없음');
+  const initial = title.substring(0, 1) || 'T';
   const roleLabel = room.myRole === 'host' ? '호스트' : '게스트';
 
   return (
@@ -60,7 +66,7 @@ function ChatRoomListItem({
     >
       <div className="flex items-start gap-3">
         <Avatar className="h-11 w-11 border border-slate-200">
-          <AvatarImage src={room.otherUserAvatar || undefined} />
+          <AvatarImage src={avatarSrc || undefined} />
           <AvatarFallback className="bg-slate-100 text-slate-600 text-sm font-bold">
             {initial}
           </AvatarFallback>
@@ -70,7 +76,7 @@ function ChatRoomListItem({
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
-                <p className="truncate text-sm font-bold text-slate-900">{room.otherUserName}</p>
+                <p className="truncate text-sm font-bold text-slate-900">{title}</p>
                 {showRoleBadge ? (
                   <span
                     className={cn(
@@ -83,7 +89,7 @@ function ChatRoomListItem({
                 ) : null}
               </div>
               <p className="truncate text-xs text-slate-500">
-                {room.teamName} · {formatMatchSummary(room.matchStartTimeISO)}
+                {subtitle}
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-2">
@@ -150,14 +156,16 @@ export function ChatInboxView({
 
   const modeFromQuery = (() => {
     const value = searchParams?.get('mode');
-    if (value === 'host' || value === 'guest') {
-      return value;
+    if (value === 'host') {
+      return 'host' as const;
     }
-    return 'all';
+    return 'guest' as const;
   })();
 
   const [mode, setMode] = useState<ChatMode>(modeFromQuery);
   const matchId = searchParams?.get('matchId') || undefined;
+
+  useMatchChatRealtime();
 
   useEffect(() => {
     setMode(modeFromQuery);
@@ -215,20 +223,6 @@ export function ChatInboxView({
         ))}
       </section>
 
-      {mode === 'all' ? (
-        <section className="mb-3 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-          <span className={cn('shrink-0 whitespace-nowrap rounded-full border px-1.5 py-0.5 font-semibold leading-none', ROLE_BADGE_STYLES.host)}>
-            호스트
-          </span>
-          <span className="whitespace-nowrap">내가 모집한 경기 채팅</span>
-          <span className="shrink-0 text-slate-300">|</span>
-          <span className={cn('shrink-0 whitespace-nowrap rounded-full border px-1.5 py-0.5 font-semibold leading-none', ROLE_BADGE_STYLES.guest)}>
-            게스트
-          </span>
-          <span className="whitespace-nowrap">내가 문의한 경기 채팅</span>
-        </section>
-      ) : null}
-
       {isLoading ? (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-100 bg-white py-14">
           <Spinner className="mb-3 h-7 w-7 text-muted-foreground" />
@@ -258,7 +252,7 @@ export function ChatInboxView({
             <ChatRoomListItem
               key={room.roomId}
               room={room}
-              showRoleBadge={mode === 'all'}
+              showRoleBadge={false}
               isActive={activeRoomId === room.roomId}
               onClick={() => openRoom(room.roomId)}
             />
