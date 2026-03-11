@@ -53,7 +53,7 @@ export function useMatchChatRooms(options: UseMatchChatRoomsOptions = {}) {
   return useQuery({
     queryKey: matchChatKeys.rooms(user?.id ?? '', mode, matchId),
     enabled: !!user?.id,
-    refetchInterval: 10_000,
+    refetchInterval: 30_000,
     queryFn: async (): Promise<MatchChatRoomListItemDTO[]> => {
       if (!user?.id) {
         return [];
@@ -76,7 +76,7 @@ export function useHostMatchChatRooms(matchId: string) {
   return useQuery({
     queryKey: matchChatKeys.hostRoomsByMatch(user?.id ?? '', matchId),
     enabled: !!user?.id && !!matchId,
-    refetchInterval: 10_000,
+    refetchInterval: 30_000,
     queryFn: async (): Promise<MatchChatRoomListItemDTO[]> => {
       if (!user?.id || !matchId) {
         return [];
@@ -96,7 +96,7 @@ export function useMatchChatRoom(roomId: string) {
   return useQuery({
     queryKey: matchChatKeys.roomDetail(roomId, user?.id ?? ''),
     enabled: !!user?.id && !!roomId,
-    refetchInterval: 10_000,
+    refetchInterval: 30_000,
     queryFn: async (): Promise<MatchChatRoomDetailDTO | null> => {
       if (!user?.id || !roomId) {
         return null;
@@ -121,7 +121,7 @@ export function useMatchChatMessages(roomId: string) {
   return useQuery({
     queryKey: matchChatKeys.messages(roomId, user?.id ?? ''),
     enabled: !!user?.id && !!roomId,
-    refetchInterval: 5_000,
+    refetchInterval: 30_000,
     queryFn: async (): Promise<MatchChatMessageDTO[]> => {
       if (!user?.id || !roomId) {
         return [];
