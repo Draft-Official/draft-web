@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const SITE_BRAND_NAME = 'DRAFT Match';
-export const DEFAULT_SITE_URL = 'https://draftmatch.co.kr';
+export const DEFAULT_SITE_URL = 'https://draftmatch.kr';
 export const SITE_TITLE_TEMPLATE = `%s | ${SITE_BRAND_NAME}`;
 export const SITE_DEFAULT_TITLE = `농구 게스트 모집·팀 운동 관리 | ${SITE_BRAND_NAME}`;
 export const SITE_DEFAULT_DESCRIPTION =
