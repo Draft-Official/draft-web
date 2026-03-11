@@ -259,7 +259,18 @@ export function useCancelMatchFlow() {
       const supabase = getSupabaseBrowserClient();
       const now = new Date().toISOString();
 
-      // 1. 모든 활성 신청(PENDING, PAYMENT_PENDING, CONFIRMED)을 CANCELED로 변경
+      // 1. 채팅 발송 대상 게스트 미리 조회 (취소 전)
+      const { data: targetApplications } = await supabase
+        .from('applications')
+        .select('user_id')
+        .eq('match_id', matchId)
+        .in('status', ['CONFIRMED', 'PAYMENT_PENDING']);
+
+      const guestIds = [...new Set(
+        (targetApplications ?? []).map((a) => a.user_id).filter(Boolean)
+      )] as string[];
+
+      // 2. 모든 활성 신청(PENDING, PAYMENT_PENDING, CONFIRMED)을 CANCELED로 변경
       const { error: cancelAppsError } = await supabase
         .from('applications')
         .update({
@@ -272,7 +283,7 @@ export function useCancelMatchFlow() {
 
       if (cancelAppsError) throw cancelAppsError;
 
-      // 2. 경기 상태를 CANCELED로 변경
+      // 3. 경기 상태를 CANCELED로 변경
       const { error: matchError } = await supabase
         .from('matches')
         .update({ status: 'CANCELED' })
@@ -280,11 +291,15 @@ export function useCancelMatchFlow() {
 
       if (matchError) throw matchError;
 
-      // 3. 취소 공지 발송 (실패해도 경기 취소는 유지)
-      const fullMessage =
-        message +
-        '\n\n[환불 안내] 입금하신 참가비는 호스트가 1시간 이내에 환불할 예정입니다. 1시간이 지나도 환불받지 못한 경우, 고객센터를 통해 문의해 주세요.';
+      const REFUND_NOTICE = '[환불 안내] 입금하신 참가비는 호스트가 1시간 이내에 환불할 예정입니다. 1시간이 지나도 환불받지 못한 경우, 고객센터를 통해 문의해 주세요.';
+      const hasSettlementGuests = guestIds.length > 0;
+      const fullMessage = hasSettlementGuests && message
+        ? `${message}\n\n${REFUND_NOTICE}`
+        : hasSettlementGuests
+          ? REFUND_NOTICE
+          : message;
 
+      // 4. announcements INSERT (in-app 알림 트리거용, 실패해도 취소는 유지)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const supabaseAny = supabase as any;
       const { error: announcementError } = await supabaseAny
@@ -298,6 +313,27 @@ export function useCancelMatchFlow() {
 
       if (announcementError) {
         console.error('Cancel match announcement error:', announcementError);
+      }
+
+      // 5. 게스트 채팅방에 공지 메시지 발송 (실패해도 취소는 유지)
+      if (user?.id && guestIds.length > 0) {
+        const { createChatService } = await import('@/entities/chat');
+        const chatService = createChatService(supabase);
+
+        await Promise.allSettled(
+          guestIds.map(async (guestId) => {
+            const room = await chatService.createOrGetRoom({
+              matchId,
+              hostId: user.id,
+              guestId,
+            });
+            // 취소 사유와 환불 안내를 별도 버블로 발송
+            if (message) {
+              await chatService.sendMessage(room.id, user.id, message, 'announcement');
+            }
+            await chatService.sendMessage(room.id, user.id, REFUND_NOTICE, 'announcement');
+          })
+        );
       }
     },
     onSuccess: (_, variables) => {

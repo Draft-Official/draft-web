@@ -6,7 +6,6 @@ import { ArrowLeft, ExternalLink, Share2, X } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from '@/shared/ui/shadcn/sonner';
 import { HeroSection } from './components/detail/hero-section';
-import { AnnouncementSection } from './components/detail/announcement-section';
 import { RecruitmentStatus } from './components/detail/recruitment-status';
 import { MatchInfoSection } from './components/detail/match-info-section';
 import { MatchRuleSection } from './components/detail/match-rule-section';
@@ -110,31 +109,6 @@ export function MatchDetailView({
       return count ?? 0;
     },
     enabled: !!match.id && match.hostId === user?.id,
-  });
-
-  // 공지 조회
-  // announcements 테이블은 아직 generated types에 미반영 — 타입 우회
-  const { data: announcements = [] } = useQuery({
-    queryKey: ['announcements', match.id],
-    queryFn: async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const supabase = getSupabaseBrowserClient() as any;
-      const { data, error } = await supabase
-        .from('announcements')
-        .select('id, message, created_at')
-        .eq('target_type', 'MATCH')
-        .eq('target_id', match.id)
-        .is('deleted_at', null)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return (data ?? []).map((row: { id: string; message: string; created_at: string }) => ({
-        id: row.id,
-        message: row.message,
-        createdAt: row.created_at,
-      }));
-    },
-    enabled: !!match.id,
   });
 
   // 호스트 여부
@@ -306,9 +280,6 @@ export function MatchDetailView({
       {/* 2. Content Sections */}
       <main className={cn(isSplitLayout && "pb-24")}>
         <HeroSection match={match} />
-
-        {/* Announcement Section */}
-        <AnnouncementSection announcements={announcements} />
 
         {/* Divider */}
         <div className="h-px bg-slate-100 mx-5" />

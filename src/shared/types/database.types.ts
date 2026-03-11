@@ -283,6 +283,7 @@ export type Database = {
           id: string
           room_id: string
           sender_id: string
+          type: string
         }
         Insert: {
           body: string
@@ -290,6 +291,7 @@ export type Database = {
           id?: string
           room_id: string
           sender_id: string
+          type?: string
         }
         Update: {
           body?: string
@@ -297,6 +299,7 @@ export type Database = {
           id?: string
           room_id?: string
           sender_id?: string
+          type?: string
         }
         Relationships: [
           {

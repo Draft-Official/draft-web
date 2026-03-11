@@ -66,6 +66,7 @@ export function useMatchChatRealtime({ roomId }: UseMatchChatRealtimeOptions = {
             body: inserted.body,
             createdAt: inserted.created_at,
             isMine: inserted.sender_id === user.id,
+            type: (inserted.type === 'announcement' ? 'announcement' : 'text'),
           };
 
           queryClient.setQueryData<MatchChatMessageDTO[]>(key, (current) =>

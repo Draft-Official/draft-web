@@ -83,5 +83,6 @@ export function toMatchChatMessageDTO(
     body: row.body,
     createdAt: row.created_at,
     isMine: row.sender_id === viewerUserId,
+    type: (row.type === 'announcement' ? 'announcement' : 'text'),
   };
 }
