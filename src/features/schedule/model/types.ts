@@ -69,6 +69,7 @@ export interface ScheduleMatchListItemDTO {
   date: string;
   time: string;
   startTimeISO: string;
+  endTimeISO?: string;
   location: string;
   locationUrl?: string;
 

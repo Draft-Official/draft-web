@@ -12,7 +12,7 @@ import type {
   ParticipantInfo,
 } from '@/shared/types/database.types';
 import type { AccountInfo } from '@/shared/types/jsonb.types';
-import { formatMatchDate, formatMatchTime } from '@/shared/lib/datetime';
+import { formatMatchDate, formatMatchTime, formatMatchTimeRange } from '@/shared/lib/datetime';
 import { SKILL_LEVEL_NAMES } from '@/shared/config/skill-constants';
 import { getPositionLabel } from '@/shared/config/match-constants';
 import type {
@@ -183,8 +183,9 @@ export function toScheduleMatchListItemDTO(
     teamName: match.team?.name || match.manual_team_name || '팀명 미정',
     teamLogoUrl: match.team?.logo_url ?? null,
     date: formatMatchDate(match.start_time),
-    time: formatMatchTime(match.start_time),
+    time: formatMatchTimeRange(match.start_time, match.end_time),
     startTimeISO: match.start_time || '',
+    endTimeISO: match.end_time || '',
     location: match.gym?.name || '장소 미정',
     locationUrl: match.gym?.kakao_place_id
       ? `https://map.kakao.com/link/map/${match.gym.kakao_place_id}`

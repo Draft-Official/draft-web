@@ -17,7 +17,7 @@ import {
 } from '@/entities/application';
 import { createTeamService } from '@/entities/team';
 import { useAuth } from '@/shared/session';
-import { formatMatchDate, formatMatchTime } from '@/shared/lib/datetime';
+import { formatMatchDate, formatMatchTimeRange } from '@/shared/lib/datetime';
 import { getPositionLabel } from '@/shared/config/match-constants';
 import type { TeamVoteStatusValue } from '@/shared/config/application-constants';
 import { matchManagementKeys } from './keys';
@@ -416,8 +416,9 @@ export function useParticipatingMatches(options: UseScheduleMatchesOptions = {})
             status,
             teamName: match.team?.name || match.manual_team_name || '팀명 미정',
             date: formatMatchDate(match.start_time),
-            time: formatMatchTime(match.start_time),
+            time: formatMatchTimeRange(match.start_time, match.end_time),
             startTimeISO: match.start_time || '',
+            endTimeISO: match.end_time || '',
             location: match.gym?.name || match.gym?.address || '장소 미정',
             locationUrl: match.gym?.kakao_place_id ? `https://map.kakao.com/link/map/${match.gym.kakao_place_id}` : undefined,
             applicationId: app.id,

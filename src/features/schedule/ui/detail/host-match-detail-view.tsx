@@ -7,7 +7,6 @@ import {
   MoreVertical,
   MapPin,
   Calendar as CalendarIcon,
-  Clock,
   Shield,
   Megaphone,
   MessageCircle,
@@ -313,26 +312,25 @@ export function HostMatchDetailView({
       <div className="app-content-container p-4 space-y-4">
         {/* 경기 기본 정보 */}
         <section className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 space-y-3">
-          <div className="flex items-center gap-2 text-xl font-bold text-slate-900">
+          <div className="flex items-center gap-2 text-lg font-semibold text-slate-900">
             <CalendarIcon className="w-5 h-5 text-muted-foreground" />
             <span>{match.date}</span>
-            <Clock className="w-5 h-5 text-muted-foreground ml-2" />
-            <span>{match.time}</span>
+            <span className="ml-2">{match.time}</span>
           </div>
 
           <a
             href={match.locationUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 text-slate-700 hover:text-muted-foreground transition-colors"
+            className="flex items-center gap-2.5 text-slate-700 hover:text-muted-foreground transition-colors"
           >
             <MapPin className="w-5 h-5 text-muted-foreground" />
-            <span className="font-medium">{match.location}</span>
+            <span className="font-semibold">{match.location}</span>
           </a>
 
-          <div className="flex items-center gap-2 text-slate-700">
+          <div className="flex items-center gap-2.5 text-slate-700">
             <Shield className="w-5 h-5 text-muted-foreground" />
-            <span className="font-medium">{match.teamName}</span>
+            <span className="font-semibold">{match.teamName}</span>
           </div>
         </section>
 

@@ -23,6 +23,7 @@ import {
   TEAM_EXERCISE_VOTE_BADGE_COLORS,
 } from '../../config/constants';
 import { TeamExerciseVoteStatusDialog } from './team-exercise-vote-status-dialog';
+import { MatchTypeIcon } from './match-type-icon';
 
 interface TeamExerciseCardProps {
   match: ScheduleMatchListItemDTO;
@@ -31,6 +32,7 @@ interface TeamExerciseCardProps {
   onVote?: (matchId: string, vote: TeamVoteStatusValue, reason: string) => void;
   isVoting?: boolean;
   isActive?: boolean;
+  isDesktop?: boolean;
 }
 
 export function TeamExerciseCard({
@@ -40,6 +42,7 @@ export function TeamExerciseCard({
   onVote,
   isVoting = false,
   isActive = false,
+  isDesktop = false,
 }: TeamExerciseCardProps) {
   const [isVoteDialogOpen, setIsVoteDialogOpen] = useState(false);
   const [isVoteStatusOpen, setIsVoteStatusOpen] = useState(false);
@@ -128,10 +131,11 @@ export function TeamExerciseCard({
             <Badge
               variant="outline"
               className={cn(
-                'text-xs font-medium border px-2.5 py-1',
+                'inline-flex items-center gap-1 text-xs font-medium border px-2.5 py-1',
                 MANAGEMENT_TYPE_COLORS[match.managementType]
               )}
             >
+              <MatchTypeIcon matchType={match.matchType} />
               {MANAGEMENT_TYPE_LABELS[match.managementType]}
             </Badge>
             <Badge
@@ -156,10 +160,12 @@ export function TeamExerciseCard({
                 불참{' '}
                 <strong className="text-red-500">{match.votingSummary?.notAttending ?? 0}명</strong>
               </span>
-              <span>
-                미투표{' '}
-                <strong className="text-slate-600">{match.votingSummary?.pending ?? 0}명</strong>
-              </span>
+              {isDesktop && (
+                <span>
+                  미투표{' '}
+                  <strong className="text-slate-600">{match.votingSummary?.pending ?? 0}명</strong>
+                </span>
+              )}
             </div>
 
             <div className="flex items-center gap-2 shrink-0">

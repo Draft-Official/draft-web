@@ -7,7 +7,6 @@ import {
   MoreVertical,
   MapPin,
   Calendar as CalendarIcon,
-  Clock,
   Users,
   Shield,
   Edit3,
@@ -98,26 +97,25 @@ export function TeamExerciseManageView() {
       <div className="app-content-container p-4 space-y-4">
         {/* 경기 기본 정보 */}
         <section className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 space-y-3">
-          <div className="flex items-center gap-2 text-xl font-bold text-slate-900">
+          <div className="flex items-center gap-2 text-lg font-semibold text-slate-900">
             <CalendarIcon className="w-5 h-5 text-slate-400" />
             <span>{exercise.date}</span>
-            <Clock className="w-5 h-5 text-slate-400 ml-2" />
-            <span>{exercise.time}</span>
+            <span className="ml-2">{exercise.time}</span>
           </div>
 
           <a
             href={exercise.locationUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 text-slate-700 hover:text-primary transition-colors"
+            className="flex items-center gap-2.5 text-slate-700 hover:text-primary transition-colors"
           >
             <MapPin className="w-5 h-5 text-slate-400" />
-            <span className="font-medium">{exercise.location}</span>
+            <span className="font-semibold">{exercise.location}</span>
           </a>
 
-          <div className="flex items-center gap-2 text-lg text-slate-700">
+          <div className="flex items-center gap-2.5 text-lg text-slate-700">
             <Shield className="w-5 h-5 text-slate-400" />
-            <span className="font-medium">{exercise.teamName}</span>
+            <span className="font-semibold">{exercise.teamName}</span>
           </div>
         </section>
 

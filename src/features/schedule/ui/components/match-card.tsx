@@ -17,6 +17,7 @@ import {
 } from '../../config/constants';
 import { GuestRecruitmentCard } from './guest-recruitment-card';
 import { TeamExerciseCard } from './team-exercise-card';
+import { MatchTypeIcon } from './match-type-icon';
 
 interface MatchCardProps {
   match: ScheduleMatchListItemDTO;
@@ -26,6 +27,7 @@ interface MatchCardProps {
   onVote?: (matchId: string, vote: TeamVoteStatusValue, reason: string) => void;
   isVoting?: boolean;
   isActive?: boolean;
+  isDesktop?: boolean;
 }
 
 function TournamentCard({
@@ -56,10 +58,11 @@ function TournamentCard({
           <Badge
             variant="outline"
             className={cn(
-              'text-xs font-medium border px-2.5 py-1',
+              'inline-flex items-center gap-1 text-xs font-medium border px-2.5 py-1',
               MANAGEMENT_TYPE_COLORS[match.managementType]
             )}
           >
+            <MatchTypeIcon matchType={match.matchType} />
             {MANAGEMENT_TYPE_LABELS[match.managementType]}
           </Badge>
           <Badge
@@ -93,6 +96,7 @@ export function MatchCard({
   onVote,
   isVoting = false,
   isActive = false,
+  isDesktop = false,
 }: MatchCardProps) {
   if (match.managementType === 'guest_recruitment') {
     return (
@@ -115,6 +119,7 @@ export function MatchCard({
         onVote={onVote}
         isVoting={isVoting}
         isActive={isActive}
+        isDesktop={isDesktop}
       />
     );
   }

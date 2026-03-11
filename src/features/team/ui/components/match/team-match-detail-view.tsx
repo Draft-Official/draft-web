@@ -1,17 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowLeft, MoreVertical } from 'lucide-react';
+import { ArrowLeft, Lock, LockOpen } from 'lucide-react';
 import { toast } from '@/shared/ui/shadcn/sonner';
 import { cn } from '@/shared/lib/utils';
 import { useSafeBack } from '@/shared/lib/hooks';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/shared/ui/shadcn/dropdown-menu';
 import { VoteDialog } from '@/shared/ui/composite/vote-dialog';
+import { ConfirmDialog } from '@/shared/ui/composite/confirm-dialog';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/shared/ui/shadcn/hover-card';
 import { TeamHeroSection } from './team-hero-section';
 import { TeamVotingSection } from './team-voting-section';
 import { TeamInfoSection } from './team-info-section';
@@ -157,9 +153,12 @@ export function TeamMatchDetailView({
   onBack,
   layoutMode = 'page',
 }: TeamMatchDetailViewProps) {
+  type VotingAction = 'close' | 'reopen' | null;
+
   const safeBack = useSafeBack(`/team/${team.code}`);
   const handleBack = onBack ?? safeBack;
   const [isVoteDialogOpen, setIsVoteDialogOpen] = useState(false);
+  const [pendingVotingAction, setPendingVotingAction] = useState<VotingAction>(null);
 
   // 투표 현황 조회
   const { data: votes = [], isLoading: isVotesLoading } = useTeamVotes(match.matchId);
@@ -211,8 +210,14 @@ export function TeamMatchDetailView({
     closeVoting(
       { matchId: match.matchId, teamId: team.id },
       {
-        onSuccess: () => toast.success('투표가 마감되었습니다.'),
-        onError: (error) => toast.error(`마감 실패: ${error.message}`),
+        onSuccess: () => {
+          toast.success('투표가 마감되었습니다.');
+          setPendingVotingAction(null);
+        },
+        onError: (error) => {
+          toast.error(`마감 실패: ${error.message}`);
+          setPendingVotingAction(null);
+        },
       }
     );
   };
@@ -222,10 +227,27 @@ export function TeamMatchDetailView({
     reopenVoting(
       { matchId: match.matchId, teamId: team.id },
       {
-        onSuccess: () => toast.success('투표가 재오픈되었습니다.'),
-        onError: (error) => toast.error(`재오픈 실패: ${error.message}`),
+        onSuccess: () => {
+          toast.success('투표가 재오픈되었습니다.');
+          setPendingVotingAction(null);
+        },
+        onError: (error) => {
+          toast.error(`재오픈 실패: ${error.message}`);
+          setPendingVotingAction(null);
+        },
       }
     );
+  };
+
+  const handleConfirmVotingAction = () => {
+    if (pendingVotingAction === 'close') {
+      handleCloseVoting();
+      return;
+    }
+
+    if (pendingVotingAction === 'reopen') {
+      handleReopenVoting();
+    }
   };
 
   const handleShareVoteReminder = async () => {
@@ -300,6 +322,13 @@ export function TeamMatchDetailView({
   // 내 투표 상태
   const myVoteStatus = myVote?.status as TeamVoteStatusValue | undefined;
   const hasVoted = myVoteStatus && myVoteStatus !== 'PENDING';
+  const isVotingActionDialogOpen = pendingVotingAction !== null;
+  const isVotingActionLoading =
+    pendingVotingAction === 'close' ? isClosing : pendingVotingAction === 'reopen' ? isReopening : false;
+  const votingActionTitle =
+    pendingVotingAction === 'close' ? '투표를 마감하시겠습니까?' : '투표를 재오픈 하시겠습니까?';
+  const votingActionConfirmLabel = pendingVotingAction === 'close' ? '마감하기' : '재오픈하기';
+  const VotingActionIcon = pendingVotingAction === 'close' ? Lock : LockOpen;
 
   return (
     <div
@@ -318,36 +347,39 @@ export function TeamMatchDetailView({
           <ArrowLeft className="w-6 h-6" />
         </button>
         <div className="flex items-center gap-1">
-          {/* Admin Menu */}
-          {canManageMatch && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="p-2.5 text-slate-900 hover:bg-slate-50 rounded-full transition-colors">
-                  <MoreVertical className="w-5 h-5" />
+          {canManageMatch && !isVotingClosed && (
+            <HoverCard openDelay={200}>
+              <HoverCardTrigger asChild>
+                <button
+                  onClick={() => setPendingVotingAction('close')}
+                  disabled={isClosing}
+                  aria-label="투표 마감하기"
+                  className="p-2.5 text-slate-900 hover:bg-slate-50 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Lock className="w-5 h-5" />
                 </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-40">
-                {!isVotingClosed ? (
-                  <DropdownMenuItem
-                    onClick={handleCloseVoting}
-                    disabled={isClosing}
-                    className="text-slate-700"
-                  >
-                    투표 마감
-                  </DropdownMenuItem>
-                ) : (
-                  isLeader && (
-                    <DropdownMenuItem
-                      onClick={handleReopenVoting}
-                      disabled={isReopening}
-                      className="text-slate-700"
-                    >
-                      투표 재오픈
-                    </DropdownMenuItem>
-                  )
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+              </HoverCardTrigger>
+              <HoverCardContent side="bottom" align="end" className="w-auto px-3 py-1.5">
+                <p className="text-sm">투표 마감하기</p>
+              </HoverCardContent>
+            </HoverCard>
+          )}
+          {canManageMatch && isVotingClosed && isLeader && (
+            <HoverCard openDelay={200}>
+              <HoverCardTrigger asChild>
+                <button
+                  onClick={() => setPendingVotingAction('reopen')}
+                  disabled={isReopening}
+                  aria-label="투표 재오픈하기"
+                  className="p-2.5 text-slate-900 hover:bg-slate-50 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <LockOpen className="w-5 h-5" />
+                </button>
+              </HoverCardTrigger>
+              <HoverCardContent side="bottom" align="end" className="w-auto px-3 py-1.5">
+                <p className="text-sm">투표 재오픈하기</p>
+              </HoverCardContent>
+            </HoverCard>
           )}
         </div>
       </header>
@@ -425,6 +457,21 @@ export function TeamMatchDetailView({
           isSubmitting={isVoting}
         />
       )}
+
+      <ConfirmDialog
+        open={isVotingActionDialogOpen}
+        onOpenChange={(open) => {
+          if (!open && !isVotingActionLoading) {
+            setPendingVotingAction(null);
+          }
+        }}
+        icon={VotingActionIcon}
+        title={votingActionTitle}
+        confirmLabel={votingActionConfirmLabel}
+        cancelLabel="취소"
+        onConfirm={handleConfirmVotingAction}
+        loading={isVotingActionLoading}
+      />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Calendar, RotateCcw } from "lucide-react";
 import { useLocalStorage } from "@/shared/lib/hooks/use-local-storage";
 import { useDesktopDetailRoute } from '@/shared/lib/hooks';
@@ -55,6 +55,19 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
   const [hostStatusFilter, setHostStatusFilter] = useLocalStorage<HostStatusFilterValue[]>("schedule_host_status_filter", []);
   const [showPastMatches, setShowPastMatches] = useLocalStorage<"hide" | "show">("schedule_past_matches", "hide");
   const includePastMatches = showPastMatches === "show";
+
+  // 대회 타입 필터 비노출 대응: 기존 localStorage 값 정규화
+  useEffect(() => {
+    const normalizedGuest = guestTypeFilter.filter((value) => value !== "tournament");
+    if (normalizedGuest.length !== guestTypeFilter.length) {
+      setGuestTypeFilter(normalizedGuest as GuestTypeFilterValue[]);
+    }
+
+    const normalizedHost = hostTypeFilter.filter((value) => value !== "tournament");
+    if (normalizedHost.length !== hostTypeFilter.length) {
+      setHostTypeFilter(normalizedHost as HostTypeFilterValue[]);
+    }
+  }, [guestTypeFilter, hostTypeFilter, setGuestTypeFilter, setHostTypeFilter]);
 
   // Bottom sheet state for guest application info
   const [selectedMatch, setSelectedMatch] = useState<ScheduleMatchListItemDTO | null>(null);
@@ -307,24 +320,24 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
             >
               <TabsList
                 variant="default"
-                className="relative h-auto rounded-full border border-slate-200 bg-neutral-100 p-0.5"
+                className="relative h-auto rounded-lg border border-slate-200 bg-slate-50/60 p-px"
               >
                 <div
-                  className="pointer-events-none absolute top-0.5 bottom-0.5 left-0.5 rounded-full border border-slate-200 bg-white shadow-sm"
+                  className="pointer-events-none absolute top-px bottom-px left-px rounded-md bg-white shadow-sm"
                   style={{
-                    width: "calc(50% - 2px)",
+                    width: "calc(50% - 1px)",
                     transform: viewMode === "host" ? "translateX(100%)" : "translateX(0)",
                   }}
                 />
                 <TabsTrigger
                   value="guest"
-                  className="relative z-10 rounded-full px-4 py-1.5 text-base font-semibold text-slate-500 hover:text-slate-700 data-active:bg-transparent data-active:shadow-none data-active:text-slate-900"
+                  className="relative z-10 rounded-md px-4 py-1.5 text-base font-semibold text-slate-500 hover:text-slate-700 data-active:bg-transparent data-active:shadow-none data-active:text-slate-900"
                 >
                   참여
                 </TabsTrigger>
                 <TabsTrigger
                   value="host"
-                  className="relative z-10 rounded-full px-4 py-1.5 text-base font-semibold text-slate-500 hover:text-slate-700 data-active:bg-transparent data-active:shadow-none data-active:text-slate-900"
+                  className="relative z-10 rounded-md px-4 py-1.5 text-base font-semibold text-slate-500 hover:text-slate-700 data-active:bg-transparent data-active:shadow-none data-active:text-slate-900"
                 >
                   관리
                 </TabsTrigger>
@@ -436,6 +449,7 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
                   onVote={handleVote}
                   isVoting={voteMutation.isPending}
                   isActive={isSplitMode && selectedDetailPath === detailPath}
+                  isDesktop={isDesktop}
                 />
               );
             })}
