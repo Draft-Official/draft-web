@@ -1,6 +1,6 @@
 'use client';
 
-import type { Control, UseFormSetValue } from 'react-hook-form';
+import type { Control, FieldValues, Path } from 'react-hook-form';
 import { Controller } from 'react-hook-form';
 import { Label } from '@/shared/ui/shadcn/label';
 import {
@@ -20,30 +20,27 @@ import {
   type RegularDayValue,
 } from '@/shared/config/team-constants';
 import { cn } from '@/shared/lib/utils';
-import type { TeamProfileEditFormData } from './types';
 
-interface TeamProfileEditScheduleSectionProps {
+type TeamScheduleFieldValues = FieldValues & {
+  regularTime: string;
+  duration: string;
+};
+
+interface TeamScheduleFieldsProps<TFieldValues extends TeamScheduleFieldValues> {
   regularDays: RegularDayValue[];
-  control: Control<TeamProfileEditFormData>;
-  setValue: UseFormSetValue<TeamProfileEditFormData>;
+  control: Control<TFieldValues>;
+  onToggleDay: (day: RegularDayValue) => void;
   locationData: LocationData | null;
   onLocationResolvedChange: (next: LocationSearchResolvedValue) => void;
 }
 
-export function TeamProfileEditScheduleSection({
+export function TeamScheduleFields<TFieldValues extends TeamScheduleFieldValues>({
   regularDays,
   control,
-  setValue,
+  onToggleDay,
   locationData,
   onLocationResolvedChange,
-}: TeamProfileEditScheduleSectionProps) {
-  const toggleDay = (day: RegularDayValue) => {
-    const next = regularDays.includes(day)
-      ? regularDays.filter((d) => d !== day)
-      : [...regularDays, day];
-    setValue('regularDays', next, { shouldDirty: true, shouldTouch: true });
-  };
-
+}: TeamScheduleFieldsProps<TFieldValues>) {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -55,7 +52,7 @@ export function TeamProfileEditScheduleSection({
             <button
               key={day.value}
               type="button"
-              onClick={() => toggleDay(day.value)}
+              onClick={() => onToggleDay(day.value)}
               className={cn(
                 'aspect-square rounded-lg flex items-center justify-center text-base font-bold transition-all border',
                 regularDays.includes(day.value)
@@ -73,11 +70,11 @@ export function TeamProfileEditScheduleSection({
         <div className="space-y-2">
           <Label className="text-sm font-bold text-slate-700">시작 시간</Label>
           <Controller
-            name="regularTime"
+            name={'regularTime' as Path<TFieldValues>}
             control={control}
             render={({ field }) => (
               <TimePickerSelect
-                value={field.value}
+                value={field.value as string | undefined}
                 onValueChange={field.onChange}
                 defaultValue="20:00"
               />
@@ -88,10 +85,13 @@ export function TeamProfileEditScheduleSection({
         <div className="space-y-2">
           <Label className="text-sm font-bold text-slate-700">진행 시간</Label>
           <Controller
-            name="duration"
+            name={'duration' as Path<TFieldValues>}
             control={control}
             render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange}>
+              <Select
+                value={(field.value as string | undefined) ?? undefined}
+                onValueChange={field.onChange}
+              >
                 <SelectTrigger className="h-(--dimension-x12) bg-white border-border font-bold">
                   <SelectValue placeholder="선택" />
                 </SelectTrigger>

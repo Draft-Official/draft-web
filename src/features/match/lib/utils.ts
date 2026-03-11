@@ -1,39 +1,8 @@
 import type { GuestMatchListItemDTO } from '../model/types';
 import { formatKSTDateISO, getKSTDateParts, parseKSTDateISO } from '@/shared/lib/datetime';
+export { getNext14Days, type DateOption } from '@/shared/lib/date-options';
 
 // --- Date Utils ---
-
-export interface DateOption {
-  dateISO: string;
-  label: string;
-  dayNum: number | string;
-  dayStr: string;
-  isToday: boolean;
-}
-
-export const getNext14Days = (): DateOption[] => {
-    const days = ['일', '월', '화', '수', '목', '금', '토'];
-    const dates = [];
-    const today = parseKSTDateISO(formatKSTDateISO(new Date()));
-
-    for (let i = 0; i < 14; i++) {
-        const d = new Date(today.getTime() + i * 24 * 60 * 60 * 1000);
-        const parts = getKSTDateParts(d);
-        if (!parts) continue;
-        const month = parts.month;
-        const date = parts.day;
-        const day = days[parts.weekday];
-
-        dates.push({
-            dateISO: formatDateISO(d),
-            label: `${month}.${date} (${day})`,
-            dayNum: date,
-            dayStr: day,
-            isToday: i === 0,
-        });
-    }
-    return dates;
-};
 
 export const formatDateISO = (date: Date): string => {
     return formatKSTDateISO(date);

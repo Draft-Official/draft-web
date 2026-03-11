@@ -24,6 +24,69 @@ function getReadableTeamLogoError(error: unknown): string {
   return '로고 업로드에 실패했습니다. 잠시 후 다시 시도해주세요.';
 }
 
+export function resolveTeamLogoUploadErrorMessage(error: unknown): string {
+  if (error instanceof Error && error.message) return error.message;
+  return '로고 업로드에 실패했습니다. 잠시 후 다시 시도해주세요.';
+}
+
+export function createTeamLogoPreviewUrl(previousPreviewUrl: string, file: File): string {
+  if (previousPreviewUrl.startsWith('blob:')) {
+    URL.revokeObjectURL(previousPreviewUrl);
+  }
+  return URL.createObjectURL(file);
+}
+
+export function applyTeamLogoFileSelection({
+  file,
+  currentLogoId,
+  setLogoUploadError,
+  setPendingLogoFile,
+  setLogoPreviewUrl,
+  clearLogoId,
+}: {
+  file: File;
+  currentLogoId: string;
+  setLogoUploadError: (message: string | null) => void;
+  setPendingLogoFile: (file: File | null) => void;
+  setLogoPreviewUrl: (updater: (previous: string) => string) => void;
+  clearLogoId: () => void;
+}) {
+  const validationError = validateTeamLogoFile(file);
+  if (validationError) {
+    setLogoUploadError(validationError);
+    throw new Error(validationError);
+  }
+
+  setLogoUploadError(null);
+  setPendingLogoFile(file);
+  setLogoPreviewUrl((previous) => createTeamLogoPreviewUrl(previous, file));
+  if (currentLogoId) {
+    clearLogoId();
+  }
+}
+
+export async function uploadPendingTeamLogoWithState({
+  file,
+  setIsUploadingLogo,
+  setLogoUploadError,
+}: {
+  file: File;
+  setIsUploadingLogo: (isUploading: boolean) => void;
+  setLogoUploadError: (message: string | null) => void;
+}): Promise<TeamLogoUploadResult> {
+  setIsUploadingLogo(true);
+  setLogoUploadError(null);
+  try {
+    return await uploadTeamLogoFile({ file });
+  } catch (error) {
+    const message = resolveTeamLogoUploadErrorMessage(error);
+    setLogoUploadError(message);
+    throw new Error(message);
+  } finally {
+    setIsUploadingLogo(false);
+  }
+}
+
 export function validateTeamLogoFile(file: File): string | null {
   if (!isAllowedTeamLogoMimeType(file.type)) {
     return 'JPG, PNG, WEBP 파일만 업로드할 수 있습니다.';

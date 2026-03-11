@@ -66,13 +66,6 @@ export class GymService {
             updated_at: new Date().toISOString()
           };
 
-          console.log('[GymService] Updating gym facilities:', {
-            gymId: existingGym.id,
-            existingFacilities,
-            newFacilities,
-            updatePayload
-          });
-
           logSupabaseQuery('gyms', 'UPDATE', updatePayload, { id: existingGym.id });
 
           // .maybeSingle() 사용: RLS로 인해 0개 결과일 때 에러 방지
@@ -83,7 +76,6 @@ export class GymService {
             .select()
             .maybeSingle();
 
-          console.log('[GymService] UPDATE result:', { updatedData, updateError });
           logSupabaseResult('gyms', 'UPDATE', { id: existingGym.id, updated: !!updatedData }, updateError);
 
           // UPDATE 에러 처리
@@ -235,4 +227,3 @@ export class GymService {
 export function createGymService(client: SupabaseClient<Database>) {
   return new GymService(client);
 }
-

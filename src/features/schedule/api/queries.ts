@@ -7,6 +7,7 @@ import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 const PAGE_SIZE = 20;
 
 type SchedulePage = { matches: ScheduleMatchListItemDTO[]; nextCursor: number | undefined };
+type CursorPage<TItem> = { items: TItem[]; nextCursor: number | undefined };
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { createMatchService } from '@/entities/match';
 import {
@@ -44,6 +45,49 @@ interface UseScheduleMatchesOptions {
   includePast?: boolean;
 }
 
+async function findFirstVisibleCursorPage<TItem>({
+  startCursor,
+  fetchPage,
+  hasVisibleItems,
+}: {
+  startCursor: number;
+  fetchPage: (cursor: number) => Promise<CursorPage<TItem>>;
+  hasVisibleItems: (items: TItem[]) => boolean;
+}): Promise<CursorPage<TItem> | undefined> {
+  let cursor = startCursor;
+
+  while (true) {
+    const page = await fetchPage(cursor);
+    if (page.items.length === 0) return undefined;
+    if (hasVisibleItems(page.items)) return page;
+    if (page.nextCursor === undefined) return undefined;
+
+    cursor = page.nextCursor;
+  }
+}
+
+async function findNextVisibleCursorPage<TItem>({
+  startCursor,
+  fetchPage,
+  hasVisibleItems,
+}: {
+  startCursor: number | undefined;
+  fetchPage: (cursor: number) => Promise<CursorPage<TItem>>;
+  hasVisibleItems: (items: TItem[]) => boolean;
+}): Promise<number | undefined> {
+  if (startCursor === undefined) return undefined;
+  let cursor = startCursor;
+
+  while (true) {
+    const page = await fetchPage(cursor);
+    if (page.items.length === 0) return undefined;
+    if (hasVisibleItems(page.items)) return cursor;
+    if (page.nextCursor === undefined) return undefined;
+
+    cursor = page.nextCursor;
+  }
+}
+
 /**
  * 내가 주최한 경기 목록 조회
  * @returns ScheduleMatchListItemDTO[] 형태로 변환된 호스트 경기 목록
@@ -69,30 +113,12 @@ export function useHostedMatches(options: UseScheduleMatchesOptions = {}) {
         PAST_MATCH_STATUSES.includes(status);
       const hasVisibleRows = (rows: HostedMatchRow[]) =>
         rows.some((row) => !isPastMatch(toScheduleMatchListItemDTO(row, 'host').status));
-
-      const findVisiblePage = async (startOffset: number) => {
-        let offset = startOffset;
-        while (true) {
-          const page = await matchService.getMyHostedMatches(user.id, PAGE_SIZE, offset);
-          if (page.matches.length === 0) return undefined;
-          if (hasVisibleRows(page.matches)) {
-            return { rows: page.matches, nextCursor: page.nextCursor };
-          }
-          if (page.nextCursor === undefined) return undefined;
-          offset = page.nextCursor;
-        }
-      };
-
-      const findNextVisibleCursor = async (startOffset: number | undefined) => {
-        if (startOffset === undefined) return undefined;
-        let offset = startOffset;
-        while (true) {
-          const page = await matchService.getMyHostedMatches(user.id, PAGE_SIZE, offset);
-          if (page.matches.length === 0) return undefined;
-          if (hasVisibleRows(page.matches)) return offset;
-          if (page.nextCursor === undefined) return undefined;
-          offset = page.nextCursor;
-        }
+      const fetchHostedMatchPage = async (cursor: number): Promise<CursorPage<HostedMatchRow>> => {
+        const page = await matchService.getMyHostedMatches(user.id, PAGE_SIZE, cursor);
+        return {
+          items: page.matches,
+          nextCursor: page.nextCursor,
+        };
       };
 
       let rows: HostedMatchRow[] = [];
@@ -103,9 +129,13 @@ export function useHostedMatches(options: UseScheduleMatchesOptions = {}) {
         rows = page.matches;
         nextCursor = page.nextCursor;
       } else {
-        const page = await findVisiblePage(pageParam);
+        const page = await findFirstVisibleCursorPage({
+          startCursor: pageParam,
+          fetchPage: fetchHostedMatchPage,
+          hasVisibleItems: hasVisibleRows,
+        });
         if (!page) return { matches: [], nextCursor: undefined };
-        rows = page.rows;
+        rows = page.items;
         nextCursor = page.nextCursor;
       }
 
@@ -204,7 +234,11 @@ export function useHostedMatches(options: UseScheduleMatchesOptions = {}) {
         : mappedMatches.filter((match) => !isPastMatch(match.status));
       const resolvedNextCursor = includePast
         ? nextCursor
-        : await findNextVisibleCursor(nextCursor);
+        : await findNextVisibleCursorPage({
+            startCursor: nextCursor,
+            fetchPage: fetchHostedMatchPage,
+            hasVisibleItems: hasVisibleRows,
+          });
 
       return { matches, nextCursor: resolvedNextCursor };
     },
@@ -265,6 +299,15 @@ export function useParticipatingMatches(options: UseScheduleMatchesOptions = {})
           nextCursor: applications.length === PAGE_SIZE ? offset + PAGE_SIZE : undefined,
         };
       };
+      const fetchParticipatingApplicationPage = async (
+        cursor: number
+      ): Promise<CursorPage<{ match?: unknown; status?: string | null }>> => {
+        const page = await fetchApplicationPage(cursor);
+        return {
+          items: page.applications,
+          nextCursor: page.nextCursor,
+        };
+      };
 
       const isPastApplication = (app: { match?: unknown; status?: string | null }) => {
         if (!app.match) return true;
@@ -277,31 +320,6 @@ export function useParticipatingMatches(options: UseScheduleMatchesOptions = {})
       const hasVisibleApplications = (applications: { match?: unknown; status?: string | null }[]) =>
         applications.some((app) => !isPastApplication(app));
 
-      const findVisiblePage = async (startOffset: number) => {
-        let offset = startOffset;
-        while (true) {
-          const page = await fetchApplicationPage(offset);
-          if (page.applications.length === 0) return undefined;
-          if (hasVisibleApplications(page.applications)) {
-            return { applications: page.applications, nextCursor: page.nextCursor };
-          }
-          if (page.nextCursor === undefined) return undefined;
-          offset = page.nextCursor;
-        }
-      };
-
-      const findNextVisibleCursor = async (startOffset: number | undefined) => {
-        if (startOffset === undefined) return undefined;
-        let offset = startOffset;
-        while (true) {
-          const page = await fetchApplicationPage(offset);
-          if (page.applications.length === 0) return undefined;
-          if (hasVisibleApplications(page.applications)) return offset;
-          if (page.nextCursor === undefined) return undefined;
-          offset = page.nextCursor;
-        }
-      };
-
       let applications: Array<{ match?: unknown; status?: string | null; [key: string]: unknown }> = [];
       let nextCursor: number | undefined;
 
@@ -310,9 +328,13 @@ export function useParticipatingMatches(options: UseScheduleMatchesOptions = {})
         applications = page.applications;
         nextCursor = page.nextCursor;
       } else {
-        const page = await findVisiblePage(pageParam);
+        const page = await findFirstVisibleCursorPage({
+          startCursor: pageParam,
+          fetchPage: fetchParticipatingApplicationPage,
+          hasVisibleItems: hasVisibleApplications,
+        });
         if (!page) return { matches: [], nextCursor: undefined };
-        applications = page.applications;
+        applications = page.items;
         nextCursor = page.nextCursor;
       }
 
@@ -462,7 +484,11 @@ export function useParticipatingMatches(options: UseScheduleMatchesOptions = {})
         : mappedMatches.filter((match) => !PAST_MATCH_STATUSES.includes(match.status));
       const resolvedNextCursor = includePast
         ? nextCursor
-        : await findNextVisibleCursor(nextCursor);
+        : await findNextVisibleCursorPage({
+            startCursor: nextCursor,
+            fetchPage: fetchParticipatingApplicationPage,
+            hasVisibleItems: hasVisibleApplications,
+          });
 
       return { matches, nextCursor: resolvedNextCursor };
     },

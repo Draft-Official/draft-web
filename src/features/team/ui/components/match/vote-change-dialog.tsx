@@ -7,15 +7,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/shared/ui/shadcn/dialog';
-import { RadioGroup } from '@/shared/ui/shadcn/radio-group';
 import { Button } from '@/shared/ui/shadcn/button';
-import { cn } from '@/shared/lib/utils';
 import { toast } from '@/shared/ui/shadcn/sonner';
 import { useUpdateMemberVote } from '@/features/team/api/match/mutations';
-import {
-  TEAM_VOTE_OPTIONS,
-  type TeamVoteStatusValue,
-} from '@/shared/config/team-constants';
+import { TeamVoteRadioGroup } from '@/shared/ui/composite/team-vote-radio-group';
+import { type TeamVoteStatusValue } from '@/shared/config/team-constants';
 
 interface VoteChangeDialogProps {
   open: boolean;
@@ -81,55 +77,10 @@ export function VoteChangeDialog({
         </DialogHeader>
 
         <div className="space-y-4 pt-2">
-          <RadioGroup
+          <TeamVoteRadioGroup
             value={selectedVote}
-            onValueChange={(value) => setSelectedVote(value as TeamVoteStatusValue)}
-            className="space-y-1"
-          >
-            {TEAM_VOTE_OPTIONS.map((option) => {
-              const isSelected = selectedVote === option.value;
-
-              return (
-                <div
-                  key={option.value}
-                  role="radio"
-                  aria-checked={isSelected}
-                  tabIndex={0}
-                  onClick={() => setSelectedVote(option.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      setSelectedVote(option.value);
-                    }
-                  }}
-                  className={cn(
-                    'flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all',
-                    isSelected
-                      ? 'border-slate-900 bg-white'
-                      : 'border-slate-200 hover:border-slate-300'
-                  )}
-                >
-                  <div>
-                    <p className="font-semibold text-slate-900">
-                      {option.label}
-                    </p>
-                  </div>
-                  <div
-                    className={cn(
-                      'w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0',
-                      isSelected
-                        ? 'border-slate-900 bg-slate-900'
-                        : 'border-slate-300'
-                    )}
-                  >
-                    {isSelected && (
-                      <div className="w-2 h-2 rounded-full bg-white" />
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </RadioGroup>
+            onValueChange={setSelectedVote}
+          />
 
           <Button
             onClick={handleSubmit}

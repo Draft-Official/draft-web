@@ -1,4 +1,5 @@
 import { getKSTDateParts } from '@/shared/lib/datetime';
+import { formatDaumCafeHourMinute, parseDaumCafeTimeParts } from './daum-cafe-time';
 
 const FULL_WEEKDAY_LABELS = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'] as const;
 
@@ -27,11 +28,6 @@ interface DateParts {
   month: number;
   day: number;
   weekday: string;
-}
-
-interface TimeParts {
-  hour: number;
-  minute: number;
 }
 
 export interface DaumCafeRecruitTitleInput {
@@ -96,23 +92,11 @@ function parseDateParts(dateISO: string): DateParts {
   };
 }
 
-function parseTimeParts(time: string): TimeParts {
-  const [rawHour = '0', rawMinute = '0'] = time.split(':');
-  const hour = Math.min(Math.max(Number.parseInt(rawHour, 10) || 0, 0), 23);
-  const minute = Math.min(Math.max(Number.parseInt(rawMinute, 10) || 0, 0), 59);
-  return { hour, minute };
-}
-
-function formatHourMinute(hour24: number, minute: number): string {
-  if (minute === 0) return `${hour24}시`;
-  return `${hour24}시${minute}분`;
-}
-
 function formatTimeRange(startTime: string, endTime: string): string {
-  const start = parseTimeParts(startTime);
-  const end = parseTimeParts(endTime);
+  const start = parseDaumCafeTimeParts(startTime);
+  const end = parseDaumCafeTimeParts(endTime);
 
-  return `${formatHourMinute(start.hour, start.minute)}~${formatHourMinute(end.hour, end.minute)}`;
+  return `${formatDaumCafeHourMinute(start.hour, start.minute)}~${formatDaumCafeHourMinute(end.hour, end.minute)}`;
 }
 
 export function buildDaumCafeRecruitTitle({

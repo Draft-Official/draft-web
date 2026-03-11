@@ -1,5 +1,4 @@
 // Team match components barrel export
-export * from './facility-section';
 export * from './team-facility-section';
 export * from './team-hero-section';
 export * from './team-info-section';

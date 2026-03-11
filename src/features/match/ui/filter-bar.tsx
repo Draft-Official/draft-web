@@ -27,20 +27,20 @@ const useScrollBehavior = () => {
 
     const updateScrollBehavior = () => {
       const scrollY = window.scrollY;
-      
-      // Update shadow based on scroll position
-      setHasScrolled(scrollY > SHADOW_THRESHOLD);
-      
+
+      // Update shadow based on scroll position.
+      const nextHasScrolled = scrollY > SHADOW_THRESHOLD;
+      setHasScrolled((prev) => (prev === nextHasScrolled ? prev : nextHasScrolled));
+
       // Determine scroll direction
       const scrollingDown = scrollY > lastScrollY;
-      
-      // Update header visibility based on direction and thresholds
-      if (scrollingDown && scrollY > HIDE_THRESHOLD && !isHeaderHidden) {
-        setIsHeaderHidden(true);
-      } else if (!scrollingDown && isHeaderHidden) {
-        // Show header immediately when scrolling up
-        setIsHeaderHidden(false);
-      }
+
+      // Update header visibility based on direction and thresholds.
+      setIsHeaderHidden((prev) => {
+        if (scrollingDown && scrollY > HIDE_THRESHOLD && !prev) return true;
+        if (!scrollingDown && prev) return false;
+        return prev;
+      });
 
       lastScrollY = scrollY;
       ticking = false;
@@ -55,7 +55,7 @@ const useScrollBehavior = () => {
 
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, [isHeaderHidden]);
+  }, []);
 
   return { isHeaderHidden, hasScrolled };
 };

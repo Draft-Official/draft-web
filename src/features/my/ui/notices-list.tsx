@@ -3,6 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Megaphone } from 'lucide-react';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
+import { getRelativeTimeDiff } from '@/shared/lib/relative-time';
 import { Card } from '@/shared/ui/shadcn/card';
 import { Spinner } from '@/shared/ui/shadcn/spinner';
 
@@ -21,18 +22,13 @@ function formatDate(dateStr: string): string {
 }
 
 function getRelativeTime(dateStr: string): string {
-  const now = new Date();
-  const date = new Date(dateStr);
-  const diffMs = now.getTime() - date.getTime();
-  const diffMin = Math.floor(diffMs / 60000);
+  const { diffMin, diffHours, diffDays } = getRelativeTimeDiff(dateStr);
 
   if (diffMin < 1) return '방금 전';
   if (diffMin < 60) return `${diffMin}분 전`;
 
-  const diffHours = Math.floor(diffMin / 60);
   if (diffHours < 24) return `${diffHours}시간 전`;
 
-  const diffDays = Math.floor(diffHours / 24);
   if (diffDays < 7) return `${diffDays}일 전`;
 
   return formatDate(dateStr);

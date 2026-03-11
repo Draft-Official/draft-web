@@ -4,6 +4,7 @@
 'use client';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import type { QueryClient } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { teamMatchKeys } from '../keys';
 import { createTeamService } from '@/entities/team';
@@ -32,6 +33,28 @@ import {
   upsertVoteForUser,
 } from './optimistic-vote-helpers';
 
+function invalidateTeamMatchDetailAndList(queryClient: QueryClient, teamId: string) {
+  queryClient.invalidateQueries({
+    queryKey: teamMatchKeys.details(),
+  });
+  queryClient.invalidateQueries({
+    queryKey: teamMatchKeys.byTeam(teamId),
+  });
+}
+
+function setMemberVoteCache(
+  queryClient: QueryClient,
+  matchId: string,
+  memberId: string,
+  vote: TeamVoteDTO
+) {
+  queryClient.setQueryData(teamMatchKeys.myVote(matchId, memberId), vote);
+  queryClient.setQueryData<TeamVoteDTO[]>(
+    teamMatchKeys.votingStatus(matchId),
+    (old) => upsertVoteForUser(old, vote)
+  );
+}
+
 /**
  * 팀 매치 생성
  */
@@ -52,14 +75,7 @@ export function useCreateTeamMatch() {
       return matchRowToEntity(row);
     },
     onSuccess: (_data, { input }) => {
-      // 팀 매치 목록 갱신
-      queryClient.invalidateQueries({
-        queryKey: teamMatchKeys.byTeam(input.teamId),
-      });
-      // 생성된 매치 상세 갱신 (DTO 쿼리와 정합성 유지)
-      queryClient.invalidateQueries({
-        queryKey: teamMatchKeys.details(),
-      });
+      invalidateTeamMatchDetailAndList(queryClient, input.teamId);
     },
   });
 }
@@ -304,11 +320,7 @@ export function useAddTeamVoteGuest() {
       rollbackSnapshot(queryClient, context.pendingVotesKey, context.previousPendingVotes);
     },
     onSuccess: (data, { matchId, ownerUserId }) => {
-      queryClient.setQueryData(teamMatchKeys.myVote(matchId, ownerUserId), data);
-      queryClient.setQueryData<TeamVoteDTO[]>(
-        teamMatchKeys.votingStatus(matchId),
-        (old) => upsertVoteForUser(old, data)
-      );
+      setMemberVoteCache(queryClient, matchId, ownerUserId, data);
     },
     onSettled: (_data, _error, { matchId, ownerUserId }, context) => {
       queryClient.invalidateQueries({
@@ -424,11 +436,7 @@ export function useRemoveTeamVoteGuest() {
       rollbackSnapshot(queryClient, context.pendingVotesKey, context.previousPendingVotes);
     },
     onSuccess: (data, { matchId, ownerUserId }) => {
-      queryClient.setQueryData(teamMatchKeys.myVote(matchId, ownerUserId), data);
-      queryClient.setQueryData<TeamVoteDTO[]>(
-        teamMatchKeys.votingStatus(matchId),
-        (old) => upsertVoteForUser(old, data)
-      );
+      setMemberVoteCache(queryClient, matchId, ownerUserId, data);
     },
     onSettled: (_data, _error, { matchId, ownerUserId }, context) => {
       queryClient.invalidateQueries({
@@ -464,14 +472,7 @@ export function useCloseVoting() {
       return matchRowToEntity(row);
     },
     onSuccess: (_, { teamId }) => {
-      // DTO 상세는 재조회로 동기화
-      queryClient.invalidateQueries({
-        queryKey: teamMatchKeys.details(),
-      });
-      // 팀 매치 목록 갱신
-      queryClient.invalidateQueries({
-        queryKey: teamMatchKeys.byTeam(teamId),
-      });
+      invalidateTeamMatchDetailAndList(queryClient, teamId);
     },
   });
 }
@@ -501,14 +502,7 @@ export function useOpenGuestRecruitment() {
       return matchRowToEntity(row);
     },
     onSuccess: (_, { teamId }) => {
-      // DTO 상세는 재조회로 동기화
-      queryClient.invalidateQueries({
-        queryKey: teamMatchKeys.details(),
-      });
-      // 팀 매치 목록 갱신
-      queryClient.invalidateQueries({
-        queryKey: teamMatchKeys.byTeam(teamId),
-      });
+      invalidateTeamMatchDetailAndList(queryClient, teamId);
     },
   });
 }
@@ -532,14 +526,7 @@ export function useReopenVoting() {
       return matchRowToEntity(row);
     },
     onSuccess: (_, { teamId }) => {
-      // DTO 상세는 재조회로 동기화
-      queryClient.invalidateQueries({
-        queryKey: teamMatchKeys.details(),
-      });
-      // 팀 매치 목록 갱신
-      queryClient.invalidateQueries({
-        queryKey: teamMatchKeys.byTeam(teamId),
-      });
+      invalidateTeamMatchDetailAndList(queryClient, teamId);
     },
   });
 }
@@ -632,15 +619,7 @@ export function useUpdateMemberVote() {
       rollbackSnapshot(queryClient, context.votingSummaryKey, context.previousVotingSummary);
     },
     onSuccess: (data, { matchId, memberId }) => {
-      // 해당 멤버의 투표 캐시 갱신
-      queryClient.setQueryData(
-        teamMatchKeys.myVote(matchId, memberId),
-        data
-      );
-      queryClient.setQueryData<TeamVoteDTO[]>(
-        teamMatchKeys.votingStatus(matchId),
-        (old) => upsertVoteForUser(old, data)
-      );
+      setMemberVoteCache(queryClient, matchId, memberId, data);
     },
     onSettled: (_data, _error, { matchId, memberId }, context) => {
       queryClient.invalidateQueries({
@@ -680,14 +659,7 @@ export function useUpdateTeamMatch() {
       return matchRowToEntity(row);
     },
     onSuccess: (_, { teamId }) => {
-      // DTO 상세는 재조회로 동기화
-      queryClient.invalidateQueries({
-        queryKey: teamMatchKeys.details(),
-      });
-      // 팀 매치 목록 갱신
-      queryClient.invalidateQueries({
-        queryKey: teamMatchKeys.byTeam(teamId),
-      });
+      invalidateTeamMatchDetailAndList(queryClient, teamId);
     },
   });
 }
@@ -711,14 +683,7 @@ export function useCancelTeamMatch() {
       return matchRowToEntity(row);
     },
     onSuccess: (_, { teamId }) => {
-      // DTO 상세는 재조회로 동기화
-      queryClient.invalidateQueries({
-        queryKey: teamMatchKeys.details(),
-      });
-      // 팀 매치 목록 갱신
-      queryClient.invalidateQueries({
-        queryKey: teamMatchKeys.byTeam(teamId),
-      });
+      invalidateTeamMatchDetailAndList(queryClient, teamId);
     },
   });
 }

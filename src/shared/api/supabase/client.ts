@@ -66,7 +66,6 @@ export function getSupabaseBrowserClient() {
   }
 
   if (!browserClient) {
-    console.log('[Supabase] Creating unified browser client...');
     browserClient = createClient();
   }
   return browserClient;

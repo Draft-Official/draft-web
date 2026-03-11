@@ -4,6 +4,7 @@
 'use client';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import type { QueryClient } from '@tanstack/react-query';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { teamMemberKeys, teamKeys } from '../keys';
 import { createTeamService, teamMemberRowToEntity } from '@/entities/team';
@@ -14,9 +15,95 @@ import {
   buildOptimisticResourceKey,
   finishOptimisticOperation,
   isLatestOptimisticOperation,
+  type OptimisticOperationToken,
 } from '@/shared/lib/optimistic/operation-tracker';
 import type { MyTeamListItemDTO, TeamMemberListItemDTO, TeamMembershipDTO } from '../../model/types';
 import type { TeamRoleValue } from '@/shared/config/team-constants';
+
+interface MembershipOptimisticContext {
+  optimisticToken: OptimisticOperationToken;
+  teamMembersKey: readonly unknown[];
+  myMembershipKey: readonly unknown[];
+  myTeamsKey: readonly unknown[];
+  previousTeamMembers: TeamMemberListItemDTO[] | undefined;
+  previousMyMembership: TeamMembershipDTO | null | undefined;
+  previousMyTeams: MyTeamListItemDTO[] | undefined;
+}
+
+async function prepareMembershipRemovalOptimisticContext({
+  queryClient,
+  teamId,
+  userId,
+  keepMember,
+}: {
+  queryClient: QueryClient;
+  teamId: string;
+  userId: string;
+  keepMember: (member: TeamMemberListItemDTO) => boolean;
+}): Promise<MembershipOptimisticContext> {
+  const optimisticToken = beginOptimisticOperation(
+    buildOptimisticResourceKey('team-membership-user', userId)
+  );
+  const teamMembersKey = teamMemberKeys.byTeam(teamId);
+  const myMembershipKey = teamMemberKeys.myMembership(teamId, userId);
+  const myTeamsKey = teamKeys.myTeams(userId);
+
+  await Promise.all([
+    queryClient.cancelQueries({ queryKey: teamMembersKey }),
+    queryClient.cancelQueries({ queryKey: myMembershipKey }),
+    queryClient.cancelQueries({ queryKey: myTeamsKey }),
+  ]);
+
+  const previousTeamMembers = queryClient.getQueryData<TeamMemberListItemDTO[]>(teamMembersKey);
+  const previousMyMembership = queryClient.getQueryData<TeamMembershipDTO | null>(myMembershipKey);
+  const previousMyTeams = queryClient.getQueryData<MyTeamListItemDTO[]>(myTeamsKey);
+
+  queryClient.setQueryData<TeamMemberListItemDTO[]>(teamMembersKey, (old) =>
+    old?.filter(keepMember)
+  );
+  queryClient.removeQueries({ queryKey: myMembershipKey, exact: true });
+  queryClient.setQueryData<MyTeamListItemDTO[]>(myTeamsKey, (old) =>
+    old?.filter((team) => team.id !== teamId)
+  );
+
+  return {
+    optimisticToken,
+    teamMembersKey,
+    myMembershipKey,
+    myTeamsKey,
+    previousTeamMembers,
+    previousMyMembership,
+    previousMyTeams,
+  };
+}
+
+function rollbackMembershipRemovalOptimisticContext(
+  queryClient: QueryClient,
+  context: MembershipOptimisticContext | undefined
+) {
+  if (!context) return;
+  if (!isLatestOptimisticOperation(context.optimisticToken)) return;
+
+  rollbackSnapshot(queryClient, context.teamMembersKey, context.previousTeamMembers);
+  rollbackSnapshot(queryClient, context.myMembershipKey, context.previousMyMembership);
+  rollbackSnapshot(queryClient, context.myTeamsKey, context.previousMyTeams);
+}
+
+function invalidateMembershipRemovalQueries(
+  queryClient: QueryClient,
+  teamId: string,
+  userId: string
+) {
+  queryClient.invalidateQueries({
+    queryKey: teamMemberKeys.byTeam(teamId),
+  });
+  queryClient.invalidateQueries({
+    queryKey: teamMemberKeys.myMembership(teamId, userId),
+  });
+  queryClient.invalidateQueries({
+    queryKey: teamKeys.myTeams(userId),
+  });
+}
 
 /**
  * 팀 가입 신청
@@ -212,40 +299,12 @@ export function useRemoveMember() {
   return useMutation({
     mutationKey: ['team-membership'],
     onMutate: async ({ membershipId, teamId, userId }) => {
-      const optimisticToken = beginOptimisticOperation(
-        buildOptimisticResourceKey('team-membership-user', userId)
-      );
-      const teamMembersKey = teamMemberKeys.byTeam(teamId);
-      const myMembershipKey = teamMemberKeys.myMembership(teamId, userId);
-      const myTeamsKey = teamKeys.myTeams(userId);
-
-      await Promise.all([
-        queryClient.cancelQueries({ queryKey: teamMembersKey }),
-        queryClient.cancelQueries({ queryKey: myMembershipKey }),
-        queryClient.cancelQueries({ queryKey: myTeamsKey }),
-      ]);
-
-      const previousTeamMembers = queryClient.getQueryData<TeamMemberListItemDTO[]>(teamMembersKey);
-      const previousMyMembership = queryClient.getQueryData<TeamMembershipDTO | null>(myMembershipKey);
-      const previousMyTeams = queryClient.getQueryData<MyTeamListItemDTO[]>(myTeamsKey);
-
-      queryClient.setQueryData<TeamMemberListItemDTO[]>(teamMembersKey, (old) =>
-        old?.filter((member) => member.id !== membershipId)
-      );
-      queryClient.removeQueries({ queryKey: myMembershipKey, exact: true });
-      queryClient.setQueryData<MyTeamListItemDTO[]>(myTeamsKey, (old) =>
-        old?.filter((team) => team.id !== teamId)
-      );
-
-      return {
-        optimisticToken,
-        teamMembersKey,
-        myMembershipKey,
-        myTeamsKey,
-        previousTeamMembers,
-        previousMyMembership,
-        previousMyTeams,
-      };
+      return prepareMembershipRemovalOptimisticContext({
+        queryClient,
+        teamId,
+        userId,
+        keepMember: (member) => member.id !== membershipId,
+      });
     },
     mutationFn: async ({
       membershipId,
@@ -259,12 +318,7 @@ export function useRemoveMember() {
       await service.removeMember(membershipId);
     },
     onError: (_error, _variables, context) => {
-      if (!context) return;
-      if (!isLatestOptimisticOperation(context.optimisticToken)) return;
-
-      rollbackSnapshot(queryClient, context.teamMembersKey, context.previousTeamMembers);
-      rollbackSnapshot(queryClient, context.myMembershipKey, context.previousMyMembership);
-      rollbackSnapshot(queryClient, context.myTeamsKey, context.previousMyTeams);
+      rollbackMembershipRemovalOptimisticContext(queryClient, context);
     },
     onSuccess: (_, { teamId, userId }) => {
       // 해당 사용자의 멤버십 제거
@@ -273,15 +327,7 @@ export function useRemoveMember() {
       });
     },
     onSettled: (_data, _error, { teamId, userId }, context) => {
-      queryClient.invalidateQueries({
-        queryKey: teamMemberKeys.byTeam(teamId),
-      });
-      queryClient.invalidateQueries({
-        queryKey: teamMemberKeys.myMembership(teamId, userId),
-      });
-      queryClient.invalidateQueries({
-        queryKey: teamKeys.myTeams(userId),
-      });
+      invalidateMembershipRemovalQueries(queryClient, teamId, userId);
       finishOptimisticOperation(context?.optimisticToken);
     },
   });
@@ -296,40 +342,12 @@ export function useLeaveTeam() {
   return useMutation({
     mutationKey: ['team-membership'],
     onMutate: async ({ teamId, userId }) => {
-      const optimisticToken = beginOptimisticOperation(
-        buildOptimisticResourceKey('team-membership-user', userId)
-      );
-      const teamMembersKey = teamMemberKeys.byTeam(teamId);
-      const myMembershipKey = teamMemberKeys.myMembership(teamId, userId);
-      const myTeamsKey = teamKeys.myTeams(userId);
-
-      await Promise.all([
-        queryClient.cancelQueries({ queryKey: teamMembersKey }),
-        queryClient.cancelQueries({ queryKey: myMembershipKey }),
-        queryClient.cancelQueries({ queryKey: myTeamsKey }),
-      ]);
-
-      const previousTeamMembers = queryClient.getQueryData<TeamMemberListItemDTO[]>(teamMembersKey);
-      const previousMyMembership = queryClient.getQueryData<TeamMembershipDTO | null>(myMembershipKey);
-      const previousMyTeams = queryClient.getQueryData<MyTeamListItemDTO[]>(myTeamsKey);
-
-      queryClient.setQueryData<TeamMemberListItemDTO[]>(teamMembersKey, (old) =>
-        old?.filter((member) => member.userId !== userId)
-      );
-      queryClient.removeQueries({ queryKey: myMembershipKey, exact: true });
-      queryClient.setQueryData<MyTeamListItemDTO[]>(myTeamsKey, (old) =>
-        old?.filter((team) => team.id !== teamId)
-      );
-
-      return {
-        optimisticToken,
-        teamMembersKey,
-        myMembershipKey,
-        myTeamsKey,
-        previousTeamMembers,
-        previousMyMembership,
-        previousMyTeams,
-      };
+      return prepareMembershipRemovalOptimisticContext({
+        queryClient,
+        teamId,
+        userId,
+        keepMember: (member) => member.userId !== userId,
+      });
     },
     mutationFn: async ({
       teamId,
@@ -343,12 +361,7 @@ export function useLeaveTeam() {
       await service.leaveTeam(teamId, userId);
     },
     onError: (_error, _variables, context) => {
-      if (!context) return;
-      if (!isLatestOptimisticOperation(context.optimisticToken)) return;
-
-      rollbackSnapshot(queryClient, context.teamMembersKey, context.previousTeamMembers);
-      rollbackSnapshot(queryClient, context.myMembershipKey, context.previousMyMembership);
-      rollbackSnapshot(queryClient, context.myTeamsKey, context.previousMyTeams);
+      rollbackMembershipRemovalOptimisticContext(queryClient, context);
     },
     onSuccess: (_, { teamId, userId }) => {
       // 멤버십 제거
@@ -357,15 +370,7 @@ export function useLeaveTeam() {
       });
     },
     onSettled: (_data, _error, { teamId, userId }, context) => {
-      queryClient.invalidateQueries({
-        queryKey: teamMemberKeys.byTeam(teamId),
-      });
-      queryClient.invalidateQueries({
-        queryKey: teamMemberKeys.myMembership(teamId, userId),
-      });
-      queryClient.invalidateQueries({
-        queryKey: teamKeys.myTeams(userId),
-      });
+      invalidateMembershipRemovalQueries(queryClient, teamId, userId);
       finishOptimisticOperation(context?.optimisticToken);
     },
   });

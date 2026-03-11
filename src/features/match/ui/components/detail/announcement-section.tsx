@@ -1,6 +1,7 @@
 'use client';
 
 import { Megaphone } from 'lucide-react';
+import { getRelativeTimeDiff } from '@/shared/lib/relative-time';
 
 interface Announcement {
   id: string;
@@ -13,18 +14,13 @@ interface AnnouncementSectionProps {
 }
 
 function getRelativeTime(dateStr: string): string {
-  const now = new Date();
-  const date = new Date(dateStr);
-  const diffMs = now.getTime() - date.getTime();
-  const diffMin = Math.floor(diffMs / 60000);
+  const { diffMin, diffHours, diffDays } = getRelativeTimeDiff(dateStr);
 
   if (diffMin < 1) return '방금 전';
   if (diffMin < 60) return `${diffMin}분 전`;
 
-  const diffHours = Math.floor(diffMin / 60);
   if (diffHours < 24) return `${diffHours}시간 전`;
 
-  const diffDays = Math.floor(diffHours / 24);
   if (diffDays < 30) return `${diffDays}일 전`;
 
   const diffMonths = Math.floor(diffDays / 30);
