@@ -26,8 +26,8 @@ import {
   calcEndTimeFromDuration,
   selectedAgesToAgeRange,
   TEAM_LOGO_BUCKET,
-  uploadTeamLogoFile,
-  validateTeamLogoFile,
+  applyTeamLogoFileSelection,
+  uploadPendingTeamLogoWithState,
 } from '@/features/team/lib';
 
 import {
@@ -144,26 +144,23 @@ export function TeamCreateForm() {
     (currentStep === 2 && (!isStep2Valid || isSubmitting));
 
   const handleLogoFileSelect = async (file: File) => {
-    const validationError = validateTeamLogoFile(file);
-    if (validationError) {
-      setLogoUploadError(validationError);
-      toast.error(validationError);
-      throw new Error(validationError);
-    }
-
-    setLogoUploadError(null);
-    setPendingLogoFile(file);
-    setLogoPreviewUrl((previous) => {
-      if (previous.startsWith('blob:')) {
-        URL.revokeObjectURL(previous);
-      }
-      return URL.createObjectURL(file);
-    });
-    if (logoId) {
-      setValue('logoId', '', {
-        shouldDirty: true,
-        shouldTouch: true,
+    try {
+      applyTeamLogoFileSelection({
+        file,
+        currentLogoId: logoId,
+        setLogoUploadError,
+        setPendingLogoFile,
+        setLogoPreviewUrl,
+        clearLogoId: () =>
+          setValue('logoId', '', {
+            shouldDirty: true,
+            shouldTouch: true,
+          }),
       });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '로고 업로드에 실패했습니다.';
+      toast.error(message);
+      throw error;
     }
   };
 
@@ -348,11 +345,11 @@ export function TeamCreateForm() {
         : undefined;
 
       if (pendingLogoFile) {
-        setIsUploadingLogo(true);
-        setLogoUploadError(null);
         try {
-          const uploaded = await uploadTeamLogoFile({
+          const uploaded = await uploadPendingTeamLogoWithState({
             file: pendingLogoFile,
+            setIsUploadingLogo,
+            setLogoUploadError,
           });
           uploadedLogoPath = uploaded.path;
           logoUrl = uploaded.publicUrl;
@@ -360,11 +357,8 @@ export function TeamCreateForm() {
           const message = error instanceof Error
             ? error.message
             : '로고 업로드에 실패했습니다. 잠시 후 다시 시도해주세요.';
-          setLogoUploadError(message);
           toast.error(message);
           return;
-        } finally {
-          setIsUploadingLogo(false);
         }
       }
 

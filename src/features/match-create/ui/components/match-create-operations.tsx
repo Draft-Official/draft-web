@@ -26,6 +26,43 @@ import { AccountRegisterModal, type AccountRegisterFormValue } from './account-r
 // Helper to safely cast JSONB to specific type
 const getAccountInfo = (info: MatchCreateUserDTO['accountInfo'] | MatchCreateTeamOptionDTO['accountInfo']): Partial<AccountInfo> => info ?? {};
 const getOperationInfo = (info: MatchCreateUserDTO['operationInfo'] | MatchCreateTeamOptionDTO['operationInfo']): Partial<OperationInfo> => info ?? {};
+type OperationBackfillField = 'bankName' | 'accountNumber' | 'accountHolder' | 'description';
+type OperationBackfillSetter = (
+  field: OperationBackfillField,
+  value: string,
+  options?: { shouldDirty?: boolean }
+) => void;
+
+function backfillOperationFieldsIfEmpty({
+  currentBankName,
+  currentAccountNumber,
+  currentAccountHolder,
+  currentDescription,
+  account,
+  notice,
+  setFieldValue,
+}: {
+  currentBankName: string;
+  currentAccountNumber: string;
+  currentAccountHolder: string;
+  currentDescription: string;
+  account: AccountRegisterFormValue;
+  notice?: string;
+  setFieldValue: OperationBackfillSetter;
+}) {
+  if (!currentBankName && account.bank) {
+    setFieldValue('bankName', account.bank, { shouldDirty: false });
+  }
+  if (!currentAccountNumber && account.number) {
+    setFieldValue('accountNumber', account.number, { shouldDirty: false });
+  }
+  if (!currentAccountHolder && account.holder) {
+    setFieldValue('accountHolder', account.holder, { shouldDirty: false });
+  }
+  if (!currentDescription && notice) {
+    setFieldValue('description', notice, { shouldDirty: false });
+  }
+}
 
 export interface OperationsData {
   selectedHost: 'me' | string; // 'me' or team_id
@@ -55,6 +92,7 @@ export function MatchCreateOperations({
   onDataChange,
 }: MatchCreateOperationsProps) {
   const { register, watch, setValue, getValues } = useFormContext();
+  const setOperationFieldValue = setValue as OperationBackfillSetter;
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   const [accountOverrides, setAccountOverrides] = useState<Record<string, AccountRegisterFormValue>>({});
   const [dismissedAccountCtaHosts, setDismissedAccountCtaHosts] = useState<Record<string, boolean>>({});
@@ -262,18 +300,15 @@ export function MatchCreateOperations({
       const account = resolveAccountByHost('me');
       const ops = getOperationInfo(user.operationInfo);
 
-      if (!currentBankName && account.bank) {
-        setValue('bankName', account.bank, { shouldDirty: false });
-      }
-      if (!currentAccountNumber && account.number) {
-        setValue('accountNumber', account.number, { shouldDirty: false });
-      }
-      if (!currentAccountHolder && account.holder) {
-        setValue('accountHolder', account.holder, { shouldDirty: false });
-      }
-      if (!currentDescription && ops.notice) {
-        setValue('description', ops.notice, { shouldDirty: false });
-      }
+      backfillOperationFieldsIfEmpty({
+        currentBankName,
+        currentAccountNumber,
+        currentAccountHolder,
+        currentDescription,
+        account,
+        notice: ops.notice,
+        setFieldValue: setOperationFieldValue,
+      });
       hostBackfillAppliedRef.current = selectedHost;
       return;
     }
@@ -284,18 +319,15 @@ export function MatchCreateOperations({
     const account = resolveAccountByHost(selectedHost);
     const ops = getOperationInfo(team.operationInfo);
 
-    if (!currentBankName && account.bank) {
-      setValue('bankName', account.bank, { shouldDirty: false });
-    }
-    if (!currentAccountNumber && account.number) {
-      setValue('accountNumber', account.number, { shouldDirty: false });
-    }
-    if (!currentAccountHolder && account.holder) {
-      setValue('accountHolder', account.holder, { shouldDirty: false });
-    }
-    if (!currentDescription && ops.notice) {
-      setValue('description', ops.notice, { shouldDirty: false });
-    }
+    backfillOperationFieldsIfEmpty({
+      currentBankName,
+      currentAccountNumber,
+      currentAccountHolder,
+      currentDescription,
+      account,
+      notice: ops.notice,
+      setFieldValue: setOperationFieldValue,
+    });
     hostBackfillAppliedRef.current = selectedHost;
   }, [
     selectedHost,
@@ -303,6 +335,7 @@ export function MatchCreateOperations({
     teams,
     getValues,
     setValue,
+    setOperationFieldValue,
     resolveAccountByHost,
   ]);
 
