@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { User } from 'lucide-react';
 import { Button } from '@/shared/ui/shadcn/button';
 import {
@@ -49,9 +50,9 @@ export function GuestProfileDialog({
         {guest && (
           <div className="flex flex-col items-center space-y-6 pt-2">
             {/* 아바타 + 이름 + 팀 */}
-            <div className="w-20 h-20 rounded-full bg-slate-200 flex items-center justify-center overflow-hidden">
+            <div className="relative w-20 h-20 rounded-full bg-slate-200 flex items-center justify-center overflow-hidden">
               {guest.avatar ? (
-                <img src={guest.avatar} alt={(guest.realName || guest.name)} className="w-full h-full object-cover" />
+                <Image src={guest.avatar} alt={guest.realName || guest.name} fill className="object-cover" />
               ) : (
                 <User className="w-9 h-9 text-slate-500" />
               )}

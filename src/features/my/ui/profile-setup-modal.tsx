@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import {
   Dialog,
   DialogContent,
@@ -137,11 +138,11 @@ export function ProfileSetupModal({
                         avatarPickerOpen ? 'left-[30%]' : 'left-1/2'
                       }`}
                     >
-                      <div className={`rounded-full border-2 flex items-center justify-center bg-slate-200 overflow-hidden transition-all duration-300 ${
+                      <div className={`relative rounded-full border-2 flex items-center justify-center bg-slate-200 overflow-hidden transition-all duration-300 ${
                         avatarPickerOpen ? 'w-14 h-14 border-primary' : 'w-20 h-20 border-slate-200'
                       }`}>
                         {leftUrl ? (
-                          <img src={leftUrl} alt="프로필" className="w-full h-full object-cover" />
+                          <Image src={leftUrl} alt="프로필" fill className="object-cover" />
                         ) : (
                           <User className={`text-slate-500 transition-all duration-300 ${avatarPickerOpen ? 'w-6 h-6' : 'w-9 h-9'}`} />
                         )}
@@ -160,9 +161,9 @@ export function ProfileSetupModal({
                           avatarPickerOpen ? 'left-[70%] opacity-100' : 'left-full opacity-0 pointer-events-none'
                         }`}
                       >
-                        <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-transparent flex items-center justify-center bg-slate-200">
+                        <div className="relative w-14 h-14 rounded-full overflow-hidden border-2 border-transparent flex items-center justify-center bg-slate-200">
                           {altUrl ? (
-                            <img src={altUrl} alt="카카오 프로필" className="w-full h-full object-cover" />
+                            <Image src={altUrl} alt="카카오 프로필" fill className="object-cover" />
                           ) : (
                             <User className="w-6 h-6 text-slate-500" />
                           )}
