@@ -72,7 +72,7 @@ export function useNotifications(userId: string | undefined) {
 }
 
 /**
- * 읽지 않은 알림 목록 조회 (match_id 기준, polling)
+ * 읽지 않은 알림 목록 조회 (match_id 기준, realtime)
  */
 export function useUnreadNotifications(userId: string | undefined) {
   return useQuery({
@@ -88,9 +88,7 @@ export function useUnreadNotifications(userId: string | undefined) {
         .filter((notification): notification is UnreadMatchNotificationDTO => notification !== null);
     },
     enabled: !!userId,
-    staleTime: 30_000,
-    refetchInterval: 30_000,
-    refetchIntervalInBackground: false,
+    staleTime: Infinity,
   });
 }
 
