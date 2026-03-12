@@ -228,3 +228,20 @@ export function useMatchChatMessages(roomId: string) {
     },
   });
 }
+
+export function useUnreadChatCount() {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: matchChatKeys.unreadCount(user?.id ?? ''),
+    enabled: !!user?.id,
+    queryFn: async (): Promise<number> => {
+      if (!user?.id) return 0;
+      const chatService = createChatService(getSupabaseBrowserClient());
+      return chatService.countTotalUnread(user.id);
+    },
+    staleTime: 30_000,
+    refetchInterval: 30_000,
+    refetchIntervalInBackground: false,
+  });
+}
