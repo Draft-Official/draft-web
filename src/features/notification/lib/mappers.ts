@@ -49,11 +49,8 @@ function resolveTargetPath(
 
 export function toNotificationListItemDTO(
   notification: NotificationEntity,
-  announcementMessage?: string,
   matchRouteInfo?: NotificationMatchRouteInfo
 ): NotificationListItemDTO {
-  const description = announcementMessage ?? NOTIFICATION_TYPE_DESCRIPTIONS[notification.type];
-
   return {
     id: notification.id,
     userId: notification.userId,
@@ -65,8 +62,7 @@ export function toNotificationListItemDTO(
     isRead: notification.isRead,
     createdAt: notification.createdAt,
     title: NOTIFICATION_TYPE_LABELS[notification.type],
-    description,
-    ...(announcementMessage ? { announcementMessage } : {}),
+    description: NOTIFICATION_TYPE_DESCRIPTIONS[notification.type],
     targetPath: resolveTargetPath(notification, matchRouteInfo),
   };
 }

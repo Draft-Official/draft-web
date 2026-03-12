@@ -181,7 +181,7 @@ export class ChatService {
     return data ?? [];
   }
 
-  async sendMessage(roomId: string, senderId: string, body: string): Promise<MatchChatMessage> {
+  async sendMessage(roomId: string, senderId: string, body: string, type: 'text' | 'announcement' = 'text'): Promise<MatchChatMessage> {
     const normalizedBody = body.trim();
 
     if (!normalizedBody) {
@@ -194,6 +194,7 @@ export class ChatService {
         room_id: roomId,
         sender_id: senderId,
         body: normalizedBody,
+        type,
       })
       .select('*')
       .single();

@@ -59,32 +59,11 @@ export function useNotifications(userId: string | undefined) {
         }
       }
 
-      // HOST_ANNOUNCEMENT 알림에 공지 메시지 첨부
-      const announcementIds = notifications
-        .filter((n) => n.type === 'HOST_ANNOUNCEMENT' && n.referenceType === 'ANNOUNCEMENT')
-        .map((n) => n.referenceId);
-
-      const messageMap = new Map<string, string>();
-      if (announcementIds.length > 0) {
-        const { data: announcements } = await supabase
-          .from('announcements')
-          .select('id, message')
-          .in('id', announcementIds);
-
-        if (announcements) {
-          (announcements as Pick<Database['public']['Tables']['announcements']['Row'], 'id' | 'message'>[])
-            .forEach((announcement) => {
-              messageMap.set(announcement.id, announcement.message);
-            });
-        }
-      }
-
       return notifications.map((notification) => {
-        const announcementMessage = messageMap.get(notification.referenceId);
         const matchRouteInfo = notification.matchId
           ? matchRouteInfoMap.get(notification.matchId)
           : undefined;
-        return toNotificationListItemDTO(notification, announcementMessage, matchRouteInfo);
+        return toNotificationListItemDTO(notification, matchRouteInfo);
       });
     },
     enabled: !!userId,

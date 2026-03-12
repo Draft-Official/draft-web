@@ -39,9 +39,7 @@ export function MatchCancelDialog({
     onOpenChange(isOpen);
   };
 
-  const isConfirmDisabled = hasSettlementGuests
-    ? !settlementAcknowledged || message.trim().length === 0
-    : false;
+  const isConfirmDisabled = hasSettlementGuests ? !settlementAcknowledged : false;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -109,7 +107,7 @@ export function MatchCancelDialog({
                     setMessage(e.target.value);
                   }
                 }}
-                placeholder="취소 사유를 입력해 주세요."
+                placeholder="취소 사유를 입력해 주세요. (선택)"
                 className="w-full min-h-[120px] rounded-xl border border-slate-200 p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
               />
               <p className="text-xs text-slate-400 text-right">

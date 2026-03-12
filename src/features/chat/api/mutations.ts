@@ -100,6 +100,7 @@ export function useSendMatchChatMessage() {
         body: body.trim(),
         createdAt: new Date().toISOString(),
         isMine: true,
+        type: 'text',
       };
 
       queryClient.setQueryData<MatchChatMessageDTO[]>(messagesKey, (current) =>
@@ -139,6 +140,7 @@ export function useSendMatchChatMessage() {
         body: sentMessage.body,
         createdAt: sentMessage.created_at,
         isMine: sentMessage.sender_id === user.id,
+        type: (sentMessage.type === 'announcement' ? 'announcement' : 'text'),
       };
 
       queryClient.setQueryData<MatchChatMessageDTO[]>(messagesKey, (current) => {

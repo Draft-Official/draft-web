@@ -2,7 +2,7 @@
 
 import { FormEvent, KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Bell, BellOff, Flag, MoreHorizontal, Send } from 'lucide-react';
+import { ArrowLeft, Bell, BellOff, Flag, Megaphone, MoreHorizontal, Send } from 'lucide-react';
 import { toast } from '@/shared/ui/shadcn/sonner';
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/shadcn/avatar';
 import { Button } from '@/shared/ui/shadcn/button';
@@ -87,6 +87,21 @@ function MessageBubble({
 }) {
   const isMine = message.isMine;
   const timeLabel = formatKSTTime(message.createdAt);
+
+  if (message.type === 'announcement') {
+    return (
+      <div className="flex justify-center px-2">
+        <div className="w-full rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+          <div className="mb-1.5 flex items-center gap-1.5">
+            <Megaphone className="h-3.5 w-3.5 shrink-0 text-amber-600" />
+            <span className="text-xs font-semibold text-amber-700">공지</span>
+          </div>
+          <p className="break-words text-sm leading-5 text-slate-800">{message.body}</p>
+          <p className="mt-1.5 text-right text-xs text-slate-400">{timeLabel}</p>
+        </div>
+      </div>
+    );
+  }
 
   if (isMine) {
     return (

@@ -11,7 +11,6 @@ import {
   UserPlus,
   UserMinus,
   Banknote,
-  Megaphone,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
@@ -32,7 +31,6 @@ const NOTIFICATION_ICONS: Record<NotificationTypeValue, LucideIcon> = {
   NEW_APPLICATION: UserPlus,
   GUEST_CANCELED: UserMinus,
   GUEST_PAYMENT_CONFIRMED: Banknote,
-  HOST_ANNOUNCEMENT: Megaphone,
 };
 
 interface NotificationItemProps {

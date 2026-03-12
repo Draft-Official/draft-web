@@ -37,6 +37,7 @@ export interface MatchChatMessageDTO {
   body: string;
   createdAt: string;
   isMine: boolean;
+  type: 'text' | 'announcement';
 }
 
 export interface UseMatchChatRoomsOptions {
