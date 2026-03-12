@@ -30,6 +30,7 @@ export {
   toNotificationListItemDTO,
   toUnreadMatchNotificationDTO,
 } from './lib';
+export { useNotificationRealtime } from './lib/use-notification-realtime';
 
 // ============================================
 // UI Components

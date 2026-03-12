@@ -392,6 +392,29 @@ export class ChatService {
 
     return counts;
   }
+
+  async countTotalUnread(userId: string): Promise<number> {
+    const { data, error } = await this.supabase
+      .from('match_chat_rooms')
+      .select('id, host_id, host_last_read_at, guest_last_read_at')
+      .or(
+        `and(host_id.eq.${userId},host_left_at.is.null),and(guest_id.eq.${userId},guest_left_at.is.null)`
+      );
+
+    if (error) {
+      handleSupabaseError(error, '채팅 전체 안 읽은 수 조회');
+    }
+
+    const rooms = (data ?? []).map((room) => ({
+      roomId: room.id,
+      sinceISO: room.host_id === userId ? room.host_last_read_at : room.guest_last_read_at,
+    }));
+
+    const countMap = await this.countUnreadMessagesBulk(rooms, userId);
+    let total = 0;
+    for (const count of countMap.values()) total += count;
+    return total;
+  }
 }
 
 export function createChatService(supabase: SupabaseClient<Database>) {

@@ -8,4 +8,6 @@ export const matchChatKeys = {
     [...matchChatKeys.roomDetail(roomId, userId), 'messages'] as const,
   hostRoomsByMatch: (userId: string, matchId: string) =>
     [...matchChatKeys.all, 'host-rooms', userId, matchId] as const,
+  unreadCount: (userId: string) =>
+    [...matchChatKeys.all, 'unread-count', userId] as const,
 } as const;

@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { Users, User } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { Badge } from '@/shared/ui/shadcn/badge';
@@ -136,9 +137,9 @@ function GuestListItem({
     >
       <div className="flex items-center gap-3">
         {/* Avatar */}
-        <div className="w-12 h-12 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0 overflow-hidden">
+        <div className="relative w-12 h-12 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0 overflow-hidden">
           {guest.avatar ? (
-            <img src={guest.avatar} alt={(guest.realName || guest.name)} className="w-full h-full object-cover" />
+            <Image src={guest.avatar} alt={guest.realName || guest.name} fill className="object-cover" />
           ) : (
             <User className="w-6 h-6 text-slate-500" />
           )}

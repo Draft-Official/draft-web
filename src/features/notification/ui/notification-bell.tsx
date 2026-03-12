@@ -9,6 +9,7 @@ import { useMediaQuery } from '@/shared/lib/hooks/use-media-query';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/shadcn/popover';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/shared/ui/shadcn/sheet';
 import { useUnreadNotifications } from '../api/queries';
+import { useNotificationRealtime } from '../lib/use-notification-realtime';
 import { NotificationPanel } from './notification-panel';
 
 interface NotificationBellProps {
@@ -31,6 +32,7 @@ export function NotificationBell({
   const { user } = useAuth();
   const { data: unreadNotifications } = useUnreadNotifications(user?.id);
   const unreadCount = unreadNotifications?.length ?? 0;
+  useNotificationRealtime();
 
   const bellButtonClassName = cn(
     variant === 'icon' &&

@@ -7,7 +7,7 @@ import { BottomNav } from "@/shared/ui/layout/bottom-nav";
 import { Header as LayoutHeader } from "@/shared/ui/layout/header";
 import { CreateMenuButton } from "@/features/create";
 import { NotificationBell } from "@/features/notification/ui/notification-bell";
-import { useMatchChatRooms } from "@/features/chat";
+import { useUnreadChatCount } from "@/features/chat";
 import { SignupVerifyGuard } from "@/features/auth/ui/signup-verify-guard";
 import { useMediaQuery } from '@/shared/lib/hooks/use-media-query';
 import { DESKTOP_SIDEBAR_EXPANDED_MIN_WIDTH } from '@/shared/lib/layout/sidebar-layout';
@@ -42,8 +42,7 @@ function LayoutShellContent({ children }: { children: React.ReactNode }) {
     isHomeSplitOpen || isScheduleSplitOpen || isTeamSplitOpen || isChatSplitOpen;
   const isSidebarCompact = Boolean(isDesktop && isCompactDesktopViewport);
 
-  const { data: chatRooms } = useMatchChatRooms();
-  const unreadChatCount = chatRooms?.reduce((sum, room) => sum + room.unreadCount, 0) ?? 0;
+  const { data: unreadChatCount = 0 } = useUnreadChatCount();
 
   if (isBareLayout) {
     return (

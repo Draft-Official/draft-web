@@ -12,6 +12,7 @@ export {
   useHostMatchChatRooms,
   useMatchChatRoom,
   useMatchChatMessages,
+  useUnreadChatCount,
 } from './api/queries';
 export {
   useCreateOrGetMatchChatRoom,
