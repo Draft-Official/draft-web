@@ -9,9 +9,10 @@ import { cn } from '@/shared/lib/utils';
 interface SidebarProps {
   compact?: boolean;
   actionSlot?: ReactNode;
+  unreadChatCount?: number;
 }
 
-export function Sidebar({ compact = false, actionSlot }: SidebarProps) {
+export function Sidebar({ compact = false, actionSlot, unreadChatCount = 0 }: SidebarProps) {
   const pathname = usePathname() ?? '';
   const isActivePath = (href: string) => {
     if (href === '/') return pathname === '/';
@@ -19,11 +20,11 @@ export function Sidebar({ compact = false, actionSlot }: SidebarProps) {
   };
 
   const NAV_ITEMS = [
-    { label: '홈', href: '/', icon: Home },
-    { label: '팀', href: '/team', icon: Users },
-    { label: '경기관리', href: '/schedule', icon: Calendar },
-    { label: '채팅', href: '/chat', icon: MessageCircle },
-    { label: '마이', href: '/my', icon: User },
+    { label: '홈', href: '/', icon: Home, unreadCount: 0 },
+    { label: '팀', href: '/team', icon: Users, unreadCount: 0 },
+    { label: '경기관리', href: '/schedule', icon: Calendar, unreadCount: 0 },
+    { label: '채팅', href: '/chat', icon: MessageCircle, unreadCount: unreadChatCount },
+    { label: '마이', href: '/my', icon: User, unreadCount: 0 },
   ];
 
   if (compact) {
@@ -57,7 +58,12 @@ export function Sidebar({ compact = false, actionSlot }: SidebarProps) {
                       : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                   )}
                 >
-                  <item.icon className="i-lg" strokeWidth={isActive ? 2.5 : 1.8} />
+                  <div className="relative">
+                    <item.icon className="i-lg" strokeWidth={isActive ? 2.5 : 1.8} />
+                    {item.unreadCount > 0 && (
+                      <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-primary" />
+                    )}
+                  </div>
                   <span className="sr-only">{item.label}</span>
                 </Link>
               </Fragment>
@@ -97,8 +103,15 @@ export function Sidebar({ compact = false, actionSlot }: SidebarProps) {
                   isActive ? "font-bold text-slate-900" : "text-slate-600"
                 )}
               >
-                  <item.icon className="i-xl" strokeWidth={isActive ? 2.5 : 1.5} />
+                  <div className="relative">
+                    <item.icon className="i-xl" strokeWidth={isActive ? 2.5 : 1.5} />
+                  </div>
                 <span>{item.label}</span>
+                {item.unreadCount > 0 && (
+                  <span className="ml-auto inline-flex min-w-[20px] h-5 shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-primary px-1.5 text-xs font-bold leading-none text-white">
+                    {item.unreadCount > 99 ? '99+' : item.unreadCount}
+                  </span>
+                )}
               </Link>
             </Fragment>
           );
