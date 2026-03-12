@@ -7,18 +7,22 @@ import { useAuth } from '@/shared/session';
 
 import { useScrollDirection } from '@/shared/lib/hooks/use-scroll-direction';
 
-export function BottomNav() {
+interface BottomNavProps {
+  unreadChatCount?: number;
+}
+
+export function BottomNav({ unreadChatCount = 0 }: BottomNavProps) {
   const router = useRouter();
   const pathname = usePathname() ?? '';
   const { isAuthenticated } = useAuth();
   const isScrolledDown = useScrollDirection(); // Shared scroll logic
 
   const NAV_ITEMS = [
-    { label: '홈', href: '/', icon: Home },
-    { label: '팀', href: '/team', icon: Users },
-    { label: '경기관리', href: '/schedule', icon: Calendar },
-    { label: '채팅', href: '/chat', icon: MessageCircle },
-    { label: '마이', href: '/my', icon: User },
+    { label: '홈', href: '/', icon: Home, showDot: false },
+    { label: '팀', href: '/team', icon: Users, showDot: false },
+    { label: '경기관리', href: '/schedule', icon: Calendar, showDot: false },
+    { label: '채팅', href: '/chat', icon: MessageCircle, showDot: unreadChatCount > 0 },
+    { label: '마이', href: '/my', icon: User, showDot: false },
   ];
 
   // Smart navigation handler
@@ -57,7 +61,12 @@ export function BottomNav() {
               isActive ? "text-slate-900" : "text-slate-400"
             )}
           >
-            <item.icon className="i-lg" strokeWidth={isActive ? 2.5 : 1.5} />
+            <div className="relative">
+              <item.icon className="i-lg" strokeWidth={isActive ? 2.5 : 1.5} />
+              {item.showDot && (
+                <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-primary" />
+              )}
+            </div>
             {/* Optional: Label can be hidden for pure Instagram style, or kept small */}
             {/* <span className="text-xs font-medium">{item.label}</span> */}
           </button>

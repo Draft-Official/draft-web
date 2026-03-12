@@ -36,7 +36,7 @@ export function NotificationBell({
     variant === 'icon' &&
       'relative flex items-center justify-center w-10 h-10 rounded-full hover:bg-slate-100 transition-colors',
     variant === 'sidebar' &&
-      'flex w-full rounded-xl text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900',
+      'relative flex w-full rounded-xl text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900',
     variant === 'sidebar' &&
       (compact
         ? 'items-center justify-center px-2 py-3'
@@ -56,19 +56,20 @@ export function NotificationBell({
         {unreadCount > 99 ? '99+' : unreadCount}
       </span>
     ) : (
-      <span className="absolute top-1 right-1 flex min-w-[18px] shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-primary px-1 text-xs font-bold leading-none text-white h-[18px]">
-        {unreadCount > 99 ? '99+' : unreadCount}
-      </span>
+      <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-primary" />
     ));
 
   if (mode === 'panel') {
     const bellButton = (
       <button type="button" className={bellButtonClassName} aria-label="알림 패널 열기">
-        <Bell className={iconClassName} strokeWidth={2} />
+        <div className="relative">
+          <Bell className={iconClassName} strokeWidth={2} />
+          {(variant === 'icon' || compact) && indicator}
+        </div>
         {variant === 'sidebar' && !compact && (
           <span className="leading-none">알림</span>
         )}
-        {indicator}
+        {variant === 'sidebar' && !compact && indicator}
       </button>
     );
 
@@ -138,11 +139,14 @@ export function NotificationBell({
       className={bellButtonClassName}
       aria-label="알림"
     >
-      <Bell className={iconClassName} strokeWidth={2} />
+      <div className="relative">
+        <Bell className={iconClassName} strokeWidth={2} />
+        {(variant === 'icon' || compact) && indicator}
+      </div>
       {variant === 'sidebar' && !compact && (
         <span className="leading-none">알림</span>
       )}
-      {indicator}
+      {variant === 'sidebar' && !compact && indicator}
     </Link>
   );
 }

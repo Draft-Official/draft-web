@@ -7,6 +7,7 @@ import { BottomNav } from "@/shared/ui/layout/bottom-nav";
 import { Header as LayoutHeader } from "@/shared/ui/layout/header";
 import { CreateMenuButton } from "@/features/create";
 import { NotificationBell } from "@/features/notification/ui/notification-bell";
+import { useMatchChatRooms } from "@/features/chat";
 import { SignupVerifyGuard } from "@/features/auth/ui/signup-verify-guard";
 import { useMediaQuery } from '@/shared/lib/hooks/use-media-query';
 import { DESKTOP_SIDEBAR_EXPANDED_MIN_WIDTH } from '@/shared/lib/layout/sidebar-layout';
@@ -41,6 +42,9 @@ function LayoutShellContent({ children }: { children: React.ReactNode }) {
     isHomeSplitOpen || isScheduleSplitOpen || isTeamSplitOpen || isChatSplitOpen;
   const isSidebarCompact = Boolean(isDesktop && isCompactDesktopViewport);
 
+  const { data: chatRooms } = useMatchChatRooms();
+  const unreadChatCount = chatRooms?.reduce((sum, room) => sum + room.unreadCount, 0) ?? 0;
+
   if (isBareLayout) {
     return (
       <div className="flex justify-center min-h-screen bg-(--layout-root-bg)">
@@ -73,6 +77,7 @@ function LayoutShellContent({ children }: { children: React.ReactNode }) {
           <div className="w-full h-full">
             <Sidebar
               compact={isSidebarCompact}
+              unreadChatCount={unreadChatCount}
               actionSlot={(
                 <div className={cn(
                   "flex w-full flex-col gap-1"
@@ -119,7 +124,7 @@ function LayoutShellContent({ children }: { children: React.ReactNode }) {
 
         {/* Mobile Bottom Nav (Bottom) */}
         <nav className="lg:hidden">
-          <BottomNav />
+          <BottomNav unreadChatCount={unreadChatCount} />
         </nav>
       </div>
     </SignupVerifyGuard>
