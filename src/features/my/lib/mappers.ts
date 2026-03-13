@@ -26,7 +26,6 @@ export function sessionProfileToMyProfileFormDTO(
     nickname: sessionProfile.nickname ?? '',
     height: metadata.height?.toString() ?? '',
     age: metadata.age?.toString() ?? '',
-    weight: metadata.weight?.toString() ?? '',
     position: position as MyProfileFormDTO['position'],
     skillLevel: Number(metadata.skill_level ?? 1),
     team: (metadata.display_team_id as string | undefined) ?? '',
@@ -35,19 +34,23 @@ export function sessionProfileToMyProfileFormDTO(
 
 export function myProfileFormDTOToUpdateSessionProfileInput(
   formData: UpdateMyProfileInput,
-  teamOptions: MyTeamOptionDTO[]
+  teamOptions: MyTeamOptionDTO[],
+  currentMetadata: SessionProfileMetadata | null | undefined,
+  avatarSource: SessionProfileMetadata['avatar_source']
 ): UpdateSessionProfileInput {
   const selectedTeam = formData.team
     ? teamOptions.find((team) => team.id === formData.team) ?? null
     : null;
+  const metadata = toProfileMetadata(currentMetadata);
 
   return {
     nickname: formData.nickname.trim() || null,
     positions: formData.position ? [formData.position] : null,
     metadata: {
+      ...metadata,
+      avatar_source: avatarSource,
       height: formData.height ? parseInt(formData.height, 10) : undefined,
       age: formData.age ? parseInt(formData.age, 10) : undefined,
-      weight: formData.weight ? parseInt(formData.weight, 10) : undefined,
       skill_level: formData.skillLevel,
       display_team_id: selectedTeam?.id ?? null,
       display_team_name: selectedTeam?.name ?? null,

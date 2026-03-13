@@ -13,7 +13,6 @@ export interface MyProfileFormDTO {
   nickname: string;
   height: string;
   age: string;
-  weight: string;
   position: PositionValue | '';  // DB codes: 'G' | 'F' | 'C' | ''
   skillLevel: number;
   team?: string;
@@ -54,5 +53,5 @@ export { SKILL_LEVELS, SKILL_LEVEL_NAMES } from '@/shared/config/skill-constants
 // 타입 가드: true 반환 시 profile이 완전한 ProfileData임을 보장
 export function isProfileComplete(profile: MyProfileFormDTO | null): profile is MyProfileFormDTO {
   if (!profile) return false;
-  return !!(profile.height && profile.age && profile.weight && profile.position);
+  return !!(profile.height && profile.age && profile.position);
 }

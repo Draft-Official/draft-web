@@ -67,9 +67,15 @@ export default function MyPage() {
     }
 
     try {
-      const updates = myProfileFormDTOToUpdateSessionProfileInput(data, teamOptions);
+      const avatarSource = avatarUrl ? 'kakao' : 'default';
+      const updates = myProfileFormDTOToUpdateSessionProfileInput(
+        data,
+        teamOptions,
+        dbProfile?.metadata,
+        avatarSource
+      );
       if (avatarUrl !== undefined) {
-        updates.avatar_url = avatarUrl;
+        updates.avatar_url = avatarSource === 'kakao' ? avatarUrl : null;
       }
       await updateProfileMutation.mutateAsync({ userId: user.id, updates });
       await refreshProfile();

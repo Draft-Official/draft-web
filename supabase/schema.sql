@@ -271,12 +271,18 @@ create policy "Update applications" on applications for update using (true);
 create or replace function public.handle_new_user()
 returns trigger as $$
 begin
-  insert into public.users (id, email, nickname, avatar_url)
+  insert into public.users (id, email, nickname, avatar_url, metadata)
   values (
     new.id, 
     new.email,
-    new.raw_user_meta_data->>'full_name',
-    new.raw_user_meta_data->>'avatar_url'
+    coalesce(
+      new.raw_user_meta_data->>'name',
+      new.raw_user_meta_data->>'nickname',
+      new.raw_user_meta_data->>'full_name',
+      '사용자'
+    ),
+    null,
+    jsonb_build_object('avatar_source', 'default')
   );
   return new;
 end;

@@ -398,17 +398,28 @@ CREATE OR REPLACE FUNCTION "public"."handle_new_user"() RETURNS "trigger"
     LANGUAGE "plpgsql" SECURITY DEFINER
     AS $$
 BEGIN
-  INSERT INTO public.users (id, email, nickname, avatar_url)
+  INSERT INTO public.users (id, email, nickname, avatar_url, metadata)
   VALUES (
     NEW.id,
     NEW.email,
-    COALESCE(NEW.raw_user_meta_data->>'name', NEW.raw_user_meta_data->>'nickname', '사용자'),
-    NEW.raw_user_meta_data->>'avatar_url'
+    COALESCE(
+      NEW.raw_user_meta_data->>'name',
+      NEW.raw_user_meta_data->>'nickname',
+      NEW.raw_user_meta_data->>'full_name',
+      '사용자'
+    ),
+    NULL,
+    jsonb_build_object('avatar_source', 'default')
   )
   ON CONFLICT (id) DO UPDATE SET
     email = EXCLUDED.email,
     nickname = COALESCE(EXCLUDED.nickname, public.users.nickname),
-    avatar_url = COALESCE(EXCLUDED.avatar_url, public.users.avatar_url);
+    avatar_url = public.users.avatar_url,
+    metadata = COALESCE(public.users.metadata, '{}'::jsonb)
+      || jsonb_build_object(
+        'avatar_source',
+        COALESCE(public.users.metadata->>'avatar_source', 'default')
+      );
   RETURN NEW;
 END;
 $$;
@@ -3095,4 +3106,3 @@ ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TAB
 --
 
 -- \unrestrict kVgspO8cNzOAK8EkZF0qTDJtLsAhffR6LWuez1p04d0L53IqOfejXIGYj8W0Scw
-

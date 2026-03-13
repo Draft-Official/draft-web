@@ -14,6 +14,7 @@ export interface SessionUser {
 }
 
 export interface SessionProfileMetadata {
+  avatar_source?: 'default' | 'kakao';
   height?: number;
   age?: number;
   weight?: number;

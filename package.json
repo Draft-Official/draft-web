@@ -7,6 +7,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "test:avatar-profile": "node --test test/avatar-profile-defaults.test.mjs",
     "test:seo-copy": "node --test test/seo-copy.test.mjs",
     "check:entities-cross-import": "sh scripts/check-entities-cross-import.sh",
     "check:route-adapter-boundary": "sh scripts/check-route-adapter-boundary.sh",

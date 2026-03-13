@@ -58,7 +58,6 @@ export function ProfileSetupModal({
     nickname: initialData?.nickname || '',
     height: initialData?.height || '',
     age: initialData?.age || '',
-    weight: initialData?.weight || '',
     position: initialData?.position || '',
     skillLevel: initialData?.skillLevel || 1,
     team: initialData?.team || '',
@@ -74,7 +73,6 @@ export function ProfileSetupModal({
     return (
       formData.height.trim() !== '' &&
       formData.age.trim() !== '' &&
-      formData.weight.trim() !== '' &&
       formData.position !== ''
     );
   };
@@ -244,28 +242,6 @@ export function ProfileSetupModal({
                 className="h-12 bg-white border-slate-300 focus-visible:ring-primary pr-12"
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500">세</span>
-            </div>
-          </div>
-
-          {/* Weight */}
-          <div>
-            <Label htmlFor="weight" className="text-sm font-semibold text-slate-900 mb-2 block">
-              몸무게 (kg)
-            </Label>
-            <div className="relative">
-              <Input
-                id="weight"
-                type="text"
-                inputMode="numeric"
-                placeholder="72"
-                value={formData.weight}
-                onChange={(e) => {
-                  const value = filterNumericInput(e.target.value);
-                  setFormData({ ...formData, weight: value });
-                }}
-                className="h-12 bg-white border-slate-300 focus-visible:ring-primary pr-12"
-              />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500">kg</span>
             </div>
           </div>
 

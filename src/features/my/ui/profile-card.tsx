@@ -110,10 +110,6 @@ export function ProfileCard({
           <span className="text-sm font-bold text-slate-900">{profile.age}세</span>
         </div>
         <div className="flex justify-between items-center py-2">
-          <span className="text-sm text-slate-500">몸무게</span>
-          <span className="text-sm font-bold text-slate-900">{profile.weight}kg</span>
-        </div>
-        <div className="flex justify-between items-center py-2">
           <span className="text-sm text-slate-500">포지션</span>
           <span className="text-sm font-bold text-slate-900">{profile.position}</span>
         </div>
