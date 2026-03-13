@@ -7,6 +7,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "test:seo-copy": "node --test test/seo-copy.test.mjs",
     "check:entities-cross-import": "sh scripts/check-entities-cross-import.sh",
     "check:route-adapter-boundary": "sh scripts/check-route-adapter-boundary.sh",
     "check:api-route-boundary": "sh scripts/check-api-route-boundary.sh",

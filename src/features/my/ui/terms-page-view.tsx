@@ -18,7 +18,8 @@ export function TermsPageView() {
 
       <SectionTitle>제1조 (목적)</SectionTitle>
       <Paragraph>
-        이 약관은 DRAFT(이하 &quot;회사&quot;)가 제공하는 농구 용병 모집 플랫폼 서비스(이하
+        이 약관은 DRAFT(이하 &quot;회사&quot;)가 제공하는 농구 게스트 모집 및 매칭 플랫폼
+        서비스(이하
         &quot;서비스&quot;)의 이용조건 및 절차, 회사와 회원 간의 권리·의무·책임사항을 규정함을
         목적으로 합니다.
       </Paragraph>
@@ -26,10 +27,10 @@ export function TermsPageView() {
       <SectionTitle>제2조 (정의)</SectionTitle>
       <Paragraph>이 약관에서 사용하는 용어의 정의는 다음과 같습니다.</Paragraph>
       <OrderedList>
-        <li><strong>서비스</strong>: 회사가 제공하는 농구 용병 모집 및 매칭 플랫폼</li>
+        <li><strong>서비스</strong>: 회사가 제공하는 농구 게스트 모집 및 매칭 플랫폼</li>
         <li><strong>회원</strong>: 이 약관에 동의하고 회원가입을 완료하여 서비스를 이용하는 자</li>
-        <li><strong>게스트(Guest)</strong>: 매치에 용병으로 참가 신청하는 회원</li>
-        <li><strong>호스트(Host)</strong>: 매치를 생성하고 용병을 모집하는 회원</li>
+        <li><strong>게스트(Guest)</strong>: 매치에 참가 신청하는 회원</li>
+        <li><strong>호스트(Host)</strong>: 매치를 생성하고 게스트를 모집하는 회원</li>
         <li><strong>매치</strong>: 호스트가 생성한 농구 경기 일정</li>
         <li><strong>참가비</strong>: 게스트가 매치에 참가하기 위해 지불하는 비용</li>
         <li><strong>신청</strong>: 게스트가 매치 참가를 요청하는 행위</li>
@@ -55,7 +56,7 @@ export function TermsPageView() {
       <SectionTitle>제4조 (서비스의 제공)</SectionTitle>
       <Paragraph>회사는 다음의 서비스를 제공합니다.</Paragraph>
       <OrderedList>
-        <li>농구 매치 생성 및 용병 모집 서비스</li>
+        <li>농구 매치 생성 및 게스트 모집 서비스</li>
         <li>매치 검색 및 참가 신청 서비스</li>
         <li>팀 생성 및 관리 서비스</li>
         <li>일정 관리 서비스</li>

@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { getSiteUrl } from './metadata-config';
 
-const INDEXED_ROUTES = ['/', '/my/notices', '/my/faq', '/my/privacy', '/my/terms'] as const;
+const INDEXED_ROUTES = ['/', '/my/notices', '/my/faq'] as const;
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const siteUrl = getSiteUrl().toString().replace(/\/+$/, '');
