@@ -33,11 +33,16 @@ interface IndexedMetadataInput {
   canonical: string;
 }
 
-export function createIndexedMetadata({
+interface PageMetadataInput extends IndexedMetadataInput {
+  index: boolean;
+}
+
+function createPageMetadata({
   title,
   description,
   canonical,
-}: IndexedMetadataInput): Metadata {
+  index,
+}: PageMetadataInput): Metadata {
   const fullTitle = `${title} | ${SITE_BRAND_NAME}`;
   const canonicalUrl = toAbsoluteUrl(canonical);
 
@@ -48,7 +53,7 @@ export function createIndexedMetadata({
       canonical,
     },
     robots: {
-      index: true,
+      index,
       follow: true,
     },
     openGraph: {
@@ -65,4 +70,18 @@ export function createIndexedMetadata({
       description,
     },
   };
+}
+
+export function createIndexedMetadata(input: IndexedMetadataInput): Metadata {
+  return createPageMetadata({
+    ...input,
+    index: true,
+  });
+}
+
+export function createNoindexMetadata(input: IndexedMetadataInput): Metadata {
+  return createPageMetadata({
+    ...input,
+    index: false,
+  });
 }
