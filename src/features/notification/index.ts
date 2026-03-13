@@ -27,6 +27,8 @@ export {
 // ============================================
 export {
   formatRelativeTime,
+  getNotificationPresentation,
+  isNotificationTypeSupported,
   toNotificationListItemDTO,
   toUnreadMatchNotificationDTO,
 } from './lib';

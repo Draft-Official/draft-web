@@ -1,37 +1,11 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import {
-  CheckCircle,
-  XCircle,
-  Handshake,
-  Clock,
-  AlertTriangle,
-  Ban,
-  UserPlus,
-  UserMinus,
-  Banknote,
-  type LucideIcon,
-} from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
-import {
-  type NotificationTypeValue,
-} from '@/shared/config/match-constants';
 import { useMarkNotificationAsRead } from '../api/mutations';
 import { formatRelativeTime } from '../lib/format-time';
+import { getNotificationPresentation } from '../lib/presentation';
 import type { NotificationListItemDTO } from '../model/types';
-
-const NOTIFICATION_ICONS: Record<NotificationTypeValue, LucideIcon> = {
-  APPLICATION_APPROVED: CheckCircle,
-  APPLICATION_REJECTED: XCircle,
-  APPLICATION_CANCELED_USER_REQUEST: Handshake,
-  APPLICATION_CANCELED_PAYMENT_TIMEOUT: Clock,
-  APPLICATION_CANCELED_FRAUDULENT_PAYMENT: AlertTriangle,
-  MATCH_CANCELED: Ban,
-  NEW_APPLICATION: UserPlus,
-  GUEST_CANCELED: UserMinus,
-  GUEST_PAYMENT_CONFIRMED: Banknote,
-};
 
 interface NotificationItemProps {
   notification: NotificationListItemDTO;
@@ -40,8 +14,7 @@ interface NotificationItemProps {
 export function NotificationItem({ notification }: NotificationItemProps) {
   const router = useRouter();
   const markAsRead = useMarkNotificationAsRead();
-
-  const Icon = NOTIFICATION_ICONS[notification.type];
+  const { Icon } = getNotificationPresentation(notification.type);
   function handleClick() {
     if (!notification.isRead) {
       markAsRead.mutate({ notificationId: notification.id });

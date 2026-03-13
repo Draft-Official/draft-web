@@ -114,6 +114,7 @@ export function MatchManagementView({ notificationSlot }: MatchManagementViewPro
       'APPLICATION_CANCELED_PAYMENT_TIMEOUT',
       'APPLICATION_CANCELED_FRAUDULENT_PAYMENT',
       'MATCH_CANCELED',
+      'HOST_ANNOUNCEMENT',
     ];
     const HOST_TYPES: NotificationTypeValue[] = [
       'NEW_APPLICATION',
