@@ -142,16 +142,20 @@ export function isValidTeamName(name: string): boolean {
 
 /**
  * 팀 코드 유효성 검사
- * - 영문 소문자, 숫자, 하이픈만 허용
- * - 3-30자 길이
+ * - 한글, 영문 대소문자, 숫자만 허용
+ * - 15자 이하
  */
-export const TEAM_CODE_REGEX = /^[a-z0-9-]{3,30}$/;
+export const TEAM_CODE_MAX_LENGTH = 15;
+export const TEAM_CODE_REGEX = /^[A-Za-z0-9가-힣ㄱ-ㅎㅏ-ㅣ]{1,15}$/;
+export const TEAM_CODE_PREVIEW_BASE_URL = 'https://draftmatch.kr/team/';
+export const TEAM_CODE_PREVIEW_LABEL = 'DRAFT 팀페이지 주소로 이용됩니다.';
 
 export function isValidTeamCode(code: string): boolean {
   return TEAM_CODE_REGEX.test(code);
 }
 
-export const TEAM_CODE_ERROR_MESSAGE = '영문 소문자, 숫자, 하이픈만 사용 가능합니다 (3-30자)';
+export const TEAM_CODE_ERROR_MESSAGE =
+  `팀 코드는 한글, 영문 대소문자, 숫자만 사용 가능하며 ${TEAM_CODE_MAX_LENGTH}자 이내여야 합니다`;
 
 // ============================================
 // Re-exports from application-constants

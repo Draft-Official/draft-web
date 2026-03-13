@@ -66,6 +66,7 @@ export interface CreateTeamInput {
  * 팀 수정 input 타입
  */
 export interface UpdateTeamInput {
+  code?: string | null;
   name?: string;
   shortIntro?: string | null;
   description?: string | null;

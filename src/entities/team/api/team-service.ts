@@ -207,6 +207,7 @@ export class TeamService {
   async updateTeam(teamId: string, input: UpdateTeamInput): Promise<Team & { gyms?: { name: string } | null }> {
     const teamUpdate: TeamUpdate = {};
 
+    if (input.code !== undefined) teamUpdate.code = input.code;
     if (input.name !== undefined) teamUpdate.name = input.name;
     if (input.shortIntro !== undefined) teamUpdate.short_intro = input.shortIntro;
     if (input.description !== undefined) teamUpdate.description = input.description;

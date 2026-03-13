@@ -31,11 +31,11 @@ import {
 } from '@/features/team/lib';
 
 import {
-  TEAM_CODE_REGEX,
   TEAM_CODE_ERROR_MESSAGE,
   TEAM_NAME_MAX_LENGTH,
   TEAM_NAME_ERROR_MESSAGE,
   TEAM_NAME_CHARACTER_ERROR_MESSAGE,
+  isValidTeamCode,
   isValidTeamName,
 } from '@/shared/config/team-constants';
 import type { RegularDayValue } from '@/shared/config/team-constants';
@@ -171,7 +171,7 @@ export function TeamCreateForm() {
       return;
     }
 
-    if (!TEAM_CODE_REGEX.test(value)) {
+    if (!isValidTeamCode(value)) {
       setCodeStatus('invalid');
       return;
     }
@@ -363,7 +363,7 @@ export function TeamCreateForm() {
       }
 
       const input: CreateTeamInput = {
-        code: data.code,
+        code: data.code.trim(),
         name: data.name.trim(),
         logoUrl,
         regionDepth1: region.depth1 || undefined,

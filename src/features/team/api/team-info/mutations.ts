@@ -67,16 +67,20 @@ export function useUpdateTeam() {
     }: {
       teamId: string;
       input: UpdateTeamInput;
+      previousCode?: string | null;
     }): Promise<TeamInfoDTO> => {
       const supabase = getSupabaseBrowserClient();
       const service = createTeamService(supabase);
       const row = await service.updateTeam(teamId, input);
       return toTeamInfoDTO(teamRowToEntity(row), { homeGymName: row.gyms?.name ?? null });
     },
-    onSuccess: (data) => {
+    onSuccess: (data, { previousCode }) => {
       queryClient.setQueryData(teamKeys.detail(data.id), data);
       if (data.code) {
         queryClient.setQueryData(teamKeys.detailByCode(data.code), data);
+      }
+      if (previousCode && previousCode !== data.code) {
+        queryClient.removeQueries({ queryKey: teamKeys.detailByCode(previousCode), exact: true });
       }
       // 팀 목록 갱신
       queryClient.invalidateQueries({ queryKey: teamKeys.lists() });

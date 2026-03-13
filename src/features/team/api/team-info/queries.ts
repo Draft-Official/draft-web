@@ -80,12 +80,12 @@ export function useCheckTeamCode(code: string | null | undefined) {
   return useQuery({
     queryKey: teamKeys.codeCheck(code || ''),
     queryFn: async (): Promise<boolean> => {
-      if (!code || code.length < 3) return false;
+      if (!code) return false;
       const supabase = getSupabaseBrowserClient();
       const service = createTeamService(supabase);
       return service.checkTeamCodeExists(code);
     },
-    enabled: !!code && code.length >= 3,
+    enabled: !!code,
     staleTime: 1000 * 10, // 10초 동안 캐시
   });
 }

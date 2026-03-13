@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 import { ArrowLeft, LogOut } from 'lucide-react';
 import { toast } from '@/shared/ui/shadcn/sonner';
 import { useSafeBack } from '@/shared/lib/hooks';
@@ -15,6 +16,7 @@ import { useMyMembership } from '@/features/team/api/membership/queries';
 import { useAuth } from '@/shared/session';
 import { getSupabaseBrowserClient } from '@/shared/api/supabase/client';
 import { createGymService, gymKeys, useGymById } from '@/entities/gym';
+import { createTeamService } from '@/entities/team';
 import { parseRegionFromAddress } from '@/shared/lib/parse-region';
 import type { LocationData } from '@/shared/types/location.types';
 import type { LocationSearchResolvedValue } from '@/shared/lib/hooks/use-location-search';
@@ -26,6 +28,7 @@ import {
   selectedAgesToAgeRange,
   TEAM_LOGO_BUCKET,
   applyTeamLogoFileSelection,
+  sanitizeTeamCode,
   uploadPendingTeamLogoWithState,
 } from '@/features/team/lib';
 import {
@@ -37,6 +40,10 @@ import {
 } from '../edit';
 import { TeamProfileEditScheduleSection } from './team-profile-edit/schedule-section';
 import { Spinner } from '@/shared/ui/shadcn/spinner';
+import {
+  TEAM_CODE_ERROR_MESSAGE,
+  isValidTeamCode,
+} from '@/shared/config/team-constants';
 
 interface TeamProfileEditViewProps {
   code: string;
@@ -44,6 +51,7 @@ interface TeamProfileEditViewProps {
 
 export function TeamProfileEditView({ code }: TeamProfileEditViewProps) {
   const queryClient = useQueryClient();
+  const router = useRouter();
   const { user } = useAuth();
   const handleBack = useSafeBack(`/team/${code}/settings`);
 
@@ -63,6 +71,8 @@ export function TeamProfileEditView({ code }: TeamProfileEditViewProps) {
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [logoUploadError, setLogoUploadError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCheckingCode, setIsCheckingCode] = useState(false);
+  const [codeStatus, setCodeStatus] = useState<'idle' | 'available' | 'taken' | 'invalid'>('idle');
   const submitLockRef = useRef(false);
   const [pendingLogoFile, setPendingLogoFile] = useState<File | null>(null);
   const [logoPreviewUrl, setLogoPreviewUrl] = useState<string>('');
@@ -70,6 +80,7 @@ export function TeamProfileEditView({ code }: TeamProfileEditViewProps) {
   const { register, handleSubmit, watch, setValue, reset, control, formState } =
     useForm<TeamProfileEditFormData>({
       defaultValues: {
+        code: '',
         name: '',
         logoId: '',
         regularDays: [],
@@ -86,6 +97,7 @@ export function TeamProfileEditView({ code }: TeamProfileEditViewProps) {
     if (!team) return;
 
     reset({
+      code: team.code ?? '',
       name: team.name,
       logoId: team.logoUrl ?? '',
       regularDays: team.regularDays ?? [],
@@ -104,6 +116,7 @@ export function TeamProfileEditView({ code }: TeamProfileEditViewProps) {
       return '';
     });
     setLogoUploadError(null);
+    setCodeStatus(team.code ? 'available' : 'idle');
   }, [team, reset]);
 
   useEffect(() => {
@@ -146,6 +159,7 @@ export function TeamProfileEditView({ code }: TeamProfileEditViewProps) {
   const gender = watch('gender');
   const levelMin = watch('levelMin');
   const levelMax = watch('levelMax');
+  const teamCode = watch('code') ?? '';
   const logoId = watch('logoId');
   const name = watch('name') ?? '';
 
@@ -192,6 +206,38 @@ export function TeamProfileEditView({ code }: TeamProfileEditViewProps) {
     }
   };
 
+  const validateCode = useCallback(
+    async (value: string) => {
+      if (!value) {
+        setCodeStatus('idle');
+        return;
+      }
+
+      if (!isValidTeamCode(value)) {
+        setCodeStatus('invalid');
+        return;
+      }
+
+      if (value === (team?.code ?? '')) {
+        setCodeStatus('available');
+        return;
+      }
+
+      setIsCheckingCode(true);
+      try {
+        const supabase = getSupabaseBrowserClient();
+        const teamService = createTeamService(supabase);
+        const exists = await teamService.checkTeamCodeExists(value);
+        setCodeStatus(exists ? 'taken' : 'available');
+      } catch {
+        setCodeStatus('idle');
+      } finally {
+        setIsCheckingCode(false);
+      }
+    },
+    [team?.code]
+  );
+
   const onSubmit = async (data: TeamProfileEditFormData) => {
     if (!team) return;
 
@@ -206,6 +252,25 @@ export function TeamProfileEditView({ code }: TeamProfileEditViewProps) {
       const validationError = validateTeamProfileEditForm(data, locationData);
       if (validationError) {
         toast.error(validationError);
+        return;
+      }
+      const rawCode = data.code.trim();
+      const isCodeChanged = rawCode !== (team.code ?? '');
+      const normalizedCode = sanitizeTeamCode(rawCode);
+      if (!rawCode) {
+        toast.error('팀 코드를 입력해주세요');
+        return;
+      }
+      if (isCodeChanged && codeStatus === 'invalid') {
+        toast.error(TEAM_CODE_ERROR_MESSAGE);
+        return;
+      }
+      if (isCodeChanged && codeStatus === 'taken') {
+        toast.error('이미 사용 중인 팀 코드입니다');
+        return;
+      }
+      if (isCodeChanged && codeStatus !== 'available') {
+        toast.error('팀 코드 확인이 필요합니다');
         return;
       }
       if (data.regularDays.length === 0) {
@@ -277,9 +342,11 @@ export function TeamProfileEditView({ code }: TeamProfileEditViewProps) {
       }
 
       try {
-        await updateTeamAsync({
+        const updatedTeam = await updateTeamAsync({
           teamId: team.id,
+          previousCode: team.code,
           input: {
+            code: isCodeChanged ? normalizedCode : undefined,
             name: data.name.trim(),
             logoUrl,
             regionDepth1: region.depth1 ?? null,
@@ -294,7 +361,10 @@ export function TeamProfileEditView({ code }: TeamProfileEditViewProps) {
           },
         });
         toast.success('팀 정보가 수정되었습니다');
-        leaveGuard.bypassNavigation(() => handleBack());
+        const nextCode = updatedTeam.code ?? team.id;
+        leaveGuard.bypassNavigation(() => {
+          router.replace(`/team/${nextCode}/settings`);
+        });
       } catch {
         if (uploadedLogoPath?.startsWith('teams/')) {
           const supabase = getSupabaseBrowserClient();
@@ -333,9 +403,13 @@ export function TeamProfileEditView({ code }: TeamProfileEditViewProps) {
 
       <form onSubmit={handleSubmit(onSubmit)} className="px-5 py-6 space-y-8">
         <TeamProfileEditBasicInfoSection
+          code={teamCode}
+          codeStatus={codeStatus}
           logoId={logoPreviewUrl || logoId}
           name={name}
+          isCheckingCode={isCheckingCode}
           register={register}
+          onCodeChange={validateCode}
           onLogoFileSelect={handleLogoFileSelect}
           isUploadingLogo={isUploadingLogo}
           logoUploadError={logoUploadError}
